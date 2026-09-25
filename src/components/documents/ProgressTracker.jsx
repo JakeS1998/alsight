@@ -53,9 +53,17 @@ export function ProgressTracker({ steps }) {
   );
 }
 
+// If the final (Execution) step is done, all prior steps are assumed done.
+function withExecutionRule(steps) {
+  if (steps.length && steps[steps.length - 1].state === "done") {
+    return steps.map((s) => ({ ...s, state: "done" }));
+  }
+  return steps;
+}
+
 // Helper: compute progress steps for a legal document
 export function getLegalDocSteps(doc) {
-  return [
+  return withExecutionRule([
     { label: "Drafted", state: doc.drafted_date ? "done" : "pending" },
     {
       label: "ALS Approval",
@@ -77,13 +85,13 @@ export function getLegalDocSteps(doc) {
       label: "Execution",
       state: doc.executed === "yes" || doc.date_of_execution ? "done" : doc.sent_to_client ? "active" : "pending",
     },
-  ];
+  ]);
 }
 
 // Helper: compute progress steps for a DMA
 export function getDMASteps(doc) {
   const psoDone = doc.pso_signoff === "yes";
-  return [
+  return withExecutionRule([
     { label: "PSO Checks", state: psoDone ? "done" : "active" },
     { label: "Drafted", state: doc.drafted_date ? "done" : "pending" },
     {
@@ -94,12 +102,12 @@ export function getDMASteps(doc) {
       label: "Execution",
       state: doc.executed === "yes" || doc.date_of_execution ? "done" : doc.sent_for_signing ? "active" : "pending",
     },
-  ];
+  ]);
 }
 
 // Helper: compute progress steps for a JCT
 export function getJCTSteps(doc) {
-  return [
+  return withExecutionRule([
     { label: "Governance", state: doc.contract_particulars === "yes" ? "done" : "active" },
     { label: "Drafting", state: doc.drafted_date ? "done" : "pending" },
     {
@@ -110,5 +118,5 @@ export function getJCTSteps(doc) {
       label: "Execution",
       state: doc.executed === "yes" || doc.date_of_execution ? "done" : doc.sent_for_signing ? "active" : "pending",
     },
-  ];
+  ]);
 }
