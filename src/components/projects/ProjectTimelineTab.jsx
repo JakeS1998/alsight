@@ -1,6 +1,5 @@
 import React, { useEffect, useState, useMemo } from "react";
 import { base44 } from "@/api/base44Client";
-import { formatDate } from "@/lib/portal";
 import {
   Building2, FileText, FileCheck, Gavel, ShieldCheck, Receipt, FileX, Calendar,
 } from "lucide-react";
@@ -76,6 +75,20 @@ function buildEvents(project, legalDocs, dmas, jcts, warranties, pos) {
   return ev.sort((a, b) => b.ts - a.ts); // newest first
 }
 
+function DateLabel({ date }) {
+  const d = new Date(date);
+  return (
+    <div className="text-right">
+      <p className="text-sm font-semibold leading-tight text-slate-900">
+        {d.toLocaleDateString("en-GB", { day: "numeric", month: "short" })}
+      </p>
+      <p className="text-[11px] leading-tight text-slate-400">
+        {d.toLocaleDateString("en-GB", { year: "numeric" })}
+      </p>
+    </div>
+  );
+}
+
 export function ProjectTimelineTab({ project, legalDocs, dmas, jcts, warranties }) {
   const [pos, setPos] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -135,28 +148,49 @@ export function ProjectTimelineTab({ project, legalDocs, dmas, jcts, warranties 
           <p className="mt-3 text-sm text-slate-500">No dated events for this project yet.</p>
         </div>
       ) : (
-        <div className="rounded-2xl border border-slate-200 bg-white">
-          <div className="divide-y divide-slate-100">
+        <div className="rounded-2xl border border-slate-200 bg-white p-6">
+          <div className="flex items-center gap-2 border-b border-slate-100 pb-3 mb-4">
+            <Calendar className="h-4 w-4 text-primary" />
+            <h3 className="text-sm font-semibold text-slate-900">Project Timeline</h3>
+            <span className="ml-auto text-xs text-slate-400">{events.length} events · newest first</span>
+          </div>
+
+          <div className="relative">
             {events.map((e, i) => {
               const cat = CATEGORIES[e.cat];
               const Icon = cat.icon;
+              const isLast = i === events.length - 1;
               return (
-                <div key={i} className="flex items-start gap-4 px-5 py-4">
-                  <div className="flex flex-col items-center">
-                    <div className={`flex h-9 w-9 items-center justify-center rounded-full text-white ${cat.dot}`}>
+                <div key={i} className="relative flex items-stretch gap-4 pb-5 last:pb-0">
+                  {/* Date column */}
+                  <div className="w-20 shrink-0 pt-2.5">
+                    <DateLabel date={e.date} />
+                  </div>
+
+                  {/* Node + connector column */}
+                  <div className="relative w-8 shrink-0 flex justify-center">
+                    {/* vertical connector line */}
+                    {!isLast && (
+                      <div className="absolute top-3 bottom-[-20px] w-0.5 bg-slate-200 left-1/2 -translate-x-1/2" />
+                    )}
+                    {/* node */}
+                    <div className={`relative z-10 mt-2 flex h-8 w-8 items-center justify-center rounded-full text-white ring-4 ring-white ${cat.dot}`}>
                       <Icon className="h-4 w-4" />
                     </div>
                   </div>
-                  <div className="min-w-0 flex-1">
-                    <div className="flex flex-wrap items-center justify-between gap-2">
-                      <p className="text-sm font-medium text-slate-900">{e.label}</p>
-                      <span className="text-xs text-slate-500">{formatDate(e.date)}</span>
-                    </div>
-                    <div className="mt-1 flex items-center gap-2">
-                      <span className={`inline-flex items-center rounded-full border px-2 py-0.5 text-[10px] font-medium ${cat.chip}`}>
-                        {cat.label}
-                      </span>
-                      {e.detail && <span className="truncate text-xs text-slate-500">{e.detail}</span>}
+
+                  {/* Content */}
+                  <div className="flex-1 min-w-0 pt-1.5">
+                    <div className="rounded-lg border border-slate-200 bg-slate-50/50 px-4 py-2.5">
+                      <div className="flex flex-wrap items-center justify-between gap-2">
+                        <p className="text-sm font-semibold text-slate-900">{e.label}</p>
+                        <span className={`inline-flex items-center rounded-full border px-2 py-0.5 text-[10px] font-medium ${cat.chip}`}>
+                          {cat.label}
+                        </span>
+                      </div>
+                      {e.detail && (
+                        <p className="mt-1 text-xs text-slate-500">{e.detail}</p>
+                      )}
                     </div>
                   </div>
                 </div>
