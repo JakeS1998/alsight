@@ -112,6 +112,12 @@ export default function Login() {
           )}
         </Button>
       </form>
+      <p className="mt-5 text-center text-sm text-muted-foreground">
+        Accepted an invitation?{" "}
+        <Link to={"/register" + (returnTo !== "/" ? "?returnTo=" + encodeURIComponent(returnTo) : "")} className="font-medium text-primary hover:underline">
+          Set up your account
+        </Link>
+      </p>
     </AuthLayout>
   );
 }
