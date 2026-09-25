@@ -25,6 +25,7 @@ export default function Projects() {
   const [projects, setProjects] = useState([]);
   const [accounts, setAccounts] = useState([]);
   const [users, setUsers] = useState([]);
+  const [contacts, setContacts] = useState([]);
   const [loading, setLoading] = useState(true);
   const [requestOpen, setRequestOpen] = useState(false);
 
@@ -38,14 +39,16 @@ export default function Projects() {
   const load = async () => {
     setLoading(true);
     try {
-      const [p, a, u] = await Promise.all([
+      const [p, a, u, c] = await Promise.all([
         base44.entities.Project.list("-created_date", 500),
         base44.entities.Account.list("-name", 500).catch(() => []),
         base44.entities.User.list("-created_date", 500).catch(() => []),
+        base44.entities.Contact.filter({ system_managed: true }, "-full_name", 2000).catch(() => []),
       ]);
       setProjects(p);
       setAccounts(a);
       setUsers(u);
+      setContacts(c);
     } finally {
       setLoading(false);
     }
@@ -59,21 +62,22 @@ export default function Projects() {
     return map;
   }, [accounts]);
 
-  const userMap = useMemo(() => {
+  const staffMap = useMemo(() => {
     const map = {};
-    users.forEach((u) => { map[u.id] = u.full_name || u.email; });
+    contacts.forEach((c) => { if (c.aad_id) map[c.aad_id] = c.full_name; });
+    users.forEach((u) => { if (!map[u.id]) map[u.id] = u.full_name || u.email; });
     return map;
-  }, [users]);
+  }, [contacts, users]);
 
   const bdmOptions = useMemo(() => {
     const ids = [...new Set(projects.map((p) => p.bdm_aad_id).filter(Boolean))];
-    return ids.map((id) => ({ value: id, label: userMap[id] || "Unknown" }));
-  }, [projects, userMap]);
+    return ids.map((id) => ({ value: id, label: staffMap[id] || "Unknown" }));
+  }, [projects, staffMap]);
 
   const bsmOptions = useMemo(() => {
     const ids = [...new Set(projects.map((p) => p.bsm_aad_id).filter(Boolean))];
-    return ids.map((id) => ({ value: id, label: userMap[id] || "Unknown" }));
-  }, [projects, userMap]);
+    return ids.map((id) => ({ value: id, label: staffMap[id] || "Unknown" }));
+  }, [projects, staffMap]);
 
   const regionOptions = useMemo(() => {
     const regions = [...new Set(
