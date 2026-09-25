@@ -62,28 +62,12 @@ export function InviteUserDialog({ open, onOpenChange, contact, accounts, existi
     setSubmitting(true);
     setError("");
     try {
-      if (existingUser) {
-        await base44.entities.User.update(existingUser.id, {
-          role,
-          account_id: accountId || null,
-          region: role === "regional_director" ? (region || null) : null,
-        });
-        await updateContact(existingUser.id);
-      } else {
-        await base44.users.inviteUser(contact.email, role);
-        let linkedId = "";
-        try {
-          const found = await base44.entities.User.filter({ email: contact.email });
-          if (found.length > 0) {
-            linkedId = found[0].id;
-            await base44.entities.User.update(found[0].id, {
-              account_id: accountId || null,
-              region: role === "regional_director" ? (region || null) : null,
-            });
-          }
-        } catch (_) { /* user may not exist until they accept */ }
-        await updateContact(linkedId);
-      }
+      await base44.entities.User.update(existingUser.id, {
+        role,
+        account_id: accountId || null,
+        region: role === "regional_director" ? (region || null) : null,
+      });
+      await updateContact(existingUser.id);
       setSuccess(true);
       onDone?.();
     } catch (e) {
@@ -108,24 +92,18 @@ export function InviteUserDialog({ open, onOpenChange, contact, accounts, existi
           <DialogDescription>
             {existingUser
               ? `Update the role and account for ${contact.full_name}.`
-              : `Invite ${contact.full_name} to the ALS Live portal.`}
+              : `Set up portal access for ${contact.full_name}.`}
           </DialogDescription>
         </DialogHeader>
 
         {success ? (
           <div className="flex flex-col items-center py-6 text-center">
             <CheckCircle2 className="h-10 w-10 text-emerald-500" />
-            <p className="mt-3 text-sm font-medium text-slate-900">
-              {existingUser ? "Access updated!" : "Invitation sent!"}
-            </p>
-            <p className="mt-1 text-xs text-slate-500">
-              {existingUser
-                ? "The user's role and account have been updated."
-                : `An email has been sent to ${contact.email} with login instructions.`}
-            </p>
+            <p className="mt-3 text-sm font-medium text-slate-900">Access updated!</p>
+            <p className="mt-1 text-xs text-slate-500">The user's role and account have been updated.</p>
             <Button variant="outline" className="mt-4" onClick={() => onOpenChange(false)}>Close</Button>
           </div>
-        ) : (
+        ) : existingUser ? (
           <form onSubmit={submit} className="space-y-4">
             <div className="rounded-lg bg-slate-50 p-3">
               <div className="flex items-center gap-2">
@@ -182,15 +160,28 @@ export function InviteUserDialog({ open, onOpenChange, contact, accounts, existi
               >
                 {submitting ? (
                   <Loader2 className="mr-1.5 h-4 w-4 animate-spin" />
-                ) : existingUser ? (
-                  <ShieldCheck className="mr-1.5 h-4 w-4" />
                 ) : (
-                  <Mail className="mr-1.5 h-4 w-4" />
+                  <ShieldCheck className="mr-1.5 h-4 w-4" />
                 )}
-                {existingUser ? "Update Access" : "Send Invitation"}
+                Update Access
               </Button>
             </DialogFooter>
           </form>
+        ) : (
+          <div className="space-y-4">
+            <div className="rounded-lg border border-amber-200 bg-amber-50 p-4 text-sm text-amber-800">
+              <p className="font-medium">Invite this person manually</p>
+              <p className="mt-1 text-xs">
+                Invitations are not sent automatically. Open the dashboard{" "}
+                <strong>App Users → Invite Users</strong> and invite{" "}
+                <span className="font-medium">{contact.email}</span>. Once they accept and appear
+                here, use <strong>Manage Access</strong> to assign their role, account, and region.
+              </p>
+            </div>
+            <div className="flex justify-end">
+              <Button variant="outline" onClick={() => onOpenChange(false)}>Close</Button>
+            </div>
+          </div>
         )}
       </DialogContent>
     </Dialog>
