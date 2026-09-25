@@ -1,11 +1,12 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
+import { base44 } from "@/api/base44Client";
 import { DOCUMENT_TYPE } from "@/lib/portal";
 import { LegalDocumentCard } from "@/components/documents/LegalDocumentCard";
 import { DMACard } from "@/components/documents/DMACard";
 import { JCTCard } from "@/components/documents/JCTCard";
 import {
   FileSearch, FileCheck, UserCheck, Gavel, FilePlus,
-  Check, Clock, ExternalLink,
+  Check, Clock, ExternalLink, AlertCircle,
 } from "lucide-react";
 
 // Lifecycle stages in the requested project order:
@@ -40,7 +41,7 @@ function docStatus(docs) {
   return "pending";
 }
 
-function PqCard({ project }) {
+function PqCard({ project, psoOutstanding }) {
   if (!project.link_to_project_questionnaire) return null;
   return (
     <a
@@ -52,7 +53,14 @@ function PqCard({ project }) {
       <div className="flex items-center gap-3 min-w-0">
         <FileSearch className="h-4 w-4 text-primary shrink-0" />
         <div className="min-w-0">
-          <p className="text-sm font-semibold text-slate-900">Project Questionnaire</p>
+          <div className="flex items-center gap-2">
+            <p className="text-sm font-semibold text-slate-900">Project Questionnaire</p>
+            {psoOutstanding && (
+              <span className="inline-flex items-center gap-1 rounded-full border border-amber-200 bg-amber-50 px-2 py-0.5 text-[10px] font-medium text-amber-700">
+                <AlertCircle className="h-3 w-3" /> PSO outstanding
+              </span>
+            )}
+          </div>
           <p className="text-xs text-slate-500">Open document in SharePoint</p>
         </div>
       </div>
@@ -62,6 +70,23 @@ function PqCard({ project }) {
 }
 
 export function ProjectDraftingTab({ project, legalDocs, dmas, jcts, accountMap }) {
+  const [psoStatus, setPsoStatus] = useState({ pq: false, aa: false, aa_variations: false, dma: false });
+
+  useEffect(() => {
+    (async () => {
+      const recs = await base44.entities.ProjectDelivery.filter({ project_id: project.id }, "-created_date", 5).catch(() => []);
+      const d = recs[0];
+      if (d) {
+        setPsoStatus({
+          pq: !!d.pso_pq_date,
+          aa: !!d.pso_aa_date,
+          aa_variations: !!d.pso_aa_variations_date,
+          dma: !!d.pso_dma_date,
+        });
+      }
+    })();
+  }, [project.id]);
+
   const docByType = {};
   legalDocs.forEach((d) => {
     if (!docByType[d.document_type]) docByType[d.document_type] = [];
@@ -120,7 +145,7 @@ export function ProjectDraftingTab({ project, legalDocs, dmas, jcts, accountMap 
 
               {stage.kind === "pq" ? (
                 project.link_to_project_questionnaire ? (
-                  <PqCard project={project} />
+                  <PqCard project={project} psoOutstanding={!psoStatus.pq} />
                 ) : (
                   <div className="rounded-xl border border-dashed border-slate-200 bg-slate-50/50 px-4 py-3">
                     <p className="text-xs text-slate-400">No project questionnaire linked yet.</p>
@@ -133,10 +158,14 @@ export function ProjectDraftingTab({ project, legalDocs, dmas, jcts, accountMap 
               ) : (
                 <div className="space-y-2">
                   {stage.kind === "legal" &&
-                    docs.map((doc) => (
-                      <LegalDocumentCard key={doc.id} doc={doc} accountName={accountMap[doc.account_id]?.name} />
-                    ))}
-                  {stage.kind === "dma" && docs.map((doc) => <DMACard key={doc.id} doc={doc} />)}
+                    docs.map((doc) => {
+                      const psoOutstanding = !!doc.drafted_date && (
+                        (doc.document_type === "access_agreement" && !psoStatus.aa) ||
+                        (doc.document_type === "additional_works" && !psoStatus.aa_variations)
+                      );
+                      return <LegalDocumentCard key={doc.id} doc={doc} accountName={accountMap[doc.account_id]?.name} psoOutstanding={psoOutstanding} />;
+                    })}
+                  {stage.kind === "dma" && docs.map((doc) => <DMACard key={doc.id} doc={doc} psoOutstanding={!!doc.drafted_date && !psoStatus.dma} />)}
                   {stage.kind === "jct" &&
                     docs.map((doc) => (
                       <JCTCard

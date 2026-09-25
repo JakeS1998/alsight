@@ -3,9 +3,9 @@ import { formatDate, DMA_PSO_ITEMS } from "@/lib/portal";
 import { ExecutedBadge } from "@/components/StatusBadge";
 import { ProgressTracker, getDMASteps } from "@/components/documents/ProgressTracker";
 import { ChecklistGrid, TriStateDisplay } from "@/components/documents/TriStateToggle";
-import { ChevronDown, ChevronRight, FileText, ExternalLink } from "lucide-react";
+import { ChevronDown, ChevronRight, FileText, ExternalLink, AlertCircle } from "lucide-react";
 
-export function DMACard({ doc }) {
+export function DMACard({ doc, psoOutstanding }) {
   const [open, setOpen] = useState(false);
   const steps = getDMASteps(doc);
 
@@ -21,7 +21,14 @@ export function DMACard({ doc }) {
               <span className="inline-block rounded bg-indigo-50 px-1.5 py-0.5 text-[10px] font-semibold text-indigo-600">DMA</span>
             </div>
           </div>
-          <ExecutedBadge status={doc.executed} />
+          <div className="flex items-center gap-2">
+            {psoOutstanding && (
+              <span className="inline-flex items-center gap-1 rounded-full border border-amber-200 bg-amber-50 px-2 py-0.5 text-[10px] font-medium text-amber-700">
+                <AlertCircle className="h-3 w-3" /> PSO outstanding
+              </span>
+            )}
+            <ExecutedBadge status={doc.executed} />
+          </div>
         </div>
       </button>
       {open && (

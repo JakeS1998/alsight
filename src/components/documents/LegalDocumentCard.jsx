@@ -2,9 +2,9 @@ import React, { useState } from "react";
 import { DOCUMENT_TYPE, formatDate } from "@/lib/portal";
 import { DocTypeBadge, ExecutedBadge } from "@/components/StatusBadge";
 import { ProgressTracker, getLegalDocSteps } from "@/components/documents/ProgressTracker";
-import { ChevronDown, ChevronRight, Download, ExternalLink, FileText } from "lucide-react";
+import { ChevronDown, ChevronRight, Download, ExternalLink, FileText, AlertCircle } from "lucide-react";
 
-export function LegalDocumentCard({ doc, accountName }) {
+export function LegalDocumentCard({ doc, accountName, psoOutstanding }) {
   const [open, setOpen] = useState(false);
   const steps = getLegalDocSteps(doc);
   const typeCfg = DOCUMENT_TYPE[doc.document_type] || { label: doc.document_type };
@@ -24,7 +24,14 @@ export function LegalDocumentCard({ doc, accountName }) {
               </div>
             </div>
           </div>
-          <ExecutedBadge status={doc.executed} />
+          <div className="flex items-center gap-2">
+            {psoOutstanding && (
+              <span className="inline-flex items-center gap-1 rounded-full border border-amber-200 bg-amber-50 px-2 py-0.5 text-[10px] font-medium text-amber-700">
+                <AlertCircle className="h-3 w-3" /> PSO outstanding
+              </span>
+            )}
+            <ExecutedBadge status={doc.executed} />
+          </div>
         </div>
       </button>
       {open && (

@@ -1,10 +1,18 @@
 import React, { useMemo } from "react";
-import { FormSection } from "@/components/forms/PowerForm";
-import { CheckCircle2, AlertTriangle, XCircle, Circle } from "lucide-react";
+import { FormSection, FormField, formInputClass } from "@/components/forms/PowerForm";
+import { Button } from "@/components/ui/button";
+import { CheckCircle2, AlertTriangle, XCircle, Loader2 } from "lucide-react";
 
 const APPT_TYPES = ["appointment_pm", "appointment_pd_cdm", "appointment_architect", "appointment_pd_br"];
 
-export function PreConstructionReadiness({ project, legalDocs, dmas, jcts, warranties, feeProposals }) {
+const GATEWAYS = [
+  { key: "pq", label: "Project Questionnaire (PQ)" },
+  { key: "aa", label: "Access Agreement (AA)" },
+  { key: "aa_variations", label: "AA Variations" },
+  { key: "dma", label: "DMA" },
+];
+
+export function PreConstructionReadiness({ project, legalDocs, dmas, jcts, warranties, feeProposals, delivery, setField, onSave, saving }) {
   const items = useMemo(() => {
     const aa = legalDocs.find((d) => d.document_type === "access_agreement");
     const appts = legalDocs.filter((d) => APPT_TYPES.includes(d.document_type));
@@ -33,7 +41,7 @@ export function PreConstructionReadiness({ project, legalDocs, dmas, jcts, warra
 
   return (
     <FormSection title="3 · Pre-Construction" description="Consolidated readiness view pulled from your existing legal, finance and delivery records">
-      <div className="space-y-4">
+      <div className="space-y-5">
         <div className="flex items-center gap-4">
           <div className="relative h-16 w-16 shrink-0">
             <svg className="h-16 w-16 -rotate-90" viewBox="0 0 36 36">
@@ -50,6 +58,44 @@ export function PreConstructionReadiness({ project, legalDocs, dmas, jcts, warra
 
         <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
           {items.map((it) => <ReadinessItem key={it.label} {...it} />)}
+        </div>
+
+        {/* PSO sign-off gateways */}
+        <div className="rounded-xl border border-slate-200 bg-white p-4">
+          <div className="mb-3 flex items-center justify-between">
+            <div>
+              <h4 className="text-sm font-semibold text-slate-900">PSO Sign-off Gateways</h4>
+              <p className="text-xs text-slate-500">Record PSO approval at each ready-to-proceed gateway</p>
+            </div>
+            <Button type="button" size="sm" onClick={onSave} disabled={saving} className="bg-primary hover:bg-primary/90">
+              {saving && <Loader2 className="mr-1.5 h-4 w-4 animate-spin" />} Save PSO
+            </Button>
+          </div>
+          <div className="grid gap-3 sm:grid-cols-2">
+            {GATEWAYS.map((g) => {
+              const received = !!delivery[`pso_${g.key}_date`];
+              return (
+                <div key={g.key} className="rounded-lg border border-slate-200 p-3">
+                  <div className="mb-2 flex items-center justify-between">
+                    <p className="text-sm font-semibold text-slate-800">{g.label}</p>
+                    {received ? (
+                      <span className="inline-flex items-center gap-1 rounded-full border border-emerald-200 bg-emerald-50 px-2 py-0.5 text-[10px] font-medium text-emerald-700"><CheckCircle2 className="h-3 w-3" /> PSO received</span>
+                    ) : (
+                      <span className="inline-flex items-center gap-1 rounded-full border border-amber-200 bg-amber-50 px-2 py-0.5 text-[10px] font-medium text-amber-700"><AlertTriangle className="h-3 w-3" /> PSO outstanding</span>
+                    )}
+                  </div>
+                  <div className="grid grid-cols-2 gap-2">
+                    <FormField label="Approved by">
+                      <input value={delivery[`pso_${g.key}_approved_by`] || ""} onChange={(e) => setField(`pso_${g.key}_approved_by`, e.target.value)} className={formInputClass} />
+                    </FormField>
+                    <FormField label="Date">
+                      <input type="date" value={delivery[`pso_${g.key}_date`] ? String(delivery[`pso_${g.key}_date`]).slice(0, 10) : ""} onChange={(e) => setField(`pso_${g.key}_date`, e.target.value)} className={formInputClass} />
+                    </FormField>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
         </div>
       </div>
     </FormSection>

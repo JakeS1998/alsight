@@ -214,6 +214,34 @@
     "client_handover_notes": {
       "type": "string"
     },
+    "pso_pq_approved_by": {
+      "type": "string"
+    },
+    "pso_pq_date": {
+      "type": "string",
+      "format": "date"
+    },
+    "pso_aa_approved_by": {
+      "type": "string"
+    },
+    "pso_aa_date": {
+      "type": "string",
+      "format": "date"
+    },
+    "pso_aa_variations_approved_by": {
+      "type": "string"
+    },
+    "pso_aa_variations_date": {
+      "type": "string",
+      "format": "date"
+    },
+    "pso_dma_approved_by": {
+      "type": "string"
+    },
+    "pso_dma_date": {
+      "type": "string",
+      "format": "date"
+    },
     "lessons_learned": {
       "type": "string"
     }
