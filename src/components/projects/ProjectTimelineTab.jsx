@@ -1,0 +1,172 @@
+import React, { useEffect, useState, useMemo } from "react";
+import { base44 } from "@/api/base44Client";
+import { formatDate } from "@/lib/portal";
+import {
+  Building2, FileText, FileCheck, Gavel, ShieldCheck, Receipt, FileX, Calendar,
+} from "lucide-react";
+
+const CATEGORIES = {
+  project: { label: "Project", icon: Building2, dot: "bg-blue-500", chip: "bg-blue-50 text-blue-700 border-blue-200" },
+  legal: { label: "Legal Document", icon: FileText, dot: "bg-indigo-500", chip: "bg-indigo-50 text-indigo-700 border-indigo-200" },
+  dma: { label: "DMA", icon: FileCheck, dot: "bg-violet-500", chip: "bg-violet-50 text-violet-700 border-violet-200" },
+  jct: { label: "JCT", icon: Gavel, dot: "bg-purple-500", chip: "bg-purple-50 text-purple-700 border-purple-200" },
+  warranty: { label: "Warranty", icon: ShieldCheck, dot: "bg-teal-500", chip: "bg-teal-50 text-teal-700 border-teal-200" },
+  po: { label: "Purchase Order", icon: Receipt, dot: "bg-amber-500", chip: "bg-amber-50 text-amber-700 border-amber-200" },
+};
+
+function buildEvents(project, legalDocs, dmas, jcts, warranties, pos) {
+  const ev = [];
+  const add = (date, label, cat, detail) => {
+    if (!date) return;
+    const d = new Date(date);
+    if (isNaN(d.getTime())) return;
+    ev.push({ ts: d.getTime(), date, label, cat, detail });
+  };
+
+  add(project.pq_approval_date, "Project Questionnaire approved", "project");
+  add(project.aa_executed_date, "Access Agreement executed", "project");
+  add(project.ie_commencement_date, "Insights & Engagement commenced", "project");
+  add(project.practical_completion_date, "Practical completion", "project");
+  add(project.riba1_end, "RIBA Stage 1 complete", "project");
+  add(project.riba2_end, "RIBA Stage 2 complete", "project");
+  add(project.riba3_end, "RIBA Stage 3 complete", "project");
+  add(project.riba4_end, "RIBA Stage 4 complete", "project");
+
+  legalDocs.forEach((d) => {
+    const id = d.document_id || "Document";
+    add(d.drafted_date, `${id} drafted`, "legal");
+    add(d.approval_date, `${id} approved`, "legal", d.approval_status);
+    add(d.sent_to_client, `${id} sent to client`, "legal");
+    add(d.date_of_execution, `${id} executed`, "legal");
+  });
+
+  dmas.forEach((d) => {
+    const id = d.document_id || "DMA";
+    add(d.drafted_date, `${id} drafted`, "dma");
+    add(d.approval_date, `${id} approved`, "dma", d.approval_status);
+    add(d.sent_for_signing, `${id} sent for signing`, "dma");
+    add(d.date_of_execution, `${id} executed`, "dma");
+  });
+
+  jcts.forEach((d) => {
+    const id = d.document_id || "JCT";
+    add(d.drafted_date, `${id} drafted`, "jct");
+    add(d.sent_for_signing, `${id} sent for signing`, "jct");
+    add(d.date_of_execution, `${id} executed`, "jct");
+    add(d.practical_completion, `${id} practical completion`, "jct");
+    add(d.loi_expiry_date, `${id} LOI expires`, "jct");
+  });
+
+  warranties.forEach((d) => {
+    const id = d.warranty_id || "Warranty";
+    add(d.drafted_date, `${id} drafted`, "warranty");
+    add(d.jct_signed, `${id} JCT signed`, "warranty");
+    add(d.date_of_execution, `${id} executed`, "warranty");
+    add(d.practical_completion, `${id} practical completion`, "warranty");
+    add(d.warranty_due, `${id} warranty due`, "warranty");
+    add(d.reminder_date, `${id} reminder`, "warranty");
+  });
+
+  pos.forEach((p) => {
+    const id = p.po_number || "PO";
+    add(p.approval_date, `${id} approved`, "po", p.supplier_company_number);
+    add(p.sent_date, `${id} sent`, "po", p.supplier_company_number);
+  });
+
+  return ev.sort((a, b) => b.ts - a.ts); // newest first
+}
+
+export function ProjectTimelineTab({ project, legalDocs, dmas, jcts, warranties }) {
+  const [pos, setPos] = useState([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    (async () => {
+      try {
+        if (!project.project_number) return;
+        const data = await base44.entities.PurchaseOrder
+          .filter({ project_ref: project.project_number }, "-created_date", 1000)
+          .catch(() => []);
+        setPos(data);
+      } finally {
+        setLoading(false);
+      }
+    })();
+  }, [project.id]);
+
+  const events = useMemo(
+    () => buildEvents(project, legalDocs, dmas, jcts, warranties, pos),
+    [project, legalDocs, dmas, jcts, warranties, pos]
+  );
+
+  if (loading) {
+    return (
+      <div className="flex justify-center py-16">
+        <div className="h-8 w-8 animate-spin rounded-full border-4 border-slate-200 border-t-primary" />
+      </div>
+    );
+  }
+
+  return (
+    <div className="space-y-6">
+      {/* Category legend */}
+      <div className="flex flex-wrap gap-2">
+        {Object.entries(CATEGORIES).map(([key, c]) => (
+          <span key={key} className="inline-flex items-center gap-1.5 rounded-full border border-slate-200 bg-white px-2.5 py-1 text-xs text-slate-600">
+            <span className={`h-2 w-2 rounded-full ${c.dot}`} />
+            {c.label}
+          </span>
+        ))}
+      </div>
+
+      {/* Invoice placeholder */}
+      <div className="flex items-center gap-3 rounded-xl border border-dashed border-slate-300 bg-slate-50/60 px-4 py-3">
+        <FileX className="h-5 w-5 text-slate-400" />
+        <div>
+          <p className="text-sm font-medium text-slate-600">Invoices</p>
+          <p className="text-xs text-slate-400">Invoice tracking will appear here once invoice data is connected.</p>
+        </div>
+      </div>
+
+      {/* Chronological timeline */}
+      {events.length === 0 ? (
+        <div className="rounded-xl border border-dashed border-slate-300 bg-white py-12 text-center">
+          <Calendar className="mx-auto h-8 w-8 text-slate-300" />
+          <p className="mt-3 text-sm text-slate-500">No dated events for this project yet.</p>
+        </div>
+      ) : (
+        <div className="rounded-2xl border border-slate-200 bg-white">
+          <div className="divide-y divide-slate-100">
+            {events.map((e, i) => {
+              const cat = CATEGORIES[e.cat];
+              const Icon = cat.icon;
+              return (
+                <div key={i} className="flex items-start gap-4 px-5 py-4">
+                  <div className="flex flex-col items-center">
+                    <div className={`flex h-9 w-9 items-center justify-center rounded-full text-white ${cat.dot}`}>
+                      <Icon className="h-4 w-4" />
+                    </div>
+                  </div>
+                  <div className="min-w-0 flex-1">
+                    <div className="flex flex-wrap items-center justify-between gap-2">
+                      <p className="text-sm font-medium text-slate-900">{e.label}</p>
+                      <span className="text-xs text-slate-500">{formatDate(e.date)}</span>
+                    </div>
+                    <div className="mt-1 flex items-center gap-2">
+                      <span className={`inline-flex items-center rounded-full border px-2 py-0.5 text-[10px] font-medium ${cat.chip}`}>
+                        {cat.label}
+                      </span>
+                      {e.detail && <span className="truncate text-xs text-slate-500">{e.detail}</span>}
+                    </div>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
+export default ProjectTimelineTab;

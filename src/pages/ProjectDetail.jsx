@@ -6,7 +6,8 @@ import { ProjectGeneralTab } from "@/components/projects/ProjectGeneralTab";
 import { ProjectDraftingTab } from "@/components/projects/ProjectDraftingTab";
 import { ProjectWarrantiesTab } from "@/components/projects/ProjectWarrantiesTab";
 import { ProjectFinanceTab } from "@/components/projects/ProjectFinanceTab";
-import { ArrowLeft, FileText, ShieldCheck, LayoutDashboard, Receipt } from "lucide-react";
+import { ProjectTimelineTab } from "@/components/projects/ProjectTimelineTab";
+import { ArrowLeft, FileText, ShieldCheck, LayoutDashboard, Receipt, Calendar } from "lucide-react";
 
 export default function ProjectDetail() {
   const { projectId } = useParams();
@@ -86,15 +87,19 @@ export default function ProjectDetail() {
         {project.description && <p className="mt-1 text-sm text-slate-500">{project.description}</p>}
       </div>
 
-      <Tabs defaultValue={(() => { const t = new URLSearchParams(window.location.search).get("tab"); return ["general", "drafting", "warranties", "finance"].includes(t) ? t : "general"; })()}>
+      <Tabs defaultValue={(() => { const t = new URLSearchParams(window.location.search).get("tab"); return ["general", "timeline", "drafting", "warranties", "finance"].includes(t) ? t : "general"; })()}>
       <TabsList>
         <TabsTrigger value="general"><LayoutDashboard className="mr-1.5 h-4 w-4" /> General</TabsTrigger>
+        <TabsTrigger value="timeline"><Calendar className="mr-1.5 h-4 w-4" /> Timeline</TabsTrigger>
         <TabsTrigger value="drafting"><FileText className="mr-1.5 h-4 w-4" /> Drafting List</TabsTrigger>
         <TabsTrigger value="warranties"><ShieldCheck className="mr-1.5 h-4 w-4" /> Warranties</TabsTrigger>
         <TabsTrigger value="finance"><Receipt className="mr-1.5 h-4 w-4" /> Finance</TabsTrigger>
       </TabsList>
         <TabsContent value="general" className="mt-6">
           <ProjectGeneralTab project={project} accountMap={accountMap} />
+        </TabsContent>
+        <TabsContent value="timeline" className="mt-6">
+          <ProjectTimelineTab project={project} legalDocs={legalDocs} dmas={dmas} jcts={jcts} warranties={warranties} />
         </TabsContent>
         <TabsContent value="drafting" className="mt-6">
           <ProjectDraftingTab project={project} legalDocs={legalDocs} dmas={dmas} jcts={jcts} accountMap={accountMap} />
