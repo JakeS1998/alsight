@@ -40,6 +40,11 @@ export default function Projects() {
   const load = async () => {
     setLoading(true);
     try {
+      if (role === 'project_manager') {
+        const response = await base44.functions.invoke('manageValuation', { action: 'projects' });
+        setProjects(response.data.projects || []);
+        return;
+      }
       const [p, a, u, staffContacts] = await Promise.all([
         listAll(base44.entities.Project),
         listAll(base44.entities.Account, "-name").catch(() => []),
@@ -212,7 +217,7 @@ export default function Projects() {
                   <ArrowRight className="h-4 w-4 text-slate-300 transition-colors group-hover:text-primary" />
                 </div>
                 <dl className="mt-3 flex-1 space-y-1.5 text-xs text-slate-500">
-                  <div className="flex items-center gap-1.5"><Building2 className="h-3.5 w-3.5" /> {client?.name || "—"}</div>
+                  <div className="flex items-center gap-1.5"><Building2 className="h-3.5 w-3.5" /> {client?.name || p.client_name || "—"}</div>
                   <div className="flex items-center gap-1.5"><PoundSterling className="h-3.5 w-3.5" /> {formatCurrency(p.estimated_value)}</div>
                   <div className="flex items-center gap-1.5"><MapPin className="h-3.5 w-3.5" /> {p.site_postcode || "—"}</div>
                   <div className="flex items-center gap-1.5"><Calendar className="h-3.5 w-3.5" /> {formatDate(p.practical_completion_date)}</div>

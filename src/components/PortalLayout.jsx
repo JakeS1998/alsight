@@ -10,12 +10,12 @@ import { INTERNAL_ROLES } from "@/lib/portal";
 const ALL_ROLES = ["admin", "director", "regional_director", "bsm", "finance", "bdm", "client", "supplier", "project_manager"];
 
 const NAV_ITEMS = [
-  { label: "Dashboard", path: "/", icon: LayoutDashboard, roles: ALL_ROLES },
+  { label: "Dashboard", path: "/", icon: LayoutDashboard, roles: INTERNAL_ROLES.concat(['client', 'supplier']) },
   { label: "Projects", path: "/projects", icon: FolderKanban, roles: ALL_ROLES },
   { label: "Analytics", path: "/analytics", icon: BarChart3, roles: INTERNAL_ROLES },
   { label: "Delegation", path: "/delegation", icon: UserCog, roles: INTERNAL_ROLES },
   { label: "My Account", path: "/account", icon: UserCircle, roles: ["client", "supplier"] },
-  { label: "Accounts", path: "/accounts", icon: Building2, roles: ALL_ROLES },
+  { label: "Accounts", path: "/accounts", icon: Building2, roles: INTERNAL_ROLES.concat(['client', 'supplier']) },
   { label: "Contacts", path: "/contacts", icon: Users, roles: ["admin"] },
 ];
 

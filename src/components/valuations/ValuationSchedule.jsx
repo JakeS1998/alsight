@@ -1,0 +1,21 @@
+import React from 'react';
+import { formatCurrency } from '@/lib/portal';
+import { valuationTotals } from './valuationUtils';
+
+const columns = [['description','Description'],['contract_value','Contract Value'],['variations','Approved Variations'],['previous','Previous Valuation'],['completed','Work This Period'],['materials','Materials on Site']];
+const empty = () => ({ description: '', contract_value: 0, variations: 0, previous: 0, completed: 0, materials: 0 });
+export default function ValuationSchedule({ value, onChange, editable, previousCertified }) {
+  const items = value.items || [];
+  const totals = valuationTotals(value, previousCertified);
+  const inputClass = 'w-full min-w-20 rounded-md border border-border bg-card px-2 py-1.5 text-sm';
+  return <section className="rounded-2xl border border-border bg-card p-5"><h3 className="font-heading font-semibold text-als-navy">Valuation schedule</h3>
+    <div className="mt-4 overflow-x-auto"><table className="w-full min-w-[1200px] text-left text-xs"><thead><tr className="border-b border-border text-muted-foreground">{['#',...columns.map(c => c[1]),'Revised Value','Completed to Date','Complete','Remaining',''].map(h => <th key={h} className="px-2 py-2">{h}</th>)}</tr></thead><tbody>{items.map((item,index) => {
+      const revised = Number(item.contract_value || 0) + Number(item.variations || 0);
+      const completed = Number(item.previous || 0) + Number(item.completed || 0) + Number(item.materials || 0);
+      const over = completed > revised;
+      return <tr key={index} className={`border-b border-border ${over ? 'bg-orange-50' : ''}`}><td className="px-2">{index + 1}</td>{columns.map(([key]) => <td key={key} className="px-2 py-2">{editable ? <input className={inputClass} type={key === 'description' ? 'text' : 'number'} step={key === 'description' ? undefined : '0.01'} min={key === 'description' ? undefined : '0'} value={item[key] ?? ''} onChange={e => onChange({ ...value, items: items.map((it,i) => i === index ? { ...it, [key]: key === 'description' ? e.target.value : e.target.value } : it) })} aria-label={`${key} item ${index + 1}`} /> : key === 'description' ? item[key] : formatCurrency(item[key])}</td>)}<td className="px-2 font-medium">{formatCurrency(revised)}</td><td className="px-2 font-medium">{formatCurrency(completed)}{over && <p className="text-orange-700">Exceeds revised value</p>}</td><td className="px-2">{revised ? (completed / revised * 100).toFixed(1) : '0'}%</td><td className="px-2">{formatCurrency(revised - completed)}</td><td className="px-2">{editable && <button className="text-red-600" onClick={() => onChange({ ...value, items: items.filter((_,i) => i !== index) })}>Remove</button>}</td></tr>; })}</tbody></table></div>
+    {editable && <button type="button" className="mt-3 text-sm font-semibold text-als-navy-light" onClick={() => onChange({ ...value, items: [...items, empty()] })}>+ Add work item</button>}
+    {!items.length && <p className="mt-3 text-sm text-muted-foreground">No work items added yet.</p>}
+    <div className="mt-4 grid gap-3 border-t border-border pt-4 sm:grid-cols-2 lg:grid-cols-4">{[['Gross valuation',totals.gross],['Less previous certified',previousCertified],['Gross this valuation',totals.current],['Retention',totals.retention],['Other deductions',totals.deductions],['Amount due this valuation',totals.due]].map(([label,amount]) => <div key={label}><p className="text-xs text-muted-foreground">{label}</p><p className="text-lg font-semibold text-als-navy">{formatCurrency(amount)}</p></div>)}</div>
+  </section>;
+}

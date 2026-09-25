@@ -203,6 +203,7 @@ export function InviteUserDialog({ open, onOpenChange, contact, accounts, existi
               </FormField>
             )}
 
+            {role === 'project_manager' && !contact.dataverse_id && <p className="text-sm text-red-600">This contact needs a linked project manager record before portal access can be assigned.</p>}
             {error && <p className="text-sm text-red-600">{error}</p>}
 
             <DialogFooter>
@@ -211,7 +212,7 @@ export function InviteUserDialog({ open, onOpenChange, contact, accounts, existi
               </Button>
               <Button
                 type="submit"
-                disabled={submitting || !email.trim()}
+                disabled={submitting || !email.trim() || (role === 'project_manager' && !contact.dataverse_id)}
                 className="bg-primary hover:bg-primary/90"
               >
                 {submitting ? (

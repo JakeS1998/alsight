@@ -181,74 +181,110 @@
   ],
   "rls": {
     "read": {
-      "$or": [
+      "$and": [
         {
-          "data.client_account_id": "{{user.data.account_id}}"
-        },
-        {
-          "data.account_id": "{{user.data.account_id}}"
-        },
-        {
-          "$and": [
+          "$or": [
+            {
+              "user_condition": {
+                "role": "admin"
+              }
+            },
+            {
+              "user_condition": {
+                "role": "director"
+              }
+            },
+            {
+              "user_condition": {
+                "role": "regional_director"
+              }
+            },
+            {
+              "user_condition": {
+                "role": "bsm"
+              }
+            },
+            {
+              "user_condition": {
+                "role": "finance"
+              }
+            },
+            {
+              "user_condition": {
+                "role": "bdm"
+              }
+            },
+            {
+              "user_condition": {
+                "role": "client"
+              }
+            },
             {
               "user_condition": {
                 "role": "supplier"
               }
-            },
-            {
-              "data.related_supplier_account_ids": "{{user.data.account_id}}"
             }
           ]
         },
         {
-          "$and": [
+          "$or": [
+            {
+              "data.client_account_id": "{{user.data.account_id}}"
+            },
+            {
+              "data.account_id": "{{user.data.account_id}}"
+            },
+            {
+              "$and": [
+                {
+                  "user_condition": {
+                    "role": "supplier"
+                  }
+                },
+                {
+                  "data.related_supplier_account_ids": "{{user.data.account_id}}"
+                }
+              ]
+            },
+            {
+              "data.bdm_aad_id": "{{user.id}}"
+            },
+            {
+              "data.bsm_aad_id": "{{user.id}}"
+            },
+            {
+              "data.bdm_aad_id": "{{user.data.delegate_of}}"
+            },
+            {
+              "data.bsm_aad_id": "{{user.data.delegate_of}}"
+            },
+            {
+              "data.department_id": "{{user.data.region}}"
+            },
+            {
+              "data.department_id": "{{user.data.delegate_region}}"
+            },
             {
               "user_condition": {
-                "role": "project_manager"
+                "role": "admin"
               }
             },
             {
-              "data.project_manager_id": "{{user.data.contact_dataverse_id}}"
+              "user_condition": {
+                "role": "director"
+              }
+            },
+            {
+              "user_condition": {
+                "role": "bsm"
+              }
+            },
+            {
+              "user_condition": {
+                "role": "finance"
+              }
             }
           ]
-        },
-        {
-          "data.bdm_aad_id": "{{user.id}}"
-        },
-        {
-          "data.bsm_aad_id": "{{user.id}}"
-        },
-        {
-          "data.bdm_aad_id": "{{user.data.delegate_of}}"
-        },
-        {
-          "data.bsm_aad_id": "{{user.data.delegate_of}}"
-        },
-        {
-          "data.department_id": "{{user.data.region}}"
-        },
-        {
-          "data.department_id": "{{user.data.delegate_region}}"
-        },
-        {
-          "user_condition": {
-            "role": "admin"
-          }
-        },
-        {
-          "user_condition": {
-            "role": "director"
-          }
-        },
-        {
-          "user_condition": {
-            "role": "bsm"
-          }
-        },
-        {
-          "user_condition": {
-            "role": "finance"
-          }
         }
       ]
     },

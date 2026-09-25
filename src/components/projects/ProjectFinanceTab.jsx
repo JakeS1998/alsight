@@ -4,6 +4,9 @@ import { listAll, filterAll } from "@/components/data/loadAll";
 import { formatCurrency, formatDate } from "@/lib/portal";
 import ProjectCashFlow, { useProjectCashFlow } from '@/components/projects/ProjectCashFlow';
 import InvoiceReceipts from '@/components/projects/InvoiceReceipts';
+import ValuationSnapshot from '@/components/valuations/ValuationSnapshot';
+import { useAuth } from '@/lib/AuthContext';
+import { INTERNAL_ROLES } from '@/lib/portal';
 import { Receipt, ChevronDown, ChevronRight, Building2, Layers, PoundSterling } from "lucide-react";
 
 function Spinner() {
@@ -28,6 +31,8 @@ function StatCard({ icon: Icon, label, value, sub }) {
 }
 
 export function ProjectFinanceTab({ project }) {
+  const { user } = useAuth();
+  const canSeeValuations = INTERNAL_ROLES.includes(user?.role);
   const [pos, setPos] = useState([]);
   const [lineItems, setLineItems] = useState([]);
   const [glCodes, setGlCodes] = useState([]);
@@ -111,6 +116,7 @@ export function ProjectFinanceTab({ project }) {
 
   if (!project.project_number) {
     return <div className="space-y-6">
+      {canSeeValuations && <ValuationSnapshot project={project} finance />}
       <ProjectCashFlow {...cashFlow} />
       <InvoiceReceipts invoices={cashFlow.invoices} loading={cashFlow.loading} error={cashFlow.error} />
       <div className="rounded-2xl border border-dashed border-slate-300 bg-white py-12 text-center">
@@ -122,6 +128,7 @@ export function ProjectFinanceTab({ project }) {
 
   if (pos.length === 0) {
     return <div className="space-y-6">
+      {canSeeValuations && <ValuationSnapshot project={project} finance />}
       <ProjectCashFlow {...cashFlow} />
       <InvoiceReceipts invoices={cashFlow.invoices} loading={cashFlow.loading} error={cashFlow.error} />
       <div className="rounded-2xl border border-dashed border-slate-300 bg-white py-12 text-center">
@@ -133,6 +140,7 @@ export function ProjectFinanceTab({ project }) {
 
   return (
     <div className="space-y-6">
+      {canSeeValuations && <ValuationSnapshot project={project} finance />}
       <ProjectCashFlow {...cashFlow} />
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
         <StatCard icon={Receipt} label="Purchase Orders" value={totals.poCount} sub={`${totals.liCount} line items`} />

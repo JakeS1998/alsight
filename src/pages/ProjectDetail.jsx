@@ -1,6 +1,9 @@
 import React, { useEffect, useState } from "react";
-import { useParams, Link } from "react-router-dom";
+import { useParams, Link, useLocation } from "react-router-dom";
 import { base44 } from "@/api/base44Client";
+import { useAuth } from "@/lib/AuthContext";
+import { INTERNAL_ROLES } from '@/lib/portal';
+import ProjectValuationsTab from "@/components/valuations/ProjectValuationsTab";
 import { listAll, filterAll } from "@/components/data/loadAll";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { ProjectGeneralTab } from "@/components/projects/ProjectGeneralTab";
@@ -9,10 +12,16 @@ import { ProjectWarrantiesTab } from "@/components/projects/ProjectWarrantiesTab
 import { ProjectFinanceTab } from "@/components/projects/ProjectFinanceTab";
 import { ProjectTimelineTab } from "@/components/projects/ProjectTimelineTab";
 import { ProjectDeliveryTab } from "@/components/delivery/ProjectDeliveryTab";
-import { ArrowLeft, FileText, ShieldCheck, LayoutDashboard, Receipt, Calendar, ClipboardList } from "lucide-react";
+import { ArrowLeft, FileText, ShieldCheck, LayoutDashboard, Receipt, Calendar, ClipboardList, ListChecks } from "lucide-react";
 
 export default function ProjectDetail() {
   const { projectId } = useParams();
+  const location = useLocation();
+  const { user } = useAuth();
+  const isExternalPM = user?.role === 'project_manager';
+  const canSeeValuations = isExternalPM || INTERNAL_ROLES.includes(user?.role);
+  const [activeTab, setActiveTab] = useState('general');
+  useEffect(() => { const tab = new URLSearchParams(location.search).get('tab'); setActiveTab(isExternalPM ? 'valuations' : (tab === 'valuations' && !canSeeValuations) ? 'general' : ['general','timeline','drafting','warranties','finance','delivery','valuations'].includes(tab) ? tab : 'general'); }, [location.search, isExternalPM, canSeeValuations]);
   const [project, setProject] = useState(null);
   const [legalDocs, setLegalDocs] = useState([]);
   const [dmas, setDmas] = useState([]);
@@ -24,8 +33,10 @@ export default function ProjectDetail() {
   useEffect(() => {
     (async () => {
       try {
-        const proj = await base44.entities.Project.get(projectId);
+        const proj = isExternalPM ? (await base44.functions.invoke('manageValuation', { action: 'project', projectId }).catch(() => ({ data: { project: null } }))).data.project : await base44.entities.Project.get(projectId).catch(() => null);
+        if (!proj) { setProject(null); return; }
         setProject(proj);
+        if (isExternalPM) return;
         const dvId = proj.dataverse_id;
 
         const [docs, dmasData, jctsData, warrs, accounts] = await Promise.all([
@@ -48,7 +59,7 @@ export default function ProjectDetail() {
         setLoading(false);
       }
     })();
-  }, [projectId]);
+  }, [projectId, isExternalPM]);
 
   if (loading) {
     return (
@@ -89,33 +100,35 @@ export default function ProjectDetail() {
         {project.description && <p className="mt-1 text-sm text-slate-500">{project.description}</p>}
       </div>
 
-      <Tabs defaultValue={(() => { const t = new URLSearchParams(window.location.search).get("tab"); return ["general", "timeline", "drafting", "warranties", "finance", "delivery"].includes(t) ? t : "general"; })()}>
-      <TabsList>
-        <TabsTrigger value="general"><LayoutDashboard className="mr-1.5 h-4 w-4" /> General</TabsTrigger>
-        <TabsTrigger value="timeline"><Calendar className="mr-1.5 h-4 w-4" /> Timeline</TabsTrigger>
-        <TabsTrigger value="drafting"><FileText className="mr-1.5 h-4 w-4" /> Documents</TabsTrigger>
-        <TabsTrigger value="warranties"><ShieldCheck className="mr-1.5 h-4 w-4" /> Warranties</TabsTrigger>
-        <TabsTrigger value="finance"><Receipt className="mr-1.5 h-4 w-4" /> Finance</TabsTrigger>
-        <TabsTrigger value="delivery"><ClipboardList className="mr-1.5 h-4 w-4" /> Delivery</TabsTrigger>
+      <Tabs value={activeTab} onValueChange={setActiveTab}>
+      <TabsList className="h-auto flex-wrap justify-start">
+        {!isExternalPM && <TabsTrigger value="general"><LayoutDashboard className="mr-1.5 h-4 w-4" /> General</TabsTrigger>}
+        {!isExternalPM && <TabsTrigger value="timeline"><Calendar className="mr-1.5 h-4 w-4" /> Timeline</TabsTrigger>}
+        {!isExternalPM && <TabsTrigger value="drafting"><FileText className="mr-1.5 h-4 w-4" /> Documents</TabsTrigger>}
+        {!isExternalPM && <TabsTrigger value="warranties"><ShieldCheck className="mr-1.5 h-4 w-4" /> Warranties</TabsTrigger>}
+        {!isExternalPM && <TabsTrigger value="finance"><Receipt className="mr-1.5 h-4 w-4" /> Finance</TabsTrigger>}
+        {!isExternalPM && <TabsTrigger value="delivery"><ClipboardList className="mr-1.5 h-4 w-4" /> Delivery</TabsTrigger>}
+        {canSeeValuations && <TabsTrigger value="valuations"><ListChecks className="mr-1.5 h-4 w-4" /> Valuations</TabsTrigger>}
       </TabsList>
-        <TabsContent value="general" className="mt-6">
+        {!isExternalPM && <TabsContent value="general" className="mt-6">
           <ProjectGeneralTab project={project} accountMap={accountMap} />
-        </TabsContent>
-        <TabsContent value="timeline" className="mt-6">
+        </TabsContent>}
+        {!isExternalPM && <TabsContent value="timeline" className="mt-6">
           <ProjectTimelineTab project={project} legalDocs={legalDocs} dmas={dmas} jcts={jcts} warranties={warranties} accountMap={accountMap} />
-        </TabsContent>
-        <TabsContent value="drafting" className="mt-6">
+        </TabsContent>}
+        {!isExternalPM && <TabsContent value="drafting" className="mt-6">
           <ProjectDraftingTab project={project} legalDocs={legalDocs} dmas={dmas} jcts={jcts} accountMap={accountMap} />
-        </TabsContent>
-        <TabsContent value="warranties" className="mt-6">
+        </TabsContent>}
+        {!isExternalPM && <TabsContent value="warranties" className="mt-6">
           <ProjectWarrantiesTab project={project} warranties={warranties} accountMap={accountMap} />
-        </TabsContent>
-        <TabsContent value="finance" className="mt-6">
+        </TabsContent>}
+        {!isExternalPM && <TabsContent value="finance" className="mt-6">
           <ProjectFinanceTab project={project} />
-        </TabsContent>
-        <TabsContent value="delivery" className="mt-6">
+        </TabsContent>}
+        {!isExternalPM && <TabsContent value="delivery" className="mt-6">
           <ProjectDeliveryTab project={project} legalDocs={legalDocs} dmas={dmas} jcts={jcts} warranties={warranties} accountMap={accountMap} />
-        </TabsContent>
+        </TabsContent>}
+        {canSeeValuations && <TabsContent value="valuations" className="mt-6"><ProjectValuationsTab project={project} /></TabsContent>}
       </Tabs>
     </div>
   );

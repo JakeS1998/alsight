@@ -1,5 +1,5 @@
 import React, { useEffect, useState, useMemo } from "react";
-import { Link } from "react-router-dom";
+import { Link, Navigate } from "react-router-dom";
 import { useAuth } from "@/lib/AuthContext";
 import { base44 } from "@/api/base44Client";
 import { listAll } from "@/components/data/loadAll";
@@ -73,6 +73,8 @@ export default function Home() {
     if (h < 18) return "Good afternoon";
     return "Good evening";
   };
+
+  if (role === 'project_manager') return <Navigate to="/projects" replace />;
 
   if (loading) {
     return (

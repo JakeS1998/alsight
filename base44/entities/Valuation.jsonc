@@ -158,47 +158,73 @@
   ],
   "rls": {
     "read": {
-      "$or": [
+      "$and": [
         {
-          "$and": [
+          "$or": [
             {
               "user_condition": {
-                "role": "project_manager"
+                "role": "admin"
               }
             },
             {
-              "data.project_manager_contact_id": "{{user.data.contact_dataverse_id}}"
+              "user_condition": {
+                "role": "director"
+              }
+            },
+            {
+              "user_condition": {
+                "role": "regional_director"
+              }
+            },
+            {
+              "user_condition": {
+                "role": "bsm"
+              }
+            },
+            {
+              "user_condition": {
+                "role": "finance"
+              }
+            },
+            {
+              "user_condition": {
+                "role": "bdm"
+              }
             }
           ]
         },
         {
-          "data.bdm_aad_id": "{{user.id}}"
-        },
-        {
-          "data.bsm_aad_id": "{{user.id}}"
-        },
-        {
-          "data.department_id": "{{user.data.region}}"
-        },
-        {
-          "user_condition": {
-            "role": "admin"
-          }
-        },
-        {
-          "user_condition": {
-            "role": "director"
-          }
-        },
-        {
-          "user_condition": {
-            "role": "bsm"
-          }
-        },
-        {
-          "user_condition": {
-            "role": "finance"
-          }
+          "$or": [
+            {
+              "data.bdm_aad_id": "{{user.id}}"
+            },
+            {
+              "data.bsm_aad_id": "{{user.id}}"
+            },
+            {
+              "data.department_id": "{{user.data.region}}"
+            },
+            {
+              "user_condition": {
+                "role": "admin"
+              }
+            },
+            {
+              "user_condition": {
+                "role": "director"
+              }
+            },
+            {
+              "user_condition": {
+                "role": "bsm"
+              }
+            },
+            {
+              "user_condition": {
+                "role": "finance"
+              }
+            }
+          ]
         }
       ]
     },

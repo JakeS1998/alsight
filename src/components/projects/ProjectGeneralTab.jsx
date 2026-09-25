@@ -3,7 +3,8 @@ import { Link } from "react-router-dom";
 import { useAuth } from "@/lib/AuthContext";
 import { base44 } from "@/api/base44Client";
 import { listAll } from "@/components/data/loadAll";
-import { formatDate, formatCurrency, regionName } from "@/lib/portal";
+import ValuationSnapshot from '@/components/valuations/ValuationSnapshot';
+import { formatDate, formatCurrency, regionName, INTERNAL_ROLES } from "@/lib/portal";
 import { Button } from "@/components/ui/button";
 import { Building2, MapPin, PoundSterling, Calendar, ExternalLink, UserCircle, Save, Loader2, Check } from "lucide-react";
 
@@ -103,6 +104,7 @@ export function ProjectGeneralTab({ project, accountMap }) {
 
   return (
     <div className="space-y-6">
+      {INTERNAL_ROLES.includes(role) && <ValuationSnapshot project={project} />}
       {/* Key info cards */}
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
         {client ? (

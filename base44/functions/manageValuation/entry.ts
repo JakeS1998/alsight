@@ -15,15 +15,34 @@ export default async function(req: Request): Promise<Response> {
     if (!user) return response('Sign in required', 401);
     const input = await req.json();
     const { action, projectId, valuationId } = input;
-    if (!projectId || typeof projectId !== 'string') return response('Project required');
-    const project = await base44.entities.Project.get(projectId).catch(() => null);
-    if (!project) return response('Project not available', 403);
     const contactId = user.contact_dataverse_id || user.data?.contact_dataverse_id;
-    const isManager = user.role === 'project_manager' && !!contactId && project.project_manager_id === contactId;
+    const external = user.role === 'project_manager' && !!contactId;
+    const publicProject = p => ({ id: p.id, name: p.name, project_number: p.project_number, project_manager_id: p.project_manager_id, client_name: p.client_name, site_postcode: p.site_postcode, live_project: p.live_project });
+    if (action === 'projects') {
+      if (!external) return response('Project manager access required', 403);
+      const projects = await base44.asServiceRole.entities.Project.filter({ project_manager_id: contactId }, '-created_date', 500);
+      return Response.json({ projects: projects.map(publicProject) });
+    }
+    if (!projectId || typeof projectId !== 'string') return response('Project required');
+    const project = external ? await base44.asServiceRole.entities.Project.get(projectId).catch(() => null) : await base44.entities.Project.get(projectId).catch(() => null);
+    const isManager = external && project?.project_manager_id === contactId;
+    if (!project || (external && !isManager)) return response('Project not available', 403);
     if (!isManager && !internal.includes(user.role)) return response('Not authorised for valuations', 403);
+    if (action === 'project') return Response.json({ project: publicProject(project) });
+    if (action === 'list') {
+      if (!isManager) return response('Project manager access required', 403);
+      const valuations = await base44.asServiceRole.entities.Valuation.filter({ project_id: projectId }, '-number', 500);
+      return Response.json({ valuations });
+    }
     const actor = user.full_name || user.email;
     const now = new Date().toISOString();
     const db = base44.asServiceRole.entities.Valuation;
+    if (action === 'meta') {
+      const delivery = await base44.asServiceRole.entities.ProjectDelivery.filter({ project_id: projectId }, '-created_date', 1);
+      const manager = project.project_manager_id ? await base44.asServiceRole.entities.Contact.filter({ dataverse_id: project.project_manager_id }, '-created_date', 1) : [];
+      const contractor = project.contractor_contact_id ? await base44.asServiceRole.entities.Contact.filter({ dataverse_id: project.contractor_contact_id }, '-created_date', 1) : [];
+      return Response.json({ meta: { contract_sum: delivery[0]?.contract_sum ?? null, contract_start: delivery[0]?.contract_start || null, manager_name: manager[0]?.full_name || '', contractor_name: contractor[0]?.full_name || '' } });
+    }
     const event = (kind, previous = '', next = '') => ({ kind, actor, actor_id: user.id, organisation: isManager ? 'External Project Manager' : 'Alliance Leisure', at: now, previous, next });
     if (action === 'create') {
       if (!isManager && user.role !== 'admin') return response('Only the assigned project manager can create a valuation', 403);
@@ -49,15 +68,15 @@ export default async function(req: Request): Promise<Response> {
       if (!Array.isArray(deductions) || deductions.length > 30) return response('Too many deductions');
       const cleanDeductions = deductions.map(d => ({ description: str(d.description, 120), amount: money(d.amount), notes: str(d.notes, 500) }));
       if (cleanDeductions.some(d => !d.description || !Number.isFinite(d.amount) || d.amount < 0)) return response('Each deduction needs a description and valid amount');
-      const retention = money(input.retention_percent);
+      const retention = user.role === 'admin' ? money(input.retention_percent) : money(record.retention_percent);
       if (!Number.isFinite(retention) || retention < 0 || retention > 100) return response('Retention must be between 0 and 100%');
-      changes = { period_start: date(input.period_start), period_end: date(input.period_end), valuation_date: date(input.valuation_date), payment_due_date: date(input.payment_due_date), notes: str(input.notes), items: cleanItems, deductions: cleanDeductions, retention_percent: retention };
+      changes = { ...(date(input.period_start) ? { period_start: date(input.period_start) } : {}), ...(date(input.period_end) ? { period_end: date(input.period_end) } : {}), ...(date(input.valuation_date) ? { valuation_date: date(input.valuation_date) } : {}), ...(date(input.payment_due_date) ? { payment_due_date: date(input.payment_due_date) } : {}), notes: str(input.notes), items: cleanItems, deductions: cleanDeductions, retention_percent: retention };
       if (changes.period_start && changes.period_end && changes.period_end < changes.period_start) return response('Period end must follow period start');
       audit.push(event('Draft updated', JSON.stringify({ period_start: record.period_start, period_end: record.period_end, items: record.items, deductions: record.deductions, retention_percent: record.retention_percent }), JSON.stringify(changes).slice(0, 5000)));
     } else if (action === 'submit') {
       if (!isManager && user.role !== 'admin') return response('Only the project manager can submit', 403);
       if (!['draft', 'returned'].includes(record.status)) return response('This valuation cannot be submitted');
-      if (!record.period_start || !record.period_end || !record.valuation_date || !(record.items || []).length) return response('Save the period, valuation date and at least one schedule item before submitting');
+      if (!record.period_start || !record.period_end || record.period_end < record.period_start || !record.valuation_date || !(record.items || []).length) return response('Save a valid period, valuation date and at least one schedule item before submitting');
       changes = { status: 'submitted', submitted_at: now, submitted_by: user.id, submitted_by_name: actor };
       audit.push(event(record.status === 'returned' ? 'Resubmitted' : 'Submitted', record.status, 'submitted'));
     } else if (action === 'review' || action === 'return' || action === 'reject' || action === 'approve') {
@@ -71,11 +90,11 @@ export default async function(req: Request): Promise<Response> {
       if (action === 'approve') {
         const gross = (record.items || []).reduce((sum, i) => sum + money(i.previous) + money(i.completed) + money(i.materials), 0);
         const previous = await db.filter({ project_id: projectId }, '-number', 500);
-        const priorCertified = previous.filter(v => v.id !== record.id && v.number < record.number && ['approved', 'paid'].includes(v.status)).reduce((sum, v) => sum + money(v.approved_gross), 0);
+        const priorCertified = Math.max(0, ...previous.filter(v => v.id !== record.id && v.number < record.number && ['approved', 'paid'].includes(v.status)).map(v => money(v.approved_gross)));
         const current = Math.max(0, money(gross - priorCertified));
-        const retention = input.approved_retention == null ? money(current * money(record.retention_percent) / 100) : money(input.approved_retention);
-        const deductions = input.approved_deductions == null ? money((record.deductions || []).reduce((sum, d) => sum + money(d.amount), 0)) : money(input.approved_deductions);
         const approvedGross = input.approved_gross == null ? money(gross) : money(input.approved_gross);
+        const retention = input.approved_retention == null ? money(Math.max(0, approvedGross - priorCertified) * money(record.retention_percent) / 100) : money(input.approved_retention);
+        const deductions = input.approved_deductions == null ? money((record.deductions || []).reduce((sum, d) => sum + money(d.amount), 0)) : money(input.approved_deductions);
         if ([retention, deductions, approvedGross].some(n => !Number.isFinite(n) || n < 0) || approvedGross > gross || retention + deductions > approvedGross - priorCertified) return response('Approved figures must be valid and cannot exceed the submitted valuation');
         changes = { status: 'approved', reviewer_name: actor, review_comments: comment, approved_at: now, approved_by: actor, approved_gross: approvedGross, approved_retention: retention, approved_deductions: deductions, approved_net: money(approvedGross - priorCertified - retention - deductions), payment_status: 'awaiting_invoice' };
       }
@@ -87,8 +106,8 @@ export default async function(req: Request): Promise<Response> {
       const amount = money(input.amount_paid);
       if (amount < 0 || !Number.isFinite(amount) || amount > money(record.approved_net)) return response('Amount paid must be within the approved net payment');
       if (input.payment_status === 'paid' && (!date(input.payment_date) || amount <= 0)) return response('Payment date and amount are required');
-      changes = { payment_status: input.payment_status, payment_due_date: date(input.payment_due_date), payment_reference: str(input.payment_reference, 120), invoice_number: str(input.invoice_number, 120), invoice_date: date(input.invoice_date), payment_date: date(input.payment_date), amount_paid: amount, payment_notes: str(input.payment_notes), status: input.payment_status === 'paid' ? 'paid' : 'approved' };
-      audit.push(event(input.payment_status === 'paid' ? 'Marked as paid' : 'Payment updated', JSON.stringify({ status: record.payment_status, amount: record.amount_paid }), JSON.stringify(changes).slice(0, 2000)));
+      changes = { payment_status: input.payment_status, ...(date(input.payment_due_date) ? { payment_due_date: date(input.payment_due_date) } : {}), payment_reference: str(input.payment_reference, 120), invoice_number: str(input.invoice_number, 120), ...(date(input.invoice_date) ? { invoice_date: date(input.invoice_date) } : {}), ...(date(input.payment_date) ? { payment_date: date(input.payment_date) } : {}), amount_paid: amount, payment_notes: str(input.payment_notes), status: input.payment_status === 'paid' ? 'paid' : 'approved' };
+      audit.push(event(input.payment_status === 'paid' ? 'Marked as paid' : 'Payment updated', JSON.stringify({ payment_status: record.payment_status, payment_due_date: record.payment_due_date, payment_reference: record.payment_reference, invoice_number: record.invoice_number, invoice_date: record.invoice_date, payment_date: record.payment_date, amount_paid: record.amount_paid, payment_notes: record.payment_notes }), JSON.stringify(changes).slice(0, 2000)));
     } else if (action === 'comment') {
       const text = str(input.text, 2000);
       if (!text) return response('Write a comment');
@@ -100,7 +119,7 @@ export default async function(req: Request): Promise<Response> {
     } else if (action === 'attachment') {
       if (!isManager && user.role !== 'admin') return response('Only the project manager can attach evidence', 403);
       if (!['draft', 'returned'].includes(record.status)) return response('Evidence is locked');
-      if (typeof input.file_uri !== 'string' || !input.file_uri.startsWith('base44://') || (record.attachments || []).length >= 30) return response('Invalid attachment');
+      if (typeof input.file_uri !== 'string' || !input.file_uri || input.file_uri.length > 500 || (record.attachments || []).length >= 30) return response('Invalid attachment');
       changes = { attachments: [...(record.attachments || []), { file_uri: input.file_uri, name: str(input.name, 150), type: str(input.type, 100), size: Math.max(0, Number(input.size) || 0), actor, at: now }] };
       audit.push(event('Document uploaded', '', str(input.name, 150)));
     } else return response('Unknown action');
