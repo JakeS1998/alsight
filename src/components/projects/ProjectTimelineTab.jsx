@@ -15,7 +15,7 @@ const CATEGORIES = {
   po: { label: "Purchase Order", icon: Receipt, dot: "bg-amber-500", chip: "bg-amber-50 text-amber-700 border-amber-200" },
 };
 
-function buildEvents(project, legalDocs, dmas, jcts, warranties, pos, accountMap) {
+function buildEvents(project, legalDocs, dmas, jcts, warranties, pos, accountMap, supplierOnly) {
   const ev = [];
   const add = (date, label, cat, detail) => {
     if (!date) return;
@@ -24,14 +24,16 @@ function buildEvents(project, legalDocs, dmas, jcts, warranties, pos, accountMap
     ev.push({ ts: d.getTime(), date, label, cat, detail });
   };
 
-  add(project.pq_approval_date, "Project Questionnaire approved", "project");
-  add(project.aa_executed_date, "Access Agreement executed", "project");
-  add(project.ie_commencement_date, "Insights & Engagement commenced", "project");
-  add(project.practical_completion_date, "Practical completion", "project");
-  add(project.riba1_end, "RIBA Stage 1 complete", "project");
-  add(project.riba2_end, "RIBA Stage 2 complete", "project");
-  add(project.riba3_end, "RIBA Stage 3 complete", "project");
-  add(project.riba4_end, "RIBA Stage 4 complete", "project");
+  if (!supplierOnly) {
+    add(project.pq_approval_date, "Project Questionnaire approved", "project");
+    add(project.aa_executed_date, "Access Agreement executed", "project");
+    add(project.ie_commencement_date, "Insights & Engagement commenced", "project");
+    add(project.practical_completion_date, "Practical completion", "project");
+    add(project.riba1_end, "RIBA Stage 1 complete", "project");
+    add(project.riba2_end, "RIBA Stage 2 complete", "project");
+    add(project.riba3_end, "RIBA Stage 3 complete", "project");
+    add(project.riba4_end, "RIBA Stage 4 complete", "project");
+  }
 
   legalDocs.forEach((d) => {
     const id = legalDocumentName(d, project.name, accountMap[d.account_id]?.name);
@@ -91,7 +93,8 @@ function DateLabel({ date }) {
   );
 }
 
-export function ProjectTimelineTab({ project, legalDocs, dmas, jcts, warranties, accountMap }) {
+export function ProjectTimelineTab({ project, legalDocs, dmas, jcts, warranties, accountMap, supplierOnly = false, supplierCompanyNumber }) {
+  const categories = supplierOnly ? Object.entries(CATEGORIES).filter(([key]) => ['legal', 'jct', 'warranty', 'po'].includes(key)) : Object.entries(CATEGORIES);
   const [pos, setPos] = useState([]);
   const [loading, setLoading] = useState(true);
   const [active, setActive] = useState(() => Object.keys(CATEGORIES));
@@ -100,19 +103,20 @@ export function ProjectTimelineTab({ project, legalDocs, dmas, jcts, warranties,
   useEffect(() => {
     (async () => {
       try {
-        if (!project.project_number) return;
-        const data = await filterAll(base44.entities.PurchaseOrder, { project_ref: project.project_number })
+        if (!project.project_number || (supplierOnly && !supplierCompanyNumber)) return;
+        const query = { project_ref: project.project_number, ...(supplierOnly ? { supplier_company_number: supplierCompanyNumber } : {}) };
+        const data = await filterAll(base44.entities.PurchaseOrder, query)
           .catch(() => []);
         setPos(data);
       } finally {
         setLoading(false);
       }
     })();
-  }, [project.id]);
+  }, [project.id, supplierOnly, supplierCompanyNumber]);
 
   const allEvents = useMemo(
-    () => buildEvents(project, legalDocs, dmas, jcts, warranties, pos, accountMap),
-    [project, legalDocs, dmas, jcts, warranties, pos, accountMap]
+    () => buildEvents(project, legalDocs, dmas, jcts, warranties, pos, accountMap, supplierOnly),
+    [project, legalDocs, dmas, jcts, warranties, pos, accountMap, supplierOnly]
   );
   const events = useMemo(
     () => allEvents.filter((e) => active.includes(e.cat)).sort((a, b) => sortOrder === "newest" ? b.ts - a.ts : a.ts - b.ts),
@@ -136,7 +140,7 @@ export function ProjectTimelineTab({ project, legalDocs, dmas, jcts, warranties,
     <div className="space-y-6">
       {/* Category filters */}
       <div className="flex flex-wrap gap-2">
-        {Object.entries(CATEGORIES).map(([key, c]) => {
+        {categories.map(([key, c]) => {
           const on = active.includes(key);
           return (
             <button
@@ -154,10 +158,10 @@ export function ProjectTimelineTab({ project, legalDocs, dmas, jcts, warranties,
             </button>
           );
         })}
-        {active.length !== Object.keys(CATEGORIES).length && (
+        {categories.some(([key]) => !active.includes(key)) && (
           <button
             type="button"
-            onClick={() => setActive(Object.keys(CATEGORIES))}
+            onClick={() => setActive(categories.map(([key]) => key))}
             className="inline-flex items-center rounded-full border border-slate-200 bg-white px-2.5 py-1 text-xs font-medium text-slate-500 hover:text-slate-900"
           >
             Show all
@@ -166,19 +170,19 @@ export function ProjectTimelineTab({ project, legalDocs, dmas, jcts, warranties,
       </div>
 
       {/* Invoice placeholder */}
-      <div className="flex items-center gap-3 rounded-xl border border-dashed border-slate-300 bg-slate-50/60 px-4 py-3">
+      {!supplierOnly && <div className="flex items-center gap-3 rounded-xl border border-dashed border-slate-300 bg-slate-50/60 px-4 py-3">
         <FileX className="h-5 w-5 text-slate-400" />
         <div>
           <p className="text-sm font-medium text-slate-600">Invoices</p>
           <p className="text-xs text-slate-400">Invoice tracking will appear here once invoice data is connected.</p>
         </div>
-      </div>
+      </div>}
 
       {/* Chronological timeline */}
       {events.length === 0 ? (
         <div className="rounded-xl border border-dashed border-slate-300 bg-white py-12 text-center">
           <Calendar className="mx-auto h-8 w-8 text-slate-300" />
-          <p className="mt-3 text-sm text-slate-500">No dated events for this project yet.</p>
+          <p className="mt-3 text-sm text-slate-500">{supplierOnly ? 'No dated events linked to your supplier account yet.' : 'No dated events for this project yet.'}</p>
         </div>
       ) : (
         <div className="rounded-2xl border border-slate-200 bg-white p-6">

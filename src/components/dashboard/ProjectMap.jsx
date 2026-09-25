@@ -12,7 +12,7 @@ const REGION_PALETTE = [
   "hsl(var(--chart-5))",
 ];
 
-export function ProjectMap({ projects }) {
+export function ProjectMap({ projects, showValues = true }) {
   const validProjects = projects.filter((p) => p.latitude && p.longitude);
 
   const { regionColors, legend } = useMemo(() => {
@@ -75,7 +75,7 @@ export function ProjectMap({ projects }) {
                   </div>
                   {p.project_number && <p className="text-xs text-slate-500">{p.project_number}</p>}
                   {region && <p className="mt-0.5 text-xs text-slate-600">{region}</p>}
-                  <p className="mt-1 text-xs text-slate-600">{formatCurrency(p.estimated_value)}</p>
+                  {showValues && <p className="mt-1 text-xs text-slate-600">{formatCurrency(p.estimated_value)}</p>}
                   <p className="text-xs text-slate-500">
                     Status: <span className={live ? "font-medium text-emerald-600" : "text-slate-400"}>
                       {live ? "Live" : "Inactive"}

@@ -19,9 +19,11 @@ export default function ProjectDetail() {
   const location = useLocation();
   const { user } = useAuth();
   const isExternalPM = user?.role === 'project_manager';
+  const isSupplier = user?.role === 'supplier';
+  const supplierAccountId = user?.account_id || user?.data?.account_id;
   const canSeeValuations = isExternalPM || INTERNAL_ROLES.includes(user?.role);
   const [activeTab, setActiveTab] = useState('general');
-  useEffect(() => { const tab = new URLSearchParams(location.search).get('tab'); setActiveTab(isExternalPM ? 'valuations' : (tab === 'valuations' && !canSeeValuations) ? 'general' : ['general','timeline','drafting','warranties','finance','delivery','valuations'].includes(tab) ? tab : 'general'); }, [location.search, isExternalPM, canSeeValuations]);
+  useEffect(() => { const tab = new URLSearchParams(location.search).get('tab'); setActiveTab(isExternalPM ? 'valuations' : isSupplier ? 'timeline' : (tab === 'valuations' && !canSeeValuations) ? 'general' : ['general','timeline','drafting','warranties','finance','delivery','valuations'].includes(tab) ? tab : 'general'); }, [location.search, isExternalPM, isSupplier, canSeeValuations]);
   const [project, setProject] = useState(null);
   const [legalDocs, setLegalDocs] = useState([]);
   const [dmas, setDmas] = useState([]);
@@ -40,10 +42,10 @@ export default function ProjectDetail() {
         const dvId = proj.dataverse_id;
 
         const [docs, dmasData, jctsData, warrs, accounts] = await Promise.all([
-          filterAll(base44.entities.LegalDocument, { project_id: dvId }).catch(() => []),
-          filterAll(base44.entities.DMA, { project_id: dvId }).catch(() => []),
-          filterAll(base44.entities.JCT, { project_id: dvId }).catch(() => []),
-          filterAll(base44.entities.Warranty, { project_id: dvId }).catch(() => []),
+          !isSupplier || supplierAccountId ? filterAll(base44.entities.LegalDocument, { project_id: dvId, ...(isSupplier ? { account_id: supplierAccountId } : {}) }).catch(() => []) : [],
+          isSupplier ? [] : filterAll(base44.entities.DMA, { project_id: dvId }).catch(() => []),
+          !isSupplier || supplierAccountId ? filterAll(base44.entities.JCT, { project_id: dvId, ...(isSupplier ? { $or: [{ account_id: supplierAccountId }, { contractor_id: supplierAccountId }] } : {}) }).catch(() => []) : [],
+          !isSupplier || supplierAccountId ? filterAll(base44.entities.Warranty, { project_id: dvId, ...(isSupplier ? { $or: [{ account_id: supplierAccountId }, { supplier_id: supplierAccountId }] } : {}) }).catch(() => []) : [],
           listAll(base44.entities.Account, "-name").catch(() => []),
         ]);
 
@@ -59,7 +61,7 @@ export default function ProjectDetail() {
         setLoading(false);
       }
     })();
-  }, [projectId, isExternalPM]);
+  }, [projectId, isExternalPM, isSupplier, supplierAccountId]);
 
   if (loading) {
     return (
@@ -97,35 +99,35 @@ export default function ProjectDetail() {
             <span className="rounded-full bg-primary/10 px-2.5 py-0.5 text-xs font-medium text-primary">UKLF</span>
           )}
         </div>
-        {project.description && <p className="mt-1 text-sm text-slate-500">{project.description}</p>}
+        {!isSupplier && project.description && <p className="mt-1 text-sm text-slate-500">{project.description}</p>}
       </div>
 
       <Tabs value={activeTab} onValueChange={setActiveTab}>
       <TabsList className="h-auto flex-wrap justify-start">
-        {!isExternalPM && <TabsTrigger value="general"><LayoutDashboard className="mr-1.5 h-4 w-4" /> General</TabsTrigger>}
+        {!isExternalPM && !isSupplier && <TabsTrigger value="general"><LayoutDashboard className="mr-1.5 h-4 w-4" /> General</TabsTrigger>}
         {!isExternalPM && <TabsTrigger value="timeline"><Calendar className="mr-1.5 h-4 w-4" /> Timeline</TabsTrigger>}
-        {!isExternalPM && <TabsTrigger value="drafting"><FileText className="mr-1.5 h-4 w-4" /> Documents</TabsTrigger>}
-        {!isExternalPM && <TabsTrigger value="warranties"><ShieldCheck className="mr-1.5 h-4 w-4" /> Warranties</TabsTrigger>}
-        {!isExternalPM && <TabsTrigger value="finance"><Receipt className="mr-1.5 h-4 w-4" /> Finance</TabsTrigger>}
-        {!isExternalPM && <TabsTrigger value="delivery"><ClipboardList className="mr-1.5 h-4 w-4" /> Delivery</TabsTrigger>}
+        {!isExternalPM && !isSupplier && <TabsTrigger value="drafting"><FileText className="mr-1.5 h-4 w-4" /> Documents</TabsTrigger>}
+        {!isExternalPM && !isSupplier && <TabsTrigger value="warranties"><ShieldCheck className="mr-1.5 h-4 w-4" /> Warranties</TabsTrigger>}
+        {!isExternalPM && !isSupplier && <TabsTrigger value="finance"><Receipt className="mr-1.5 h-4 w-4" /> Finance</TabsTrigger>}
+        {!isExternalPM && !isSupplier && <TabsTrigger value="delivery"><ClipboardList className="mr-1.5 h-4 w-4" /> Delivery</TabsTrigger>}
         {canSeeValuations && <TabsTrigger value="valuations"><ListChecks className="mr-1.5 h-4 w-4" /> Valuations</TabsTrigger>}
       </TabsList>
-        {!isExternalPM && <TabsContent value="general" className="mt-6">
+        {!isExternalPM && !isSupplier && <TabsContent value="general" className="mt-6">
           <ProjectGeneralTab project={project} accountMap={accountMap} />
         </TabsContent>}
         {!isExternalPM && <TabsContent value="timeline" className="mt-6">
-          <ProjectTimelineTab project={project} legalDocs={legalDocs} dmas={dmas} jcts={jcts} warranties={warranties} accountMap={accountMap} />
+          <ProjectTimelineTab project={project} legalDocs={isSupplier ? legalDocs.filter(d => supplierAccountId && d.account_id === supplierAccountId) : legalDocs} dmas={isSupplier ? [] : dmas} jcts={isSupplier ? jcts.filter(d => supplierAccountId && (d.account_id === supplierAccountId || d.contractor_id === supplierAccountId)) : jcts} warranties={isSupplier ? warranties.filter(d => supplierAccountId && (d.account_id === supplierAccountId || d.supplier_id === supplierAccountId)) : warranties} accountMap={accountMap} supplierOnly={isSupplier} supplierCompanyNumber={supplierAccountId ? accountMap[supplierAccountId]?.company_number : null} />
         </TabsContent>}
-        {!isExternalPM && <TabsContent value="drafting" className="mt-6">
+        {!isExternalPM && !isSupplier && <TabsContent value="drafting" className="mt-6">
           <ProjectDraftingTab project={project} legalDocs={legalDocs} dmas={dmas} jcts={jcts} accountMap={accountMap} />
         </TabsContent>}
-        {!isExternalPM && <TabsContent value="warranties" className="mt-6">
+        {!isExternalPM && !isSupplier && <TabsContent value="warranties" className="mt-6">
           <ProjectWarrantiesTab project={project} warranties={warranties} accountMap={accountMap} />
         </TabsContent>}
-        {!isExternalPM && <TabsContent value="finance" className="mt-6">
+        {!isExternalPM && !isSupplier && <TabsContent value="finance" className="mt-6">
           <ProjectFinanceTab project={project} />
         </TabsContent>}
-        {!isExternalPM && <TabsContent value="delivery" className="mt-6">
+        {!isExternalPM && !isSupplier && <TabsContent value="delivery" className="mt-6">
           <ProjectDeliveryTab project={project} legalDocs={legalDocs} dmas={dmas} jcts={jcts} warranties={warranties} accountMap={accountMap} />
         </TabsContent>}
         {canSeeValuations && <TabsContent value="valuations" className="mt-6"><ProjectValuationsTab project={project} /></TabsContent>}

@@ -103,14 +103,14 @@ export default function Home() {
 
       {extrasError && internal && <p className="rounded-lg border border-rose-200 bg-rose-50 p-3 text-sm text-rose-700">{extrasError}</p>}
       {internal && extrasLoading && <p className="text-sm text-slate-500">Loading portfolio data…</p>}
-      {internal && !extrasError && !extrasLoading ? <PortfolioSummary metrics={portfolio.metrics} /> : <DashboardKPIs projects={filteredProjects} />}
+      {internal && !extrasError && !extrasLoading ? <PortfolioSummary metrics={portfolio.metrics} /> : <DashboardKPIs projects={filteredProjects} hideValues={role === 'supplier'} />}
 
       {internal && !extrasError && !extrasLoading && <ProjectRiskTracker atRisk={portfolio.atRisk} compact />}
 
-      <div className="grid gap-6 lg:grid-cols-2">
+      {role !== 'supplier' && <div className="grid gap-6 lg:grid-cols-2">
         <PipelineChart projects={filteredProjects} />
         <RegionBreakdown projects={filteredProjects} accountMap={accountMap} />
-      </div>
+      </div>}
 
       <div className="rounded-2xl border border-slate-200 bg-white p-5">
         <div className="mb-4 flex items-center gap-2">
@@ -118,7 +118,7 @@ export default function Home() {
           <h2 className="font-heading text-base font-semibold text-slate-900">Project Map</h2>
           <span className="text-xs text-slate-400">Click a marker for details</span>
         </div>
-        <ProjectMap projects={filteredProjects} />
+        <ProjectMap projects={filteredProjects} showValues={role !== 'supplier'} />
       </div>
 
       <div className="rounded-2xl border border-slate-200 bg-white">
@@ -136,7 +136,7 @@ export default function Home() {
                   <p className="truncate text-sm font-medium text-slate-900">{p.name}</p>
                   <p className="truncate text-xs text-slate-500">{p.project_number || "—"}</p>
                 </div>
-                <span className="text-sm text-slate-600">{formatCurrency(p.estimated_value)}</span>
+                {role !== 'supplier' && <span className="text-sm text-slate-600">{formatCurrency(p.estimated_value)}</span>}
               </Link>
             ))
           )}

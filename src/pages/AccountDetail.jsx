@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { useParams, Link } from "react-router-dom";
 import { base44 } from "@/api/base44Client";
+import { useAuth } from "@/lib/AuthContext";
 import { listAll, filterAll } from "@/components/data/loadAll";
 import { formatDate, formatCurrency, regionName } from "@/lib/portal";
 import { DocTypeBadge, ExecutedBadge, WarrantyStatusBadge } from "@/components/StatusBadge";
@@ -8,6 +9,7 @@ import { ArrowLeft, MapPin, ExternalLink, Users, FolderKanban, FileText, ShieldC
 
 export default function AccountDetail() {
   const { accountId } = useParams();
+  const { user } = useAuth();
   const [account, setAccount] = useState(null);
   const [contacts, setContacts] = useState([]);
   const [projects, setProjects] = useState([]);
@@ -154,7 +156,7 @@ export default function AccountDetail() {
                   {p.live_project && <span className="rounded-full bg-emerald-50 px-2 py-0.5 text-[10px] font-medium text-emerald-700">Live</span>}
                 </div>
                 <p className="mt-1.5 text-sm font-semibold text-slate-900 group-hover:text-primary">{p.name}</p>
-                <p className="text-xs text-slate-500">{formatCurrency(p.estimated_value)}</p>
+                {user?.role !== 'supplier' && <p className="text-xs text-slate-500">{formatCurrency(p.estimated_value)}</p>}
               </Link>
             ))}
           </div>
@@ -181,10 +183,10 @@ export default function AccountDetail() {
                   return (
                     <tr key={d.id} className="hover:bg-slate-50">
                       <td className="px-4 py-3 text-sm font-medium text-slate-900">
-                        {proj ? <Link to={`/projects/${proj.id}?tab=drafting`} className="text-blue-600 hover:underline">{d.document_id}</Link> : d.document_id}
+                        {proj ? <Link to={`/projects/${proj.id}?tab=${user?.role === 'supplier' ? 'timeline' : 'drafting'}`} className="text-blue-600 hover:underline">{d.document_id}</Link> : d.document_id}
                       </td>
                       <td className="px-4 py-3 text-sm text-slate-600">
-                        {proj ? <Link to={`/projects/${proj.id}?tab=drafting`} className="text-blue-600 hover:underline">{proj.name}</Link> : "—"}
+                        {proj ? <Link to={`/projects/${proj.id}?tab=${user?.role === 'supplier' ? 'timeline' : 'drafting'}`} className="text-blue-600 hover:underline">{proj.name}</Link> : "—"}
                       </td>
                       <td className="px-4 py-3"><DocTypeBadge type={d.document_type} /></td>
                       <td className="px-4 py-3"><ExecutedBadge status={d.executed} /></td>
@@ -216,7 +218,7 @@ export default function AccountDetail() {
                   </div>
                 );
                 return proj ? (
-                  <Link key={w.id} to={`/projects/${proj.id}?tab=warranties`} className="group block">{inner}</Link>
+                  <Link key={w.id} to={`/projects/${proj.id}?tab=${user?.role === 'supplier' ? 'timeline' : 'warranties'}`} className="group block">{inner}</Link>
                 ) : <div key={w.id}>{inner}</div>;
               })}
             </div>
@@ -239,7 +241,7 @@ export default function AccountDetail() {
                   </div>
                 );
                 return proj ? (
-                  <Link key={j.id} to={`/projects/${proj.id}?tab=drafting`} className="group block">{inner}</Link>
+                  <Link key={j.id} to={`/projects/${proj.id}?tab=${user?.role === 'supplier' ? 'timeline' : 'drafting'}`} className="group block">{inner}</Link>
                 ) : <div key={j.id}>{inner}</div>;
               })}
             </div>

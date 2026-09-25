@@ -17,10 +17,14 @@ export default async function(req: Request): Promise<Response> {
     if (!ROLES.includes(assignment.portal_role)) return Response.json({ error: 'Invalid pending access role' }, { status: 400 });
 
     const contact = await base44.asServiceRole.entities.Contact.get(assignment.contact_id);
+    const supplierAccounts = assignment.portal_role === 'supplier' && assignment.account_id
+      ? await base44.asServiceRole.entities.Account.filter({ dataverse_id: assignment.account_id }, '-created_date', 1)
+      : [];
     await base44.asServiceRole.entities.User.update(user.id, {
       contact_dataverse_id: assignment.portal_role === 'project_manager' && contact?.email?.trim().toLowerCase() === email ? (contact.dataverse_id || null) : null,
       role: assignment.portal_role,
       account_id: assignment.account_id || null,
+      company_number: supplierAccounts[0]?.company_number || null,
       region: assignment.portal_role === 'regional_director' ? (assignment.region || null) : null,
     });
     if (contact?.email?.trim().toLowerCase() === email) {

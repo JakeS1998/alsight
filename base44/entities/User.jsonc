@@ -21,6 +21,10 @@
       "type": "string",
       "description": "Dataverse GUID of account this user belongs to"
     },
+    "company_number": {
+      "type": "string",
+      "description": "Company number of linked supplier account for supplier purchase orders"
+    },
     "contact_dataverse_id": {
       "type": "string",
       "description": "Dataverse contact GUID for external project manager access"

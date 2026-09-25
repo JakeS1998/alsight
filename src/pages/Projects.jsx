@@ -162,7 +162,7 @@ export default function Projects() {
                 className="h-9 w-full rounded-lg border border-slate-300 bg-white pl-9 pr-3 text-sm shadow-sm focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20"
               />
             </div>
-            <FilterSelect label="Sort" value={sortBy} onChange={setSortBy} options={SORT_OPTIONS} allLabel="Sort" />
+            <FilterSelect label="Sort" value={sortBy} onChange={setSortBy} options={role === 'supplier' ? SORT_OPTIONS.filter(o => !o.value.startsWith('value_')) : SORT_OPTIONS} allLabel="Sort" />
             <FilterSelect label="BDMs" value={bdmFilter} onChange={setBdmFilter} options={bdmOptions} />
             <FilterSelect label="BSMs" value={bsmFilter} onChange={setBsmFilter} options={bsmOptions} />
             <FilterSelect label="Regions" value={regionFilter} onChange={setRegionFilter} options={regionOptions} />
@@ -218,7 +218,7 @@ export default function Projects() {
                 </div>
                 <dl className="mt-3 flex-1 space-y-1.5 text-xs text-slate-500">
                   <div className="flex items-center gap-1.5"><Building2 className="h-3.5 w-3.5" /> {client?.name || p.client_name || "—"}</div>
-                  <div className="flex items-center gap-1.5"><PoundSterling className="h-3.5 w-3.5" /> {formatCurrency(p.estimated_value)}</div>
+                  {role !== 'supplier' && <div className="flex items-center gap-1.5"><PoundSterling className="h-3.5 w-3.5" /> {formatCurrency(p.estimated_value)}</div>}
                   <div className="flex items-center gap-1.5"><MapPin className="h-3.5 w-3.5" /> {p.site_postcode || "—"}</div>
                   <div className="flex items-center gap-1.5"><Calendar className="h-3.5 w-3.5" /> {formatDate(p.practical_completion_date)}</div>
                 </dl>

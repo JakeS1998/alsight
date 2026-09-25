@@ -63,6 +63,7 @@ export function InviteUserDialog({ open, onOpenChange, contact, accounts, existi
     e.preventDefault();
     const address = email.trim().toLowerCase();
     if (!address) return;
+    const companyNumber = role === 'supplier' ? (accounts.find(a => a.dataverse_id === accountId)?.company_number || null) : null;
     setSubmitting(true);
     setError("");
     try {
@@ -70,6 +71,7 @@ export function InviteUserDialog({ open, onOpenChange, contact, accounts, existi
         await base44.entities.User.update(existingUser.id, {
           role,
           account_id: accountId || null,
+          company_number: companyNumber,
           region: role === "regional_director" ? (region || null) : null,
           contact_dataverse_id: role === "project_manager" ? (contact.dataverse_id || null) : null,
         });
