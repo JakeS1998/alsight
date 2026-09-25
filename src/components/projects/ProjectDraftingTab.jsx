@@ -3,87 +3,131 @@ import { DOCUMENT_TYPE } from "@/lib/portal";
 import { LegalDocumentCard } from "@/components/documents/LegalDocumentCard";
 import { DMACard } from "@/components/documents/DMACard";
 import { JCTCard } from "@/components/documents/JCTCard";
-import { FileText, FileCheck, Gavel } from "lucide-react";
+import {
+  FileSearch, FileCheck, UserCheck, FileSignature, Gavel, FilePlus,
+  Check, Clock, Circle, FileText,
+} from "lucide-react";
+
+// Lifecycle stages in project order — documents are categorised into these,
+// rather than listed by individual document type.
+const STAGES = [
+  { key: "setup", label: "Project Set-Up", icon: FileSearch, kind: "legal", docTypes: ["access_agreement"] },
+  { key: "dma", label: "Development Management Agreement", icon: FileCheck, kind: "dma" },
+  { key: "appointments", label: "Supplier Appointments", icon: UserCheck, kind: "legal", docTypes: ["appointment_pm", "appointment_pd_cdm", "appointment_architect", "appointment_pd_br"] },
+  { key: "preconstruction", label: "Pre-Construction", icon: FileSignature, kind: "legal", docTypes: ["pcsa", "loi"] },
+  { key: "construction", label: "Construction Contract", icon: Gavel, kind: "jct" },
+  { key: "additional", label: "Additional Works & Other", icon: FilePlus, kind: "legal", docTypes: ["additional_works", "other"] },
+];
+
+const STATUS_CFG = {
+  complete: { label: "Complete", marker: "border-emerald-500 bg-emerald-500 text-white", line: "bg-emerald-300", badge: "bg-emerald-50 text-emerald-700 border-emerald-200" },
+  in_progress: { label: "In Progress", marker: "border-amber-500 bg-amber-500 text-white", line: "bg-amber-300", badge: "bg-amber-50 text-amber-700 border-amber-200" },
+  pending: { label: "Drafting", marker: "border-slate-300 bg-white text-slate-300", line: "bg-slate-200", badge: "bg-slate-100 text-slate-600 border-slate-200" },
+  empty: { label: "No documents", marker: "border-slate-200 bg-white text-slate-200", line: "bg-slate-100", badge: "bg-slate-50 text-slate-400 border-slate-200" },
+};
+
+function stageStatus(docs) {
+  if (!docs.length) return "empty";
+  const done = docs.filter((d) => d.executed === "yes").length;
+  if (done === docs.length) return "complete";
+  if (done > 0) return "in_progress";
+  return "pending";
+}
 
 export function ProjectDraftingTab({ project, legalDocs, dmas, jcts, accountMap }) {
-  // Group legal docs by type in lifecycle order
   const docByType = {};
   legalDocs.forEach((d) => {
     if (!docByType[d.document_type]) docByType[d.document_type] = [];
     docByType[d.document_type].push(d);
   });
-  const docTypes = Object.keys(DOCUMENT_TYPE)
-    .filter((t) => docByType[t])
-    .sort((a, b) => (DOCUMENT_TYPE[a].order || 99) - (DOCUMENT_TYPE[b].order || 99));
 
-  return (
-    <div className="space-y-6">
-      {/* Legal Documents by type */}
-      {docTypes.length > 0 && (
-        <Section icon={FileText} title="Legal Documents" count={legalDocs.length}>
-          <div className="space-y-3">
-            {docTypes.map((type) => (
-              <div key={type}>
-                <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-slate-500">
-                  {DOCUMENT_TYPE[type].label}
-                </p>
-                <div className="space-y-2">
-                  {docByType[type].map((doc) => (
-                    <LegalDocumentCard key={doc.id} doc={doc} accountName={accountMap[doc.account_id]?.name} />
-                  ))}
-                </div>
-              </div>
-            ))}
-          </div>
-        </Section>
-      )}
+  const totalDocs = legalDocs.length + dmas.length + jcts.length;
 
-      {/* DMAs */}
-      {dmas.length > 0 && (
-        <Section icon={FileCheck} title="Development Management Agreements" count={dmas.length}>
-          <div className="space-y-2">
-            {dmas.map((doc) => (
-              <DMACard key={doc.id} doc={doc} />
-            ))}
-          </div>
-        </Section>
-      )}
-
-      {/* JCTs */}
-      {jcts.length > 0 && (
-        <Section icon={Gavel} title="JCT Contracts" count={jcts.length}>
-          <div className="space-y-2">
-            {jcts.map((doc) => (
-              <JCTCard
-                key={doc.id}
-                doc={doc}
-                accountName={accountMap[doc.account_id]?.name}
-                contractorName={accountMap[doc.contractor_id]?.name}
-              />
-            ))}
-          </div>
-        </Section>
-      )}
-
-      {legalDocs.length === 0 && dmas.length === 0 && jcts.length === 0 && (
-        <div className="rounded-xl border border-dashed border-slate-300 bg-white py-12 text-center">
-          <FileText className="mx-auto h-8 w-8 text-slate-300" />
-          <p className="mt-3 text-sm text-slate-500">No documents for this project yet.</p>
-        </div>
-      )}
-    </div>
-  );
-}
-
-function Section({ icon: Icon, title, count, children }) {
-  return (
-    <div>
-      <div className="mb-3 flex items-center gap-2">
-        <Icon className="h-4 w-4 text-primary" />
-        <h3 className="text-sm font-semibold text-slate-900">{title}</h3>
-        <span className="rounded-full bg-slate-100 px-2 py-0.5 text-xs font-medium text-slate-600">{count}</span>
+  if (totalDocs === 0) {
+    return (
+      <div className="rounded-xl border border-dashed border-slate-300 bg-white py-12 text-center">
+        <FileText className="mx-auto h-8 w-8 text-slate-300" />
+        <p className="mt-3 text-sm text-slate-500">No documents for this project yet.</p>
       </div>
-      {children}
+    );
+  }
+
+  return (
+    <div className="space-y-0">
+      {STAGES.map((stage, i) => {
+        let docs = [];
+        if (stage.kind === "legal") {
+          (stage.docTypes || []).forEach((t) => {
+            if (docByType[t]) docs = docs.concat(docByType[t]);
+          });
+        } else if (stage.kind === "dma") {
+          docs = dmas;
+        } else if (stage.kind === "jct") {
+          docs = jcts;
+        }
+
+        const status = stageStatus(docs);
+        const cfg = STATUS_CFG[status];
+        const isLast = i === STAGES.length - 1;
+        const Icon = stage.icon;
+
+        return (
+          <div key={stage.key} className="flex gap-4">
+            {/* Timeline marker column */}
+            <div className="flex flex-col items-center">
+              <div className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-full border-2 transition-colors ${cfg.marker}`}>
+                {status === "complete" ? (
+                  <Check className="h-5 w-5" />
+                ) : status === "in_progress" ? (
+                  <Clock className="h-4 w-4" />
+                ) : status === "empty" ? (
+                  <Icon className="h-4 w-4" />
+                ) : (
+                  <Icon className="h-4 w-4" />
+                )}
+              </div>
+              {!isLast && <div className={`w-0.5 flex-1 my-1 rounded-full ${cfg.line}`} style={{ minHeight: 24 }} />}
+            </div>
+
+            {/* Stage content */}
+            <div className={`flex-1 pb-8 ${isLast ? "pb-0" : ""}`}>
+              <div className="flex flex-wrap items-center gap-2 mb-3">
+                <h3 className="text-sm font-semibold text-slate-900">{stage.label}</h3>
+                <span className="rounded-full bg-slate-100 px-2 py-0.5 text-xs font-medium text-slate-600">{docs.length}</span>
+                <span className={`inline-flex items-center rounded-full border px-2 py-0.5 text-[10px] font-medium ${cfg.badge}`}>
+                  {cfg.label}
+                </span>
+              </div>
+
+              {docs.length === 0 ? (
+                <div className="rounded-xl border border-dashed border-slate-200 bg-slate-50/50 px-4 py-3">
+                  <p className="text-xs text-slate-400">No documents at this stage.</p>
+                </div>
+              ) : (
+                <div className="space-y-2">
+                  {stage.kind === "legal" &&
+                    docs.map((doc) => (
+                      <LegalDocumentCard key={doc.id} doc={doc} accountName={accountMap[doc.account_id]?.name} />
+                    ))}
+                  {stage.kind === "dma" &&
+                    docs.map((doc) => <DMACard key={doc.id} doc={doc} />)}
+                  {stage.kind === "jct" &&
+                    docs.map((doc) => (
+                      <JCTCard
+                        key={doc.id}
+                        doc={doc}
+                        accountName={accountMap[doc.account_id]?.name}
+                        contractorName={accountMap[doc.contractor_id]?.name}
+                      />
+                    ))}
+                </div>
+              )}
+            </div>
+          </div>
+        );
+      })}
     </div>
   );
 }
+
+export default ProjectDraftingTab;
