@@ -69,6 +69,23 @@
     "read": {
       "$or": [
         {
+          "$and": [
+            {
+              "user_condition": {
+                "role": "supplier"
+              }
+            },
+            {
+              "data.supplier_company_number": "{{user.data.company_number}}"
+            },
+            {
+              "data.supplier_company_number": {
+                "$ne": null
+              }
+            }
+          ]
+        },
+        {
           "user_condition": {
             "role": "admin"
           }
