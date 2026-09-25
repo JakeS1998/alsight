@@ -20,6 +20,10 @@
     "amount": {
       "type": "number",
       "exclusiveMinimum": 0
+    },
+    "sample": {
+      "type": "boolean",
+      "default": false
     }
   },
   "required": [

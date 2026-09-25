@@ -15,12 +15,12 @@ export default function CashFlowChart({ entries }) {
     return [...byDate.values()].sort((a, b) => a.date.localeCompare(b.date)).map(row => {
       received += row.received;
       spent += row.spent;
-      return { date: row.date, received, spent };
+      return { date: row.date, received, spent, balance: received - spent };
     });
   }, [entries]);
 
-  if (!data.length) return <p className="py-10 text-center text-sm text-muted-foreground">No dated receipts or spending recorded yet. Add a transaction to start the chart.</p>;
-  return <div className="h-72 w-full" role="img" aria-label="Cumulative council receipts and project spending over time">
+  if (!data.length) return <p className="py-10 text-center text-sm text-muted-foreground">No paid invoices or dated spending recorded for this project yet.</p>;
+  return <div className="h-72 w-full" role="img" aria-label="Cumulative client payments, spending and net cash balance over time">
     <ResponsiveContainer width="100%" height="100%">
       <LineChart data={data} margin={{ top: 8, right: 16, bottom: 8, left: 12 }}>
         <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
@@ -28,8 +28,9 @@ export default function CashFlowChart({ entries }) {
         <YAxis tickFormatter={v => `£${Intl.NumberFormat('en-GB', { notation: 'compact' }).format(v)}`} tick={{ fontSize: 11 }} width={68} />
         <Tooltip labelFormatter={d => new Date(`${d}T12:00:00`).toLocaleDateString('en-GB', { dateStyle: 'medium' })} formatter={(v, name) => [formatCurrency(v), name]} />
         <Legend />
-        <Line type="linear" dataKey="received" name="Received from council" stroke="hsl(var(--chart-1))" strokeWidth={3} dot={{ r: 4 }} activeDot={{ r: 6 }} />
-        <Line type="linear" dataKey="spent" name="Spent" stroke="hsl(var(--chart-3))" strokeWidth={3} dot={{ r: 4 }} activeDot={{ r: 6 }} />
+        <Line type="linear" dataKey="received" name="Payments received" stroke="hsl(var(--chart-1))" strokeWidth={3} dot={{ r: 4 }} activeDot={{ r: 6 }} />
+        <Line type="linear" dataKey="spent" name="Money out" stroke="hsl(var(--chart-3))" strokeWidth={3} dot={{ r: 4 }} activeDot={{ r: 6 }} />
+        <Line type="linear" dataKey="balance" name="Net balance" stroke="hsl(var(--chart-2))" strokeWidth={3} dot={{ r: 4 }} activeDot={{ r: 6 }} />
       </LineChart>
     </ResponsiveContainer>
   </div>;
