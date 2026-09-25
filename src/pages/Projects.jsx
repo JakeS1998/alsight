@@ -39,16 +39,22 @@ export default function Projects() {
   const load = async () => {
     setLoading(true);
     try {
-      const [p, a, u, c] = await Promise.all([
+      const [p, a, u, staffContacts] = await Promise.all([
         base44.entities.Project.list("-created_date", 500),
         base44.entities.Account.list("-name", 500).catch(() => []),
         base44.entities.User.list("-created_date", 500).catch(() => []),
-        base44.entities.Contact.filter({ system_managed: true }, "-full_name", 2000).catch(() => []),
+        (async () => {
+          const [bdmC, bsmC] = await Promise.all([
+            base44.entities.Contact.filter({ portal_role: "bdm" }, "-full_name", 500).catch(() => []),
+            base44.entities.Contact.filter({ portal_role: "bsm" }, "-full_name", 500).catch(() => []),
+          ]);
+          return [...bdmC, ...bsmC];
+        })(),
       ]);
       setProjects(p);
       setAccounts(a);
       setUsers(u);
-      setContacts(c);
+      setContacts(staffContacts);
     } finally {
       setLoading(false);
     }
