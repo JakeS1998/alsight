@@ -82,7 +82,7 @@ export default function PortalLayout() {
   );
 
   return (
-    <div className="min-h-screen bg-slate-50">
+    <div className="min-h-screen bg-secondary">
       {/* Desktop sidebar */}
       <aside className="fixed inset-y-0 left-0 hidden w-64 bg-als-navy lg:block">
         {SidebarContent}

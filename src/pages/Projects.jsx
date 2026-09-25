@@ -132,7 +132,7 @@ export default function Projects() {
     <div className="space-y-6">
       <div className="flex flex-wrap items-end justify-between gap-3">
         <div>
-          <h1 className="font-heading text-2xl font-semibold tracking-tight text-slate-900">Projects</h1>
+          <h1 className="font-heading text-2xl font-extrabold tracking-tight text-als-navy">Projects</h1>
           <p className="mt-1 text-sm text-slate-500">
             {canRequest ? "All projects across the UK Leisure Framework." : "Projects you're involved in."}
           </p>

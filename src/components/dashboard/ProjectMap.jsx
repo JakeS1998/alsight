@@ -5,13 +5,11 @@ import { Link } from "react-router-dom";
 import { formatCurrency, regionName } from "@/lib/portal";
 
 const REGION_PALETTE = [
-  "#FCA311", // South East & London
-  "#1D1D35", // South West & South Wales
-  "#2BB673", // West Midlands & North Wales
-  "#3B82F6", // North
-  "#A855F7", // East
-  "#F43F5E", // Scotland & Northern Ireland
-  "#0EA5E9", // Insights & Engagement
+  "hsl(var(--chart-1))",
+  "hsl(var(--chart-2))",
+  "hsl(var(--chart-3))",
+  "hsl(var(--chart-4))",
+  "hsl(var(--chart-5))",
 ];
 
 export function ProjectMap({ projects }) {
@@ -55,7 +53,7 @@ export function ProjectMap({ projects }) {
         />
         {validProjects.map((p) => {
           const region = regionName(p.department_id);
-          const color = (region && regionColors[region]) || "#94a3b8";
+          const color = (region && regionColors[region]) || "hsl(var(--chart-3))";
           const live = p.live_project;
           return (
             <CircleMarker
@@ -83,7 +81,7 @@ export function ProjectMap({ projects }) {
                       {live ? "Live" : "Inactive"}
                     </span>
                   </p>
-                  <Link to={`/projects/${p.id}`} className="mt-1 inline-block text-xs text-blue-600 hover:underline">
+                  <Link to={`/projects/${p.id}`} className="mt-1 inline-block text-xs text-als-navy hover:underline">
                     View project →
                   </Link>
                 </div>
@@ -107,7 +105,7 @@ export function ProjectMap({ projects }) {
         <div className="mt-2 border-t border-slate-100 pt-1.5">
           <p className="mb-1 text-[11px] font-semibold text-slate-700">Status</p>
           <div className="flex items-center gap-1.5">
-            <span className="inline-block h-2.5 w-2.5 rounded-full bg-[#FCA311]" />
+            <span className="inline-block h-2.5 w-2.5 rounded-full bg-primary" />
             <span className="text-[10px] text-slate-600">Live (filled)</span>
           </div>
           <div className="flex items-center gap-1.5">

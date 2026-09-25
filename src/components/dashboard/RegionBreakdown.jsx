@@ -2,7 +2,7 @@ import React, { useMemo } from "react";
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid, Cell } from "recharts";
 import { formatCurrency, regionName } from "@/lib/portal";
 
-const PALETTE = ["#FCA311", "#1D1D35", "#2BB673", "#3B82F6", "#A855F7", "#F43F5E", "#0EA5E9", "#64748b"];
+const PALETTE = ["hsl(var(--chart-1))", "hsl(var(--chart-2))", "hsl(var(--chart-3))", "hsl(var(--chart-4))", "hsl(var(--chart-5))"];
 
 export function RegionBreakdown({ projects, accountMap }) {
   const data = useMemo(() => {

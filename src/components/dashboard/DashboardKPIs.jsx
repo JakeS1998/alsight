@@ -8,10 +8,10 @@ export function DashboardKPIs({ projects }) {
   const avgValue = projects.length > 0 ? totalValue / projects.length : 0;
 
   const kpis = [
-    { label: "Pipeline Value", value: formatCurrency(totalValue), icon: PoundSterling, accent: "bg-emerald-50 text-emerald-600" },
-    { label: "Active Projects", value: projects.length, icon: FolderKanban, accent: "bg-sky-50 text-sky-600" },
-    { label: "Live Projects", value: liveCount, icon: Activity, accent: "bg-amber-50 text-amber-600" },
-    { label: "Avg Project Value", value: formatCurrency(avgValue), icon: TrendingUp, accent: "bg-violet-50 text-violet-600" },
+    { label: "Pipeline Value", value: formatCurrency(totalValue), icon: PoundSterling, accent: "bg-primary/15 text-als-navy" },
+    { label: "Active Projects", value: projects.length, icon: FolderKanban, accent: "bg-chart-4/30 text-als-navy" },
+    { label: "Live Projects", value: liveCount, icon: Activity, accent: "bg-chart-5/30 text-als-navy" },
+    { label: "Avg Project Value", value: formatCurrency(avgValue), icon: TrendingUp, accent: "bg-chart-2/15 text-als-navy" },
   ];
 
   return (

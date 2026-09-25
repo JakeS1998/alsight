@@ -28,8 +28,8 @@ export default function FinancialBreakdown({ portfolio }) {
         <XAxis type="number" tickFormatter={(v) => `£${(v / 1e6).toFixed(1)}m`} tick={{ fontSize: 11 }} />
         <YAxis type="category" dataKey="region" width={120} tick={{ fontSize: 10 }} />
         <Tooltip formatter={(v, name) => [formatCurrency(v), name === "value" ? "Estimated value" : "PO net"]} />
-        <Bar dataKey="value" name="Estimated value" fill="#FCA311" radius={[0, 4, 4, 0]} />
-        <Bar dataKey="poNet" name="PO net" fill="#1D1D35" radius={[0, 4, 4, 0]} />
+        <Bar dataKey="value" name="Estimated value" fill="hsl(var(--chart-1))" radius={[0, 4, 4, 0]} />
+        <Bar dataKey="poNet" name="PO net" fill="hsl(var(--chart-3))" radius={[0, 4, 4, 0]} />
       </BarChart>
     </ResponsiveContainer></div> : <p className="py-12 text-center text-sm text-slate-500">No active projects to chart.</p>}
   </section>;

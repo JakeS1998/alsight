@@ -18,7 +18,7 @@ export default function AuthLayout({ title, subtitle, footer, children }) {
       {/* Hero panel (2/3) */}
       <div className="relative hidden lg:block lg:w-2/3 overflow-hidden bg-als-navy">
         <div className="absolute inset-0 bg-cover bg-center" style={{ backgroundImage: `url(${HERO_IMAGE})` }} />
-        <div className="absolute inset-0 bg-gradient-to-br from-als-navy/90 via-als-navy/55 to-als-navy/90" />
+        <div className="absolute inset-0 bg-als-navy/70" />
         <div className="relative h-full flex flex-col justify-between p-12 xl:p-16">
           <div className="max-w-xl">
             <h2 className="font-heading text-4xl xl:text-5xl font-bold leading-tight tracking-tight text-white">
@@ -53,7 +53,7 @@ export default function AuthLayout({ title, subtitle, footer, children }) {
             <Logo className="h-10" />
           </div>
           <div className="mb-6 text-center">
-            <h1 className="font-heading text-2xl font-bold tracking-tight text-slate-900">{title}</h1>
+            <h1 className="font-heading text-2xl font-extrabold tracking-tight text-als-navy">{title}</h1>
             {subtitle && <p className="mt-1.5 text-sm text-slate-500">{subtitle}</p>}
           </div>
           <div className="space-y-4">{children}</div>
