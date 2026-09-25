@@ -25,7 +25,7 @@ export function ProjectMap({ projects }) {
         scrollWheelZoom={false}
       >
         <TileLayer
-          url="https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png?api_key=cb1_3xkp_1_d4c84e7c5c7a1eee6ccca93b"
+          url="https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png?key=cb1_3xkp_1_d4c84e7c5c7a1eee6ccca93b"
           attribution='&copy; OpenStreetMap contributors &copy; CARTO'
         />
         {validProjects.map((p) => (
