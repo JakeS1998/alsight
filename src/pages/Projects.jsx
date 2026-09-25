@@ -226,6 +226,7 @@ export default function Projects() {
         open={requestOpen}
         onOpenChange={setRequestOpen}
         accounts={accounts}
+        users={users}
         user={user}
         onCreated={load}
       />

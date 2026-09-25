@@ -1,43 +1,80 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { base44 } from "@/api/base44Client";
 import { Button } from "@/components/ui/button";
 import {
   Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter,
 } from "@/components/ui/dialog";
 import { FormSection, FormGrid, FormField, formInputClass } from "@/components/forms/PowerForm";
+import { AccountCombobox } from "@/components/contacts/AccountCombobox";
+import { LookupCombobox } from "@/components/forms/LookupCombobox";
+import { REGION_OPTIONS } from "@/lib/portal";
 import { Loader2 } from "lucide-react";
 
-export function RequestDialog({ open, onOpenChange, accounts, user, onCreated }) {
-  const [form, setForm] = useState({
-    name: "", description: "", client_account_id: "", account_id: "",
-    estimated_value: "", procurement_route: true,
-  });
-  const [submitting, setSubmitting] = useState(false);
+const EMPTY = {
+  name: "", description: "",
+  client_account_id: "",
+  estimated_value: "", procurement_route: true,
+  site_postcode: "", construction_term_weeks: "",
+  bdm_aad_id: "", director_aad_id: "", department_id: "",
+  link_to_legals: "", link_to_project_questionnaire: "", link_to_pso: "", link_to_pcs: "",
+};
 
-  const reset = () =>
-    setForm({ name: "", description: "", client_account_id: "", account_id: "", estimated_value: "", procurement_route: true });
+export function RequestDialog({ open, onOpenChange, accounts, users, user, onCreated }) {
+  const [form, setForm] = useState(EMPTY);
+  const [submitting, setSubmitting] = useState(false);
+  const [bdmOptions, setBdmOptions] = useState([]);
+  const [directorOptions, setDirectorOptions] = useState([]);
 
   const clientAccounts = accounts.filter((a) => a.account_type === "client");
-  const supplierAccounts = accounts.filter((a) => a.account_type === "supplier");
+
+  // Load BDM and Director lookup options (staff contacts + portal users).
+  useEffect(() => {
+    if (!open) return;
+    let cancelled = false;
+    (async () => {
+      const [bdmC, dirC] = await Promise.all([
+        base44.entities.Contact.filter({ portal_role: "bdm" }, "full_name", 500).catch(() => []),
+        base44.entities.Contact.filter({ portal_role: "director" }, "full_name", 500).catch(() => []),
+      ]);
+      if (cancelled) return;
+      const toOpts = (arr) => arr.map((c) => ({ value: c.aad_id, label: c.full_name })).filter((o) => o.value);
+      const bdmMap = new Map();
+      toOpts(bdmC).forEach((o) => bdmMap.set(o.value, o));
+      (users || []).filter((u) => u.role === "bdm").forEach((u) => bdmMap.set(u.id, { value: u.id, label: u.full_name || u.email }));
+      setBdmOptions([...bdmMap.values()].sort((a, b) => a.label.localeCompare(b.label)));
+      const dirMap = new Map();
+      toOpts(dirC).forEach((o) => dirMap.set(o.value, o));
+      (users || []).filter((u) => u.role === "director").forEach((u) => dirMap.set(u.id, { value: u.id, label: u.full_name || u.email }));
+      setDirectorOptions([...dirMap.values()].sort((a, b) => a.label.localeCompare(b.label)));
+    })();
+    return () => { cancelled = true; };
+  }, [open, users]);
 
   const submit = async (e) => {
     e.preventDefault();
     if (!form.name.trim()) return;
     setSubmitting(true);
     try {
-      const client = accounts.find((a) => a.dataverse_id === form.client_account_id);
       await base44.entities.Project.create({
         name: form.name.trim(),
         description: form.description.trim(),
         project_number: "",
         client_account_id: form.client_account_id || null,
-        account_id: form.account_id || null,
         estimated_value: form.estimated_value ? Number(form.estimated_value) : null,
         procurement_route: form.procurement_route,
+        site_postcode: form.site_postcode.trim() || null,
+        construction_term_weeks: form.construction_term_weeks ? Number(form.construction_term_weeks) : null,
+        bdm_aad_id: form.bdm_aad_id || null,
+        director_aad_id: form.director_aad_id || null,
+        department_id: form.department_id || null,
+        link_to_legals: form.link_to_legals.trim() || null,
+        link_to_project_questionnaire: form.link_to_project_questionnaire.trim() || null,
+        link_to_pso: form.link_to_pso.trim() || null,
+        link_to_pcs: form.link_to_pcs.trim() || null,
         live_project: true,
         status: "active",
       });
-      reset();
+      setForm(EMPTY);
       onOpenChange(false);
       onCreated();
     } finally {
@@ -47,7 +84,7 @@ export function RequestDialog({ open, onOpenChange, accounts, user, onCreated })
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-xl">
+      <DialogContent className="sm:max-w-2xl">
         <DialogHeader>
           <DialogTitle>Request a new project</DialogTitle>
           <DialogDescription>Submit a leisure construction project request for director review.</DialogDescription>
@@ -63,19 +100,16 @@ export function RequestDialog({ open, onOpenChange, accounts, user, onCreated })
               </FormField>
             </div>
           </FormSection>
-          <FormSection title="Parties & Budget" description="Link the client and supplier for this project">
+
+          <FormSection title="Client & Budget" description="Link the client and estimated project value">
             <FormGrid>
               <FormField label="Client">
-                <select value={form.client_account_id} onChange={(e) => setForm({ ...form, client_account_id: e.target.value })} className={formInputClass}>
-                  <option value="">—</option>
-                  {clientAccounts.map((a) => <option key={a.id} value={a.dataverse_id}>{a.name}</option>)}
-                </select>
-              </FormField>
-              <FormField label="Supplier">
-                <select value={form.account_id} onChange={(e) => setForm({ ...form, account_id: e.target.value })} className={formInputClass}>
-                  <option value="">—</option>
-                  {supplierAccounts.map((a) => <option key={a.id} value={a.dataverse_id}>{a.name}</option>)}
-                </select>
+                <AccountCombobox
+                  value={form.client_account_id}
+                  onChange={(v) => setForm({ ...form, client_account_id: v })}
+                  accounts={clientAccounts}
+                  placeholder="— Select client —"
+                />
               </FormField>
               <FormField label="Estimated Value (£)">
                 <input type="number" min="0" value={form.estimated_value} onChange={(e) => setForm({ ...form, estimated_value: e.target.value })} className={formInputClass} />
@@ -88,6 +122,67 @@ export function RequestDialog({ open, onOpenChange, accounts, user, onCreated })
               </FormField>
             </FormGrid>
           </FormSection>
+
+          <FormSection title="Site & Timescales" description="Where the project is and how long it will run">
+            <FormGrid>
+              <FormField label="Site postcode">
+                <input value={form.site_postcode} onChange={(e) => setForm({ ...form, site_postcode: e.target.value })} className={formInputClass} />
+              </FormField>
+              <FormField label="Construction term (weeks)">
+                <input type="number" min="0" value={form.construction_term_weeks} onChange={(e) => setForm({ ...form, construction_term_weeks: e.target.value })} className={formInputClass} />
+              </FormField>
+            </FormGrid>
+          </FormSection>
+
+          <FormSection title="Team & Region" description="Assign the BDM, Director and region">
+            <FormGrid>
+              <FormField label="BDM">
+                <LookupCombobox
+                  value={form.bdm_aad_id}
+                  onChange={(v) => setForm({ ...form, bdm_aad_id: v })}
+                  options={bdmOptions}
+                  placeholder="— Select BDM —"
+                  searchPlaceholder="Search BDMs..."
+                />
+              </FormField>
+              <FormField label="Director">
+                <LookupCombobox
+                  value={form.director_aad_id}
+                  onChange={(v) => setForm({ ...form, director_aad_id: v })}
+                  options={directorOptions}
+                  placeholder="— Select director —"
+                  searchPlaceholder="Search directors..."
+                />
+              </FormField>
+              <FormField label="Region">
+                <LookupCombobox
+                  value={form.department_id}
+                  onChange={(v) => setForm({ ...form, department_id: v })}
+                  options={REGION_OPTIONS}
+                  placeholder="— Select region —"
+                  searchPlaceholder="Search regions..."
+                />
+              </FormField>
+            </FormGrid>
+          </FormSection>
+
+          <FormSection title="SharePoint Links" description="Paste relevant SharePoint document links">
+            <div className="space-y-4">
+              <FormField label="Link to legals">
+                <input value={form.link_to_legals} onChange={(e) => setForm({ ...form, link_to_legals: e.target.value })} className={formInputClass} />
+              </FormField>
+              <FormField label="Link to project questionnaire">
+                <input value={form.link_to_project_questionnaire} onChange={(e) => setForm({ ...form, link_to_project_questionnaire: e.target.value })} className={formInputClass} />
+              </FormField>
+              <FormField label="Link to PSO">
+                <input value={form.link_to_pso} onChange={(e) => setForm({ ...form, link_to_pso: e.target.value })} className={formInputClass} />
+              </FormField>
+              <FormField label="Link to PCS">
+                <input value={form.link_to_pcs} onChange={(e) => setForm({ ...form, link_to_pcs: e.target.value })} className={formInputClass} />
+              </FormField>
+            </div>
+          </FormSection>
+
           <DialogFooter>
             <Button type="button" variant="outline" onClick={() => onOpenChange(false)} disabled={submitting}>Cancel</Button>
             <Button type="submit" disabled={submitting} className="bg-primary hover:bg-primary/90">
