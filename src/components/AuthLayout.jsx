@@ -1,5 +1,6 @@
 import React from "react";
-import { Scale, ShieldCheck, FolderKanban, Building2, Truck, Users } from "lucide-react";
+import { ShieldCheck, FolderKanban, Building2, Truck, Users } from "lucide-react";
+import Logo from "@/components/Logo";
 
 const ROLES = [
   { icon: ShieldCheck, label: "Administrators", desc: "Full oversight of accounts, projects & documents" },
@@ -17,14 +18,8 @@ export default function AuthLayout({ icon: Icon, title, subtitle, footer, childr
         <div className="absolute -right-16 -top-16 h-64 w-64 rounded-full bg-primary/20 blur-3xl" />
         <div className="absolute -bottom-20 -left-10 h-72 w-72 rounded-full bg-primary/10 blur-3xl" />
 
-        <div className="relative flex items-center gap-3">
-          <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-primary text-primary-foreground">
-            <Scale className="h-6 w-6" />
-          </div>
-          <div>
-            <p className="font-heading text-xl font-bold tracking-tight">ALS Live</p>
-            <p className="text-xs text-white/60">Alliance Leisure Stakeholder Portal</p>
-          </div>
+        <div className="relative">
+          <Logo className="h-14" onDark />
         </div>
 
         <div className="relative max-w-sm">
@@ -59,14 +54,8 @@ export default function AuthLayout({ icon: Icon, title, subtitle, footer, childr
       <div className="flex min-h-screen items-center justify-center bg-background px-4 py-10">
         <div className="w-full max-w-md">
           {/* Mobile brand header */}
-          <div className="mb-8 flex items-center gap-2.5 lg:hidden">
-            <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-primary text-primary-foreground">
-              <Scale className="h-5 w-5" />
-            </div>
-            <div>
-              <p className="font-heading text-lg font-bold tracking-tight text-foreground">ALS Live</p>
-              <p className="text-[11px] text-muted-foreground">Alliance Leisure Portal</p>
-            </div>
+          <div className="mb-8 lg:hidden">
+            <Logo className="h-10" />
           </div>
 
           <div className="mb-8">

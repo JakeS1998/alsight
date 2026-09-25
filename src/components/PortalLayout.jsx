@@ -3,7 +3,8 @@ import { Link, useLocation, useNavigate, Outlet } from "react-router-dom";
 import { useAuth } from "@/lib/AuthContext";
 import { ROLE_LABELS, ROLE_BADGE_CLASS } from "@/lib/portal";
 import { base44 } from "@/api/base44Client";
-import { LayoutDashboard, FolderKanban, FileText, ShieldCheck, Building2, UserCircle, LogOut, Menu, X, Scale, BarChart3, Users } from "lucide-react";
+import { LayoutDashboard, FolderKanban, FileText, ShieldCheck, Building2, UserCircle, LogOut, Menu, X, BarChart3, Users } from "lucide-react";
+import Logo from "@/components/Logo";
 
 const NAV_ITEMS = [
   { label: "Dashboard", path: "/", icon: LayoutDashboard, roles: ["admin", "company_director", "development_manager", "client", "supplier"] },
@@ -32,14 +33,8 @@ export default function PortalLayout() {
 
   const SidebarContent = (
     <div className="flex h-full flex-col">
-      <div className="flex items-center gap-2.5 px-6 py-6">
-        <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-primary text-primary-foreground">
-          <Scale className="h-5 w-5" />
-        </div>
-        <div>
-          <p className="font-heading text-base font-bold tracking-tight text-white">ALS Live</p>
-          <p className="text-[11px] text-white/60">Alliance Leisure Portal</p>
-        </div>
+      <div className="px-6 py-6">
+        <Logo className="h-12" onDark />
       </div>
 
       <nav className="flex-1 space-y-1 px-3">
@@ -105,10 +100,7 @@ export default function PortalLayout() {
           <button onClick={() => setMobileOpen(true)} className="rounded-lg p-2 text-slate-600 hover:bg-slate-100">
             <Menu className="h-5 w-5" />
           </button>
-          <div className="flex items-center gap-2">
-            <Scale className="h-5 w-5 text-primary" />
-            <span className="font-heading text-sm font-bold text-slate-900">ALS Live</span>
-          </div>
+          <Logo className="h-8" />
           <div className="w-9" />
         </header>
 
