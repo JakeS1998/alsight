@@ -1,0 +1,188 @@
+{
+  "name": "ProjectRisk",
+  "type": "object",
+  "properties": {
+    "project_id": {
+      "type": "string",
+      "description": "Base44 id of parent project"
+    },
+    "client_account_id": {
+      "type": "string",
+      "description": "Backfilled from project for RLS"
+    },
+    "bdm_aad_id": {
+      "type": "string",
+      "description": "Backfilled from project for RLS"
+    },
+    "title": {
+      "type": "string"
+    },
+    "category": {
+      "type": "string"
+    },
+    "probability": {
+      "type": "string",
+      "enum": [
+        "low",
+        "medium",
+        "high",
+        ""
+      ],
+      "default": ""
+    },
+    "impact": {
+      "type": "string",
+      "enum": [
+        "low",
+        "medium",
+        "high",
+        ""
+      ],
+      "default": ""
+    },
+    "owner": {
+      "type": "string"
+    },
+    "mitigation": {
+      "type": "string"
+    },
+    "target_resolution": {
+      "type": "string",
+      "format": "date"
+    },
+    "rag": {
+      "type": "string",
+      "enum": [
+        "red",
+        "amber",
+        "green",
+        ""
+      ],
+      "default": ""
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "open",
+        "closed"
+      ],
+      "default": "open"
+    }
+  },
+  "required": [
+    "project_id",
+    "title"
+  ],
+  "rls": {
+    "read": {
+      "$or": [
+        {
+          "data.client_account_id": "{{user.data.account_id}}"
+        },
+        {
+          "data.bdm_aad_id": "{{user.id}}"
+        },
+        {
+          "data.bdm_aad_id": "{{user.data.delegate_of}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        },
+        {
+          "user_condition": {
+            "role": "director"
+          }
+        },
+        {
+          "user_condition": {
+            "role": "regional_director"
+          }
+        },
+        {
+          "user_condition": {
+            "role": "bsm"
+          }
+        },
+        {
+          "user_condition": {
+            "role": "finance"
+          }
+        },
+        {
+          "user_condition": {
+            "role": "bdm"
+          }
+        }
+      ]
+    },
+    "create": {
+      "$or": [
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        },
+        {
+          "user_condition": {
+            "role": "director"
+          }
+        },
+        {
+          "user_condition": {
+            "role": "bdm"
+          }
+        },
+        {
+          "user_condition": {
+            "role": "bsm"
+          }
+        }
+      ]
+    },
+    "update": {
+      "$or": [
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        },
+        {
+          "user_condition": {
+            "role": "director"
+          }
+        },
+        {
+          "user_condition": {
+            "role": "bdm"
+          }
+        },
+        {
+          "user_condition": {
+            "role": "bsm"
+          }
+        }
+      ]
+    },
+    "delete": {
+      "$or": [
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        },
+        {
+          "user_condition": {
+            "role": "director"
+          }
+        },
+        {
+          "user_condition": {
+            "role": "bdm"
+          }
+        }
+      ]
+    }
+  }
+}

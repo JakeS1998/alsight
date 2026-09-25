@@ -1,0 +1,292 @@
+{
+  "name": "ProjectDelivery",
+  "type": "object",
+  "properties": {
+    "project_id": {
+      "type": "string",
+      "description": "Base44 id of parent project"
+    },
+    "client_account_id": {
+      "type": "string",
+      "description": "Backfilled from project for RLS"
+    },
+    "bdm_aad_id": {
+      "type": "string",
+      "description": "Backfilled from project for RLS"
+    },
+    "funding_route": {
+      "type": "string"
+    },
+    "scope_summary": {
+      "type": "string"
+    },
+    "client_objectives": {
+      "type": "string"
+    },
+    "initial_constraints": {
+      "type": "string"
+    },
+    "target_programme": {
+      "type": "string"
+    },
+    "key_stakeholders": {
+      "type": "string"
+    },
+    "site_visit_completed": {
+      "type": "boolean",
+      "default": false
+    },
+    "feasibility_status": {
+      "type": "string",
+      "enum": [
+        "not_started",
+        "in_progress",
+        "complete",
+        ""
+      ]
+    },
+    "probability": {
+      "type": "number",
+      "description": "Confidence %"
+    },
+    "next_action": {
+      "type": "string"
+    },
+    "contract_sum": {
+      "type": "number"
+    },
+    "contractor": {
+      "type": "string"
+    },
+    "contract_start": {
+      "type": "string",
+      "format": "date"
+    },
+    "original_pc": {
+      "type": "string",
+      "format": "date"
+    },
+    "forecast_pc": {
+      "type": "string",
+      "format": "date"
+    },
+    "pct_programme": {
+      "type": "number"
+    },
+    "pct_cost": {
+      "type": "number"
+    },
+    "current_valuation": {
+      "type": "number"
+    },
+    "variations": {
+      "type": "string"
+    },
+    "eot": {
+      "type": "string"
+    },
+    "lad_exposure": {
+      "type": "string"
+    },
+    "key_site_issues": {
+      "type": "string"
+    },
+    "last_progress_meeting": {
+      "type": "string",
+      "format": "date"
+    },
+    "next_progress_meeting": {
+      "type": "string",
+      "format": "date"
+    },
+    "pc_achieved": {
+      "type": "string",
+      "format": "date"
+    },
+    "pc_certificate": {
+      "type": "string"
+    },
+    "final_account_status": {
+      "type": "string",
+      "enum": [
+        "open",
+        "agreed",
+        "closed",
+        ""
+      ]
+    },
+    "defects_period": {
+      "type": "string"
+    },
+    "retention": {
+      "type": "string"
+    },
+    "om_manuals": {
+      "type": "string",
+      "enum": [
+        "outstanding",
+        "partial",
+        "complete",
+        ""
+      ]
+    },
+    "hs_file": {
+      "type": "string",
+      "enum": [
+        "outstanding",
+        "partial",
+        "complete",
+        ""
+      ]
+    },
+    "warranties_status": {
+      "type": "string",
+      "enum": [
+        "outstanding",
+        "partial",
+        "complete",
+        ""
+      ]
+    },
+    "training": {
+      "type": "string",
+      "enum": [
+        "outstanding",
+        "partial",
+        "complete",
+        ""
+      ]
+    },
+    "asset_info": {
+      "type": "string",
+      "enum": [
+        "outstanding",
+        "partial",
+        "complete",
+        ""
+      ]
+    },
+    "client_handover": {
+      "type": "string",
+      "enum": [
+        "outstanding",
+        "partial",
+        "complete",
+        ""
+      ]
+    },
+    "lessons_learned": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "project_id"
+  ],
+  "rls": {
+    "read": {
+      "$or": [
+        {
+          "data.client_account_id": "{{user.data.account_id}}"
+        },
+        {
+          "data.bdm_aad_id": "{{user.id}}"
+        },
+        {
+          "data.bdm_aad_id": "{{user.data.delegate_of}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        },
+        {
+          "user_condition": {
+            "role": "director"
+          }
+        },
+        {
+          "user_condition": {
+            "role": "regional_director"
+          }
+        },
+        {
+          "user_condition": {
+            "role": "bsm"
+          }
+        },
+        {
+          "user_condition": {
+            "role": "finance"
+          }
+        },
+        {
+          "user_condition": {
+            "role": "bdm"
+          }
+        }
+      ]
+    },
+    "create": {
+      "$or": [
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        },
+        {
+          "user_condition": {
+            "role": "director"
+          }
+        },
+        {
+          "user_condition": {
+            "role": "bdm"
+          }
+        },
+        {
+          "user_condition": {
+            "role": "bsm"
+          }
+        }
+      ]
+    },
+    "update": {
+      "$or": [
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        },
+        {
+          "user_condition": {
+            "role": "director"
+          }
+        },
+        {
+          "user_condition": {
+            "role": "bdm"
+          }
+        },
+        {
+          "user_condition": {
+            "role": "bsm"
+          }
+        }
+      ]
+    },
+    "delete": {
+      "$or": [
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        },
+        {
+          "user_condition": {
+            "role": "director"
+          }
+        }
+      ]
+    }
+  }
+}
