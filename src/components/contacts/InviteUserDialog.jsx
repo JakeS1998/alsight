@@ -21,7 +21,7 @@ const ROLES = [
   { value: "supplier", label: "Supplier" },
 ];
 
-export function InviteUserDialog({ open, onOpenChange, contact, accounts, existingUser, onDone }) {
+export function InviteUserDialog({ open, onOpenChange, contact, accounts, existingUser, pendingAssignment, onDone }) {
   const [role, setRole] = useState("client");
   const [accountId, setAccountId] = useState("");
   const [region, setRegion] = useState("");
@@ -33,10 +33,10 @@ export function InviteUserDialog({ open, onOpenChange, contact, accounts, existi
   useEffect(() => {
     if (open && contact) {
       setEmail(contact.email || "");
-      if (existingUser) {
-        setRole(existingUser.role || "client");
-        setAccountId(existingUser.account_id || "");
-        setRegion(existingUser.region || "");
+      if (existingUser || pendingAssignment) {
+        setRole(existingUser?.role || pendingAssignment?.portal_role || "client");
+        setAccountId(existingUser?.account_id || pendingAssignment?.account_id || "");
+        setRegion(existingUser?.region || pendingAssignment?.region || "");
       } else {
         setRole("client");
         const matched = accounts.find((a) => a.company_number === contact.company_number);
@@ -46,7 +46,7 @@ export function InviteUserDialog({ open, onOpenChange, contact, accounts, existi
       setSuccess(false);
       setError("");
     }
-  }, [open, contact, existingUser, accounts]);
+  }, [open, contact?.id]);
 
   if (!contact) return null;
 
@@ -128,10 +128,10 @@ export function InviteUserDialog({ open, onOpenChange, contact, accounts, existi
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <ShieldCheck className="h-5 w-5 text-primary" />
-            {existingUser ? "Manage Portal Access" : "Invite & Set Up Access"}
+            {existingUser || pendingAssignment ? "Manage Portal Access" : "Invite & Set Up Access"}
           </DialogTitle>
           <DialogDescription>
-            {existingUser
+            {existingUser || pendingAssignment
               ? `Update the role and account for ${contact.full_name}.`
               : `Invite ${contact.full_name} to the portal and assign their role and account.`}
           </DialogDescription>
@@ -141,7 +141,7 @@ export function InviteUserDialog({ open, onOpenChange, contact, accounts, existi
           <div className="flex flex-col items-center py-6 text-center">
             <CheckCircle2 className="h-10 w-10 text-emerald-500" />
             <p className="mt-3 text-sm font-medium text-slate-900">
-              {existingUser ? "Access updated!" : "Invitation sent!"}
+              {existingUser || pendingAssignment ? "Access updated!" : "Invitation sent!"}
             </p>
             <p className="mt-1 text-xs text-slate-500">
               {existingUser
@@ -213,12 +213,12 @@ export function InviteUserDialog({ open, onOpenChange, contact, accounts, existi
               >
                 {submitting ? (
                   <Loader2 className="mr-1.5 h-4 w-4 animate-spin" />
-                ) : existingUser ? (
+                ) : existingUser || pendingAssignment ? (
                   <ShieldCheck className="mr-1.5 h-4 w-4" />
                 ) : (
                   <UserPlus className="mr-1.5 h-4 w-4" />
                 )}
-                {existingUser ? "Update Access" : "Invite & Set Up"}
+                {existingUser || pendingAssignment ? "Update Access" : "Invite & Set Up"}
               </Button>
             </DialogFooter>
           </form>

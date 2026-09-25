@@ -23,6 +23,7 @@ export default function Contacts() {
   const isAdmin = user?.role === "admin";
   const [contacts, setContacts] = useState([]);
   const [users, setUsers] = useState([]);
+  const [pendingAccess, setPendingAccess] = useState([]);
   const [accounts, setAccounts] = useState([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
@@ -33,10 +34,12 @@ export default function Contacts() {
       listAll(base44.entities.Contact),
       isAdmin ? listAll(base44.entities.User).catch(() => []) : Promise.resolve([]),
       isAdmin ? listAll(base44.entities.Account, "-name").catch(() => []) : Promise.resolve([]),
-    ]).then(([c, u, a]) => {
+      isAdmin ? listAll(base44.entities.PendingPortalAccess).catch(() => []) : Promise.resolve([]),
+    ]).then(([c, u, a, pending]) => {
       setContacts(c);
       setUsers(u);
       setAccounts(a);
+      setPendingAccess(pending);
     }).finally(() => setLoading(false));
   }, [isAdmin]);
 
@@ -45,6 +48,8 @@ export default function Contacts() {
     users.forEach((u) => { if (u.email) map[u.email.toLowerCase()] = u; });
     return map;
   }, [users]);
+
+  const pendingByContact = useMemo(() => Object.fromEntries(pendingAccess.map((entry) => [entry.contact_id, entry])), [pendingAccess]);
 
   const filtered = search
     ? contacts.filter((c) =>
@@ -55,10 +60,9 @@ export default function Contacts() {
       )
     : contacts;
 
-  const refreshUsers = () => {
-    listAll(base44.entities.User)
-      .then(setUsers)
-      .catch(() => {});
+  const refreshAccess = () => {
+    listAll(base44.entities.User).then(setUsers).catch(() => {});
+    listAll(base44.entities.PendingPortalAccess).then(setPendingAccess).catch(() => {});
   };
 
   return (
@@ -90,6 +94,7 @@ export default function Contacts() {
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
           {filtered.map((c) => {
             const linkedUser = c.email ? userByEmail[c.email.toLowerCase()] : null;
+            const hasAccess = !!(linkedUser || pendingByContact[c.id]);
             return (
               <div key={c.id} className="flex flex-col rounded-2xl border border-slate-200 bg-white p-5">
                 <div className="flex items-start justify-between gap-2">
@@ -143,13 +148,13 @@ export default function Contacts() {
                     <button
                       onClick={() => setInviteContact(c)}
                       className={`inline-flex items-center gap-1 rounded-lg px-2.5 py-1.5 text-xs font-medium transition-colors ${
-                        linkedUser
+                        hasAccess
                           ? "bg-slate-100 text-slate-700 hover:bg-slate-200"
                           : "bg-primary text-primary-foreground hover:bg-primary/90"
-                      }`}
-                    >
-                      {linkedUser ? <ShieldCheck className="h-3 w-3" /> : <UserPlus className="h-3 w-3" />}
-                      {linkedUser ? "Manage Access" : "Set Up Access"}
+                        }`}
+                        >
+                        {hasAccess ? <ShieldCheck className="h-3 w-3" /> : <UserPlus className="h-3 w-3" />}
+                        {hasAccess ? "Manage Access" : "Set Up Access"}
                     </button>
                   )}
                 </div>
@@ -165,9 +170,10 @@ export default function Contacts() {
         contact={inviteContact}
         accounts={accounts}
         existingUser={inviteContact?.email ? userByEmail[inviteContact.email.toLowerCase()] : null}
+        pendingAssignment={inviteContact ? pendingByContact[inviteContact.id] : null}
         onDone={(email) => {
           if (inviteContact && email) setContacts((current) => current.map((c) => c.id === inviteContact.id ? { ...c, email } : c));
-          refreshUsers();
+          refreshAccess();
         }}
       />
     </div>
