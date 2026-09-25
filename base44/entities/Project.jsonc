@@ -3,8 +3,7 @@
   "type": "object",
   "properties": {
     "project_number": {
-      "type": "string",
-      "description": "PROJ number e.g. PROJ674"
+      "type": "string"
     },
     "name": {
       "type": "string"
@@ -13,45 +12,37 @@
       "type": "string"
     },
     "client_account_id": {
-      "type": "string",
-      "description": "Dataverse GUID of client account"
+      "type": "string"
     },
     "client_name": {
       "type": "string"
     },
     "account_id": {
-      "type": "string",
-      "description": "Dataverse GUID of primary account (supplier)"
+      "type": "string"
     },
     "related_supplier_account_ids": {
       "type": "array",
       "items": {
         "type": "string"
-      },
-      "description": "Supplier account GUIDs linked by legal documents, JCTs, warranties, or purchase orders"
+      }
     },
     "department_id": {
-      "type": "string",
-      "description": "Dataverse GUID of department"
+      "type": "string"
     },
     "bdm_aad_id": {
-      "type": "string",
-      "description": "BDM user id"
+      "type": "string"
     },
     "bsm_aad_id": {
-      "type": "string",
-      "description": "BSM user id"
+      "type": "string"
     },
     "director_aad_id": {
-      "type": "string",
-      "description": "Director user id"
+      "type": "string"
     },
     "strategic_account_manager_aad_id": {
       "type": "string"
     },
     "project_manager_id": {
-      "type": "string",
-      "description": "Dataverse contact GUID of PM"
+      "type": "string"
     },
     "client_rep_id": {
       "type": "string"
@@ -69,8 +60,7 @@
       "type": "number"
     },
     "procurement_route": {
-      "type": "boolean",
-      "description": "True = UK Leisure Framework"
+      "type": "boolean"
     },
     "live_project": {
       "type": "boolean",
@@ -183,8 +173,7 @@
       "default": "active"
     },
     "dataverse_id": {
-      "type": "string",
-      "description": "Original Dataverse bss_projectid GUID"
+      "type": "string"
     }
   },
   "required": [
@@ -208,6 +197,18 @@
             },
             {
               "data.related_supplier_account_ids": "{{user.data.account_id}}"
+            }
+          ]
+        },
+        {
+          "$and": [
+            {
+              "user_condition": {
+                "role": "project_manager"
+              }
+            },
+            {
+              "data.project_manager_id": "{{user.data.contact_dataverse_id}}"
             }
           ]
         },
