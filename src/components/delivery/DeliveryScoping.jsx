@@ -1,9 +1,11 @@
 import React from "react";
 import { FormSection, FormGrid, FormField, formInputClass } from "@/components/forms/PowerForm";
+import { DropdownWithNotes } from "./DropdownWithNotes";
 import { Button } from "@/components/ui/button";
 import { Loader2, Building2, MapPin, PoundSterling, User } from "lucide-react";
 import { formatCurrency } from "@/lib/portal";
 
+const FUNDING = ["UK Leisure Framework", "Local Authority Capital", "Sport England", "Salix", "Section 106", "Other"];
 const FEASIBILITY = [
   { value: "not_started", label: "Not started" },
   { value: "in_progress", label: "In progress" },
@@ -14,7 +16,6 @@ export function DeliveryScoping({ project, accountMap, bdmName, delivery, setFie
   return (
     <FormSection title="1 · Opportunity & Scoping" description="Existing project info is shown read-only; supplementary scoping fields are editable">
       <div className="space-y-5">
-        {/* Read-only project info (already captured on the project) */}
         <div className="grid gap-3 rounded-lg bg-slate-50 p-3 sm:grid-cols-2 lg:grid-cols-4">
           <ReadOnly icon={<Building2 className="h-3.5 w-3.5" />} label="Client / authority" value={accountMap[project.client_account_id]?.name || project.client_name || "—"} />
           <ReadOnly icon={<MapPin className="h-3.5 w-3.5" />} label="Site" value={project.site_postcode || "—"} />
@@ -23,20 +24,13 @@ export function DeliveryScoping({ project, accountMap, bdmName, delivery, setFie
         </div>
 
         <FormGrid>
-          <FormField label="Funding route">
-            <input value={delivery.funding_route || ""} onChange={(e) => setField("funding_route", e.target.value)} className={formInputClass} />
-          </FormField>
+          <DropdownWithNotes label="Funding route" value={delivery.funding_route} onChange={(v) => setField("funding_route", v)} options={FUNDING} notes={delivery.funding_route_notes} onNotesChange={(v) => setField("funding_route_notes", v)} />
           <FormField label="Project type">
             <input value={project.description || ""} disabled className={`${formInputClass} bg-slate-50 text-slate-500`} />
           </FormField>
+          <DropdownWithNotes label="Feasibility / options appraisal" value={delivery.feasibility_status} onChange={(v) => setField("feasibility_status", v)} options={FEASIBILITY} notes={delivery.feasibility_notes} onNotesChange={(v) => setField("feasibility_notes", v)} />
           <FormField label="Probability / confidence (%)">
             <input type="number" min="0" max="100" value={delivery.probability ?? ""} onChange={(e) => setField("probability", e.target.value)} className={formInputClass} />
-          </FormField>
-          <FormField label="Feasibility / options appraisal">
-            <select value={delivery.feasibility_status || ""} onChange={(e) => setField("feasibility_status", e.target.value)} className={formInputClass}>
-              <option value="">—</option>
-              {FEASIBILITY.map((o) => <option key={o.value} value={o.value}>{o.label}</option>)}
-            </select>
           </FormField>
           <FormField label="Site visit completed?">
             <label className="flex h-10 items-center gap-2 text-sm text-slate-700">
@@ -47,7 +41,7 @@ export function DeliveryScoping({ project, accountMap, bdmName, delivery, setFie
           <FormField label="Target programme">
             <input value={delivery.target_programme || ""} onChange={(e) => setField("target_programme", e.target.value)} className={formInputClass} />
           </FormField>
-          <FormField label="Scope summary" >
+          <FormField label="Scope summary">
             <textarea rows={2} value={delivery.scope_summary || ""} onChange={(e) => setField("scope_summary", e.target.value)} className={`${formInputClass} h-auto py-2`} />
           </FormField>
           <FormField label="Client objectives">

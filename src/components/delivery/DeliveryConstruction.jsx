@@ -1,7 +1,11 @@
 import React from "react";
 import { FormSection, FormGrid, FormField, formInputClass } from "@/components/forms/PowerForm";
+import { DropdownWithNotes } from "./DropdownWithNotes";
 import { Button } from "@/components/ui/button";
 import { Loader2 } from "lucide-react";
+
+const EOT = ["None", "Requested", "Agreed", "Disputed", "N/A"];
+const LAD = ["None", "Low", "Medium", "High"];
 
 export function DeliveryConstruction({ delivery, setField, onSave, saving }) {
   return (
@@ -17,11 +21,11 @@ export function DeliveryConstruction({ delivery, setField, onSave, saving }) {
           <FormField label="% programme complete"><input type="number" min="0" max="100" value={delivery.pct_programme ?? ""} onChange={(e) => setField("pct_programme", e.target.value)} className={formInputClass} /></FormField>
           <FormField label="% cost complete"><input type="number" min="0" max="100" value={delivery.pct_cost ?? ""} onChange={(e) => setField("pct_cost", e.target.value)} className={formInputClass} /></FormField>
           <FormField label="Variations"><input value={delivery.variations || ""} onChange={(e) => setField("variations", e.target.value)} className={formInputClass} /></FormField>
-          <FormField label="EOT"><input value={delivery.eot || ""} onChange={(e) => setField("eot", e.target.value)} className={formInputClass} /></FormField>
-          <FormField label="LAD exposure"><input value={delivery.lad_exposure || ""} onChange={(e) => setField("lad_exposure", e.target.value)} className={formInputClass} /></FormField>
+          <DropdownWithNotes label="EOT" value={delivery.eot} onChange={(v) => setField("eot", v)} options={EOT} notes={delivery.eot_notes} onNotesChange={(v) => setField("eot_notes", v)} />
+          <DropdownWithNotes label="LAD exposure" value={delivery.lad_exposure} onChange={(v) => setField("lad_exposure", v)} options={LAD} notes={delivery.lad_exposure_notes} onNotesChange={(v) => setField("lad_exposure_notes", v)} />
           <FormField label="Last progress meeting"><input type="date" value={delivery.last_progress_meeting ? String(delivery.last_progress_meeting).slice(0, 10) : ""} onChange={(e) => setField("last_progress_meeting", e.target.value)} className={formInputClass} /></FormField>
           <FormField label="Next progress meeting"><input type="date" value={delivery.next_progress_meeting ? String(delivery.next_progress_meeting).slice(0, 10) : ""} onChange={(e) => setField("next_progress_meeting", e.target.value)} className={formInputClass} /></FormField>
-          <FormField label="Key site issues" ><textarea rows={2} value={delivery.key_site_issues || ""} onChange={(e) => setField("key_site_issues", e.target.value)} className={`${formInputClass} h-auto py-2`} /></FormField>
+          <FormField label="Key site issues"><textarea rows={2} value={delivery.key_site_issues || ""} onChange={(e) => setField("key_site_issues", e.target.value)} className={`${formInputClass} h-auto py-2`} /></FormField>
         </FormGrid>
         <div className="flex justify-end">
           <Button type="button" onClick={onSave} disabled={saving} className="bg-primary hover:bg-primary/90">

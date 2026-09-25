@@ -48,6 +48,10 @@
     "margin_pct": {
       "type": "number"
     },
+    "line_items": {
+      "type": "string",
+      "description": "JSON array of fee proposal line items"
+    },
     "status": {
       "type": "string",
       "enum": [

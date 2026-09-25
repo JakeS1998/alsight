@@ -17,6 +17,9 @@
     "funding_route": {
       "type": "string"
     },
+    "funding_route_notes": {
+      "type": "string"
+    },
     "scope_summary": {
       "type": "string"
     },
@@ -44,6 +47,9 @@
         "complete",
         ""
       ]
+    },
+    "feasibility_notes": {
+      "type": "string"
     },
     "probability": {
       "type": "number",
@@ -85,7 +91,13 @@
     "eot": {
       "type": "string"
     },
+    "eot_notes": {
+      "type": "string"
+    },
     "lad_exposure": {
+      "type": "string"
+    },
+    "lad_exposure_notes": {
       "type": "string"
     },
     "key_site_issues": {
@@ -115,10 +127,19 @@
         ""
       ]
     },
+    "final_account_notes": {
+      "type": "string"
+    },
     "defects_period": {
       "type": "string"
     },
+    "defects_period_notes": {
+      "type": "string"
+    },
     "retention": {
+      "type": "string"
+    },
+    "retention_notes": {
       "type": "string"
     },
     "om_manuals": {
@@ -130,6 +151,9 @@
         ""
       ]
     },
+    "om_manuals_notes": {
+      "type": "string"
+    },
     "hs_file": {
       "type": "string",
       "enum": [
@@ -138,6 +162,9 @@
         "complete",
         ""
       ]
+    },
+    "hs_file_notes": {
+      "type": "string"
     },
     "warranties_status": {
       "type": "string",
@@ -148,6 +175,9 @@
         ""
       ]
     },
+    "warranties_status_notes": {
+      "type": "string"
+    },
     "training": {
       "type": "string",
       "enum": [
@@ -156,6 +186,9 @@
         "complete",
         ""
       ]
+    },
+    "training_notes": {
+      "type": "string"
     },
     "asset_info": {
       "type": "string",
@@ -166,6 +199,9 @@
         ""
       ]
     },
+    "asset_info_notes": {
+      "type": "string"
+    },
     "client_handover": {
       "type": "string",
       "enum": [
@@ -174,6 +210,9 @@
         "complete",
         ""
       ]
+    },
+    "client_handover_notes": {
+      "type": "string"
     },
     "lessons_learned": {
       "type": "string"
