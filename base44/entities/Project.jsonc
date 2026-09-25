@@ -2,55 +2,182 @@
   "name": "Project",
   "type": "object",
   "properties": {
+    "project_number": {
+      "type": "string",
+      "description": "PROJ number e.g. PROJ674"
+    },
     "name": {
       "type": "string"
     },
     "description": {
       "type": "string"
     },
-    "status": {
-      "type": "string",
-      "enum": [
-        "requested",
-        "in_review",
-        "approved",
-        "active",
-        "completed",
-        "rejected"
-      ],
-      "default": "requested"
-    },
     "client_account_id": {
-      "type": "string"
+      "type": "string",
+      "description": "Dataverse GUID of client account"
     },
     "client_name": {
       "type": "string"
     },
-    "supplier_account_id": {
+    "account_id": {
+      "type": "string",
+      "description": "Dataverse GUID of primary account (supplier)"
+    },
+    "department_id": {
+      "type": "string",
+      "description": "Dataverse GUID of department"
+    },
+    "bdm_aad_id": {
+      "type": "string",
+      "description": "BDM Azure AD object ID"
+    },
+    "bsm_aad_id": {
+      "type": "string",
+      "description": "BSM Azure AD object ID"
+    },
+    "director_aad_id": {
+      "type": "string",
+      "description": "Director Azure AD object ID"
+    },
+    "strategic_account_manager_aad_id": {
       "type": "string"
     },
-    "supplier_name": {
+    "project_manager_id": {
+      "type": "string",
+      "description": "Dataverse contact GUID of PM"
+    },
+    "client_rep_id": {
       "type": "string"
     },
-    "requested_by_id": {
+    "client_rep2_id": {
       "type": "string"
     },
-    "requested_by_name": {
+    "contractor_contact_id": {
       "type": "string"
     },
-    "budget": {
+    "estimated_value": {
       "type": "number"
     },
-    "start_date": {
-      "type": "string",
-      "format": "date"
+    "construction_term_weeks": {
+      "type": "number"
     },
-    "target_end_date": {
-      "type": "string",
-      "format": "date"
+    "procurement_route": {
+      "type": "boolean",
+      "description": "True = UK Leisure Framework"
     },
-    "notes": {
+    "live_project": {
+      "type": "boolean",
+      "default": true
+    },
+    "approval_status": {
       "type": "string"
+    },
+    "aa_executed_date": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "pq_approval_date": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "practical_completion_date": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "riba1_end": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "riba1_term_weeks": {
+      "type": "number"
+    },
+    "riba2_end": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "riba2_term_weeks": {
+      "type": "number"
+    },
+    "riba3_end": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "riba3_term_weeks": {
+      "type": "number"
+    },
+    "riba4_end": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "riba4_term_weeks": {
+      "type": "number"
+    },
+    "riba1_system_date": {
+      "type": "string"
+    },
+    "riba2_system_date": {
+      "type": "string"
+    },
+    "riba3_system_date": {
+      "type": "string"
+    },
+    "riba4_system_date": {
+      "type": "string"
+    },
+    "riba5_system_date": {
+      "type": "string"
+    },
+    "site_postcode": {
+      "type": "string"
+    },
+    "latitude": {
+      "type": "number"
+    },
+    "longitude": {
+      "type": "number"
+    },
+    "link_to_legals": {
+      "type": "string"
+    },
+    "link_to_project_questionnaire": {
+      "type": "string"
+    },
+    "link_to_pso": {
+      "type": "string"
+    },
+    "link_to_pcs": {
+      "type": "string"
+    },
+    "comments": {
+      "type": "string"
+    },
+    "ie_commencement_date": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "ie_value": {
+      "type": "number"
+    },
+    "ie_comments": {
+      "type": "string"
+    },
+    "insights_and_engagement": {
+      "type": "boolean"
+    },
+    "payment_type": {
+      "type": "string"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "active",
+        "inactive"
+      ],
+      "default": "active"
+    },
+    "dataverse_id": {
+      "type": "string",
+      "description": "Original Dataverse bss_projectid GUID"
     }
   },
   "required": [
@@ -63,10 +190,7 @@
           "data.client_account_id": "{{user.data.account_id}}"
         },
         {
-          "data.supplier_account_id": "{{user.data.account_id}}"
-        },
-        {
-          "data.requested_by_id": "{{user.id}}"
+          "data.account_id": "{{user.data.account_id}}"
         },
         {
           "user_condition": {
@@ -76,6 +200,11 @@
         {
           "user_condition": {
             "role": "company_director"
+          }
+        },
+        {
+          "user_condition": {
+            "role": "development_manager"
           }
         }
       ]

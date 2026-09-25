@@ -1,0 +1,178 @@
+{
+  "name": "Warranty",
+  "type": "object",
+  "properties": {
+    "warranty_id": {
+      "type": "string",
+      "description": "CWY-XXXXX display ID"
+    },
+    "project_id": {
+      "type": "string",
+      "description": "Dataverse GUID of parent project"
+    },
+    "account_id": {
+      "type": "string",
+      "description": "Dataverse GUID of account"
+    },
+    "supplier_id": {
+      "type": "string",
+      "description": "Dataverse GUID of supplier"
+    },
+    "services": {
+      "type": "string",
+      "description": "Free text e.g. Roofing and Civils, PD CDM, Architect"
+    },
+    "beneficiary": {
+      "type": "string",
+      "enum": [
+        "council",
+        ""
+      ],
+      "default": "council"
+    },
+    "category": {
+      "type": "string",
+      "enum": [
+        "contractor",
+        "consultant",
+        "other",
+        ""
+      ],
+      "default": ""
+    },
+    "warranty_status": {
+      "type": "string",
+      "enum": [
+        "awaiting_jct",
+        "awaiting_appointment",
+        "in_review",
+        "sent_for_seal",
+        "drafted",
+        ""
+      ],
+      "default": ""
+    },
+    "format": {
+      "type": "string",
+      "enum": [
+        "deed",
+        ""
+      ]
+    },
+    "jct_signed": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "warranty_due": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "practical_completion": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "date_of_execution": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "reminder_date": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "drafted_date": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "approval_status": {
+      "type": "string"
+    },
+    "approval_date": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "approval_comments": {
+      "type": "string"
+    },
+    "approvers_name": {
+      "type": "string"
+    },
+    "submit_for_approval": {
+      "type": "boolean",
+      "default": false
+    },
+    "link_to_file": {
+      "type": "string"
+    },
+    "comments": {
+      "type": "string"
+    },
+    "project_bsm_aad_id": {
+      "type": "string"
+    },
+    "warranty_lead_aad_id": {
+      "type": "string"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "active",
+        "inactive"
+      ],
+      "default": "active"
+    },
+    "dataverse_id": {
+      "type": "string",
+      "description": "Original Dataverse bss_warrantyid GUID"
+    }
+  },
+  "required": [
+    "warranty_id"
+  ],
+  "rls": {
+    "read": {
+      "$or": [
+        {
+          "data.account_id": "{{user.data.account_id}}"
+        },
+        {
+          "data.supplier_id": "{{user.data.account_id}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        },
+        {
+          "user_condition": {
+            "role": "company_director"
+          }
+        },
+        {
+          "user_condition": {
+            "role": "development_manager"
+          }
+        },
+        {
+          "user_condition": {
+            "role": "client"
+          }
+        }
+      ]
+    },
+    "create": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "update": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "delete": {
+      "user_condition": {
+        "role": "admin"
+      }
+    }
+  }
+}

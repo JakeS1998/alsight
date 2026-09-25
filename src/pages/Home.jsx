@@ -2,26 +2,26 @@ import React, { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { useAuth } from "@/lib/AuthContext";
 import { base44 } from "@/api/base44Client";
-import { ROLE_LABELS, PROJECT_STATUS, CONTRACT_STATUS, formatCurrency, formatDate } from "@/lib/portal";
-import { StatusBadge } from "@/components/StatusBadge";
-import { FolderKanban, FileText, Receipt, Building2, Plus, ArrowRight } from "lucide-react";
+import { ROLE_LABELS } from "@/lib/portal";
+import { DocTypeBadge, ExecutedBadge, WarrantyStatusBadge } from "@/components/StatusBadge";
+import { FolderKanban, FileText, ShieldCheck, Building2, ArrowRight } from "lucide-react";
 
 export default function Home() {
   const { user } = useAuth();
   const role = user?.role || "client";
-  const [data, setData] = useState({ projects: [], contracts: [], invoices: [], accounts: [] });
+  const [data, setData] = useState({ projects: [], docs: [], warranties: [], accounts: [] });
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     (async () => {
       try {
-        const [projects, contracts, invoices, accounts] = await Promise.all([
-          base44.entities.Project.list("-updated_date", 50).catch(() => []),
-          base44.entities.Contract.list("-updated_date", 50).catch(() => []),
-          base44.entities.Invoice.list("-updated_date", 50).catch(() => []),
-          base44.entities.Account.list("-updated_date", 50).catch(() => []),
+        const [projects, docs, warranties, accounts] = await Promise.all([
+          base44.entities.Project.list("-created_date", 50).catch(() => []),
+          base44.entities.LegalDocument.list("-created_date", 50).catch(() => []),
+          base44.entities.Warranty.list("-created_date", 50).catch(() => []),
+          base44.entities.Account.list("-name", 50).catch(() => []),
         ]);
-        setData({ projects, contracts, invoices, accounts });
+        setData({ projects, docs, warranties, accounts });
       } finally {
         setLoading(false);
       }
@@ -29,7 +29,6 @@ export default function Home() {
   }, []);
 
   const isStaff = role === "admin" || role === "company_director";
-  const isDevManager = role === "development_manager";
   const isPartner = role === "client" || role === "supplier";
 
   const greeting = () => {
@@ -41,11 +40,11 @@ export default function Home() {
 
   const stats = [
     { label: "Projects", value: data.projects.length, icon: FolderKanban, to: "/projects", accent: "bg-sky-50 text-sky-600" },
-    { label: "Contracts", value: data.contracts.length, icon: FileText, to: "/contracts", accent: "bg-violet-50 text-violet-600" },
-    { label: "Invoices", value: data.invoices.length, icon: Receipt, to: "/invoices", accent: "bg-emerald-50 text-emerald-600" },
+    { label: "Legal Documents", value: data.docs.length, icon: FileText, to: "/documents", accent: "bg-violet-50 text-violet-600" },
+    { label: "Warranties", value: data.warranties.length, icon: ShieldCheck, to: "/warranties", accent: "bg-amber-50 text-amber-600" },
   ];
   if (isStaff) {
-    stats.push({ label: "Accounts", value: data.accounts.length, icon: Building2, to: "/accounts", accent: "bg-amber-50 text-amber-600" });
+    stats.push({ label: "Accounts", value: data.accounts.length, icon: Building2, to: "/accounts", accent: "bg-emerald-50 text-emerald-600" });
   }
 
   return (
@@ -58,7 +57,6 @@ export default function Home() {
         <p className="mt-1 text-sm text-slate-500">
           You're signed in as <span className="font-medium text-slate-700">{ROLE_LABELS[role]}</span>.
           {isPartner && " Only information relevant to your account is shown below."}
-          {isDevManager && " Submit and track your project requests."}
           {isStaff && " You have oversight across all accounts and projects."}
         </p>
       </div>
@@ -73,11 +71,7 @@ export default function Home() {
             {stats.map((s) => {
               const Icon = s.icon;
               return (
-                <Link
-                  key={s.label}
-                  to={s.to}
-                  className="group rounded-2xl border border-slate-200 bg-white p-5 transition-shadow hover:shadow-md"
-                >
+                <Link key={s.label} to={s.to} className="group rounded-2xl border border-slate-200 bg-white p-5 transition-shadow hover:shadow-md">
                   <div className={`mb-3 flex h-10 w-10 items-center justify-center rounded-lg ${s.accent}`}>
                     <Icon className="h-5 w-5" />
                   </div>
@@ -88,55 +82,32 @@ export default function Home() {
             })}
           </div>
 
-          {isDevManager && (
-            <Link
-              to="/projects"
-              className="flex items-center justify-between rounded-2xl bg-primary p-5 text-primary-foreground transition-transform hover:scale-[1.01]"
-            >
-              <div className="flex items-center gap-3">
-                <Plus className="h-5 w-5" />
-                <div>
-                  <p className="font-medium">Request a new project</p>
-                  <p className="text-sm text-slate-300">Submit a project request for director review</p>
-                </div>
-              </div>
-              <ArrowRight className="h-5 w-5" />
-            </Link>
-          )}
-
           <div className="grid gap-6 lg:grid-cols-2">
-            <Section title="Recent Projects" to="/projects" items={data.projects.slice(0, 5).map((p) => ({
+            <Section title="Recent Projects" to="/projects" items={data.projects.slice(0, 6).map((p) => ({
               id: p.id,
+              link: `/projects/${p.id}`,
               title: p.name,
-              sub: p.client_name || p.supplier_name || "—",
-              right: <StatusBadge status={p.status} map={PROJECT_STATUS} />,
+              sub: p.project_number || "—",
             }))} empty="No projects yet" />
 
-            <Section title="Recent Contracts" to="/contracts" items={data.contracts.slice(0, 5).map((c) => ({
-              id: c.id,
-              title: c.title,
-              sub: c.project_name || "—",
-              right: <StatusBadge status={c.status} map={CONTRACT_STATUS} />,
-            }))} empty="No contracts yet" />
+            <Section title="Recent Legal Documents" to="/documents" items={data.docs.slice(0, 6).map((d) => ({
+              id: d.id,
+              link: "/documents",
+              title: d.document_id || "—",
+              sub: <DocTypeBadge type={d.document_type} />,
+              right: <ExecutedBadge status={d.executed} />,
+            }))} empty="No documents yet" />
           </div>
 
-          <div className="grid gap-6 lg:grid-cols-2">
-            <Section title="Recent Invoices" to="/invoices" items={data.invoices.slice(0, 5).map((i) => ({
-              id: i.id,
-              title: i.invoice_number,
-              sub: i.project_name || "—",
-              right: <span className="text-sm font-medium text-slate-700">{formatCurrency(i.amount)}</span>,
-            }))} empty="No invoices yet" />
-
-            {isStaff && (
-              <Section title="Recent Accounts" to="/accounts" items={data.accounts.slice(0, 5).map((a) => ({
-                id: a.id,
-                title: a.name,
-                sub: a.contact_person || a.contact_email || "—",
-                right: <span className="text-xs font-medium uppercase text-slate-400">{a.type}</span>,
-              }))} empty="No accounts yet" />
-            )}
-          </div>
+          {isStaff && (
+            <Section title="Recent Warranties" to="/warranties" items={data.warranties.slice(0, 6).map((w) => ({
+              id: w.id,
+              link: "/warranties",
+              title: w.warranty_id || "—",
+              sub: w.services || "—",
+              right: <WarrantyStatusBadge status={w.warranty_status} />,
+            }))} empty="No warranties yet" />
+          )}
         </>
       )}
     </div>
@@ -155,10 +126,10 @@ function Section({ title, to, items, empty }) {
           <p className="px-5 py-8 text-center text-sm text-slate-400">{empty}</p>
         ) : (
           items.map((it) => (
-            <Link key={it.id} to={to} className="flex items-center justify-between px-5 py-3.5 hover:bg-slate-50">
+            <Link key={it.id} to={it.link || to} className="flex items-center justify-between px-5 py-3.5 hover:bg-slate-50">
               <div className="min-w-0">
                 <p className="truncate text-sm font-medium text-slate-900">{it.title}</p>
-                <p className="truncate text-xs text-slate-500">{it.sub}</p>
+                <div className="mt-0.5 truncate text-xs text-slate-500">{it.sub}</div>
               </div>
               {it.right}
             </Link>

@@ -1,0 +1,165 @@
+{
+  "name": "Contact",
+  "type": "object",
+  "properties": {
+    "full_name": {
+      "type": "string"
+    },
+    "first_name": {
+      "type": "string"
+    },
+    "last_name": {
+      "type": "string"
+    },
+    "email": {
+      "type": "string",
+      "format": "email"
+    },
+    "email2": {
+      "type": "string",
+      "format": "email"
+    },
+    "email3": {
+      "type": "string",
+      "format": "email"
+    },
+    "job_title": {
+      "type": "string"
+    },
+    "company_name": {
+      "type": "string",
+      "description": "Companies House company name snapshot"
+    },
+    "company_number": {
+      "type": "string"
+    },
+    "department": {
+      "type": "string"
+    },
+    "phone": {
+      "type": "string"
+    },
+    "mobile_phone": {
+      "type": "string"
+    },
+    "address_line1": {
+      "type": "string"
+    },
+    "address_city": {
+      "type": "string"
+    },
+    "address_county": {
+      "type": "string"
+    },
+    "address_postcode": {
+      "type": "string"
+    },
+    "address_country": {
+      "type": "string"
+    },
+    "officer_first_name": {
+      "type": "string"
+    },
+    "officer_last_name": {
+      "type": "string"
+    },
+    "officer_full_name": {
+      "type": "string"
+    },
+    "officer_role": {
+      "type": "string"
+    },
+    "ch_person_number": {
+      "type": "string"
+    },
+    "officer_appointments_link": {
+      "type": "string"
+    },
+    "nationality": {
+      "type": "string"
+    },
+    "appointed_on": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "identify_verified": {
+      "type": "boolean"
+    },
+    "system_managed": {
+      "type": "boolean"
+    },
+    "position": {
+      "type": "string"
+    },
+    "authority": {
+      "type": "string"
+    },
+    "aad_id": {
+      "type": "string"
+    },
+    "managing_partner_id": {
+      "type": "string"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "active",
+        "inactive"
+      ],
+      "default": "active"
+    },
+    "dataverse_id": {
+      "type": "string",
+      "description": "Original Dataverse contactid GUID"
+    }
+  },
+  "required": [
+    "full_name"
+  ],
+  "rls": {
+    "read": {
+      "$or": [
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        },
+        {
+          "user_condition": {
+            "role": "company_director"
+          }
+        },
+        {
+          "user_condition": {
+            "role": "development_manager"
+          }
+        },
+        {
+          "user_condition": {
+            "role": "client"
+          }
+        },
+        {
+          "user_condition": {
+            "role": "supplier"
+          }
+        }
+      ]
+    },
+    "create": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "update": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "delete": {
+      "user_condition": {
+        "role": "admin"
+      }
+    }
+  }
+}

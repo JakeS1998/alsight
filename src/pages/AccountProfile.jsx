@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
-import { Loader2, Check } from "lucide-react";
+import { Loader2, Check, ExternalLink } from "lucide-react";
 
 export default function AccountProfile() {
   const { user } = useAuth();
@@ -26,15 +26,16 @@ export default function AccountProfile() {
     }
     base44.entities.Account.list()
       .then((rows) => {
-        // RLS returns the user's own account (matched via linked_user_id)
         const myAccount = rows[0] || null;
         setAccount(myAccount);
         setForm(myAccount ? {
-          name: myAccount.name || "",
-          contact_person: myAccount.contact_person || "",
-          contact_email: myAccount.contact_email || "",
+          email: myAccount.email || "",
           phone: myAccount.phone || "",
-          address: myAccount.address || "",
+          address_line1: myAccount.address_line1 || "",
+          address_line2: myAccount.address_line2 || "",
+          address_city: myAccount.address_city || "",
+          address_county: myAccount.address_county || "",
+          address_postcode: myAccount.address_postcode || "",
         } : null);
       })
       .finally(() => setLoading(false));
@@ -47,10 +48,13 @@ export default function AccountProfile() {
     setSaved(false);
     try {
       const updated = await base44.entities.Account.update(account.id, {
-        contact_person: form.contact_person,
-        contact_email: form.contact_email,
+        email: form.email,
         phone: form.phone,
-        address: form.address,
+        address_line1: form.address_line1,
+        address_line2: form.address_line2,
+        address_city: form.address_city,
+        address_county: form.address_county,
+        address_postcode: form.address_postcode,
       });
       setAccount(updated);
       setSaved(true);
@@ -60,9 +64,7 @@ export default function AccountProfile() {
     }
   };
 
-  if (loading) {
-    return <div className="flex justify-center py-20"><div className="h-8 w-8 animate-spin rounded-full border-4 border-slate-200 border-t-slate-800" /></div>;
-  }
+  if (loading) return <div className="flex justify-center py-20"><div className="h-8 w-8 animate-spin rounded-full border-4 border-slate-200 border-t-slate-800" /></div>;
 
   if (!account) {
     return (
@@ -84,21 +86,22 @@ export default function AccountProfile() {
           <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-slate-900 text-sm font-semibold text-white">
             {account.name?.charAt(0).toUpperCase()}
           </div>
-          <div>
+          <div className="flex-1">
             <p className="text-base font-semibold text-slate-900">{account.name}</p>
-            <p className="text-xs uppercase tracking-wide text-slate-400">{account.type}</p>
+            <p className="text-xs uppercase tracking-wide text-slate-400">{account.account_type}</p>
           </div>
+          {account.company_number && (
+            <a href={account.ch_links_self} target="_blank" rel="noreferrer" className="inline-flex items-center gap-1 text-xs text-blue-600 hover:underline">
+              <ExternalLink className="h-3 w-3" /> Companies House
+            </a>
+          )}
         </div>
 
         <form onSubmit={submit} className="space-y-4">
-          <div className="space-y-1.5">
-            <Label htmlFor="a-contact">Contact person</Label>
-            <Input id="a-contact" value={form.contact_person} onChange={(e) => setForm({ ...form, contact_person: e.target.value })} />
-          </div>
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-1.5">
-              <Label htmlFor="a-email">Contact email</Label>
-              <Input id="a-email" type="email" value={form.contact_email} onChange={(e) => setForm({ ...form, contact_email: e.target.value })} />
+              <Label htmlFor="a-email">Email</Label>
+              <Input id="a-email" type="email" value={form.email} onChange={(e) => setForm({ ...form, email: e.target.value })} />
             </div>
             <div className="space-y-1.5">
               <Label htmlFor="a-phone">Phone</Label>
@@ -106,16 +109,28 @@ export default function AccountProfile() {
             </div>
           </div>
           <div className="space-y-1.5">
-            <Label htmlFor="a-address">Address</Label>
-            <Textarea id="a-address" rows={2} value={form.address} onChange={(e) => setForm({ ...form, address: e.target.value })} />
+            <Label htmlFor="a-addr1">Address Line 1</Label>
+            <Input id="a-addr1" value={form.address_line1} onChange={(e) => setForm({ ...form, address_line1: e.target.value })} />
+          </div>
+          <div className="grid grid-cols-2 gap-4">
+            <div className="space-y-1.5">
+              <Label htmlFor="a-city">City</Label>
+              <Input id="a-city" value={form.address_city} onChange={(e) => setForm({ ...form, address_city: e.target.value })} />
+            </div>
+            <div className="space-y-1.5">
+              <Label htmlFor="a-county">County</Label>
+              <Input id="a-county" value={form.address_county} onChange={(e) => setForm({ ...form, address_county: e.target.value })} />
+            </div>
+          </div>
+          <div className="space-y-1.5">
+            <Label htmlFor="a-postcode">Postcode</Label>
+            <Input id="a-postcode" value={form.address_postcode} onChange={(e) => setForm({ ...form, address_postcode: e.target.value })} />
           </div>
           <div className="flex items-center gap-3 pt-2">
             <Button type="submit" disabled={saving} className="bg-slate-900 hover:bg-slate-800">
               {saving ? <Loader2 className="mr-1.5 h-4 w-4 animate-spin" /> : null} Save changes
             </Button>
-            {saved && (
-              <span className="flex items-center gap-1 text-sm text-emerald-600"><Check className="h-4 w-4" /> Saved</span>
-            )}
+            {saved && <span className="flex items-center gap-1 text-sm text-emerald-600"><Check className="h-4 w-4" /> Saved</span>}
           </div>
         </form>
       </div>

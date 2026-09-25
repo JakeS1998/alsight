@@ -14,16 +14,17 @@ import ForgotPassword from '@/pages/ForgotPassword';
 import ResetPassword from '@/pages/ResetPassword';
 import Home from '@/pages/Home';
 import Projects from '@/pages/Projects';
-import Contracts from '@/pages/Contracts';
-import Invoices from '@/pages/Invoices';
-import AccountProfile from '@/pages/AccountProfile';
+import ProjectDetail from '@/pages/ProjectDetail';
+import LegalDocuments from '@/pages/LegalDocuments';
+import Warranties from '@/pages/Warranties';
 import Accounts from '@/pages/Accounts';
+import Contacts from '@/pages/Contacts';
+import AccountProfile from '@/pages/AccountProfile';
 import Analytics from '@/pages/Analytics';
 
 const AuthenticatedApp = () => {
   const { isLoadingAuth, isLoadingPublicSettings, authError, navigateToLogin } = useAuth();
 
-  // Show loading spinner while checking app public settings or auth
   if (isLoadingPublicSettings || isLoadingAuth) {
     return (
       <div className="fixed inset-0 flex items-center justify-center">
@@ -32,18 +33,15 @@ const AuthenticatedApp = () => {
     );
   }
 
-  // Handle authentication errors
   if (authError) {
     if (authError.type === 'user_not_registered') {
       return <UserNotRegisteredError />;
     } else if (authError.type === 'auth_required') {
-      // Redirect to login automatically
       navigateToLogin();
       return null;
     }
   }
 
-  // Render the main app
   return (
     <Routes>
       <Route path="/login" element={<Login />} />
@@ -54,10 +52,12 @@ const AuthenticatedApp = () => {
         <Route element={<PortalLayout />}>
           <Route path="/" element={<Home />} />
           <Route path="/projects" element={<Projects />} />
-          <Route path="/contracts" element={<Contracts />} />
-          <Route path="/invoices" element={<Invoices />} />
+          <Route path="/projects/:projectId" element={<ProjectDetail />} />
+          <Route path="/documents" element={<LegalDocuments />} />
+          <Route path="/warranties" element={<Warranties />} />
           <Route path="/account" element={<AccountProfile />} />
           <Route path="/accounts" element={<Accounts />} />
+          <Route path="/contacts" element={<Contacts />} />
           <Route path="/analytics" element={<Analytics />} />
         </Route>
       </Route>
@@ -66,9 +66,7 @@ const AuthenticatedApp = () => {
   );
 };
 
-
 function App() {
-
   return (
     <AuthProvider>
       <QueryClientProvider client={queryClientInstance}>

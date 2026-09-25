@@ -1,0 +1,287 @@
+{
+  "name": "DMA",
+  "type": "object",
+  "properties": {
+    "document_id": {
+      "type": "string",
+      "description": "DMA-XXXXX display ID"
+    },
+    "project_id": {
+      "type": "string",
+      "description": "Dataverse GUID of parent project"
+    },
+    "dma_version": {
+      "type": "boolean",
+      "default": false
+    },
+    "executed": {
+      "type": "string",
+      "enum": [
+        "no",
+        "yes"
+      ],
+      "default": "no"
+    },
+    "approval_status": {
+      "type": "string"
+    },
+    "approval_date": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "approval_comments": {
+      "type": "string"
+    },
+    "approvers_name": {
+      "type": "string"
+    },
+    "comments": {
+      "type": "string"
+    },
+    "drafted_date": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "drafting_due_date": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "date_of_execution": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "sent_for_signing": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "signing_target_date": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "shared_with_council": {
+      "type": "boolean",
+      "default": false
+    },
+    "is_bsm_document_owner": {
+      "type": "boolean",
+      "default": true
+    },
+    "link_to_file": {
+      "type": "string"
+    },
+    "bsm_aad_id": {
+      "type": "string"
+    },
+    "payment_terms": {
+      "type": "string",
+      "enum": [
+        "no",
+        "yes",
+        "na",
+        "tbc",
+        ""
+      ]
+    },
+    "payment_comments": {
+      "type": "string"
+    },
+    "lads": {
+      "type": "string",
+      "enum": [
+        "no",
+        "yes",
+        "na",
+        "tbc",
+        ""
+      ]
+    },
+    "lad_comments": {
+      "type": "string"
+    },
+    "pcg_bond": {
+      "type": "string",
+      "enum": [
+        "no",
+        "yes",
+        "na",
+        "tbc",
+        ""
+      ]
+    },
+    "pcg_comments": {
+      "type": "string"
+    },
+    "retention": {
+      "type": "string",
+      "enum": [
+        "no",
+        "yes",
+        "na",
+        "tbc",
+        ""
+      ]
+    },
+    "retention_comments": {
+      "type": "string"
+    },
+    "framework_support_fee": {
+      "type": "string",
+      "enum": [
+        "no",
+        "yes",
+        "na",
+        "tbc",
+        ""
+      ]
+    },
+    "fsf_comments": {
+      "type": "string"
+    },
+    "pi_limit": {
+      "type": "string",
+      "enum": [
+        "no",
+        "yes",
+        "na",
+        "tbc",
+        ""
+      ]
+    },
+    "pi_comments": {
+      "type": "string"
+    },
+    "schedule2": {
+      "type": "string",
+      "enum": [
+        "no",
+        "yes",
+        "na",
+        "tbc",
+        ""
+      ]
+    },
+    "sch2_comments": {
+      "type": "string"
+    },
+    "equipment": {
+      "type": "string",
+      "enum": [
+        "no",
+        "yes",
+        "na",
+        "tbc",
+        ""
+      ]
+    },
+    "equip_comments": {
+      "type": "string"
+    },
+    "structural_insurance": {
+      "type": "string",
+      "enum": [
+        "no",
+        "yes",
+        "na",
+        "tbc",
+        ""
+      ]
+    },
+    "si_comments": {
+      "type": "string"
+    },
+    "risk_register": {
+      "type": "string",
+      "enum": [
+        "no",
+        "yes",
+        "na",
+        "tbc",
+        ""
+      ]
+    },
+    "rr_comments": {
+      "type": "string"
+    },
+    "pso_signoff": {
+      "type": "string",
+      "enum": [
+        "no",
+        "yes",
+        ""
+      ]
+    },
+    "riba3_completion": {
+      "type": "string"
+    },
+    "riba4_completion": {
+      "type": "string"
+    },
+    "conditions_precedent": {
+      "type": "string"
+    },
+    "conditions_precedent_agreed": {
+      "type": "string"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "active",
+        "inactive"
+      ],
+      "default": "active"
+    },
+    "dataverse_id": {
+      "type": "string",
+      "description": "Original Dataverse bss_dmaid GUID"
+    }
+  },
+  "required": [
+    "document_id"
+  ],
+  "rls": {
+    "read": {
+      "$or": [
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        },
+        {
+          "user_condition": {
+            "role": "company_director"
+          }
+        },
+        {
+          "user_condition": {
+            "role": "development_manager"
+          }
+        },
+        {
+          "user_condition": {
+            "role": "client"
+          }
+        },
+        {
+          "user_condition": {
+            "role": "supplier"
+          }
+        }
+      ]
+    },
+    "create": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "update": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "delete": {
+      "user_condition": {
+        "role": "admin"
+      }
+    }
+  }
+}

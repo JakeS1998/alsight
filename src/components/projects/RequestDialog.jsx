@@ -7,38 +7,35 @@ import {
 import { FormSection, FormGrid, FormField, formInputClass } from "@/components/forms/PowerForm";
 import { Loader2 } from "lucide-react";
 
-export function RequestDialog({ open, onOpenChange, accounts, user, submitting, setSubmitting, onCreated }) {
+export function RequestDialog({ open, onOpenChange, accounts, user, onCreated }) {
   const [form, setForm] = useState({
-    name: "", description: "", client_account_id: "", supplier_account_id: "",
-    budget: "", start_date: "", target_end_date: "",
+    name: "", description: "", client_account_id: "", account_id: "",
+    estimated_value: "", procurement_route: true,
   });
+  const [submitting, setSubmitting] = useState(false);
 
   const reset = () =>
-    setForm({ name: "", description: "", client_account_id: "", supplier_account_id: "", budget: "", start_date: "", target_end_date: "" });
+    setForm({ name: "", description: "", client_account_id: "", account_id: "", estimated_value: "", procurement_route: true });
 
-  const clientAccounts = accounts.filter((a) => a.type === "client");
-  const supplierAccounts = accounts.filter((a) => a.type === "supplier");
+  const clientAccounts = accounts.filter((a) => a.account_type === "client");
+  const supplierAccounts = accounts.filter((a) => a.account_type === "supplier");
 
   const submit = async (e) => {
     e.preventDefault();
     if (!form.name.trim()) return;
     setSubmitting(true);
     try {
-      const client = accounts.find((a) => a.id === form.client_account_id);
-      const supplier = accounts.find((a) => a.id === form.supplier_account_id);
+      const client = accounts.find((a) => a.dataverse_id === form.client_account_id);
       await base44.entities.Project.create({
         name: form.name.trim(),
         description: form.description.trim(),
-        status: "requested",
+        project_number: "",
         client_account_id: form.client_account_id || null,
-        client_name: client?.name || null,
-        supplier_account_id: form.supplier_account_id || null,
-        supplier_name: supplier?.name || null,
-        requested_by_id: user.id,
-        requested_by_name: user.full_name || user.email,
-        budget: form.budget ? Number(form.budget) : null,
-        start_date: form.start_date || null,
-        target_end_date: form.target_end_date || null,
+        account_id: form.account_id || null,
+        estimated_value: form.estimated_value ? Number(form.estimated_value) : null,
+        procurement_route: form.procurement_route,
+        live_project: true,
+        status: "active",
       });
       reset();
       onOpenChange(false);
@@ -61,40 +58,36 @@ export function RequestDialog({ open, onOpenChange, accounts, user, submitting, 
               <FormField label="Project name" required>
                 <input value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} required className={formInputClass} />
               </FormField>
-              <FormField label="Description" help="Outline scope, objectives and any key requirements">
+              <FormField label="Description">
                 <textarea rows={3} value={form.description} onChange={(e) => setForm({ ...form, description: e.target.value })} className={`${formInputClass} h-auto py-2`} />
               </FormField>
             </div>
           </FormSection>
-
           <FormSection title="Parties & Budget" description="Link the client and supplier for this project">
             <FormGrid>
               <FormField label="Client">
                 <select value={form.client_account_id} onChange={(e) => setForm({ ...form, client_account_id: e.target.value })} className={formInputClass}>
                   <option value="">—</option>
-                  {clientAccounts.map((a) => <option key={a.id} value={a.id}>{a.name}</option>)}
+                  {clientAccounts.map((a) => <option key={a.id} value={a.dataverse_id}>{a.name}</option>)}
                 </select>
               </FormField>
               <FormField label="Supplier">
-                <select value={form.supplier_account_id} onChange={(e) => setForm({ ...form, supplier_account_id: e.target.value })} className={formInputClass}>
+                <select value={form.account_id} onChange={(e) => setForm({ ...form, account_id: e.target.value })} className={formInputClass}>
                   <option value="">—</option>
-                  {supplierAccounts.map((a) => <option key={a.id} value={a.id}>{a.name}</option>)}
+                  {supplierAccounts.map((a) => <option key={a.id} value={a.dataverse_id}>{a.name}</option>)}
                 </select>
               </FormField>
-              <FormField label="Budget (£)" help="Estimated total project value">
-                <input type="number" min="0" value={form.budget} onChange={(e) => setForm({ ...form, budget: e.target.value })} className={formInputClass} />
+              <FormField label="Estimated Value (£)">
+                <input type="number" min="0" value={form.estimated_value} onChange={(e) => setForm({ ...form, estimated_value: e.target.value })} className={formInputClass} />
               </FormField>
-              <FormField label="Start date">
-                <input type="date" value={form.start_date} onChange={(e) => setForm({ ...form, start_date: e.target.value })} className={formInputClass} />
+              <FormField label="Procurement Route">
+                <select value={form.procurement_route} onChange={(e) => setForm({ ...form, procurement_route: e.target.value === "true" })} className={formInputClass}>
+                  <option value="true">UK Leisure Framework</option>
+                  <option value="false">Other</option>
+                </select>
               </FormField>
             </FormGrid>
-            <div className="mt-4">
-              <FormField label="Target end date">
-                <input type="date" value={form.target_end_date} onChange={(e) => setForm({ ...form, target_end_date: e.target.value })} className={formInputClass} />
-              </FormField>
-            </div>
           </FormSection>
-
           <DialogFooter>
             <Button type="button" variant="outline" onClick={() => onOpenChange(false)} disabled={submitting}>Cancel</Button>
             <Button type="submit" disabled={submitting} className="bg-primary hover:bg-primary/90">

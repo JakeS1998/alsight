@@ -5,25 +5,109 @@
     "name": {
       "type": "string"
     },
-    "type": {
+    "account_type": {
       "type": "string",
       "enum": [
-        "supplier",
-        "client"
-      ]
+        "client",
+        "supplier"
+      ],
+      "description": "760820000=client, 760820001=supplier"
     },
-    "contact_person": {
+    "company_number": {
+      "type": "string",
+      "description": "Companies House registration number"
+    },
+    "company_name": {
+      "type": "string",
+      "description": "Companies House registered name"
+    },
+    "company_status": {
+      "type": "string",
+      "description": "active, dissolved, etc."
+    },
+    "company_type": {
+      "type": "string",
+      "description": "ltd, plc, etc."
+    },
+    "date_of_incorporation": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "uklf_approved": {
+      "type": "boolean",
+      "default": false
+    },
+    "address_line1": {
       "type": "string"
     },
-    "contact_email": {
+    "address_line2": {
+      "type": "string"
+    },
+    "address_city": {
+      "type": "string"
+    },
+    "address_county": {
+      "type": "string"
+    },
+    "address_postcode": {
+      "type": "string"
+    },
+    "address_country": {
+      "type": "string"
+    },
+    "sharepoint_folder": {
+      "type": "string"
+    },
+    "region": {
+      "type": "string"
+    },
+    "email": {
       "type": "string",
       "format": "email"
     },
     "phone": {
       "type": "string"
     },
-    "address": {
+    "website": {
       "type": "string"
+    },
+    "ch_links_self": {
+      "type": "string",
+      "description": "Companies House company URL"
+    },
+    "ch_links_officers": {
+      "type": "string"
+    },
+    "ch_links_filing_history": {
+      "type": "string"
+    },
+    "ch_links_psc": {
+      "type": "string"
+    },
+    "sqq_expiry": {
+      "type": "string",
+      "format": "date"
+    },
+    "comments": {
+      "type": "string"
+    },
+    "assigned_bsm_aad_id": {
+      "type": "string"
+    },
+    "account_manager_aad_id": {
+      "type": "string"
+    },
+    "parent_account_id": {
+      "type": "string",
+      "description": "Dataverse GUID of parent account"
+    },
+    "primary_contact_id": {
+      "type": "string",
+      "description": "Dataverse GUID of primary contact"
+    },
+    "linked_user_id": {
+      "type": "string",
+      "description": "Portal user linked to this account (for RLS)"
     },
     "status": {
       "type": "string",
@@ -33,17 +117,14 @@
       ],
       "default": "active"
     },
-    "linked_user_id": {
+    "dataverse_id": {
       "type": "string",
-      "description": "User who manages this account"
-    },
-    "notes": {
-      "type": "string"
+      "description": "Original Dataverse accountid GUID"
     }
   },
   "required": [
     "name",
-    "type"
+    "account_type"
   ],
   "rls": {
     "read": {

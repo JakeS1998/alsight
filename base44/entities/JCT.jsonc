@@ -1,0 +1,256 @@
+{
+  "name": "JCT",
+  "type": "object",
+  "properties": {
+    "document_id": {
+      "type": "string",
+      "description": "JCT-XXXXX display ID"
+    },
+    "project_id": {
+      "type": "string",
+      "description": "Dataverse GUID of parent project"
+    },
+    "account_id": {
+      "type": "string",
+      "description": "Dataverse GUID of account"
+    },
+    "contractor_id": {
+      "type": "string",
+      "description": "Dataverse GUID of contractor account"
+    },
+    "form_of_jct": {
+      "type": "string",
+      "enum": [
+        "design_and_build",
+        "intermediate_with_contractors_design",
+        "minor_works",
+        ""
+      ]
+    },
+    "executed": {
+      "type": "string",
+      "enum": [
+        "no",
+        "yes"
+      ],
+      "default": "no"
+    },
+    "comments": {
+      "type": "string"
+    },
+    "drafted_date": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "drafting_due_date": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "date_of_execution": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "sent_for_signing": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "signing_target_date": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "shared_with_contractor": {
+      "type": "boolean",
+      "default": false
+    },
+    "is_bsm_document_owner": {
+      "type": "boolean",
+      "default": true
+    },
+    "link_to_file": {
+      "type": "string"
+    },
+    "loi_expiry_date": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "practical_completion": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "jct_lead_aad_id": {
+      "type": "string"
+    },
+    "project_bsm_aad_id": {
+      "type": "string"
+    },
+    "bsm_aad_id": {
+      "type": "string"
+    },
+    "contract_particulars": {
+      "type": "string",
+      "enum": [
+        "no",
+        "yes",
+        "na",
+        "tbc",
+        ""
+      ]
+    },
+    "cp_comments": {
+      "type": "string"
+    },
+    "cps": {
+      "type": "string",
+      "enum": [
+        "no",
+        "yes",
+        "na",
+        "tbc",
+        ""
+      ]
+    },
+    "cps_comments": {
+      "type": "string"
+    },
+    "ers": {
+      "type": "string",
+      "enum": [
+        "no",
+        "yes",
+        "na",
+        "tbc",
+        ""
+      ]
+    },
+    "er_comments": {
+      "type": "string"
+    },
+    "pci": {
+      "type": "string",
+      "enum": [
+        "no",
+        "yes",
+        "na",
+        "tbc",
+        ""
+      ]
+    },
+    "pci_comments": {
+      "type": "string"
+    },
+    "prelims": {
+      "type": "string",
+      "enum": [
+        "no",
+        "yes",
+        "na",
+        "tbc",
+        ""
+      ]
+    },
+    "prelim_comments": {
+      "type": "string"
+    },
+    "soa": {
+      "type": "string",
+      "enum": [
+        "no",
+        "yes",
+        "na",
+        "tbc",
+        ""
+      ]
+    },
+    "soa_comments": {
+      "type": "string"
+    },
+    "rr": {
+      "type": "string",
+      "enum": [
+        "no",
+        "yes",
+        "na",
+        "tbc",
+        ""
+      ]
+    },
+    "rr_comments": {
+      "type": "string"
+    },
+    "valuation_schedule": {
+      "type": "string",
+      "enum": [
+        "no",
+        "yes",
+        "na",
+        "tbc",
+        ""
+      ]
+    },
+    "variation_comments": {
+      "type": "string"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "active",
+        "inactive"
+      ],
+      "default": "active"
+    },
+    "dataverse_id": {
+      "type": "string",
+      "description": "Original Dataverse bss_jctid GUID"
+    }
+  },
+  "required": [
+    "document_id"
+  ],
+  "rls": {
+    "read": {
+      "$or": [
+        {
+          "data.account_id": "{{user.data.account_id}}"
+        },
+        {
+          "data.contractor_id": "{{user.data.account_id}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        },
+        {
+          "user_condition": {
+            "role": "company_director"
+          }
+        },
+        {
+          "user_condition": {
+            "role": "development_manager"
+          }
+        },
+        {
+          "user_condition": {
+            "role": "client"
+          }
+        }
+      ]
+    },
+    "create": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "update": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "delete": {
+      "user_condition": {
+        "role": "admin"
+      }
+    }
+  }
+}

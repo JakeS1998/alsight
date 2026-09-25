@@ -1,0 +1,176 @@
+{
+  "name": "LegalDocument",
+  "type": "object",
+  "properties": {
+    "document_id": {
+      "type": "string",
+      "description": "BSS-XXXXX display ID"
+    },
+    "project_id": {
+      "type": "string",
+      "description": "Dataverse GUID of parent project"
+    },
+    "document_type": {
+      "type": "string",
+      "enum": [
+        "access_agreement",
+        "additional_works",
+        "appointment_pm",
+        "appointment_pd_cdm",
+        "appointment_architect",
+        "appointment_pd_br",
+        "pcsa",
+        "loi",
+        "other"
+      ]
+    },
+    "riba_stage": {
+      "type": "string",
+      "enum": [
+        "riba_1",
+        "riba_2",
+        "riba_3",
+        "riba_4",
+        "riba_5_7",
+        ""
+      ]
+    },
+    "account_id": {
+      "type": "string",
+      "description": "Dataverse GUID of supplier account"
+    },
+    "bsm_aad_id": {
+      "type": "string"
+    },
+    "executed": {
+      "type": "string",
+      "enum": [
+        "no",
+        "yes",
+        "po"
+      ],
+      "default": "no"
+    },
+    "approval_status": {
+      "type": "string"
+    },
+    "approval_date": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "approval_comments": {
+      "type": "string"
+    },
+    "approvers_name": {
+      "type": "string"
+    },
+    "drafted_date": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "drafting_due_date": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "date_of_execution": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "sent_to_client": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "signing_target_date": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "shared_with_supplier": {
+      "type": "boolean",
+      "default": false
+    },
+    "is_bsm_document_owner": {
+      "type": "boolean",
+      "default": true
+    },
+    "link_to_file": {
+      "type": "string"
+    },
+    "link_to_client_proposal": {
+      "type": "string"
+    },
+    "link_to_fee_proposal": {
+      "type": "string"
+    },
+    "comments": {
+      "type": "string"
+    },
+    "pso_signoff": {
+      "type": "boolean",
+      "default": false
+    },
+    "fee_proposal_date": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "total_fees": {
+      "type": "number"
+    },
+    "post_construction": {
+      "type": "string"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "active",
+        "inactive"
+      ],
+      "default": "active"
+    },
+    "dataverse_id": {
+      "type": "string",
+      "description": "Original Dataverse bss_project1id GUID"
+    }
+  },
+  "required": [
+    "document_id"
+  ],
+  "rls": {
+    "read": {
+      "$or": [
+        {
+          "data.account_id": "{{user.data.account_id}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        },
+        {
+          "user_condition": {
+            "role": "company_director"
+          }
+        },
+        {
+          "user_condition": {
+            "role": "development_manager"
+          }
+        }
+      ]
+    },
+    "create": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "update": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "delete": {
+      "user_condition": {
+        "role": "admin"
+      }
+    }
+  }
+}

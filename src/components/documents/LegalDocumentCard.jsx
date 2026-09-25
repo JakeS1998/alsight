@@ -1,0 +1,87 @@
+import React, { useState } from "react";
+import { DOCUMENT_TYPE, formatDate } from "@/lib/portal";
+import { DocTypeBadge, ExecutedBadge } from "@/components/StatusBadge";
+import { ProgressTracker, getLegalDocSteps } from "@/components/documents/ProgressTracker";
+import { ChevronDown, ChevronRight, Download, ExternalLink, FileText } from "lucide-react";
+
+export function LegalDocumentCard({ doc, accountName }) {
+  const [open, setOpen] = useState(false);
+  const steps = getLegalDocSteps(doc);
+  const typeCfg = DOCUMENT_TYPE[doc.document_type] || { label: doc.document_type };
+
+  return (
+    <div className="overflow-hidden rounded-xl border border-slate-200 bg-white">
+      <button onClick={() => setOpen(o => !o)} className="w-full text-left">
+        <div className="flex items-center justify-between gap-3 p-4 transition-colors hover:bg-slate-50">
+          <div className="min-w-0 flex items-center gap-3">
+            {open ? <ChevronDown className="h-4 w-4 text-slate-400 shrink-0" /> : <ChevronRight className="h-4 w-4 text-slate-400 shrink-0" />}
+            <FileText className="h-4 w-4 text-primary shrink-0" />
+            <div className="min-w-0">
+              <p className="truncate text-sm font-semibold text-slate-900">{doc.document_id || "—"}</p>
+              <div className="mt-0.5 flex items-center gap-2">
+                <DocTypeBadge type={doc.document_type} />
+                {accountName && <span className="truncate text-xs text-slate-500">{accountName}</span>}
+              </div>
+            </div>
+          </div>
+          <ExecutedBadge status={doc.executed} />
+        </div>
+      </button>
+      {open && (
+        <div className="border-t border-slate-100 bg-slate-50/60 p-4 space-y-4">
+          <ProgressTracker steps={steps} />
+          <div className="grid gap-4 sm:grid-cols-3">
+            <DetailColumn title="Document & Execution">
+              <DetailRow label="Document ID" value={doc.document_id} />
+              <DetailRow label="Type" value={typeCfg.label} />
+              <DetailRow label="Executed" value={<ExecutedBadge status={doc.executed} />} />
+              <DetailRow label="Date of Execution" value={formatDate(doc.date_of_execution)} />
+              <DetailRow label="Signing Target" value={formatDate(doc.signing_target_date)} />
+              <DetailRow label="Sent to Client" value={formatDate(doc.sent_to_client)} />
+            </DetailColumn>
+            <DetailColumn title="Drafting & Approval">
+              <DetailRow label="Drafted Date" value={formatDate(doc.drafted_date)} />
+              <DetailRow label="Drafting Due" value={formatDate(doc.drafting_due_date)} />
+              <DetailRow label="Approval Status" value={doc.approval_status || "—"} />
+              <DetailRow label="Approver" value={doc.approvers_name || "—"} />
+              <DetailRow label="Approval Date" value={formatDate(doc.approval_date)} />
+              <DetailRow label="BSM Owner" value={doc.is_bsm_document_owner ? "Yes" : "No"} />
+            </DetailColumn>
+            <DetailColumn title="Comments & Links">
+              {doc.comments && <p className="text-xs text-slate-600 whitespace-pre-line">{doc.comments}</p>}
+              <div className="space-y-1">
+                {doc.link_to_file && <LinkRow href={doc.link_to_file} label="File" />}
+                {doc.link_to_client_proposal && <LinkRow href={doc.link_to_client_proposal} label="Client Proposal" />}
+                {doc.link_to_fee_proposal && <LinkRow href={doc.link_to_fee_proposal} label="Fee Proposal" />}
+              </div>
+            </DetailColumn>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
+function DetailColumn({ title, children }) {
+  return (
+    <div className="space-y-1.5">
+      <p className="text-[10px] font-semibold uppercase tracking-wide text-slate-400">{title}</p>
+      {children}
+    </div>
+  );
+}
+function DetailRow({ label, value }) {
+  return (
+    <div className="flex justify-between gap-2 text-xs">
+      <span className="text-slate-500 shrink-0">{label}</span>
+      <span className="text-slate-700 text-right">{value || "—"}</span>
+    </div>
+  );
+}
+function LinkRow({ href, label }) {
+  return (
+    <a href={href} target="_blank" rel="noreferrer" className="inline-flex items-center gap-1 text-xs text-blue-600 hover:underline">
+      <ExternalLink className="h-3 w-3" /> {label}
+    </a>
+  );
+}
