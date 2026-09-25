@@ -25,12 +25,14 @@ export function InviteUserDialog({ open, onOpenChange, contact, accounts, existi
   const [role, setRole] = useState("client");
   const [accountId, setAccountId] = useState("");
   const [region, setRegion] = useState("");
+  const [email, setEmail] = useState("");
   const [submitting, setSubmitting] = useState(false);
   const [success, setSuccess] = useState(false);
   const [error, setError] = useState("");
 
   useEffect(() => {
     if (open && contact) {
+      setEmail(contact.email || "");
       if (existingUser) {
         setRole(existingUser.role || "client");
         setAccountId(existingUser.account_id || "");
@@ -48,16 +50,18 @@ export function InviteUserDialog({ open, onOpenChange, contact, accounts, existi
 
   if (!contact) return null;
 
-  const updateContact = async (userId) => {
+  const updateContact = async (userId, address) => {
     await base44.entities.Contact.update(contact.id, {
       aad_id: userId,
       portal_role: role,
+      ...(!contact.email ? { email: address } : {}),
     });
   };
 
   const submit = async (e) => {
     e.preventDefault();
-    if (!contact.email) return;
+    const address = email.trim().toLowerCase();
+    if (!address) return;
     setSubmitting(true);
     setError("");
     try {
@@ -67,16 +71,15 @@ export function InviteUserDialog({ open, onOpenChange, contact, accounts, existi
           account_id: accountId || null,
           region: role === "regional_director" ? (region || null) : null,
         });
-        await updateContact(existingUser.id);
+        await updateContact(existingUser.id, address);
       } else {
-        const email = contact.email.trim().toLowerCase();
-        const matching = await filterAll(base44.entities.PendingPortalAccess, { email });
+        const matching = await filterAll(base44.entities.PendingPortalAccess, { email: address });
         if (matching.some((entry) => entry.contact_id !== contact.id)) {
           throw new Error("An access assignment already exists for this email on another contact.");
         }
         const access = {
           contact_id: contact.id,
-          email,
+          email: address,
           portal_role: role,
           account_id: accountId || "",
           region: role === "regional_director" ? (region || "") : "",
@@ -86,26 +89,28 @@ export function InviteUserDialog({ open, onOpenChange, contact, accounts, existi
           : await base44.entities.PendingPortalAccess.create(access);
         if (!matching.length) {
           try {
-            await base44.users.inviteUser(email, role === "admin" ? "admin" : "user");
+            await base44.users.inviteUser(address, role === "admin" ? "admin" : "user");
           } catch (inviteError) {
             await base44.entities.PendingPortalAccess.delete(staged.id);
             throw inviteError;
           }
         }
-        const fresh = await filterAll(base44.entities.User, { email }).catch(() => []);
-        const created = fresh.find((u) => (u.email || "").toLowerCase() === email);
+        const fresh = await filterAll(base44.entities.User, { email: address }).catch(() => []);
+        const created = fresh.find((u) => (u.email || "").toLowerCase() === address);
         if (created) {
           await base44.entities.User.update(created.id, {
             role,
             account_id: accountId || null,
             region: role === "regional_director" ? (region || null) : null,
           });
-          await updateContact(created.id);
+          await updateContact(created.id, address);
           await base44.entities.PendingPortalAccess.delete(staged.id);
+        } else if (!contact.email) {
+          await base44.entities.Contact.update(contact.id, { email: address });
         }
       }
       setSuccess(true);
-      onDone?.();
+      onDone?.(address);
     } catch (err) {
       setError(err.message || "Something went wrong");
     } finally {
@@ -161,6 +166,12 @@ export function InviteUserDialog({ open, onOpenChange, contact, accounts, existi
               </div>
             </div>
 
+            {!contact.email && (
+              <FormField label="Email address" required>
+                <input type="email" required value={email} onChange={(e) => setEmail(e.target.value)} className={formInputClass} placeholder="name@example.com" />
+              </FormField>
+            )}
+
             <FormField label="Portal Role" required>
               <select value={role} onChange={(e) => setRole(e.target.value)} className={formInputClass}>
                 {ROLES.map((r) => <option key={r.value} value={r.value}>{r.label}</option>)}
@@ -197,7 +208,7 @@ export function InviteUserDialog({ open, onOpenChange, contact, accounts, existi
               </Button>
               <Button
                 type="submit"
-                disabled={submitting || !contact.email}
+                disabled={submitting || !email.trim()}
                 className="bg-primary hover:bg-primary/90"
               >
                 {submitting ? (

@@ -5,6 +5,7 @@ import { useAuth } from "@/lib/AuthContext";
 import { formatDate, ROLE_LABELS } from "@/lib/portal";
 import { Users, ExternalLink, Mail, Phone, BadgeCheck, UserPlus, ShieldCheck } from "lucide-react";
 import { InviteUserDialog } from "@/components/contacts/InviteUserDialog";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 
 const ROLE_BADGE = {
   admin: "bg-slate-900 text-white border-slate-700",
@@ -101,7 +102,18 @@ export default function Contacts() {
                       {c.job_title && <p className="truncate text-xs text-slate-500">{c.job_title}</p>}
                     </div>
                   </div>
-                  {c.identify_verified && <BadgeCheck className="h-4 w-4 text-blue-500" />}
+                  {c.identify_verified && (
+                    <TooltipProvider>
+                      <Tooltip>
+                        <TooltipTrigger asChild>
+                          <span tabIndex={0} aria-label="Identity verified" className="inline-flex shrink-0 cursor-help">
+                            <BadgeCheck className="h-4 w-4 text-blue-500" />
+                          </span>
+                        </TooltipTrigger>
+                        <TooltipContent>Identity verified</TooltipContent>
+                      </Tooltip>
+                    </TooltipProvider>
+                  )}
                 </div>
 
                 {linkedUser && (
@@ -127,7 +139,7 @@ export default function Contacts() {
                     </a>
                   ) : <span />}
 
-                  {isAdmin && c.email && (
+                  {isAdmin && (
                     <button
                       onClick={() => setInviteContact(c)}
                       className={`inline-flex items-center gap-1 rounded-lg px-2.5 py-1.5 text-xs font-medium transition-colors ${
@@ -153,7 +165,10 @@ export default function Contacts() {
         contact={inviteContact}
         accounts={accounts}
         existingUser={inviteContact?.email ? userByEmail[inviteContact.email.toLowerCase()] : null}
-        onDone={refreshUsers}
+        onDone={(email) => {
+          if (inviteContact && email) setContacts((current) => current.map((c) => c.id === inviteContact.id ? { ...c, email } : c));
+          refreshUsers();
+        }}
       />
     </div>
   );
