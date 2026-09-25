@@ -28,9 +28,9 @@ export function LegalDocumentCard({ doc, accountName }) {
         </div>
       </button>
       {open && (
-        <div className="border-t border-slate-100 bg-slate-50/60 p-4 space-y-4">
+        <div className="border-t border-slate-100 bg-slate-50/60 p-3 space-y-3">
           <ProgressTracker steps={steps} />
-          <div className="grid gap-4 sm:grid-cols-3">
+          <div className="grid gap-4 sm:grid-cols-3 items-start">
             <DetailColumn title="Document & Execution">
               <DetailRow label="Document ID" value={doc.document_id} />
               <DetailRow label="Type" value={typeCfg.label} />
