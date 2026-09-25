@@ -105,6 +105,16 @@ export function getDMASteps(doc) {
   ]);
 }
 
+// Helper: compute progress steps for a warranty
+export function getWarrantySteps(doc) {
+  return withExecutionRule([
+    { label: "Drafted", state: doc.drafted_date ? "done" : "pending" },
+    { label: "ALS Approval", state: doc.approval_date || doc.approval_status?.startsWith("Approved") ? "done" : doc.drafted_date || doc.submit_for_approval ? "active" : "pending" },
+    { label: "JCT Signed", state: doc.jct_signed ? "done" : "pending" },
+    { label: "Execution", state: doc.date_of_execution ? "done" : doc.approval_date ? "active" : "pending" },
+  ]);
+}
+
 // Helper: compute progress steps for a JCT
 export function getJCTSteps(doc) {
   return withExecutionRule([
