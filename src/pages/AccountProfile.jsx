@@ -24,9 +24,13 @@ export default function AccountProfile() {
       navigate("/accounts");
       return;
     }
-    base44.entities.Account.list()
+    if (!user?.account_id) {
+      setLoading(false);
+      return;
+    }
+    base44.entities.Account.filter({ dataverse_id: user.account_id })
       .then((rows) => {
-        const myAccount = rows[0] || null;
+        const myAccount = rows.find((row) => row.dataverse_id === user.account_id && row.account_type === role) || null;
         setAccount(myAccount);
         setForm(myAccount ? {
           email: myAccount.email || "",
@@ -39,7 +43,7 @@ export default function AccountProfile() {
         } : null);
       })
       .finally(() => setLoading(false));
-  }, [role]);
+  }, [role, user?.account_id]);
 
   const submit = async (e) => {
     e.preventDefault();

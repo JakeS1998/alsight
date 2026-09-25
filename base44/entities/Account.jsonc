@@ -130,6 +130,32 @@
           "data.linked_user_id": "{{user.id}}"
         },
         {
+          "$and": [
+            {
+              "data.dataverse_id": "{{user.data.account_id}}"
+            },
+            {
+              "data.dataverse_id": {
+                "$ne": null
+              }
+            },
+            {
+              "$or": [
+                {
+                  "user_condition": {
+                    "role": "client"
+                  }
+                },
+                {
+                  "user_condition": {
+                    "role": "supplier"
+                  }
+                }
+              ]
+            }
+          ]
+        },
+        {
           "user_condition": {
             "role": "admin"
           }
@@ -157,16 +183,6 @@
         {
           "user_condition": {
             "role": "bdm"
-          }
-        },
-        {
-          "user_condition": {
-            "role": "client"
-          }
-        },
-        {
-          "user_condition": {
-            "role": "supplier"
           }
         }
       ]
