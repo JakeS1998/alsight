@@ -49,12 +49,10 @@ export function InviteUserDialog({ open, onOpenChange, contact, accounts, existi
   if (!contact) return null;
 
   const updateContact = async (userId) => {
-    try {
-      await base44.entities.Contact.update(contact.id, {
-        aad_id: userId || null,
-        portal_role: role,
-      });
-    } catch (_) { /* best effort */ }
+    await base44.entities.Contact.update(contact.id, {
+      aad_id: userId,
+      portal_role: role,
+    });
   };
 
   const submit = async (e) => {
@@ -71,21 +69,21 @@ export function InviteUserDialog({ open, onOpenChange, contact, accounts, existi
         });
         await updateContact(existingUser.id);
       } else {
-        // Invite the user (sends an invitation email), then set account/region.
-        await base44.users.inviteUser(contact.email, role);
+        // Invitation roles are admin/user; the portal role is assigned on the user record below.
+        await base44.users.inviteUser(contact.email, role === "admin" ? "admin" : "user");
         const fresh = await filterAll(base44.entities.User, { email: contact.email }).catch(() => []);
         const created = fresh.find(
           (u) => (u.email || "").toLowerCase() === contact.email.toLowerCase()
         );
-        if (created) {
-          await base44.entities.User.update(created.id, {
-            account_id: accountId || null,
-            region: role === "regional_director" ? (region || null) : null,
-          });
-          await updateContact(created.id);
-        } else {
-          await updateContact(null);
+        if (!created) {
+          throw new Error("Invitation sent. The account is not available yet; once they join, reopen Set Up Access to assign their portal role and account.");
         }
+        await base44.entities.User.update(created.id, {
+          role,
+          account_id: accountId || null,
+          region: role === "regional_director" ? (region || null) : null,
+        });
+        await updateContact(created.id);
       }
       setSuccess(true);
       onDone?.();
