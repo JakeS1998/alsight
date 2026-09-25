@@ -86,7 +86,11 @@ export function PreConstructionReadiness({ project, legalDocs, dmas, jcts, warra
                   </div>
                   <div className="grid grid-cols-2 gap-2">
                     <FormField label="Approved by">
-                      <input value={delivery[`pso_${g.key}_approved_by`] || ""} onChange={(e) => setField(`pso_${g.key}_approved_by`, e.target.value)} className={formInputClass} />
+                      <select value={delivery[`pso_${g.key}_approved_by`] || ""} onChange={(e) => setField(`pso_${g.key}_approved_by`, e.target.value)} className={formInputClass}>
+                        <option value="">Select approver</option>
+                        <option value="Sarah Watts">Sarah Watts</option>
+                        <option value="Paul Cluett">Paul Cluett</option>
+                      </select>
                     </FormField>
                     <FormField label="Date">
                       <input type="date" value={delivery[`pso_${g.key}_date`] ? String(delivery[`pso_${g.key}_date`]).slice(0, 10) : ""} onChange={(e) => setField(`pso_${g.key}_date`, e.target.value)} className={formInputClass} />
