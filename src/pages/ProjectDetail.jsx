@@ -85,7 +85,7 @@ export default function ProjectDetail() {
         {project.description && <p className="mt-1 text-sm text-slate-500">{project.description}</p>}
       </div>
 
-      <Tabs defaultValue="general">
+      <Tabs defaultValue={(() => { const t = new URLSearchParams(window.location.search).get("tab"); return ["general", "drafting", "warranties"].includes(t) ? t : "general"; })()}>
         <TabsList>
           <TabsTrigger value="general"><LayoutDashboard className="mr-1.5 h-4 w-4" /> General</TabsTrigger>
           <TabsTrigger value="drafting"><FileText className="mr-1.5 h-4 w-4" /> Drafting List</TabsTrigger>

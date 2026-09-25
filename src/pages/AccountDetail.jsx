@@ -23,18 +23,41 @@ export default function AccountDetail() {
         const dvId = acc.dataverse_id;
         const companyNo = acc.company_number;
 
-        const [c, p, d, w, j] = await Promise.all([
-          companyNo
-            ? base44.entities.Contact.filter({ company_number: companyNo }, "-created_date", 500).catch(() => [])
-            : [],
+        const [allContacts, directProjects, d, w, j] = await Promise.all([
+          base44.entities.Contact.list("-created_date", 1000).catch(() => []),
           base44.entities.Project.filter({ $or: [{ client_account_id: dvId }, { account_id: dvId }] }, "-created_date", 500).catch(() => []),
           base44.entities.LegalDocument.filter({ $or: [{ account_id: dvId }, { client_account_id: dvId }], status: { $in: ["active", "inactive"] } }, "-created_date", 500).catch(() => []),
           base44.entities.Warranty.filter({ $or: [{ account_id: dvId }, { supplier_id: dvId }, { client_account_id: dvId }] }, "-created_date", 500).catch(() => []),
           base44.entities.JCT.filter({ $or: [{ account_id: dvId }, { contractor_id: dvId }, { client_account_id: dvId }] }, "-created_date", 500).catch(() => []),
         ]);
 
-        setContacts(c);
-        setProjects(p);
+        // Contacts: match by company number, company name, or email domain derived from account name
+        const token = (acc.name?.split(/\s+/)[0] || "").toLowerCase().replace(/[^a-z]/g, "");
+        const matchesAccount = (c) => {
+          if (companyNo && c.company_number === companyNo) return true;
+          if (acc.company_name && (c.company_name || "").toLowerCase() === acc.company_name.toLowerCase()) return true;
+          if (c.email && token && token.length > 2) {
+            const domain = (c.email.split("@")[1] || "").toLowerCase();
+            if (domain.startsWith(token)) return true;
+          }
+          return false;
+        };
+        const contacts = allContacts.filter(matchesAccount);
+
+        // Projects: direct account link plus any project referenced by related docs/warranties/JCTs
+        const projectIdSet = new Set();
+        directProjects.forEach((p) => p.dataverse_id && projectIdSet.add(p.dataverse_id));
+        [d, w, j].forEach((arr) => arr.forEach((r) => r.project_id && projectIdSet.add(r.project_id)));
+        let projects = directProjects;
+        if (projectIdSet.size > directProjects.length) {
+          const derived = await base44.entities.Project.filter({ dataverse_id: { $in: [...projectIdSet] } }, "-created_date", 500).catch(() => []);
+          const map = {};
+          [...directProjects, ...derived].forEach((p) => { if (p.dataverse_id) map[p.dataverse_id] = p; });
+          projects = Object.values(map);
+        }
+
+        setContacts(contacts);
+        setProjects(projects);
         setDocs(d);
         setWarranties(w);
         setJcts(j);
@@ -56,6 +79,9 @@ export default function AccountDetail() {
       </div>
     );
   }
+
+  const projectByDv = {};
+  projects.forEach((p) => { if (p.dataverse_id) projectByDv[p.dataverse_id] = p; });
 
   return (
     <div className="space-y-6">
@@ -142,20 +168,29 @@ export default function AccountDetail() {
               <thead>
                 <tr className="border-b border-slate-100 bg-slate-50 text-left text-xs font-medium uppercase tracking-wide text-slate-500">
                   <th className="px-4 py-3">Document ID</th>
+                  <th className="px-4 py-3">Project</th>
                   <th className="px-4 py-3">Type</th>
                   <th className="px-4 py-3">Executed</th>
                   <th className="hidden px-4 py-3 sm:table-cell">Drafted</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-100">
-                {docs.map((d) => (
-                  <tr key={d.id} className="hover:bg-slate-50">
-                    <td className="px-4 py-3 text-sm font-medium text-slate-900">{d.document_id}</td>
-                    <td className="px-4 py-3"><DocTypeBadge type={d.document_type} /></td>
-                    <td className="px-4 py-3"><ExecutedBadge status={d.executed} /></td>
-                    <td className="hidden px-4 py-3 text-sm text-slate-600 sm:table-cell">{formatDate(d.drafted_date)}</td>
-                  </tr>
-                ))}
+                {docs.map((d) => {
+                  const proj = projectByDv[d.project_id];
+                  return (
+                    <tr key={d.id} className="hover:bg-slate-50">
+                      <td className="px-4 py-3 text-sm font-medium text-slate-900">
+                        {proj ? <Link to={`/projects/${proj.id}?tab=drafting`} className="text-blue-600 hover:underline">{d.document_id}</Link> : d.document_id}
+                      </td>
+                      <td className="px-4 py-3 text-sm text-slate-600">
+                        {proj ? <Link to={`/projects/${proj.id}?tab=drafting`} className="text-blue-600 hover:underline">{proj.name}</Link> : "—"}
+                      </td>
+                      <td className="px-4 py-3"><DocTypeBadge type={d.document_type} /></td>
+                      <td className="px-4 py-3"><ExecutedBadge status={d.executed} /></td>
+                      <td className="hidden px-4 py-3 text-sm text-slate-600 sm:table-cell">{formatDate(d.drafted_date)}</td>
+                    </tr>
+                  );
+                })}
               </tbody>
             </table>
           </div>
@@ -167,15 +202,22 @@ export default function AccountDetail() {
         <Section icon={ShieldCheck} title="Warranties" count={warranties.length}>
           {warranties.length === 0 ? <Empty text="No warranties" /> : (
             <div className="space-y-2">
-              {warranties.map((w) => (
-                <div key={w.id} className="flex items-center justify-between rounded-lg border border-slate-200 bg-white px-4 py-3">
-                  <div className="min-w-0">
-                    <p className="text-sm font-medium text-slate-900">{w.warranty_id}</p>
-                    <p className="truncate text-xs text-slate-500">{w.services || "—"}</p>
+              {warranties.map((w) => {
+                const proj = projectByDv[w.project_id];
+                const inner = (
+                  <div className="flex items-center justify-between rounded-lg border border-slate-200 bg-white px-4 py-3 transition-shadow group-hover:shadow-sm">
+                    <div className="min-w-0">
+                      <p className="text-sm font-medium text-slate-900">{w.warranty_id}</p>
+                      <p className="truncate text-xs text-slate-500">{w.services || "—"}</p>
+                      {proj && <p className="truncate text-xs text-blue-600">{proj.name}</p>}
+                    </div>
+                    <WarrantyStatusBadge status={w.warranty_status} />
                   </div>
-                  <WarrantyStatusBadge status={w.warranty_status} />
-                </div>
-              ))}
+                );
+                return proj ? (
+                  <Link key={w.id} to={`/projects/${proj.id}?tab=warranties`} className="group block">{inner}</Link>
+                ) : <div key={w.id}>{inner}</div>;
+              })}
             </div>
           )}
         </Section>
@@ -183,15 +225,22 @@ export default function AccountDetail() {
         <Section icon={Gavel} title="JCT Contracts" count={jcts.length}>
           {jcts.length === 0 ? <Empty text="No JCT contracts" /> : (
             <div className="space-y-2">
-              {jcts.map((j) => (
-                <div key={j.id} className="flex items-center justify-between rounded-lg border border-slate-200 bg-white px-4 py-3">
-                  <div className="min-w-0">
-                    <p className="text-sm font-medium text-slate-900">{j.document_id}</p>
-                    <p className="truncate text-xs text-slate-500">{j.form_of_jct || "—"}</p>
+              {jcts.map((j) => {
+                const proj = projectByDv[j.project_id];
+                const inner = (
+                  <div className="flex items-center justify-between rounded-lg border border-slate-200 bg-white px-4 py-3 transition-shadow group-hover:shadow-sm">
+                    <div className="min-w-0">
+                      <p className="text-sm font-medium text-slate-900">{j.document_id}</p>
+                      <p className="truncate text-xs text-slate-500">{j.form_of_jct || "—"}</p>
+                      {proj && <p className="truncate text-xs text-blue-600">{proj.name}</p>}
+                    </div>
+                    <ExecutedBadge status={j.executed} />
                   </div>
-                  <ExecutedBadge status={j.executed} />
-                </div>
-              ))}
+                );
+                return proj ? (
+                  <Link key={j.id} to={`/projects/${proj.id}?tab=drafting`} className="group block">{inner}</Link>
+                ) : <div key={j.id}>{inner}</div>;
+              })}
             </div>
           )}
         </Section>
