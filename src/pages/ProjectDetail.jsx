@@ -93,7 +93,7 @@ export default function ProjectDetail() {
       <TabsList>
         <TabsTrigger value="general"><LayoutDashboard className="mr-1.5 h-4 w-4" /> General</TabsTrigger>
         <TabsTrigger value="timeline"><Calendar className="mr-1.5 h-4 w-4" /> Timeline</TabsTrigger>
-        <TabsTrigger value="drafting"><FileText className="mr-1.5 h-4 w-4" /> Drafting List</TabsTrigger>
+        <TabsTrigger value="drafting"><FileText className="mr-1.5 h-4 w-4" /> Documents</TabsTrigger>
         <TabsTrigger value="warranties"><ShieldCheck className="mr-1.5 h-4 w-4" /> Warranties</TabsTrigger>
         <TabsTrigger value="finance"><Receipt className="mr-1.5 h-4 w-4" /> Finance</TabsTrigger>
         <TabsTrigger value="delivery"><ClipboardList className="mr-1.5 h-4 w-4" /> Delivery</TabsTrigger>
