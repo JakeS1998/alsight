@@ -7,7 +7,7 @@ import {
 import { FormField, formInputClass } from "@/components/forms/PowerForm";
 import { AccountCombobox } from "@/components/contacts/AccountCombobox";
 import { REGION_OPTIONS } from "@/lib/portal";
-import { Loader2, Mail, CheckCircle2, ShieldCheck } from "lucide-react";
+import { Loader2, Mail, CheckCircle2, ShieldCheck, UserPlus } from "lucide-react";
 
 const ROLES = [
   { value: "admin", label: "Administrator" },
@@ -62,16 +62,34 @@ export function InviteUserDialog({ open, onOpenChange, contact, accounts, existi
     setSubmitting(true);
     setError("");
     try {
-      await base44.entities.User.update(existingUser.id, {
-        role,
-        account_id: accountId || null,
-        region: role === "regional_director" ? (region || null) : null,
-      });
-      await updateContact(existingUser.id);
+      if (existingUser) {
+        await base44.entities.User.update(existingUser.id, {
+          role,
+          account_id: accountId || null,
+          region: role === "regional_director" ? (region || null) : null,
+        });
+        await updateContact(existingUser.id);
+      } else {
+        // Invite the user (sends an invitation email), then set account/region.
+        await base44.users.inviteUser(contact.email, role);
+        const fresh = await base44.entities.User.list("-created_date", 500).catch(() => []);
+        const created = fresh.find(
+          (u) => (u.email || "").toLowerCase() === contact.email.toLowerCase()
+        );
+        if (created) {
+          await base44.entities.User.update(created.id, {
+            account_id: accountId || null,
+            region: role === "regional_director" ? (region || null) : null,
+          });
+          await updateContact(created.id);
+        } else {
+          await updateContact(null);
+        }
+      }
       setSuccess(true);
       onDone?.();
-    } catch (e) {
-      setError(e.message || "Something went wrong");
+    } catch (err) {
+      setError(err.message || "Something went wrong");
     } finally {
       setSubmitting(false);
     }
@@ -87,23 +105,29 @@ export function InviteUserDialog({ open, onOpenChange, contact, accounts, existi
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <ShieldCheck className="h-5 w-5 text-primary" />
-            {existingUser ? "Manage Portal Access" : "Set Up Portal Access"}
+            {existingUser ? "Manage Portal Access" : "Invite & Set Up Access"}
           </DialogTitle>
           <DialogDescription>
             {existingUser
               ? `Update the role and account for ${contact.full_name}.`
-              : `Set up portal access for ${contact.full_name}.`}
+              : `Invite ${contact.full_name} to the portal and assign their role and account.`}
           </DialogDescription>
         </DialogHeader>
 
         {success ? (
           <div className="flex flex-col items-center py-6 text-center">
             <CheckCircle2 className="h-10 w-10 text-emerald-500" />
-            <p className="mt-3 text-sm font-medium text-slate-900">Access updated!</p>
-            <p className="mt-1 text-xs text-slate-500">The user's role and account have been updated.</p>
+            <p className="mt-3 text-sm font-medium text-slate-900">
+              {existingUser ? "Access updated!" : "Invitation sent!"}
+            </p>
+            <p className="mt-1 text-xs text-slate-500">
+              {existingUser
+                ? "The user's role and account have been updated."
+                : "The invitee will receive an email to activate their account. Their role and account are configured."}
+            </p>
             <Button variant="outline" className="mt-4" onClick={() => onOpenChange(false)}>Close</Button>
           </div>
-        ) : existingUser ? (
+        ) : (
           <form onSubmit={submit} className="space-y-4">
             <div className="rounded-lg bg-slate-50 p-3">
               <div className="flex items-center gap-2">
@@ -160,28 +184,15 @@ export function InviteUserDialog({ open, onOpenChange, contact, accounts, existi
               >
                 {submitting ? (
                   <Loader2 className="mr-1.5 h-4 w-4 animate-spin" />
-                ) : (
+                ) : existingUser ? (
                   <ShieldCheck className="mr-1.5 h-4 w-4" />
+                ) : (
+                  <UserPlus className="mr-1.5 h-4 w-4" />
                 )}
-                Update Access
+                {existingUser ? "Update Access" : "Invite & Set Up"}
               </Button>
             </DialogFooter>
           </form>
-        ) : (
-          <div className="space-y-4">
-            <div className="rounded-lg border border-amber-200 bg-amber-50 p-4 text-sm text-amber-800">
-              <p className="font-medium">Invite this person manually</p>
-              <p className="mt-1 text-xs">
-                Invitations are not sent automatically. Open the dashboard{" "}
-                <strong>App Users → Invite Users</strong> and invite{" "}
-                <span className="font-medium">{contact.email}</span>. Once they accept and appear
-                here, use <strong>Manage Access</strong> to assign their role, account, and region.
-              </p>
-            </div>
-            <div className="flex justify-end">
-              <Button variant="outline" onClick={() => onOpenChange(false)}>Close</Button>
-            </div>
-          </div>
         )}
       </DialogContent>
     </Dialog>

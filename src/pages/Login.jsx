@@ -41,17 +41,7 @@ export default function Login() {
       icon={LogIn}
       title="Welcome back"
       subtitle="Sign in to the ALS Live stakeholder portal"
-      footer={
-        <>
-          Don't have an account?{" "}
-          <Link
-            to={"/register" + (returnTo !== "/" ? "?returnTo=" + encodeURIComponent(returnTo) : "")}
-            className="text-primary font-medium hover:underline"
-          >
-            Create one
-          </Link>
-        </>
-      }
+      footer="Access is invite-only. Contact your administrator if you need an account."
     >
       <Button
         variant="outline"
