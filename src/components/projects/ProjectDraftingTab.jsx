@@ -52,8 +52,8 @@ function PqCard({ project }) {
       <div className="flex items-center gap-3 min-w-0">
         <FileSearch className="h-4 w-4 text-primary shrink-0" />
         <div className="min-w-0">
-          <p className="truncate text-sm font-semibold text-slate-900">Project Questionnaire</p>
-          <p className="truncate text-xs text-slate-500">{project.link_to_project_questionnaire}</p>
+          <p className="text-sm font-semibold text-slate-900">Project Questionnaire</p>
+          <p className="text-xs text-slate-500">Open document in SharePoint</p>
         </div>
       </div>
       <ExternalLink className="h-4 w-4 text-slate-400 shrink-0" />
