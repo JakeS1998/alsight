@@ -93,6 +93,7 @@ export function ProjectTimelineTab({ project, legalDocs, dmas, jcts, warranties 
   const [pos, setPos] = useState([]);
   const [loading, setLoading] = useState(true);
   const [active, setActive] = useState(() => Object.keys(CATEGORIES));
+  const [sortOrder, setSortOrder] = useState("newest");
 
   useEffect(() => {
     (async () => {
@@ -113,8 +114,8 @@ export function ProjectTimelineTab({ project, legalDocs, dmas, jcts, warranties 
     [project, legalDocs, dmas, jcts, warranties, pos]
   );
   const events = useMemo(
-    () => allEvents.filter((e) => active.includes(e.cat)),
-    [allEvents, active]
+    () => allEvents.filter((e) => active.includes(e.cat)).sort((a, b) => sortOrder === "newest" ? b.ts - a.ts : a.ts - b.ts),
+    [allEvents, active, sortOrder]
   );
 
   const toggle = (key) =>
@@ -183,7 +184,13 @@ export function ProjectTimelineTab({ project, legalDocs, dmas, jcts, warranties 
           <div className="flex items-center gap-2 border-b border-slate-100 pb-3 mb-4">
             <Calendar className="h-4 w-4 text-primary" />
             <h3 className="text-sm font-semibold text-slate-900">Project Timeline</h3>
-            <span className="ml-auto text-xs text-slate-400">{events.length} events · newest first</span>
+            <div className="ml-auto flex items-center gap-3">
+              <div className="inline-flex rounded-lg border border-slate-200 p-0.5">
+                <button type="button" onClick={() => setSortOrder("newest")} className={`rounded-md px-2 py-0.5 text-xs font-medium ${sortOrder === "newest" ? "bg-primary text-white" : "text-slate-500 hover:text-slate-900"}`}>Newest</button>
+                <button type="button" onClick={() => setSortOrder("oldest")} className={`rounded-md px-2 py-0.5 text-xs font-medium ${sortOrder === "oldest" ? "bg-primary text-white" : "text-slate-500 hover:text-slate-900"}`}>Oldest</button>
+              </div>
+              <span className="text-xs text-slate-400">{events.length} events</span>
+            </div>
           </div>
 
           <div className="relative">

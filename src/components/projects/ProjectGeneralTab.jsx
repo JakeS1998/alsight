@@ -2,7 +2,7 @@ import React, { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import { useAuth } from "@/lib/AuthContext";
 import { base44 } from "@/api/base44Client";
-import { formatDate, formatCurrency } from "@/lib/portal";
+import { formatDate, formatCurrency, regionName } from "@/lib/portal";
 import { Button } from "@/components/ui/button";
 import { Building2, MapPin, PoundSterling, Calendar, ExternalLink, UserCircle, Save, Loader2, Check } from "lucide-react";
 
@@ -31,6 +31,26 @@ export function ProjectGeneralTab({ project, accountMap }) {
   });
   const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState(false);
+  const [staff, setStaff] = useState({ byAad: {}, byDv: {}, userRegion: {}, rds: [] });
+
+  useEffect(() => {
+    (async () => {
+      const [contacts, users] = await Promise.all([
+        base44.entities.Contact.list("-full_name", 1000).catch(() => []),
+        base44.entities.User.list("-created_date", 500).catch(() => []),
+      ]);
+      const byAad = {};
+      const byDv = {};
+      contacts.forEach((c) => { if (c.aad_id) byAad[c.aad_id] = c.full_name; if (c.dataverse_id) byDv[c.dataverse_id] = c.full_name; });
+      users.forEach((u) => { if (!byAad[u.id]) byAad[u.id] = u.full_name || u.email; });
+      const userRegion = {};
+      users.forEach((u) => { if (u.id) userRegion[u.id] = u.data?.region || u.region || null; });
+      const rds = users
+        .filter((u) => u.role === "regional_director")
+        .map((u) => ({ id: u.id, name: u.full_name || u.email, region: u.data?.region || u.region || null }));
+      setStaff({ byAad, byDv, userRegion, rds });
+    })();
+  }, []);
 
   useEffect(() => {
     setRibaDates({
@@ -59,6 +79,10 @@ export function ProjectGeneralTab({ project, accountMap }) {
   };
 
   const client = accountMap[project.client_account_id];
+  const bdmRegion = staff.userRegion[project.bdm_aad_id];
+  const bsmRegion = staff.userRegion[project.bsm_aad_id];
+  const bdmRd = bdmRegion ? staff.rds.find((r) => r.region === bdmRegion) : null;
+  const bsmRd = bsmRegion ? staff.rds.find((r) => r.region === bsmRegion) : null;
 
   const ribaRows = [
     { stage: "RIBA 1", term: project.riba1_term_weeks, key: "riba1_end" },
@@ -94,12 +118,12 @@ export function ProjectGeneralTab({ project, accountMap }) {
       <div className="rounded-xl border border-slate-200 bg-white p-5">
         <h3 className="mb-4 text-sm font-semibold text-slate-900">Team Assignments</h3>
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-          <Assignment label="BDM" value={project.bdm_aad_id ? "Assigned" : "—"} />
-          <Assignment label="BSM" value={project.bsm_aad_id ? "Assigned" : "—"} />
-          <Assignment label="Director" value={project.director_aad_id ? "Assigned" : "—"} />
-          <Assignment label="Strategic Account Manager" value={project.strategic_account_manager_aad_id ? "Assigned" : "—"} />
-          <Assignment label="Project Manager" value={project.project_manager_id ? "Assigned" : "—"} />
-          <Assignment label="Client Representative" value={project.client_rep_id ? "Assigned" : "—"} />
+          <Assignment label="BDM" name={staff.byAad[project.bdm_aad_id]} sub={<RegionSub region={bdmRegion} rd={bdmRd} />} />
+          <Assignment label="BSM" name={staff.byAad[project.bsm_aad_id]} sub={<RegionSub region={bsmRegion} rd={bsmRd} />} />
+          <Assignment label="Director" name={staff.byAad[project.director_aad_id]} />
+          <Assignment label="Strategic Account Manager" name={staff.byAad[project.strategic_account_manager_aad_id]} />
+          <Assignment label="Project Manager" name={staff.byDv[project.project_manager_id]} />
+          <Assignment label="Client Representative" name={staff.byDv[project.client_rep_id]} />
         </div>
       </div>
 
@@ -208,14 +232,25 @@ function InfoCard({ icon: Icon, label, value }) {
     </div>
   );
 }
-function Assignment({ label, value }) {
+function Assignment({ label, name, sub }) {
   return (
-    <div className="flex items-center gap-2">
-      <UserCircle className="h-4 w-4 text-slate-400" />
+    <div className="flex items-start gap-2">
+      <UserCircle className="mt-0.5 h-4 w-4 text-slate-400" />
       <div>
         <p className="text-xs text-slate-500">{label}</p>
-        <p className="text-sm font-medium text-slate-700">{value}</p>
+        <p className="text-sm font-medium text-slate-700">{name || "—"}</p>
+        {sub}
       </div>
+    </div>
+  );
+}
+function RegionSub({ region, rd }) {
+  return (
+    <div className="text-xs text-slate-500">
+      <span className="text-slate-400">Region </span>
+      {region ? regionName(region) : <span className="text-amber-600">not set on profile</span>}
+      <span className="text-slate-400"> · RD </span>
+      {region ? (rd ? rd.name : <span className="text-amber-600">not assigned</span>) : "—"}
     </div>
   );
 }
