@@ -80,8 +80,10 @@ export function ProjectGeneralTab({ project, accountMap }) {
   };
 
   const client = accountMap[project.client_account_id];
-  const bdmRegion = staff.userRegion[project.bdm_aad_id];
-  const bsmRegion = staff.userRegion[project.bsm_aad_id];
+  // The project's Dataverse department is the assigned region; portal staff profiles may not have a region yet.
+  const projectRegion = project.department_id || null;
+  const bdmRegion = projectRegion || staff.userRegion[project.bdm_aad_id];
+  const bsmRegion = projectRegion || staff.userRegion[project.bsm_aad_id];
   const bdmRd = bdmRegion ? staff.rds.find((r) => r.region === bdmRegion) : null;
   const bsmRd = bsmRegion ? staff.rds.find((r) => r.region === bsmRegion) : null;
 
@@ -120,7 +122,7 @@ export function ProjectGeneralTab({ project, accountMap }) {
         <h3 className="mb-4 text-sm font-semibold text-slate-900">Team Assignments</h3>
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
           <Assignment label="BDM" name={staff.byAad[project.bdm_aad_id]} sub={<RegionSub region={bdmRegion} rd={bdmRd} />} />
-          <Assignment label="BSM" name={staff.byAad[project.bsm_aad_id]} sub={<RegionSub region={bsmRegion} rd={bsmRd} />} />
+          <Assignment label="BSM" name={staff.byAad[project.bsm_aad_id] || (project.bsm_aad_id ? "Assigned BSM not identified" : null)} sub={<RegionSub region={bsmRegion} rd={bsmRd} />} />
           <Assignment label="Director" name={staff.byAad[project.director_aad_id]} />
           <Assignment label="Strategic Account Manager" name={staff.byAad[project.strategic_account_manager_aad_id]} />
           <Assignment label="Project Manager" name={staff.byDv[project.project_manager_id]} />
