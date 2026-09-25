@@ -49,8 +49,6 @@ export function canDelegateTo(myRole, targetRole) {
 // Document types hidden from clients (supplier-side appointments, PCSA, LOI)
 export const CLIENT_HIDDEN_DOC_TYPES = ["appointment_pm", "appointment_pd_cdm", "appointment_architect", "appointment_pd_br", "pcsa", "loi"];
 
-export const REGION_OPTIONS = Object.entries(REGION_MAP).map(([value, label]) => ({ value, label }));
-
 // ─── Document type (bss_documenttype) ───
 export const DOCUMENT_TYPE = {
   access_agreement: { label: "Access Agreement", code: "760820000", order: 1 },
@@ -198,6 +196,8 @@ export function regionName(guid) {
   if (!guid) return null;
   return REGION_MAP[guid] || guid;
 }
+
+export const REGION_OPTIONS = Object.entries(REGION_MAP).map(([value, label]) => ({ value, label }));
 
 // ─── Role helpers ───
 export function isInternal(role) {
