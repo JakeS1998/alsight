@@ -239,6 +239,11 @@
           "user_condition": {
             "role": "company_director"
           }
+        },
+        {
+          "user_condition": {
+            "role": "development_manager"
+          }
         }
       ]
     },

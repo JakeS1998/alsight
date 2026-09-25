@@ -3,14 +3,12 @@ import { Link, useLocation, useNavigate, Outlet } from "react-router-dom";
 import { useAuth } from "@/lib/AuthContext";
 import { ROLE_LABELS, ROLE_BADGE_CLASS } from "@/lib/portal";
 import { base44 } from "@/api/base44Client";
-import { LayoutDashboard, FolderKanban, FileText, ShieldCheck, Building2, UserCircle, LogOut, Menu, X, BarChart3, Users } from "lucide-react";
+import { LayoutDashboard, FolderKanban, Building2, UserCircle, LogOut, Menu, X, BarChart3, Users } from "lucide-react";
 import Logo from "@/components/Logo";
 
 const NAV_ITEMS = [
   { label: "Dashboard", path: "/", icon: LayoutDashboard, roles: ["admin", "company_director", "development_manager", "client", "supplier"] },
   { label: "Projects", path: "/projects", icon: FolderKanban, roles: ["admin", "company_director", "development_manager", "client", "supplier"] },
-  { label: "Legal Documents", path: "/documents", icon: FileText, roles: ["admin", "company_director", "development_manager", "client", "supplier"] },
-  { label: "Warranties", path: "/warranties", icon: ShieldCheck, roles: ["admin", "company_director", "development_manager", "client", "supplier"] },
   { label: "Analytics", path: "/analytics", icon: BarChart3, roles: ["admin", "company_director", "development_manager"] },
   { label: "My Account", path: "/account", icon: UserCircle, roles: ["client", "supplier"] },
   { label: "Accounts", path: "/accounts", icon: Building2, roles: ["admin", "company_director"] },

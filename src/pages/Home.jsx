@@ -3,8 +3,7 @@ import { Link } from "react-router-dom";
 import { useAuth } from "@/lib/AuthContext";
 import { base44 } from "@/api/base44Client";
 import { ROLE_LABELS } from "@/lib/portal";
-import { DocTypeBadge, ExecutedBadge, WarrantyStatusBadge } from "@/components/StatusBadge";
-import { FolderKanban, FileText, ShieldCheck, Building2, ArrowRight } from "lucide-react";
+import { FolderKanban, FileText, ShieldCheck, Building2 } from "lucide-react";
 
 export default function Home() {
   const { user } = useAuth();
@@ -40,8 +39,8 @@ export default function Home() {
 
   const stats = [
     { label: "Projects", value: data.projects.length, icon: FolderKanban, to: "/projects", accent: "bg-sky-50 text-sky-600" },
-    { label: "Legal Documents", value: data.docs.length, icon: FileText, to: "/documents", accent: "bg-violet-50 text-violet-600" },
-    { label: "Warranties", value: data.warranties.length, icon: ShieldCheck, to: "/warranties", accent: "bg-amber-50 text-amber-600" },
+    { label: "Legal Documents", value: data.docs.length, icon: FileText, to: "/projects", accent: "bg-violet-50 text-violet-600" },
+    { label: "Warranties", value: data.warranties.length, icon: ShieldCheck, to: "/projects", accent: "bg-amber-50 text-amber-600" },
   ];
   if (isStaff) {
     stats.push({ label: "Accounts", value: data.accounts.length, icon: Building2, to: "/accounts", accent: "bg-emerald-50 text-emerald-600" });
@@ -82,32 +81,12 @@ export default function Home() {
             })}
           </div>
 
-          <div className="grid gap-6 lg:grid-cols-2">
-            <Section title="Recent Projects" to="/projects" items={data.projects.slice(0, 6).map((p) => ({
-              id: p.id,
-              link: `/projects/${p.id}`,
-              title: p.name,
-              sub: p.project_number || "—",
-            }))} empty="No projects yet" />
-
-            <Section title="Recent Legal Documents" to="/documents" items={data.docs.slice(0, 6).map((d) => ({
-              id: d.id,
-              link: "/documents",
-              title: d.document_id || "—",
-              sub: <DocTypeBadge type={d.document_type} />,
-              right: <ExecutedBadge status={d.executed} />,
-            }))} empty="No documents yet" />
-          </div>
-
-          {isStaff && (
-            <Section title="Recent Warranties" to="/warranties" items={data.warranties.slice(0, 6).map((w) => ({
-              id: w.id,
-              link: "/warranties",
-              title: w.warranty_id || "—",
-              sub: w.services || "—",
-              right: <WarrantyStatusBadge status={w.warranty_status} />,
-            }))} empty="No warranties yet" />
-          )}
+          <Section title="Recent Projects" to="/projects" items={data.projects.slice(0, 8).map((p) => ({
+            id: p.id,
+            link: `/projects/${p.id}`,
+            title: p.name,
+            sub: p.project_number || "—",
+          }))} empty="No projects yet" />
         </>
       )}
     </div>

@@ -25,7 +25,7 @@ export default function ProjectDetail() {
         const dvId = proj.dataverse_id;
 
         const [docs, dmasData, jctsData, warrs, accounts] = await Promise.all([
-          base44.entities.LegalDocument.filter({ project_id: dvId }, "-created_date", 500).catch(() => []),
+          base44.entities.LegalDocument.filter({ project_id: dvId, status: { $in: ["active", "inactive"] } }, "-created_date", 500).catch(() => []),
           base44.entities.DMA.filter({ project_id: dvId }, "-created_date", 500).catch(() => []),
           base44.entities.JCT.filter({ project_id: dvId }, "-created_date", 500).catch(() => []),
           base44.entities.Warranty.filter({ project_id: dvId }, "-created_date", 500).catch(() => []),

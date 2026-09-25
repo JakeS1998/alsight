@@ -1,16 +1,69 @@
-import React from "react";
+import React, { useState, useEffect } from "react";
+import { useAuth } from "@/lib/AuthContext";
+import { base44 } from "@/api/base44Client";
 import { formatDate, formatCurrency } from "@/lib/portal";
-import { Building2, MapPin, PoundSterling, Calendar, ExternalLink, UserCircle } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Building2, MapPin, PoundSterling, Calendar, ExternalLink, UserCircle, Save, Loader2, Check } from "lucide-react";
+
+function toDateInput(d) {
+  if (!d) return "";
+  const date = new Date(d);
+  if (isNaN(date)) return "";
+  return date.toISOString().split("T")[0];
+}
+
+function fromDateInput(d) {
+  if (!d) return null;
+  return new Date(d + "T00:00:00").toISOString();
+}
 
 export function ProjectGeneralTab({ project, accountMap }) {
+  const { user } = useAuth();
+  const role = user?.role || "client";
+  const canEdit = ["admin", "company_director", "development_manager"].includes(role);
+
+  const [ribaDates, setRibaDates] = useState({
+    riba1_end: toDateInput(project.riba1_end),
+    riba2_end: toDateInput(project.riba2_end),
+    riba3_end: toDateInput(project.riba3_end),
+    riba4_end: toDateInput(project.riba4_end),
+  });
+  const [saving, setSaving] = useState(false);
+  const [saved, setSaved] = useState(false);
+
+  useEffect(() => {
+    setRibaDates({
+      riba1_end: toDateInput(project.riba1_end),
+      riba2_end: toDateInput(project.riba2_end),
+      riba3_end: toDateInput(project.riba3_end),
+      riba4_end: toDateInput(project.riba4_end),
+    });
+  }, [project.id]);
+
+  const handleSave = async () => {
+    setSaving(true);
+    setSaved(false);
+    try {
+      await base44.entities.Project.update(project.id, {
+        riba1_end: fromDateInput(ribaDates.riba1_end),
+        riba2_end: fromDateInput(ribaDates.riba2_end),
+        riba3_end: fromDateInput(ribaDates.riba3_end),
+        riba4_end: fromDateInput(ribaDates.riba4_end),
+      });
+      setSaved(true);
+      setTimeout(() => setSaved(false), 2500);
+    } finally {
+      setSaving(false);
+    }
+  };
+
   const client = accountMap[project.client_account_id];
-  const supplier = accountMap[project.account_id];
 
   const ribaRows = [
-    { stage: "RIBA 1", term: project.riba1_term_weeks, end: project.riba1_end, sys: project.riba1_system_date },
-    { stage: "RIBA 2", term: project.riba2_term_weeks, end: project.riba2_end, sys: project.riba2_system_date },
-    { stage: "RIBA 3", term: project.riba3_term_weeks, end: project.riba3_end, sys: project.riba3_system_date },
-    { stage: "RIBA 4", term: project.riba4_term_weeks, end: project.riba4_end, sys: project.riba4_system_date },
+    { stage: "RIBA 1", term: project.riba1_term_weeks, key: "riba1_end" },
+    { stage: "RIBA 2", term: project.riba2_term_weeks, key: "riba2_end" },
+    { stage: "RIBA 3", term: project.riba3_term_weeks, key: "riba3_end" },
+    { stage: "RIBA 4", term: project.riba4_term_weeks, key: "riba4_end" },
   ];
 
   const links = [
@@ -45,15 +98,25 @@ export function ProjectGeneralTab({ project, accountMap }) {
 
       {/* RIBA timeframe grid */}
       <div className="rounded-xl border border-slate-200 bg-white p-5">
-        <h3 className="mb-4 text-sm font-semibold text-slate-900">RIBA Timeframes</h3>
+        <div className="mb-4 flex items-center justify-between">
+          <h3 className="text-sm font-semibold text-slate-900">RIBA Timeframes</h3>
+          {canEdit && (
+            <div className="flex items-center gap-3">
+              {saved && <span className="flex items-center gap-1 text-xs text-emerald-600"><Check className="h-3.5 w-3.5" /> Saved</span>}
+              <Button size="sm" onClick={handleSave} disabled={saving} className="bg-primary hover:bg-primary/90">
+                {saving ? <Loader2 className="mr-1.5 h-3.5 w-3.5 animate-spin" /> : <Save className="mr-1.5 h-3.5 w-3.5" />}
+                Save Dates
+              </Button>
+            </div>
+          )}
+        </div>
         <div className="overflow-x-auto">
           <table className="w-full text-sm">
             <thead>
               <tr className="border-b border-slate-100 text-left text-xs font-medium uppercase tracking-wide text-slate-500">
                 <th className="pb-2 pr-4">Stage</th>
                 <th className="pb-2 pr-4">Term (Weeks)</th>
-                <th className="pb-2 pr-4">End Date</th>
-                <th className="pb-2">System Date</th>
+                <th className="pb-2">End Date</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-50">
@@ -61,15 +124,24 @@ export function ProjectGeneralTab({ project, accountMap }) {
                 <tr key={r.stage}>
                   <td className="py-2.5 pr-4 font-medium text-slate-900">{r.stage}</td>
                   <td className="py-2.5 pr-4 text-slate-600">{r.term || "—"}</td>
-                  <td className="py-2.5 pr-4 text-slate-600">{formatDate(r.end)}</td>
-                  <td className="py-2.5 text-slate-600">{r.sys || "—"}</td>
+                  <td className="py-2.5">
+                    {canEdit ? (
+                      <input
+                        type="date"
+                        value={ribaDates[r.key]}
+                        onChange={(e) => setRibaDates({ ...ribaDates, [r.key]: e.target.value })}
+                        className="h-9 rounded-lg border border-slate-300 bg-white px-2.5 text-sm text-slate-900 focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20"
+                      />
+                    ) : (
+                      <span className="text-slate-600">{formatDate(project[r.key])}</span>
+                    )}
+                  </td>
                 </tr>
               ))}
               <tr className="bg-slate-50">
                 <td className="py-2.5 pr-4 font-medium text-slate-900">Construction</td>
                 <td className="py-2.5 pr-4 text-slate-600">{project.construction_term_weeks || "—"}</td>
-                <td className="py-2.5 pr-4 text-slate-600">{formatDate(project.practical_completion_date)}</td>
-                <td className="py-2.5 text-slate-600">{project.riba5_system_date || "—"}</td>
+                <td className="py-2.5 text-slate-600">{formatDate(project.practical_completion_date)}</td>
               </tr>
             </tbody>
           </table>
