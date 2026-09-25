@@ -1,0 +1,119 @@
+{
+  "name": "PurchaseOrder",
+  "type": "object",
+  "properties": {
+    "po_number": {
+      "type": "string",
+      "description": "cr78c_name e.g. ALS4811"
+    },
+    "project_ref": {
+      "type": "string",
+      "description": "PROJ reference, links to Project.project_number"
+    },
+    "supplier_company_number": {
+      "type": "string",
+      "description": "links to Account/Customer by company_number"
+    },
+    "approval_status": {
+      "type": "string"
+    },
+    "approved": {
+      "type": "boolean"
+    },
+    "approval_date": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "sent": {
+      "type": "boolean"
+    },
+    "sent_date": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "notes": {
+      "type": "string"
+    },
+    "attachment": {
+      "type": "string"
+    },
+    "supporting_documentation": {
+      "type": "string"
+    },
+    "email_po_directly": {
+      "type": "boolean"
+    },
+    "send_to_additional": {
+      "type": "string"
+    },
+    "total_net_value": {
+      "type": "number"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "active",
+        "inactive"
+      ],
+      "default": "active"
+    },
+    "dataverse_id": {
+      "type": "string",
+      "description": "Original cr78c_purchase_orderid GUID"
+    }
+  },
+  "required": [
+    "po_number"
+  ],
+  "rls": {
+    "read": {
+      "$or": [
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        },
+        {
+          "user_condition": {
+            "role": "director"
+          }
+        },
+        {
+          "user_condition": {
+            "role": "regional_director"
+          }
+        },
+        {
+          "user_condition": {
+            "role": "bsm"
+          }
+        },
+        {
+          "user_condition": {
+            "role": "finance"
+          }
+        },
+        {
+          "user_condition": {
+            "role": "bdm"
+          }
+        }
+      ]
+    },
+    "create": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "update": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "delete": {
+      "user_condition": {
+        "role": "admin"
+      }
+    }
+  }
+}
