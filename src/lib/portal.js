@@ -23,6 +23,14 @@ export const PROJECT_STATUS = {
   rejected: { label: "Rejected", className: "bg-rose-50 text-rose-700 border-rose-200" },
 };
 
+export const CONTRACT_TYPE = {
+  project_questionnaire: { label: "Project Questionnaire" },
+  access_agreement: { label: "Access Agreement" },
+  supplier_appointment: { label: "Supplier Appointment" },
+  development_agreement: { label: "Development Agreement" },
+  jct_contract: { label: "JCT Contract" },
+};
+
 export const CONTRACT_STATUS = {
   draft: { label: "Draft", className: "bg-slate-100 text-slate-700 border-slate-200" },
   sent: { label: "Sent", className: "bg-amber-50 text-amber-700 border-amber-200" },

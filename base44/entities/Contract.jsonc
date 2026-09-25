@@ -24,7 +24,14 @@
       "type": "string"
     },
     "contract_type": {
-      "type": "string"
+      "type": "string",
+      "enum": [
+        "project_questionnaire",
+        "access_agreement",
+        "supplier_appointment",
+        "development_agreement",
+        "jct_contract"
+      ]
     },
     "status": {
       "type": "string",
