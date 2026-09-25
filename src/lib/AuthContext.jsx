@@ -81,7 +81,9 @@ export const AuthProvider = ({ children }) => {
     try {
       // Now check if the user is authenticated
       setIsLoadingAuth(true);
-      const currentUser = await base44.auth.me();
+      let currentUser = await base44.auth.me();
+      const { data: accessResult } = await base44.functions.invoke('applyPendingPortalAccess', {});
+      if (accessResult?.applied) currentUser = await base44.auth.me();
       setUser(currentUser);
       setIsAuthenticated(true);
       setIsLoadingAuth(false);

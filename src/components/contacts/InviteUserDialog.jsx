@@ -69,21 +69,40 @@ export function InviteUserDialog({ open, onOpenChange, contact, accounts, existi
         });
         await updateContact(existingUser.id);
       } else {
-        // Invitation roles are admin/user; the portal role is assigned on the user record below.
-        await base44.users.inviteUser(contact.email, role === "admin" ? "admin" : "user");
-        const fresh = await filterAll(base44.entities.User, { email: contact.email }).catch(() => []);
-        const created = fresh.find(
-          (u) => (u.email || "").toLowerCase() === contact.email.toLowerCase()
-        );
-        if (!created) {
-          throw new Error("Invitation sent. The account is not available yet; once they join, reopen Set Up Access to assign their portal role and account.");
+        const email = contact.email.trim().toLowerCase();
+        const matching = await filterAll(base44.entities.PendingPortalAccess, { email });
+        if (matching.some((entry) => entry.contact_id !== contact.id)) {
+          throw new Error("An access assignment already exists for this email on another contact.");
         }
-        await base44.entities.User.update(created.id, {
-          role,
-          account_id: accountId || null,
-          region: role === "regional_director" ? (region || null) : null,
-        });
-        await updateContact(created.id);
+        const access = {
+          contact_id: contact.id,
+          email,
+          portal_role: role,
+          account_id: accountId || "",
+          region: role === "regional_director" ? (region || "") : "",
+        };
+        const staged = matching[0]
+          ? await base44.entities.PendingPortalAccess.update(matching[0].id, access)
+          : await base44.entities.PendingPortalAccess.create(access);
+        if (!matching.length) {
+          try {
+            await base44.users.inviteUser(email, role === "admin" ? "admin" : "user");
+          } catch (inviteError) {
+            await base44.entities.PendingPortalAccess.delete(staged.id);
+            throw inviteError;
+          }
+        }
+        const fresh = await filterAll(base44.entities.User, { email }).catch(() => []);
+        const created = fresh.find((u) => (u.email || "").toLowerCase() === email);
+        if (created) {
+          await base44.entities.User.update(created.id, {
+            role,
+            account_id: accountId || null,
+            region: role === "regional_director" ? (region || null) : null,
+          });
+          await updateContact(created.id);
+          await base44.entities.PendingPortalAccess.delete(staged.id);
+        }
       }
       setSuccess(true);
       onDone?.();
@@ -122,7 +141,7 @@ export function InviteUserDialog({ open, onOpenChange, contact, accounts, existi
             <p className="mt-1 text-xs text-slate-500">
               {existingUser
                 ? "The user's role and account have been updated."
-                : "The invitee will receive an email to activate their account. Their role and account are configured."}
+                : "The selected role and account are saved and will be applied automatically when the invitee signs in."}
             </p>
             <Button variant="outline" className="mt-4" onClick={() => onOpenChange(false)}>Close</Button>
           </div>

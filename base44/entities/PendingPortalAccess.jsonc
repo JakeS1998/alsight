@@ -1,0 +1,59 @@
+{
+  "name": "PendingPortalAccess",
+  "type": "object",
+  "properties": {
+    "contact_id": {
+      "type": "string"
+    },
+    "email": {
+      "type": "string",
+      "format": "email"
+    },
+    "portal_role": {
+      "type": "string",
+      "enum": [
+        "admin",
+        "director",
+        "regional_director",
+        "bsm",
+        "finance",
+        "bdm",
+        "client",
+        "supplier"
+      ]
+    },
+    "account_id": {
+      "type": "string"
+    },
+    "region": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "contact_id",
+    "email",
+    "portal_role"
+  ],
+  "rls": {
+    "read": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "create": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "update": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "delete": {
+      "user_condition": {
+        "role": "admin"
+      }
+    }
+  }
+}
