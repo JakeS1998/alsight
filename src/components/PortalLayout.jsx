@@ -1,0 +1,119 @@
+import React, { useState } from "react";
+import { Link, useLocation, useNavigate, Outlet } from "react-router-dom";
+import { useAuth } from "@/lib/AuthContext";
+import { ROLE_LABELS, ROLE_BADGE_CLASS } from "@/lib/portal";
+import { base44 } from "@/api/base44Client";
+import { LayoutDashboard, FolderKanban, FileText, Receipt, Building2, UserCircle, LogOut, Menu, X, Scale } from "lucide-react";
+
+const NAV_ITEMS = [
+  { label: "Dashboard", path: "/", icon: LayoutDashboard, roles: ["admin", "company_director", "development_manager", "client", "supplier"] },
+  { label: "Projects", path: "/projects", icon: FolderKanban, roles: ["admin", "company_director", "development_manager", "client", "supplier"] },
+  { label: "Contracts", path: "/contracts", icon: FileText, roles: ["admin", "company_director", "client", "supplier"] },
+  { label: "Invoices", path: "/invoices", icon: Receipt, roles: ["admin", "company_director", "client", "supplier"] },
+  { label: "My Account", path: "/account", icon: UserCircle, roles: ["client", "supplier"] },
+  { label: "Accounts", path: "/accounts", icon: Building2, roles: ["admin", "company_director"] },
+];
+
+export default function PortalLayout() {
+  const { user, logout } = useAuth();
+  const location = useLocation();
+  const navigate = useNavigate();
+  const [mobileOpen, setMobileOpen] = useState(false);
+
+  const role = user?.role || "client";
+  const items = NAV_ITEMS.filter((i) => i.roles.includes(role));
+
+  const handleLogout = () => {
+    logout(false);
+    navigate("/login");
+  };
+
+  const SidebarContent = (
+    <div className="flex h-full flex-col">
+      <div className="flex items-center gap-2.5 px-6 py-6">
+        <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-slate-900 text-white">
+          <Scale className="h-5 w-5" />
+        </div>
+        <div>
+          <p className="font-heading text-sm font-semibold tracking-tight text-slate-900">Stakeholder Portal</p>
+          <p className="text-[11px] text-slate-400">Legal & Projects</p>
+        </div>
+      </div>
+
+      <nav className="flex-1 space-y-1 px-3">
+        {items.map((item) => {
+          const active = location.pathname === item.path;
+          const Icon = item.icon;
+          return (
+            <Link
+              key={item.path}
+              to={item.path}
+              onClick={() => setMobileOpen(false)}
+              className={`flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-colors ${
+                active ? "bg-slate-900 text-white" : "text-slate-600 hover:bg-slate-100 hover:text-slate-900"
+              }`}
+            >
+              <Icon className="h-[18px] w-[18px]" />
+              {item.label}
+            </Link>
+          );
+        })}
+      </nav>
+
+      <div className="border-t border-slate-200 p-4">
+        <div className="flex items-center gap-3 rounded-lg px-2 py-2">
+          <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-slate-200 text-sm font-semibold text-slate-700">
+            {(user?.full_name || user?.email || "?").charAt(0).toUpperCase()}
+          </div>
+          <div className="min-w-0 flex-1">
+            <p className="truncate text-sm font-medium text-slate-900">{user?.full_name || user?.email}</p>
+            <span className={`mt-0.5 inline-block rounded px-1.5 py-0.5 text-[10px] font-semibold ${ROLE_BADGE_CLASS[role] || ""}`}>
+              {ROLE_LABELS[role] || role}
+            </span>
+          </div>
+        </div>
+        <button
+          onClick={handleLogout}
+          className="mt-2 flex w-full items-center gap-2 rounded-lg px-3 py-2 text-sm font-medium text-slate-500 hover:bg-slate-100 hover:text-slate-900"
+        >
+          <LogOut className="h-4 w-4" /> Sign out
+        </button>
+      </div>
+    </div>
+  );
+
+  return (
+    <div className="min-h-screen bg-slate-50">
+      {/* Desktop sidebar */}
+      <aside className="fixed inset-y-0 left-0 hidden w-64 border-r border-slate-200 bg-white lg:block">
+        {SidebarContent}
+      </aside>
+
+      {/* Mobile drawer */}
+      {mobileOpen && (
+        <div className="fixed inset-0 z-50 lg:hidden">
+          <div className="absolute inset-0 bg-slate-900/40" onClick={() => setMobileOpen(false)} />
+          <aside className="absolute inset-y-0 left-0 w-64 bg-white shadow-xl">{SidebarContent}</aside>
+        </div>
+      )}
+
+      <div className="lg:pl-64">
+        {/* Mobile top bar */}
+        <header className="sticky top-0 z-30 flex items-center justify-between border-b border-slate-200 bg-white/80 px-4 py-3 backdrop-blur lg:hidden">
+          <button onClick={() => setMobileOpen(true)} className="rounded-lg p-2 text-slate-600 hover:bg-slate-100">
+            <Menu className="h-5 w-5" />
+          </button>
+          <div className="flex items-center gap-2">
+            <Scale className="h-5 w-5 text-slate-900" />
+            <span className="font-heading text-sm font-semibold text-slate-900">Stakeholder Portal</span>
+          </div>
+          <div className="w-9" />
+        </header>
+
+        <main className="mx-auto max-w-6xl px-5 py-8 sm:px-8">
+          <Outlet />
+        </main>
+      </div>
+    </div>
+  );
+}
