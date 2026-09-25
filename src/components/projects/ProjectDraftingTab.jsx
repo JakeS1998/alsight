@@ -13,7 +13,7 @@ export function ProjectDraftingTab({ project, legalDocs, dmas, jcts, accountMap 
     docByType[d.document_type].push(d);
   });
   const docTypes = Object.keys(DOCUMENT_TYPE)
-    .filter((t) => docByType[t] && t !== "other")
+    .filter((t) => docByType[t])
     .sort((a, b) => (DOCUMENT_TYPE[a].order || 99) - (DOCUMENT_TYPE[b].order || 99));
 
   return (
