@@ -1,18 +1,27 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useMemo } from "react";
 import { Link } from "react-router-dom";
 import { useAuth } from "@/lib/AuthContext";
 import { base44 } from "@/api/base44Client";
-import { ACCOUNT_TYPE, formatDate } from "@/lib/portal";
-import { Button } from "@/components/ui/button";
-import { Building2, ExternalLink, CheckCircle2, MapPin } from "lucide-react";
+import { formatDate } from "@/lib/portal";
+import { FilterSelect } from "@/components/FilterSelect";
+import { Building2, ExternalLink, CheckCircle2, MapPin, Search, X } from "lucide-react";
+
+const SORT_OPTIONS = [
+  { value: "name_asc", label: "Name A–Z" },
+  { value: "name_desc", label: "Name Z–A" },
+  { value: "company_number", label: "Company Number" },
+];
 
 export default function Accounts() {
   const { user } = useAuth();
-  const isStaff = user?.role === "admin" || user?.role === "company_director";
 
   const [accounts, setAccounts] = useState([]);
   const [loading, setLoading] = useState(true);
   const [typeFilter, setTypeFilter] = useState("all");
+  const [search, setSearch] = useState("");
+  const [sortBy, setSortBy] = useState("name_asc");
+  const [regionFilter, setRegionFilter] = useState("");
+  const [statusFilter, setStatusFilter] = useState("");
 
   const load = async () => {
     setLoading(true);
@@ -25,7 +34,41 @@ export default function Accounts() {
 
   useEffect(() => { load(); }, []);
 
-  const filtered = typeFilter === "all" ? accounts : accounts.filter((a) => a.account_type === typeFilter);
+  const regionOptions = useMemo(() => {
+    const regions = [...new Set(accounts.map((a) => a.region).filter(Boolean))].sort();
+    return regions.map((r) => ({ value: r, label: r }));
+  }, [accounts]);
+
+  const filtered = useMemo(() => {
+    let result = accounts;
+
+    if (typeFilter !== "all") result = result.filter((a) => a.account_type === typeFilter);
+    if (search) {
+      const s = search.toLowerCase();
+      result = result.filter((a) =>
+        (a.name || "").toLowerCase().includes(s) ||
+        (a.company_number || "").toLowerCase().includes(s) ||
+        (a.address_city || "").toLowerCase().includes(s)
+      );
+    }
+    if (regionFilter) result = result.filter((a) => a.region === regionFilter);
+    if (statusFilter === "active") result = result.filter((a) => a.status !== "inactive");
+    else if (statusFilter === "inactive") result = result.filter((a) => a.status === "inactive");
+
+    return [...result].sort((a, b) => {
+      switch (sortBy) {
+        case "name_asc": return (a.name || "").localeCompare(b.name || "");
+        case "name_desc": return (b.name || "").localeCompare(a.name || "");
+        case "company_number": return (a.company_number || "").localeCompare(b.company_number || "");
+        default: return 0;
+      }
+    });
+  }, [accounts, typeFilter, search, regionFilter, statusFilter, sortBy]);
+
+  const hasFilters = search || typeFilter !== "all" || regionFilter || statusFilter;
+  const clearFilters = () => {
+    setSearch(""); setTypeFilter("all"); setRegionFilter(""); setStatusFilter("");
+  };
 
   return (
     <div className="space-y-6">
@@ -35,13 +78,39 @@ export default function Accounts() {
       </div>
 
       {!loading && accounts.length > 0 && (
-        <div className="flex flex-wrap gap-2">
-          {["all", "client", "supplier"].map((t) => (
-            <button key={t} onClick={() => setTypeFilter(t)}
-              className={`rounded-full border px-3 py-1.5 text-xs font-medium transition-colors capitalize ${
-                typeFilter === t ? "border-primary bg-primary text-primary-foreground" : "border-slate-200 bg-white text-slate-600 hover:bg-slate-50"
-              }`}>{t === "all" ? "All" : t}</button>
-          ))}
+        <div className="space-y-3">
+          <div className="flex flex-wrap items-center gap-2">
+            <div className="relative min-w-[200px] flex-1">
+              <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
+              <input
+                type="text"
+                placeholder="Search by name, company number, or city..."
+                value={search}
+                onChange={(e) => setSearch(e.target.value)}
+                className="h-9 w-full rounded-lg border border-slate-300 bg-white pl-9 pr-3 text-sm shadow-sm focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20"
+              />
+            </div>
+            <FilterSelect label="Sort" value={sortBy} onChange={setSortBy} options={SORT_OPTIONS} allLabel="Sort" />
+            <FilterSelect label="Regions" value={regionFilter} onChange={setRegionFilter} options={regionOptions} />
+            <FilterSelect label="Status" value={statusFilter} onChange={setStatusFilter} options={[
+              { value: "active", label: "Active" },
+              { value: "inactive", label: "Inactive" },
+            ]} />
+            {hasFilters && (
+              <button onClick={clearFilters} className="inline-flex items-center gap-1 rounded-lg px-2 py-1.5 text-xs text-slate-500 hover:bg-slate-100">
+                <X className="h-3 w-3" /> Clear
+              </button>
+            )}
+          </div>
+          <div className="flex flex-wrap gap-2">
+            {["all", "client", "supplier"].map((t) => (
+              <button key={t} onClick={() => setTypeFilter(t)}
+                className={`rounded-full border px-3 py-1.5 text-xs font-medium transition-colors capitalize ${
+                  typeFilter === t ? "border-primary bg-primary text-primary-foreground" : "border-slate-200 bg-white text-slate-600 hover:bg-slate-50"
+                }`}>{t === "all" ? "All Types" : t}</button>
+            ))}
+          </div>
+          <p className="text-xs text-slate-400">{filtered.length} of {accounts.length} accounts</p>
         </div>
       )}
 
@@ -50,7 +119,10 @@ export default function Accounts() {
       ) : filtered.length === 0 ? (
         <div className="rounded-2xl border border-dashed border-slate-300 bg-white py-16 text-center">
           <Building2 className="mx-auto h-8 w-8 text-slate-300" />
-          <p className="mt-3 text-sm text-slate-500">No accounts yet.</p>
+          <p className="mt-3 text-sm text-slate-500">{accounts.length === 0 ? "No accounts yet." : "No accounts match your filters."}</p>
+          {accounts.length > 0 && hasFilters && (
+            <button onClick={clearFilters} className="mt-2 text-sm text-primary hover:underline">Clear filters</button>
+          )}
         </div>
       ) : (
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">

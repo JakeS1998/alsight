@@ -1,11 +1,21 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useMemo } from "react";
 import { Link } from "react-router-dom";
 import { useAuth } from "@/lib/AuthContext";
 import { base44 } from "@/api/base44Client";
 import { formatCurrency, formatDate } from "@/lib/portal";
 import { RequestDialog } from "@/components/projects/RequestDialog";
+import { FilterSelect } from "@/components/FilterSelect";
 import { Button } from "@/components/ui/button";
-import { Plus, Building2, PoundSterling, Calendar, MapPin, ArrowRight, FolderKanban } from "lucide-react";
+import { Plus, Building2, PoundSterling, Calendar, MapPin, ArrowRight, FolderKanban, Search, X } from "lucide-react";
+
+const SORT_OPTIONS = [
+  { value: "name_asc", label: "Name A–Z" },
+  { value: "name_desc", label: "Name Z–A" },
+  { value: "number", label: "Project Number" },
+  { value: "value_desc", label: "Value: High to Low" },
+  { value: "value_asc", label: "Value: Low to High" },
+  { value: "newest", label: "Newest First" },
+];
 
 export default function Projects() {
   const { user } = useAuth();
@@ -14,18 +24,28 @@ export default function Projects() {
 
   const [projects, setProjects] = useState([]);
   const [accounts, setAccounts] = useState([]);
+  const [users, setUsers] = useState([]);
   const [loading, setLoading] = useState(true);
   const [requestOpen, setRequestOpen] = useState(false);
+
+  const [search, setSearch] = useState("");
+  const [sortBy, setSortBy] = useState("newest");
+  const [bdmFilter, setBdmFilter] = useState("");
+  const [bsmFilter, setBsmFilter] = useState("");
+  const [regionFilter, setRegionFilter] = useState("");
+  const [statusFilter, setStatusFilter] = useState("");
 
   const load = async () => {
     setLoading(true);
     try {
-      const [p, a] = await Promise.all([
+      const [p, a, u] = await Promise.all([
         base44.entities.Project.list("-created_date", 500),
         base44.entities.Account.list("-name", 500).catch(() => []),
+        base44.entities.User.list("-created_date", 500).catch(() => []),
       ]);
       setProjects(p);
       setAccounts(a);
+      setUsers(u);
     } finally {
       setLoading(false);
     }
@@ -33,8 +53,69 @@ export default function Projects() {
 
   useEffect(() => { load(); }, []);
 
-  const accountMap = {};
-  accounts.forEach((a) => { if (a.dataverse_id) accountMap[a.dataverse_id] = a; });
+  const accountMap = useMemo(() => {
+    const map = {};
+    accounts.forEach((a) => { if (a.dataverse_id) map[a.dataverse_id] = a; });
+    return map;
+  }, [accounts]);
+
+  const userMap = useMemo(() => {
+    const map = {};
+    users.forEach((u) => { map[u.id] = u.full_name || u.email; });
+    return map;
+  }, [users]);
+
+  const bdmOptions = useMemo(() => {
+    const ids = [...new Set(projects.map((p) => p.bdm_aad_id).filter(Boolean))];
+    return ids.map((id) => ({ value: id, label: userMap[id] || "Unknown" }));
+  }, [projects, userMap]);
+
+  const bsmOptions = useMemo(() => {
+    const ids = [...new Set(projects.map((p) => p.bsm_aad_id).filter(Boolean))];
+    return ids.map((id) => ({ value: id, label: userMap[id] || "Unknown" }));
+  }, [projects, userMap]);
+
+  const regionOptions = useMemo(() => {
+    const regions = [...new Set(
+      projects.map((p) => accountMap[p.client_account_id]?.region).filter(Boolean)
+    )].sort();
+    return regions.map((r) => ({ value: r, label: r }));
+  }, [projects, accountMap]);
+
+  const filtered = useMemo(() => {
+    let result = projects;
+
+    if (search) {
+      const s = search.toLowerCase();
+      result = result.filter((p) =>
+        (p.name || "").toLowerCase().includes(s) ||
+        (p.project_number || "").toLowerCase().includes(s) ||
+        (accountMap[p.client_account_id]?.name || "").toLowerCase().includes(s)
+      );
+    }
+    if (bdmFilter) result = result.filter((p) => p.bdm_aad_id === bdmFilter);
+    if (bsmFilter) result = result.filter((p) => p.bsm_aad_id === bsmFilter);
+    if (regionFilter) result = result.filter((p) => accountMap[p.client_account_id]?.region === regionFilter);
+    if (statusFilter === "live") result = result.filter((p) => p.live_project);
+    else if (statusFilter === "inactive") result = result.filter((p) => !p.live_project);
+
+    return [...result].sort((a, b) => {
+      switch (sortBy) {
+        case "name_asc": return (a.name || "").localeCompare(b.name || "");
+        case "name_desc": return (b.name || "").localeCompare(a.name || "");
+        case "number": return (a.project_number || "").localeCompare(b.project_number || "");
+        case "value_desc": return (b.estimated_value || 0) - (a.estimated_value || 0);
+        case "value_asc": return (a.estimated_value || 0) - (b.estimated_value || 0);
+        case "newest": return new Date(b.created_date) - new Date(a.created_date);
+        default: return 0;
+      }
+    });
+  }, [projects, search, bdmFilter, bsmFilter, regionFilter, statusFilter, sortBy, accountMap]);
+
+  const hasFilters = search || bdmFilter || bsmFilter || regionFilter || statusFilter;
+  const clearFilters = () => {
+    setSearch(""); setBdmFilter(""); setBsmFilter(""); setRegionFilter(""); setStatusFilter("");
+  };
 
   return (
     <div className="space-y-6">
@@ -52,18 +133,52 @@ export default function Projects() {
         )}
       </div>
 
+      {!loading && projects.length > 0 && (
+        <div className="space-y-3">
+          <div className="flex flex-wrap items-center gap-2">
+            <div className="relative min-w-[200px] flex-1">
+              <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
+              <input
+                type="text"
+                placeholder="Search by name, number, or client..."
+                value={search}
+                onChange={(e) => setSearch(e.target.value)}
+                className="h-9 w-full rounded-lg border border-slate-300 bg-white pl-9 pr-3 text-sm shadow-sm focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20"
+              />
+            </div>
+            <FilterSelect label="Sort" value={sortBy} onChange={setSortBy} options={SORT_OPTIONS} allLabel="Sort" />
+            <FilterSelect label="BDMs" value={bdmFilter} onChange={setBdmFilter} options={bdmOptions} />
+            <FilterSelect label="BSMs" value={bsmFilter} onChange={setBsmFilter} options={bsmOptions} />
+            <FilterSelect label="Regions" value={regionFilter} onChange={setRegionFilter} options={regionOptions} />
+            <FilterSelect label="Status" value={statusFilter} onChange={setStatusFilter} options={[
+              { value: "live", label: "Live" },
+              { value: "inactive", label: "Inactive" },
+            ]} />
+            {hasFilters && (
+              <button onClick={clearFilters} className="inline-flex items-center gap-1 rounded-lg px-2 py-1.5 text-xs text-slate-500 hover:bg-slate-100">
+                <X className="h-3 w-3" /> Clear
+              </button>
+            )}
+          </div>
+          <p className="text-xs text-slate-400">{filtered.length} of {projects.length} projects</p>
+        </div>
+      )}
+
       {loading ? (
         <div className="flex justify-center py-20">
           <div className="h-8 w-8 animate-spin rounded-full border-4 border-slate-200 border-t-primary" />
         </div>
-      ) : projects.length === 0 ? (
+      ) : filtered.length === 0 ? (
         <div className="rounded-2xl border border-dashed border-slate-300 bg-white py-16 text-center">
           <FolderKanban className="mx-auto h-8 w-8 text-slate-300" />
-          <p className="mt-3 text-sm text-slate-500">No projects to show yet.</p>
+          <p className="mt-3 text-sm text-slate-500">{projects.length === 0 ? "No projects to show yet." : "No projects match your filters."}</p>
+          {projects.length > 0 && hasFilters && (
+            <button onClick={clearFilters} className="mt-2 text-sm text-primary hover:underline">Clear filters</button>
+          )}
         </div>
       ) : (
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-          {projects.map((p) => {
+          {filtered.map((p) => {
             const client = accountMap[p.client_account_id];
             return (
               <Link
