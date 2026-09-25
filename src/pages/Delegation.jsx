@@ -1,6 +1,7 @@
 import React, { useEffect, useState, useMemo } from "react";
 import { useAuth } from "@/lib/AuthContext";
 import { base44 } from "@/api/base44Client";
+import { listAll } from "@/components/data/loadAll";
 import { ROLE_LABELS, INTERNAL_ROLES, canDelegateTo, REGION_MAP, regionName } from "@/lib/portal";
 import { Button } from "@/components/ui/button";
 import { UserCog, Search, X, Loader2, ArrowLeftRight } from "lucide-react";
@@ -17,7 +18,7 @@ export default function Delegation() {
   const [error, setError] = useState("");
 
   useEffect(() => {
-    base44.entities.Contact.list("-created_date", 1000)
+    listAll(base44.entities.Contact)
       .then(setContacts)
       .catch(() => {})
       .finally(() => setLoading(false));
@@ -154,7 +155,7 @@ export default function Delegation() {
             </p>
           ) : (
             <div className="max-h-72 space-y-1.5 overflow-y-auto">
-              {filtered.slice(0, 60).map((c) => {
+              {filtered.map((c) => {
                 const active = selected?.id === c.id;
                 return (
                   <button

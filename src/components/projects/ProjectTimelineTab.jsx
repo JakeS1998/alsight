@@ -1,5 +1,6 @@
 import React, { useEffect, useState, useMemo } from "react";
 import { base44 } from "@/api/base44Client";
+import { filterAll } from "@/components/data/loadAll";
 import {
   Building2, FileText, FileCheck, Gavel, ShieldCheck, Receipt, FileX, Calendar,
 } from "lucide-react";
@@ -99,8 +100,7 @@ export function ProjectTimelineTab({ project, legalDocs, dmas, jcts, warranties 
     (async () => {
       try {
         if (!project.project_number) return;
-        const data = await base44.entities.PurchaseOrder
-          .filter({ project_ref: project.project_number }, "-created_date", 1000)
+        const data = await filterAll(base44.entities.PurchaseOrder, { project_ref: project.project_number })
           .catch(() => []);
         setPos(data);
       } finally {

@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { base44 } from "@/api/base44Client";
+import { filterAll } from "@/components/data/loadAll";
 import { Button } from "@/components/ui/button";
 import {
   Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter,
@@ -72,7 +73,7 @@ export function InviteUserDialog({ open, onOpenChange, contact, accounts, existi
       } else {
         // Invite the user (sends an invitation email), then set account/region.
         await base44.users.inviteUser(contact.email, role);
-        const fresh = await base44.entities.User.list("-created_date", 500).catch(() => []);
+        const fresh = await filterAll(base44.entities.User, { email: contact.email }).catch(() => []);
         const created = fresh.find(
           (u) => (u.email || "").toLowerCase() === contact.email.toLowerCase()
         );

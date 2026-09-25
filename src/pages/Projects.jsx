@@ -2,6 +2,7 @@ import React, { useEffect, useState, useMemo } from "react";
 import { Link } from "react-router-dom";
 import { useAuth } from "@/lib/AuthContext";
 import { base44 } from "@/api/base44Client";
+import { listAll, filterAll } from "@/components/data/loadAll";
 import { formatCurrency, formatDate, regionName } from "@/lib/portal";
 import { RequestDialog } from "@/components/projects/RequestDialog";
 import { FilterSelect } from "@/components/FilterSelect";
@@ -40,13 +41,13 @@ export default function Projects() {
     setLoading(true);
     try {
       const [p, a, u, staffContacts] = await Promise.all([
-        base44.entities.Project.list("-created_date", 500),
-        base44.entities.Account.list("-name", 500).catch(() => []),
-        base44.entities.User.list("-created_date", 500).catch(() => []),
+        listAll(base44.entities.Project),
+        listAll(base44.entities.Account, "-name").catch(() => []),
+        listAll(base44.entities.User).catch(() => []),
         (async () => {
           const [bdmC, bsmC] = await Promise.all([
-            base44.entities.Contact.filter({ portal_role: "bdm" }, "-full_name", 500).catch(() => []),
-            base44.entities.Contact.filter({ portal_role: "bsm" }, "-full_name", 500).catch(() => []),
+            filterAll(base44.entities.Contact, { portal_role: "bdm" }, "-full_name").catch(() => []),
+            filterAll(base44.entities.Contact, { portal_role: "bsm" }, "-full_name").catch(() => []),
           ]);
           return [...bdmC, ...bsmC];
         })(),

@@ -1,5 +1,6 @@
 import React, { useEffect, useState, useCallback, useMemo } from "react";
 import { base44 } from "@/api/base44Client";
+import { filterAll } from "@/components/data/loadAll";
 import { DeliveryScoping } from "./DeliveryScoping";
 import { FeeProposalSection } from "./FeeProposalSection";
 import { PreConstructionReadiness } from "./PreConstructionReadiness";
@@ -71,7 +72,7 @@ export function ProjectDeliveryTab({ project, legalDocs, dmas, jcts, warranties,
   const [suppliers, setSuppliers] = useState([]);
 
   const loadSuppliers = useCallback(async () => {
-    const sup = await base44.entities.Account.filter({ account_type: "supplier" }, "name", 500).catch(() => []);
+    const sup = await filterAll(base44.entities.Account, { account_type: "supplier" }, "name").catch(() => []);
     setSuppliers(sup);
   }, []);
 

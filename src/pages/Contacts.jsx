@@ -1,5 +1,6 @@
 import React, { useEffect, useState, useMemo } from "react";
 import { base44 } from "@/api/base44Client";
+import { listAll } from "@/components/data/loadAll";
 import { useAuth } from "@/lib/AuthContext";
 import { formatDate, ROLE_LABELS } from "@/lib/portal";
 import { Users, ExternalLink, Mail, Phone, BadgeCheck, UserPlus, ShieldCheck } from "lucide-react";
@@ -28,9 +29,9 @@ export default function Contacts() {
 
   useEffect(() => {
     Promise.all([
-      base44.entities.Contact.list("-created_date", 500),
-      isAdmin ? base44.entities.User.list("-created_date", 500).catch(() => []) : Promise.resolve([]),
-      isAdmin ? base44.entities.Account.list("-name", 500).catch(() => []) : Promise.resolve([]),
+      listAll(base44.entities.Contact),
+      isAdmin ? listAll(base44.entities.User).catch(() => []) : Promise.resolve([]),
+      isAdmin ? listAll(base44.entities.Account, "-name").catch(() => []) : Promise.resolve([]),
     ]).then(([c, u, a]) => {
       setContacts(c);
       setUsers(u);
@@ -54,7 +55,7 @@ export default function Contacts() {
     : contacts;
 
   const refreshUsers = () => {
-    base44.entities.User.list("-created_date", 500)
+    listAll(base44.entities.User)
       .then(setUsers)
       .catch(() => {});
   };
@@ -86,7 +87,7 @@ export default function Contacts() {
         </div>
       ) : (
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-          {filtered.slice(0, 100).map((c) => {
+          {filtered.map((c) => {
             const linkedUser = c.email ? userByEmail[c.email.toLowerCase()] : null;
             return (
               <div key={c.id} className="flex flex-col rounded-2xl border border-slate-200 bg-white p-5">
@@ -144,9 +145,6 @@ export default function Contacts() {
             );
           })}
         </div>
-      )}
-      {filtered.length > 100 && (
-        <p className="text-center text-xs text-slate-400">Showing first 100 of {filtered.length} contacts. Refine your search to see more.</p>
       )}
 
       <InviteUserDialog

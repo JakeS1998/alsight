@@ -2,6 +2,7 @@ import React, { useEffect, useState, useMemo } from "react";
 import { Link } from "react-router-dom";
 import { useAuth } from "@/lib/AuthContext";
 import { base44 } from "@/api/base44Client";
+import { listAll } from "@/components/data/loadAll";
 import { ROLE_LABELS, formatCurrency, regionName } from "@/lib/portal";
 import { DashboardKPIs } from "@/components/dashboard/DashboardKPIs";
 import { PipelineChart } from "@/components/dashboard/PipelineChart";
@@ -27,8 +28,8 @@ export default function Home() {
     (async () => {
       try {
         const [p, a] = await Promise.all([
-          base44.entities.Project.list("-created_date", 500),
-          base44.entities.Account.list("-name", 500).catch(() => []),
+          listAll(base44.entities.Project, "-created_date"),
+          listAll(base44.entities.Account, "-name").catch(() => []),
         ]);
         setProjects(p);
         setAccounts(a);
@@ -73,7 +74,7 @@ export default function Home() {
     return "Good evening";
   };
 
-  if (loading || extrasLoading) {
+  if (loading) {
     return (
       <div className="flex items-center justify-center py-20">
         <div className="h-8 w-8 animate-spin rounded-full border-4 border-slate-200 border-t-slate-800" />
@@ -99,9 +100,10 @@ export default function Home() {
       </div>
 
       {extrasError && internal && <p className="rounded-lg border border-rose-200 bg-rose-50 p-3 text-sm text-rose-700">{extrasError}</p>}
-      {internal && !extrasError ? <PortfolioSummary metrics={portfolio.metrics} /> : <DashboardKPIs projects={filteredProjects} />}
+      {internal && extrasLoading && <p className="text-sm text-slate-500">Loading portfolio data…</p>}
+      {internal && !extrasError && !extrasLoading ? <PortfolioSummary metrics={portfolio.metrics} /> : <DashboardKPIs projects={filteredProjects} />}
 
-      {internal && !extrasError && <ProjectRiskTracker atRisk={portfolio.atRisk} compact />}
+      {internal && !extrasError && !extrasLoading && <ProjectRiskTracker atRisk={portfolio.atRisk} compact />}
 
       <div className="grid gap-6 lg:grid-cols-2">
         <PipelineChart projects={filteredProjects} />

@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { base44 } from "@/api/base44Client";
+import { listAll } from "@/components/data/loadAll";
 import { DOCUMENT_TYPE, formatDate } from "@/lib/portal";
 import { DocTypeBadge, ExecutedBadge } from "@/components/StatusBadge";
 import { FileText, ExternalLink, Filter } from "lucide-react";
@@ -15,8 +16,8 @@ export default function LegalDocuments() {
     (async () => {
       try {
         const [d, p] = await Promise.all([
-          base44.entities.LegalDocument.list("-created_date", 500),
-          base44.entities.Project.list("-created_date", 500).catch(() => []),
+          listAll(base44.entities.LegalDocument),
+          listAll(base44.entities.Project).catch(() => []),
         ]);
         setDocs(d);
         setProjects(p);

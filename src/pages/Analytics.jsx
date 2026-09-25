@@ -1,5 +1,6 @@
 import React, { useEffect, useMemo, useState } from "react";
 import { base44 } from "@/api/base44Client";
+import { listAll } from "@/components/data/loadAll";
 import { DOCUMENT_TYPE, WARRANTY_STATUS, INTERNAL_ROLES, regionName } from "@/lib/portal";
 import { useAuth } from "@/lib/AuthContext";
 import usePortfolioExtras from "@/components/dashboard/usePortfolioExtras";
@@ -24,10 +25,10 @@ export default function Analytics() {
     (async () => {
       try {
         const [projects, docs, warranties, accounts] = await Promise.all([
-          base44.entities.Project.list("-created_date", 500).catch(() => []),
-          base44.entities.LegalDocument.list("-created_date", 500).catch(() => []),
-          base44.entities.Warranty.list("-created_date", 500).catch(() => []),
-          base44.entities.Account.list("-name", 500).catch(() => []),
+          listAll(base44.entities.Project).catch(() => []),
+          listAll(base44.entities.LegalDocument).catch(() => []),
+          listAll(base44.entities.Warranty).catch(() => []),
+          listAll(base44.entities.Account, "-name").catch(() => []),
         ]);
         setData({ projects, docs, warranties, accounts });
       } finally {
@@ -89,7 +90,7 @@ export default function Analytics() {
   const portfolio = useMemo(() => buildPortfolio(scopedProjects, extras), [scopedProjects, extras]);
 
   if (!internal) return <p className="rounded-xl border border-slate-200 bg-white p-6 text-sm text-slate-600">Analytics is available to internal teams.</p>;
-  if (loading || extrasLoading) return <div className="flex justify-center py-20"><div className="h-8 w-8 animate-spin rounded-full border-4 border-slate-200 border-t-primary" /></div>;
+  if (loading) return <div className="flex justify-center py-20"><div className="h-8 w-8 animate-spin rounded-full border-4 border-slate-200 border-t-primary" /></div>;
 
   return (
     <div className="space-y-6">
@@ -104,7 +105,8 @@ export default function Analytics() {
       </div>
 
       {extrasError && <p className="rounded-lg border border-rose-200 bg-rose-50 p-3 text-sm text-rose-700">{extrasError}</p>}
-      {!extrasError && <>
+      {extrasLoading && <p className="text-sm text-slate-500">Loading portfolio data…</p>}
+      {!extrasLoading && !extrasError && <>
         <PortfolioSummary metrics={portfolio.metrics} />
         <div className="grid gap-6 lg:grid-cols-2">
           <FinancialBreakdown portfolio={portfolio} />

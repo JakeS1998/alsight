@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { useParams, Link } from "react-router-dom";
 import { base44 } from "@/api/base44Client";
+import { listAll, filterAll } from "@/components/data/loadAll";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { ProjectGeneralTab } from "@/components/projects/ProjectGeneralTab";
 import { ProjectDraftingTab } from "@/components/projects/ProjectDraftingTab";
@@ -28,11 +29,11 @@ export default function ProjectDetail() {
         const dvId = proj.dataverse_id;
 
         const [docs, dmasData, jctsData, warrs, accounts] = await Promise.all([
-          base44.entities.LegalDocument.filter({ project_id: dvId }, "-created_date", 500).catch(() => []),
-          base44.entities.DMA.filter({ project_id: dvId }, "-created_date", 500).catch(() => []),
-          base44.entities.JCT.filter({ project_id: dvId }, "-created_date", 500).catch(() => []),
-          base44.entities.Warranty.filter({ project_id: dvId }, "-created_date", 500).catch(() => []),
-          base44.entities.Account.list("-name", 500).catch(() => []),
+          filterAll(base44.entities.LegalDocument, { project_id: dvId }).catch(() => []),
+          filterAll(base44.entities.DMA, { project_id: dvId }).catch(() => []),
+          filterAll(base44.entities.JCT, { project_id: dvId }).catch(() => []),
+          filterAll(base44.entities.Warranty, { project_id: dvId }).catch(() => []),
+          listAll(base44.entities.Account, "-name").catch(() => []),
         ]);
 
         setLegalDocs(docs);

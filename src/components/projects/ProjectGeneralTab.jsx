@@ -2,6 +2,7 @@ import React, { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import { useAuth } from "@/lib/AuthContext";
 import { base44 } from "@/api/base44Client";
+import { listAll } from "@/components/data/loadAll";
 import { formatDate, formatCurrency, regionName } from "@/lib/portal";
 import { Button } from "@/components/ui/button";
 import { Building2, MapPin, PoundSterling, Calendar, ExternalLink, UserCircle, Save, Loader2, Check } from "lucide-react";
@@ -36,8 +37,8 @@ export function ProjectGeneralTab({ project, accountMap }) {
   useEffect(() => {
     (async () => {
       const [contacts, users] = await Promise.all([
-        base44.entities.Contact.list("-full_name", 1000).catch(() => []),
-        base44.entities.User.list("-created_date", 500).catch(() => []),
+        listAll(base44.entities.Contact, "-full_name").catch(() => []),
+        listAll(base44.entities.User).catch(() => []),
       ]);
       const byAad = {};
       const byDv = {};

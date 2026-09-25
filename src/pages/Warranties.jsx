@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { base44 } from "@/api/base44Client";
+import { listAll } from "@/components/data/loadAll";
 import { formatDate, WARRANTY_STATUS } from "@/lib/portal";
 import { WarrantyStatusBadge, WarrantyCategoryBadge } from "@/components/StatusBadge";
 import { ShieldCheck, ExternalLink } from "lucide-react";
@@ -14,8 +15,8 @@ export default function Warranties() {
     (async () => {
       try {
         const [w, a] = await Promise.all([
-          base44.entities.Warranty.list("-created_date", 500),
-          base44.entities.Account.list("-name", 500).catch(() => []),
+          listAll(base44.entities.Warranty),
+          listAll(base44.entities.Account, "-name").catch(() => []),
         ]);
         setWarranties(w);
         setAccounts(a);

@@ -1,5 +1,6 @@
 import React, { useEffect, useState, useCallback, useMemo } from "react";
 import { base44 } from "@/api/base44Client";
+import { filterAll } from "@/components/data/loadAll";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { FormSection, FormGrid, FormField, formInputClass } from "@/components/forms/PowerForm";
@@ -75,9 +76,9 @@ export function FeeProposalSection({ projectId, project, onChanged, deliveryTeam
     setLoading(true);
     try {
       const [p, poData] = await Promise.all([
-        base44.entities.FeeProposal.filter({ project_id: projectId }, "-revision_number", 500).catch(() => []),
+        filterAll(base44.entities.FeeProposal, { project_id: projectId }, "-revision_number").catch(() => []),
         project.project_number
-          ? base44.entities.PurchaseOrder.filter({ project_ref: project.project_number }, "-created_date", 500).catch(() => [])
+          ? filterAll(base44.entities.PurchaseOrder, { project_ref: project.project_number }).catch(() => [])
           : Promise.resolve([]),
       ]);
       setRows(p); setPos(poData);

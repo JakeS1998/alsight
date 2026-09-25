@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { useParams, Link } from "react-router-dom";
 import { base44 } from "@/api/base44Client";
+import { listAll, filterAll } from "@/components/data/loadAll";
 import { formatDate, formatCurrency, regionName } from "@/lib/portal";
 import { DocTypeBadge, ExecutedBadge, WarrantyStatusBadge } from "@/components/StatusBadge";
 import { ArrowLeft, MapPin, ExternalLink, Users, FolderKanban, FileText, ShieldCheck, Mail, Phone, Gavel } from "lucide-react";
@@ -24,11 +25,11 @@ export default function AccountDetail() {
         const companyNo = acc.company_number;
 
         const [allContacts, directProjects, d, w, j] = await Promise.all([
-          base44.entities.Contact.list("-created_date", 1000).catch(() => []),
-          base44.entities.Project.filter({ $or: [{ client_account_id: dvId }, { account_id: dvId }] }, "-created_date", 500).catch(() => []),
-          base44.entities.LegalDocument.filter({ $or: [{ account_id: dvId }, { client_account_id: dvId }], status: { $in: ["active", "inactive"] } }, "-created_date", 500).catch(() => []),
-          base44.entities.Warranty.filter({ $or: [{ account_id: dvId }, { supplier_id: dvId }, { client_account_id: dvId }] }, "-created_date", 500).catch(() => []),
-          base44.entities.JCT.filter({ $or: [{ account_id: dvId }, { contractor_id: dvId }, { client_account_id: dvId }] }, "-created_date", 500).catch(() => []),
+          listAll(base44.entities.Contact).catch(() => []),
+          filterAll(base44.entities.Project, { $or: [{ client_account_id: dvId }, { account_id: dvId }] }).catch(() => []),
+          filterAll(base44.entities.LegalDocument, { $or: [{ account_id: dvId }, { client_account_id: dvId }], status: { $in: ["active", "inactive"] } }).catch(() => []),
+          filterAll(base44.entities.Warranty, { $or: [{ account_id: dvId }, { supplier_id: dvId }, { client_account_id: dvId }] }).catch(() => []),
+          filterAll(base44.entities.JCT, { $or: [{ account_id: dvId }, { contractor_id: dvId }, { client_account_id: dvId }] }).catch(() => []),
         ]);
 
         // Contacts: match by company number, company name, or email domain derived from account name
@@ -50,7 +51,7 @@ export default function AccountDetail() {
         [d, w, j].forEach((arr) => arr.forEach((r) => r.project_id && projectIdSet.add(r.project_id)));
         let projects = directProjects;
         if (projectIdSet.size > directProjects.length) {
-          const derived = await base44.entities.Project.filter({ dataverse_id: { $in: [...projectIdSet] } }, "-created_date", 500).catch(() => []);
+          const derived = await filterAll(base44.entities.Project, { dataverse_id: { $in: [...projectIdSet] } }).catch(() => []);
           const map = {};
           [...directProjects, ...derived].forEach((p) => { if (p.dataverse_id) map[p.dataverse_id] = p; });
           projects = Object.values(map);

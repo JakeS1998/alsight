@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { base44 } from "@/api/base44Client";
+import { listAll } from "@/components/data/loadAll";
 
 const EMPTY = { orders: [], proposals: [], deliveries: [], risks: [], actions: [] };
 export default function usePortfolioExtras(enabled = true) {
@@ -11,11 +12,11 @@ export default function usePortfolioExtras(enabled = true) {
     let active = true;
     setLoading(true);
     Promise.all([
-      base44.entities.PurchaseOrder.list("-created_date", 5000),
-      base44.entities.FeeProposal.list("-created_date", 5000),
-      base44.entities.ProjectDelivery.list("-created_date", 5000),
-      base44.entities.ProjectRisk.list("-created_date", 5000),
-      base44.entities.ProjectAction.list("-created_date", 5000),
+      listAll(base44.entities.PurchaseOrder),
+      listAll(base44.entities.FeeProposal),
+      listAll(base44.entities.ProjectDelivery),
+      listAll(base44.entities.ProjectRisk),
+      listAll(base44.entities.ProjectAction),
     ]).then(([orders, proposals, deliveries, risks, actions]) => {
       if (active) setData({ orders, proposals, deliveries, risks, actions });
     }).catch(() => { if (active) setError("Portfolio financial and risk data could not be loaded."); })

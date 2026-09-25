@@ -1,5 +1,6 @@
 import React, { useEffect, useState, useCallback } from "react";
 import { base44 } from "@/api/base44Client";
+import { filterAll } from "@/components/data/loadAll";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { FormField, FormGrid, formInputClass } from "@/components/forms/PowerForm";
@@ -28,7 +29,7 @@ export function RegisterList({ title, description, entityName, projectId, projec
   const load = useCallback(async () => {
     setLoading(true);
     try {
-      const data = await base44.entities[entityName].filter({ project_id: projectId }, sortBy, 500).catch(() => []);
+      const data = await filterAll(base44.entities[entityName], { project_id: projectId }, sortBy).catch(() => []);
       setRows(data);
     } finally {
       setLoading(false);

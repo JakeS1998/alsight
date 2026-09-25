@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { base44 } from "@/api/base44Client";
+import { filterAll } from "@/components/data/loadAll";
 import { Button } from "@/components/ui/button";
 import {
   Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter,
@@ -33,8 +34,8 @@ export function RequestDialog({ open, onOpenChange, accounts, users, user, onCre
     let cancelled = false;
     (async () => {
       const [bdmC, dirC] = await Promise.all([
-        base44.entities.Contact.filter({ portal_role: "bdm" }, "full_name", 500).catch(() => []),
-        base44.entities.Contact.filter({ portal_role: "director" }, "full_name", 500).catch(() => []),
+        filterAll(base44.entities.Contact, { portal_role: "bdm" }, "full_name").catch(() => []),
+        filterAll(base44.entities.Contact, { portal_role: "director" }, "full_name").catch(() => []),
       ]);
       if (cancelled) return;
       const toOpts = (arr) => arr.map((c) => ({ value: c.aad_id, label: c.full_name })).filter((o) => o.value);

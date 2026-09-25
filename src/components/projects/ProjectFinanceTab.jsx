@@ -1,5 +1,6 @@
 import React, { useEffect, useState, useMemo } from "react";
 import { base44 } from "@/api/base44Client";
+import { listAll, filterAll } from "@/components/data/loadAll";
 import { formatCurrency, formatDate } from "@/lib/portal";
 import { Receipt, ChevronDown, ChevronRight, Building2, Layers, PoundSterling } from "lucide-react";
 
@@ -38,11 +39,11 @@ export function ProjectFinanceTab({ project }) {
       try {
         const ref = project.project_number;
         const [poData, liData, glData, custData, accData] = await Promise.all([
-          ref ? base44.entities.PurchaseOrder.filter({ project_ref: ref }, "-created_date", 1000).catch(() => []) : [],
-          base44.entities.PurchaseOrderLineItem.list("-created_date", 5000).catch(() => []),
-          base44.entities.GLCode.list("-name", 500).catch(() => []),
-          base44.entities.Customer.list("-name", 500).catch(() => []),
-          base44.entities.Account.list("-name", 1000).catch(() => []),
+          ref ? filterAll(base44.entities.PurchaseOrder, { project_ref: ref }).catch(() => []) : [],
+          listAll(base44.entities.PurchaseOrderLineItem).catch(() => []),
+          listAll(base44.entities.GLCode, "-name").catch(() => []),
+          listAll(base44.entities.Customer, "-name").catch(() => []),
+          listAll(base44.entities.Account, "-name").catch(() => []),
         ]);
         setPos(poData);
         setLineItems(liData);
