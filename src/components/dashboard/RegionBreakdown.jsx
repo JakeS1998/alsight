@@ -8,7 +8,8 @@ export function RegionBreakdown({ projects, accountMap }) {
   const data = useMemo(() => {
     const map = {};
     projects.forEach((p) => {
-      const region = regionName(p.department_id) || "Unassigned";
+      const region = regionName(p.department_id);
+      if (!region || region === p.department_id) return; // skip unmapped/unassigned
       if (!map[region]) map[region] = { region, count: 0, value: 0 };
       map[region].count++;
       map[region].value += p.estimated_value || 0;
