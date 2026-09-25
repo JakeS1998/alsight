@@ -77,7 +77,7 @@ export default function Projects() {
 
   const regionOptions = useMemo(() => {
     const regions = [...new Set(
-      projects.map((p) => regionName(accountMap[p.client_account_id]?.region)).filter(Boolean)
+      projects.map((p) => regionName(p.department_id)).filter(Boolean)
     )].sort();
     return regions.map((r) => ({ value: r, label: r }));
   }, [projects, accountMap]);
@@ -95,7 +95,7 @@ export default function Projects() {
     }
     if (bdmFilter) result = result.filter((p) => p.bdm_aad_id === bdmFilter);
     if (bsmFilter) result = result.filter((p) => p.bsm_aad_id === bsmFilter);
-    if (regionFilter) result = result.filter((p) => regionName(accountMap[p.client_account_id]?.region) === regionFilter);
+    if (regionFilter) result = result.filter((p) => regionName(p.department_id) === regionFilter);
     if (statusFilter === "live") result = result.filter((p) => p.live_project);
     else if (statusFilter === "inactive") result = result.filter((p) => !p.live_project);
 

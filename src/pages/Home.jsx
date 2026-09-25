@@ -48,10 +48,7 @@ export default function Home() {
       const userRegion = regionName(user?.data?.region);
       if (userRegion) {
         return {
-          filteredProjects: projects.filter((p) => {
-            const account = accountMap[p.client_account_id];
-            return regionName(account?.region) === userRegion;
-          }),
+          filteredProjects: projects.filter((p) => regionName(p.department_id) === userRegion),
           filterLabel: `Showing projects in your region: ${userRegion}`,
         };
       }
