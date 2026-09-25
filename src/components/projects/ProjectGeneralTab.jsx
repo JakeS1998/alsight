@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from "react";
+import { Link } from "react-router-dom";
 import { useAuth } from "@/lib/AuthContext";
 import { base44 } from "@/api/base44Client";
 import { formatDate, formatCurrency } from "@/lib/portal";
@@ -77,7 +78,13 @@ export function ProjectGeneralTab({ project, accountMap }) {
     <div className="space-y-6">
       {/* Key info cards */}
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-        <InfoCard icon={Building2} label="Client" value={client?.name || "—"} />
+        {client ? (
+          <Link to={`/accounts/${client.id}`} className="block">
+            <InfoCard icon={Building2} label="Client" value={client.name} />
+          </Link>
+        ) : (
+          <InfoCard icon={Building2} label="Client" value="—" />
+        )}
         <InfoCard icon={PoundSterling} label="Estimated Value" value={formatCurrency(project.estimated_value)} />
         <InfoCard icon={MapPin} label="Site Postcode" value={project.site_postcode || "—"} />
         <InfoCard icon={Calendar} label="Practical Completion" value={formatDate(project.practical_completion_date)} />

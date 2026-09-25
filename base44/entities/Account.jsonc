@@ -146,6 +146,16 @@
           "user_condition": {
             "role": "development_manager"
           }
+        },
+        {
+          "user_condition": {
+            "role": "client"
+          }
+        },
+        {
+          "user_condition": {
+            "role": "supplier"
+          }
         }
       ]
     },

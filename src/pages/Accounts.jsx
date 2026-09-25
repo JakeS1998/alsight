@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from "react";
+import { Link } from "react-router-dom";
 import { useAuth } from "@/lib/AuthContext";
 import { base44 } from "@/api/base44Client";
 import { ACCOUNT_TYPE, formatDate } from "@/lib/portal";
@@ -54,7 +55,7 @@ export default function Accounts() {
       ) : (
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
           {filtered.map((a) => (
-            <div key={a.id} className="flex flex-col rounded-2xl border border-slate-200 bg-white p-5">
+            <Link key={a.id} to={`/accounts/${a.id}`} className="flex flex-col rounded-2xl border border-slate-200 bg-white p-5 transition-shadow hover:shadow-md">
               <div className="flex items-start justify-between gap-2">
                 <div className="flex items-center gap-3">
                   <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-slate-100 text-sm font-semibold text-slate-700">
@@ -86,7 +87,7 @@ export default function Accounts() {
                   </a>
                 )}
               </div>
-            </div>
+            </Link>
           ))}
         </div>
       )}

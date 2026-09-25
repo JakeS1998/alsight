@@ -20,6 +20,7 @@ import Warranties from '@/pages/Warranties';
 import Accounts from '@/pages/Accounts';
 import Contacts from '@/pages/Contacts';
 import AccountProfile from '@/pages/AccountProfile';
+import AccountDetail from '@/pages/AccountDetail';
 import Analytics from '@/pages/Analytics';
 
 const AuthenticatedApp = () => {
@@ -57,6 +58,7 @@ const AuthenticatedApp = () => {
           <Route path="/warranties" element={<Warranties />} />
           <Route path="/account" element={<AccountProfile />} />
           <Route path="/accounts" element={<Accounts />} />
+          <Route path="/accounts/:accountId" element={<AccountDetail />} />
           <Route path="/contacts" element={<Contacts />} />
           <Route path="/analytics" element={<Analytics />} />
         </Route>

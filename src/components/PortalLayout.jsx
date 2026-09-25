@@ -11,8 +11,8 @@ const NAV_ITEMS = [
   { label: "Projects", path: "/projects", icon: FolderKanban, roles: ["admin", "company_director", "development_manager", "client", "supplier"] },
   { label: "Analytics", path: "/analytics", icon: BarChart3, roles: ["admin", "company_director", "development_manager"] },
   { label: "My Account", path: "/account", icon: UserCircle, roles: ["client", "supplier"] },
-  { label: "Accounts", path: "/accounts", icon: Building2, roles: ["admin", "company_director"] },
-  { label: "Contacts", path: "/contacts", icon: Users, roles: ["admin", "company_director", "development_manager"] },
+  { label: "Accounts", path: "/accounts", icon: Building2, roles: ["admin", "company_director", "development_manager", "client", "supplier"] },
+  { label: "Contacts", path: "/contacts", icon: Users, roles: ["admin"] },
 ];
 
 export default function PortalLayout() {
