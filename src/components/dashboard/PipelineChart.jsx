@@ -2,12 +2,12 @@ import React, { useMemo } from "react";
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid, Cell } from "recharts";
 import { formatCurrency } from "@/lib/portal";
 
-const STAGES = ["RIBA 1", "RIBA 2", "RIBA 3", "RIBA 4", "Construction", "Complete"];
-const COLORS = ["#FCA311", "#1D1D35", "#2BB673", "#3B82F6", "#A855F7", "#94a3b8"];
+const STAGES = ["RIBA 1", "RIBA 2", "RIBA 3", "RIBA 4", "Construction"];
+const COLORS = ["#FCA311", "#1D1D35", "#2BB673", "#3B82F6", "#A855F7"];
 
 function getProjectStage(p) {
   const now = new Date();
-  if (p.practical_completion_date && new Date(p.practical_completion_date) < now) return "Complete";
+  if (p.practical_completion_date && new Date(p.practical_completion_date) < now) return null;
   if (p.riba4_end && new Date(p.riba4_end) < now) return "Construction";
   if (p.riba3_end && new Date(p.riba3_end) < now) return "RIBA 4";
   if (p.riba2_end && new Date(p.riba2_end) < now) return "RIBA 3";
@@ -21,6 +21,7 @@ export function PipelineChart({ projects }) {
     STAGES.forEach((s) => { map[s] = { stage: s, value: 0, count: 0 }; });
     projects.forEach((p) => {
       const stage = getProjectStage(p);
+      if (!stage) return;
       map[stage].value += p.estimated_value || 0;
       map[stage].count++;
     });
