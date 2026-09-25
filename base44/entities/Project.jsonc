@@ -23,6 +23,13 @@
       "type": "string",
       "description": "Dataverse GUID of primary account (supplier)"
     },
+    "related_supplier_account_ids": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "Supplier account GUIDs linked by legal documents, JCTs, warranties, or purchase orders"
+    },
     "department_id": {
       "type": "string",
       "description": "Dataverse GUID of department"
@@ -191,6 +198,18 @@
         },
         {
           "data.account_id": "{{user.data.account_id}}"
+        },
+        {
+          "$and": [
+            {
+              "user_condition": {
+                "role": "supplier"
+              }
+            },
+            {
+              "data.related_supplier_account_ids": "{{user.data.account_id}}"
+            }
+          ]
         },
         {
           "data.bdm_aad_id": "{{user.id}}"
