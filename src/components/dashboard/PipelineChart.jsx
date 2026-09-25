@@ -7,6 +7,7 @@ const COLORS = ["#FCA311", "#1D1D35", "#2BB673", "#3B82F6", "#A855F7"];
 
 function getProjectStage(p) {
   const now = new Date();
+  if (p.status === "inactive" || ["complete", "completed"].includes(String(p.approval_status || "").trim().toLowerCase())) return null;
   if (p.practical_completion_date && new Date(p.practical_completion_date) < now) return null;
   if (p.riba4_end && new Date(p.riba4_end) < now) return "Construction";
   if (p.riba3_end && new Date(p.riba3_end) < now) return "RIBA 4";

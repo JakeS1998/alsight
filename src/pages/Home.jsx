@@ -8,10 +8,17 @@ import { PipelineChart } from "@/components/dashboard/PipelineChart";
 import { RegionBreakdown } from "@/components/dashboard/RegionBreakdown";
 import { ProjectMap } from "@/components/dashboard/ProjectMap";
 import { MapPin, Filter } from "lucide-react";
+import { INTERNAL_ROLES } from "@/lib/portal";
+import usePortfolioExtras from "@/components/dashboard/usePortfolioExtras";
+import { buildPortfolio } from "@/components/dashboard/portfolioMetrics";
+import PortfolioSummary from "@/components/dashboard/PortfolioSummary";
+import ProjectRiskTracker from "@/components/dashboard/ProjectRiskTracker";
 
 export default function Home() {
   const { user } = useAuth();
   const role = user?.role || "client";
+  const internal = INTERNAL_ROLES.includes(role);
+  const { data: extras, loading: extrasLoading, error: extrasError } = usePortfolioExtras(internal);
   const [projects, setProjects] = useState([]);
   const [accounts, setAccounts] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -57,6 +64,8 @@ export default function Home() {
     return { filteredProjects: projects, filterLabel: null };
   }, [projects, accountMap, role, user]);
 
+  const portfolio = useMemo(() => buildPortfolio(filteredProjects, extras), [filteredProjects, extras]);
+
   const greeting = () => {
     const h = new Date().getHours();
     if (h < 12) return "Good morning";
@@ -64,7 +73,7 @@ export default function Home() {
     return "Good evening";
   };
 
-  if (loading) {
+  if (loading || extrasLoading) {
     return (
       <div className="flex items-center justify-center py-20">
         <div className="h-8 w-8 animate-spin rounded-full border-4 border-slate-200 border-t-slate-800" />
@@ -89,7 +98,10 @@ export default function Home() {
         )}
       </div>
 
-      <DashboardKPIs projects={filteredProjects} />
+      {extrasError && internal && <p className="rounded-lg border border-rose-200 bg-rose-50 p-3 text-sm text-rose-700">{extrasError}</p>}
+      {internal && !extrasError ? <PortfolioSummary metrics={portfolio.metrics} /> : <DashboardKPIs projects={filteredProjects} />}
+
+      {internal && !extrasError && <ProjectRiskTracker atRisk={portfolio.atRisk} compact />}
 
       <div className="grid gap-6 lg:grid-cols-2">
         <PipelineChart projects={filteredProjects} />
