@@ -14,6 +14,10 @@
       "type": "string",
       "description": "Backfilled from project for RLS"
     },
+    "delivery_team": {
+      "type": "string",
+      "description": "JSON array of delivery team members with fees per RIBA stage"
+    },
     "funding_route": {
       "type": "string"
     },

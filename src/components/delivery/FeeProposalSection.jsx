@@ -3,7 +3,7 @@ import { base44 } from "@/api/base44Client";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { FormSection, FormGrid, FormField, formInputClass } from "@/components/forms/PowerForm";
-import { Plus, Trash2, Loader2, FileDown, TrendingUp, ArrowUpRight, ArrowDownRight, Check } from "lucide-react";
+import { Plus, Trash2, Loader2, FileDown, TrendingUp, ArrowUpRight, ArrowDownRight, Check, FileCheck } from "lucide-react";
 import { formatCurrency, formatDate } from "@/lib/portal";
 import { exportFeeProposalPdf } from "./exportFeeProposalPdf";
 
@@ -26,21 +26,22 @@ const STATUS_STYLE = {
   accepted: "bg-emerald-50 text-emerald-700", lost: "bg-rose-50 text-rose-700",
 };
 const RIBA_STAGES = ["RIBA 1", "RIBA 2", "RIBA 3", "RIBA 4", "RIBA 5-7", "Pre-construction", "Construction", "Other"];
+const STAGE_LABEL = { riba_1: "RIBA 1", riba_2: "RIBA 2", riba_3: "RIBA 3", riba_4: "RIBA 4", riba_5_7: "RIBA 5-7" };
+const STAGE_KEYS = ["riba_1", "riba_2", "riba_3", "riba_4", "riba_5_7"];
 
 const EMPTY_HEADER = {
   revision_number: "", fee_basis: "", services_included: "", services_excluded: "",
   consultants_required: "", status: "draft", date_issued: "", client_approval_date: "",
   link_to_file: "", is_current: true,
 };
-const EMPTY_ROW = { riba_stage: "", description: "", supplier_company_number: "", supplier_fee: "", internal_fee: "" };
+const ALS_LINE = { riba_stage: "", description: "ALS Delivery fee", internal_fee: "" };
 const parseItems = (s) => { try { return JSON.parse(s) || []; } catch { return []; } };
 
-export function FeeProposalSection({ projectId, project, onChanged }) {
+export function FeeProposalSection({ projectId, project, onChanged, deliveryTeam, suppliers }) {
   const [rows, setRows] = useState([]);
-  const [suppliers, setSuppliers] = useState([]);
   const [pos, setPos] = useState([]);
   const [selectedId, setSelectedId] = useState(null);
-  const [items, setItems] = useState([]);
+  const [items, setItems] = useState([ALS_LINE]);
   const [loading, setLoading] = useState(true);
   const [savingBuilder, setSavingBuilder] = useState(false);
 
@@ -49,20 +50,43 @@ export function FeeProposalSection({ projectId, project, onChanged }) {
   const [header, setHeader] = useState(EMPTY_HEADER);
   const [savingHeader, setSavingHeader] = useState(false);
 
+  const supplierName = (cn) => suppliers.find((s) => s.company_number === cn)?.name || cn || "";
+
+  const supplierLines = useMemo(() => {
+    const out = [];
+    (deliveryTeam || []).forEach((m) => {
+      STAGE_KEYS.forEach((st) => {
+        const fee = Number(m.fees?.[st]);
+        if (fee > 0) {
+          out.push({
+            riba_stage: STAGE_LABEL[st],
+            description: `${m.role || "Supplier"}${m.supplier_company_number ? " — " + supplierName(m.supplier_company_number) : ""}`,
+            supplier_company_number: m.supplier_company_number || "",
+            supplier_fee: fee,
+            fee_proposal_link: m.fee_proposal_link || "",
+          });
+        }
+      });
+    });
+    return out;
+  }, [deliveryTeam, suppliers]);
+
   const load = useCallback(async () => {
     setLoading(true);
     try {
-      const [p, sup, poData] = await Promise.all([
+      const [p, poData] = await Promise.all([
         base44.entities.FeeProposal.filter({ project_id: projectId }, "-revision_number", 500).catch(() => []),
-        base44.entities.Account.filter({ account_type: "supplier" }, "name", 500).catch(() => []),
         project.project_number
           ? base44.entities.PurchaseOrder.filter({ project_ref: project.project_number }, "-created_date", 500).catch(() => [])
           : Promise.resolve([]),
       ]);
-      setRows(p); setSuppliers(sup); setPos(poData);
+      setRows(p); setPos(poData);
       const cur = p.find((r) => r.is_current) || p[0];
-      if (cur) { setSelectedId(cur.id); setItems(parseItems(cur.line_items)); }
-      else { setSelectedId(null); setItems([]); }
+      if (cur) {
+        setSelectedId(cur.id);
+        const parsed = parseItems(cur.line_items);
+        setItems(parsed.length ? parsed : [ALS_LINE]);
+      } else { setSelectedId(null); setItems([ALS_LINE]); }
       onChanged?.(p);
     } finally { setLoading(false); }
   }, [projectId, project.project_number, onChanged]);
@@ -70,44 +94,37 @@ export function FeeProposalSection({ projectId, project, onChanged }) {
   useEffect(() => { load(); }, [load]);
 
   const selected = rows.find((r) => r.id === selectedId) || rows[0];
-
   const selectProposal = (id) => {
     setSelectedId(id);
     const r = rows.find((x) => x.id === id);
-    setItems(parseItems(r?.line_items));
+    const parsed = parseItems(r?.line_items);
+    setItems(parsed.length ? parsed : [ALS_LINE]);
   };
 
   const poBySupplier = useMemo(() => {
     const m = {};
-    pos.forEach((p) => {
-      if (!p.supplier_company_number) return;
-      m[p.supplier_company_number] = (m[p.supplier_company_number] || 0) + (Number(p.total_net_value) || 0);
-    });
+    pos.forEach((p) => { if (p.supplier_company_number) m[p.supplier_company_number] = (m[p.supplier_company_number] || 0) + (Number(p.total_net_value) || 0); });
     return m;
   }, [pos]);
 
   const totals = useMemo(() => {
-    const sup = items.reduce((a, it) => a + (Number(it.supplier_fee) || 0), 0);
-    const fee = items.reduce((a, it) => a + (Number(it.internal_fee) || 0), 0);
-    return { sup, fee, contribution: fee - sup, marginPct: fee ? Math.round(((fee - sup) / fee) * 100) : 0 };
-  }, [items]);
+    const sup = supplierLines.reduce((a, l) => a + (Number(l.supplier_fee) || 0), 0);
+    const als = items.reduce((a, l) => a + (Number(l.internal_fee) || 0), 0);
+    return { sup, als, contribution: als - sup, marginPct: als ? Math.round(((als - sup) / als) * 100) : 0 };
+  }, [supplierLines, items]);
 
   const supplierComparison = useMemo(() => {
     const bySup = {};
-    items.forEach((it) => {
-      if (!it.supplier_company_number) return;
-      bySup[it.supplier_company_number] = (bySup[it.supplier_company_number] || 0) + (Number(it.supplier_fee) || 0);
-    });
+    supplierLines.forEach((l) => { if (l.supplier_company_number) bySup[l.supplier_company_number] = (bySup[l.supplier_company_number] || 0) + (Number(l.supplier_fee) || 0); });
     return Object.entries(bySup).map(([cn, supFee]) => {
       const poTotal = poBySupplier[cn] || 0;
-      const diff = supFee - poTotal;
-      return { cn, name: suppliers.find((s) => s.company_number === cn)?.name || cn, supFee, poTotal, diff };
+      return { cn, name: supplierName(cn), supFee, poTotal, diff: supFee - poTotal };
     });
-  }, [items, poBySupplier, suppliers]);
+  }, [supplierLines, poBySupplier, suppliers]);
 
-  const updateRow = (idx, field, value) => setItems((prev) => prev.map((it, i) => (i === idx ? { ...it, [field]: value } : it)));
-  const addRow = () => setItems((prev) => [...prev, { ...EMPTY_ROW }]);
-  const removeRow = (idx) => setItems((prev) => prev.filter((_, i) => i !== idx));
+  const updateItem = (idx, field, value) => setItems((prev) => prev.map((it, i) => (i === idx ? { ...it, [field]: value } : it)));
+  const addItem = () => setItems((prev) => [...prev, { riba_stage: "", description: "", internal_fee: "" }]);
+  const removeItem = (idx) => setItems((prev) => prev.filter((_, i) => i !== idx));
 
   const saveBuilder = async () => {
     if (!selectedId) return;
@@ -115,7 +132,7 @@ export function FeeProposalSection({ projectId, project, onChanged }) {
     try {
       await base44.entities.FeeProposal.update(selectedId, {
         line_items: JSON.stringify(items),
-        fee_value: totals.fee || null,
+        fee_value: totals.als || null,
         external_cost: totals.sup || null,
       });
       load();
@@ -156,7 +173,7 @@ export function FeeProposalSection({ projectId, project, onChanged }) {
         project_id: projectId,
         client_account_id: project.client_account_id || null,
         bdm_aad_id: project.bdm_aad_id || null,
-        line_items: editing ? (selected?.line_items || "[]") : "[]",
+        line_items: editing ? (selected?.line_items || JSON.stringify([ALS_LINE])) : JSON.stringify([ALS_LINE]),
         fee_value: editing ? (selected?.fee_value ?? null) : null,
         external_cost: editing ? (selected?.external_cost ?? null) : null,
       };
@@ -173,16 +190,16 @@ export function FeeProposalSection({ projectId, project, onChanged }) {
     if (!selected) return;
     exportFeeProposalPdf({
       project,
-      proposal: { ...selected, line_items: JSON.stringify(items), fee_value: totals.fee, external_cost: totals.sup },
+      proposal: { ...selected, line_items: JSON.stringify(items), fee_value: totals.als, external_cost: totals.sup },
       suppliers,
       poBySupplier,
+      supplierLines,
     });
   };
 
   return (
-    <FormSection title="2 · Fee Proposal" description="Build the fee proposal line-by-line per RIBA stage; supplier fees are flagged against PO values">
+    <FormSection title="2 · Fee Proposal" description="Supplier fees are pulled from the Delivery Team; add the ALS Delivery fee and any other optional lines">
       <div className="space-y-5">
-        {/* Revisions */}
         <div className="flex items-center justify-between">
           <p className="text-sm text-slate-500">Revisions</p>
           <Button type="button" variant="outline" size="sm" onClick={openAdd}><Plus className="mr-1.5 h-4 w-4" /> Add revision</Button>
@@ -224,7 +241,6 @@ export function FeeProposalSection({ projectId, project, onChanged }) {
           </div>
         )}
 
-        {/* Builder */}
         {selected && (
           <div className="space-y-4 rounded-xl border border-slate-200 bg-white p-4">
             <div className="flex flex-wrap items-center justify-between gap-2">
@@ -237,65 +253,75 @@ export function FeeProposalSection({ projectId, project, onChanged }) {
               </div>
             </div>
 
-            {/* Margin summary */}
             <div className="grid gap-3 rounded-lg bg-primary/5 p-3 sm:grid-cols-4">
-              <Stat label="Internal fees" value={formatCurrency(totals.fee)} />
+              <Stat label="ALS fees" value={formatCurrency(totals.als)} />
               <Stat label="Supplier fees" value={formatCurrency(totals.sup)} />
               <Stat label="Contribution" value={formatCurrency(totals.contribution)} />
               <Stat label="Margin" value={`${totals.marginPct}%`} accent />
             </div>
 
-            {/* Line items */}
-            <div className="overflow-x-auto">
-              <table className="w-full text-sm">
-                <thead className="text-left text-xs font-semibold uppercase tracking-wide text-slate-500">
-                  <tr className="border-b border-slate-100">
-                    <th className="py-2 pr-2">RIBA Stage</th>
-                    <th className="py-2 pr-2">Description</th>
-                    <th className="py-2 pr-2">Supplier (optional)</th>
-                    <th className="py-2 pr-2 text-right">Supplier £</th>
-                    <th className="py-2 pr-2 text-right">Fee £</th>
-                    <th className="py-2"></th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-slate-100">
-                  {items.map((it, idx) => (
-                    <tr key={idx}>
-                      <td className="py-1.5 pr-2">
-                        <select value={it.riba_stage} onChange={(e) => updateRow(idx, "riba_stage", e.target.value)} className="h-9 rounded-lg border border-slate-300 bg-white px-2 text-sm focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20">
-                          <option value="">—</option>
-                          {RIBA_STAGES.map((s) => <option key={s} value={s}>{s}</option>)}
-                        </select>
-                      </td>
-                      <td className="py-1.5 pr-2">
-                        <input value={it.description} onChange={(e) => updateRow(idx, "description", e.target.value)} placeholder="e.g. Pre-construction services" className="h-9 w-full min-w-[160px] rounded-lg border border-slate-300 bg-white px-2 text-sm focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20" />
-                      </td>
-                      <td className="py-1.5 pr-2">
-                        <select value={it.supplier_company_number} onChange={(e) => updateRow(idx, "supplier_company_number", e.target.value)} className="h-9 max-w-[180px] rounded-lg border border-slate-300 bg-white px-2 text-sm focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20">
-                          <option value="">—</option>
-                          {suppliers.map((s) => <option key={s.id} value={s.company_number}>{s.name}</option>)}
-                        </select>
-                      </td>
-                      <td className="py-1.5 pr-2 text-right">
-                        <input type="number" value={it.supplier_fee} onChange={(e) => updateRow(idx, "supplier_fee", e.target.value)} className="h-9 w-24 rounded-lg border border-slate-300 bg-white px-2 text-right text-sm focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20" />
-                      </td>
-                      <td className="py-1.5 pr-2 text-right">
-                        <input type="number" value={it.internal_fee} onChange={(e) => updateRow(idx, "internal_fee", e.target.value)} className="h-9 w-24 rounded-lg border border-slate-300 bg-white px-2 text-right text-sm focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20" />
-                      </td>
-                      <td className="py-1.5 text-right">
-                        <button onClick={() => removeRow(idx)} className="rounded p-1 text-slate-400 hover:bg-rose-50 hover:text-rose-600"><Trash2 className="h-3.5 w-3.5" /></button>
-                      </td>
-                    </tr>
-                  ))}
-                  {items.length === 0 && (
-                    <tr><td colSpan={6} className="py-6 text-center text-sm text-slate-400">No line items yet.</td></tr>
-                  )}
-                </tbody>
-              </table>
+            {/* Supplier fees (from delivery team) */}
+            <div className="rounded-lg border border-slate-200 bg-slate-50 p-3">
+              <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-slate-500">Supplier fees (from Delivery Team)</p>
+              {supplierLines.length === 0 ? (
+                <p className="text-sm text-slate-400">No supplier fees yet. Add suppliers in the Delivery Team section above with fees per RIBA stage.</p>
+              ) : (
+                <div className="overflow-x-auto">
+                  <table className="w-full text-sm">
+                    <thead className="text-left text-xs text-slate-500">
+                      <tr><th className="py-1 pr-2">RIBA Stage</th><th className="py-1 pr-2">Description</th><th className="py-1 pr-2 text-right">Supplier £</th><th className="py-1 pr-2">Fee proposal</th></tr>
+                    </thead>
+                    <tbody className="divide-y divide-slate-100">
+                      {supplierLines.map((l, i) => (
+                        <tr key={i}>
+                          <td className="py-1.5 pr-2 text-slate-700">{l.riba_stage}</td>
+                          <td className="py-1.5 pr-2 text-slate-700">{l.description}</td>
+                          <td className="py-1.5 pr-2 text-right text-slate-700">{formatCurrency(l.supplier_fee)}</td>
+                          <td className="py-1.5 pr-2">{l.fee_proposal_link ? <a href={l.fee_proposal_link} target="_blank" rel="noreferrer" className="inline-flex items-center gap-1 text-primary hover:underline"><FileCheck className="h-3.5 w-3.5" /> View</a> : <span className="text-slate-400">—</span>}</td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              )}
             </div>
-            <button onClick={addRow} className="inline-flex items-center gap-1 text-sm text-primary hover:underline"><Plus className="h-4 w-4" /> Add row</button>
 
-            {/* Supplier vs PO comparison */}
+            {/* ALS / internal lines */}
+            <div>
+              <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-slate-500">ALS &amp; internal fees</p>
+              <div className="overflow-x-auto">
+                <table className="w-full text-sm">
+                  <thead className="text-left text-xs text-slate-500">
+                    <tr><th className="py-1 pr-2">RIBA Stage</th><th className="py-1 pr-2">Description</th><th className="py-1 pr-2 text-right">Fee £</th><th></th></tr>
+                  </thead>
+                  <tbody className="divide-y divide-slate-100">
+                    {items.map((it, idx) => (
+                      <tr key={idx}>
+                        <td className="py-1.5 pr-2">
+                          <select value={it.riba_stage} onChange={(e) => updateItem(idx, "riba_stage", e.target.value)} className="h-9 rounded-lg border border-slate-300 bg-white px-2 text-sm focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20">
+                            <option value="">—</option>
+                            {RIBA_STAGES.map((s) => <option key={s} value={s}>{s}</option>)}
+                          </select>
+                        </td>
+                        <td className="py-1.5 pr-2">
+                          <input value={it.description} onChange={(e) => updateItem(idx, "description", e.target.value)} placeholder="e.g. ALS Delivery fee" className="h-9 w-full min-w-[180px] rounded-lg border border-slate-300 bg-white px-2 text-sm focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20" />
+                        </td>
+                        <td className="py-1.5 pr-2 text-right">
+                          <input type="number" value={it.internal_fee} onChange={(e) => updateItem(idx, "internal_fee", e.target.value)} className="h-9 w-24 rounded-lg border border-slate-300 bg-white px-2 text-right text-sm focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20" />
+                        </td>
+                        <td className="py-1.5 text-right">
+                          {it.description === "ALS Delivery fee" ? null : (
+                            <button onClick={() => removeItem(idx)} className="rounded p-1 text-slate-400 hover:bg-rose-50 hover:text-rose-600"><Trash2 className="h-3.5 w-3.5" /></button>
+                          )}
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+              <button onClick={addItem} className="mt-2 inline-flex items-center gap-1 text-sm text-primary hover:underline"><Plus className="h-4 w-4" /> Add optional line</button>
+            </div>
+
             {supplierComparison.length > 0 && (
               <div className="rounded-lg border border-slate-200 bg-slate-50 p-3">
                 <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-slate-500">Supplier fees vs Purchase Orders</p>
@@ -308,7 +334,6 @@ export function FeeProposalSection({ projectId, project, onChanged }) {
         )}
       </div>
 
-      {/* Header dialog */}
       <Dialog open={headerOpen} onOpenChange={setHeaderOpen}>
         <DialogContent className="sm:max-w-2xl">
           <DialogHeader><DialogTitle>{editing ? "Edit revision" : "Add revision"}</DialogTitle></DialogHeader>

@@ -4,7 +4,7 @@ import { formatCurrency, formatDate } from "@/lib/portal";
 const parseItems = (s) => { try { return JSON.parse(s) || []; } catch { return []; } };
 const money = (n) => (n == null || n === "" ? "—" : `£${Number(n).toLocaleString("en-GB", { minimumFractionDigits: 0, maximumFractionDigits: 0 })}`);
 
-export function exportFeeProposalPdf({ project, proposal, suppliers, poBySupplier }) {
+export function exportFeeProposalPdf({ project, proposal, suppliers, poBySupplier, supplierLines }) {
   const doc = new jsPDF({ unit: "pt", format: "a4" });
   const W = doc.internal.pageSize.getWidth();
   const H = doc.internal.pageSize.getHeight();
@@ -12,7 +12,6 @@ export function exportFeeProposalPdf({ project, proposal, suppliers, poBySupplie
   const BRAND = [234, 88, 12];
   let y = 0;
 
-  // Header bar
   doc.setFillColor(...BRAND); doc.rect(0, 0, W, 56, "F");
   doc.setTextColor(255, 255, 255); doc.setFont("helvetica", "bold"); doc.setFontSize(16);
   doc.text("ALS Live", M, 34);
@@ -30,48 +29,60 @@ export function exportFeeProposalPdf({ project, proposal, suppliers, poBySupplie
   doc.text(`Status: ${proposal.status || "—"}     Issued: ${formatDate(proposal.date_issued)}     Basis: ${proposal.fee_basis || "—"}`, M, y);
   y += 22;
 
-  const items = parseItems(proposal.line_items);
   const supplierName = (cn) => suppliers.find((s) => s.company_number === cn)?.name || cn || "—";
+  const alsLines = parseItems(proposal.line_items);
 
   const cols = [
     { h: "RIBA Stage", w: 72 },
-    { h: "Description", w: 168 },
-    { h: "Supplier", w: 130 },
+    { h: "Description", w: 200 },
     { h: "Supplier £", w: 62, align: "right" },
-    { h: "Fee £", w: 62, align: "right" },
+    { h: "ALS £", w: 62, align: "right" },
   ];
   const tableW = cols.reduce((a, c) => a + c.w, 0);
   const x0 = M;
 
-  doc.setFillColor(241, 245, 249); doc.rect(x0, y, tableW, 16, "F");
-  doc.setTextColor(15, 23, 42); doc.setFontSize(8); doc.setFont("helvetica", "bold");
-  let x = x0 + 4;
-  cols.forEach((c) => { doc.text(c.h, c.align === "right" ? x + c.w - 8 : x, y + 11); x += c.w; });
-  y += 16;
-  doc.setFont("helvetica", "normal"); doc.setTextColor(51, 65, 85);
+  const drawHeader = () => {
+    doc.setFillColor(241, 245, 249); doc.rect(x0, y, tableW, 16, "F");
+    doc.setTextColor(15, 23, 42); doc.setFontSize(8); doc.setFont("helvetica", "bold");
+    let x = x0 + 4;
+    cols.forEach((c) => { doc.text(c.h, c.align === "right" ? x + c.w - 8 : x, y + 11); x += c.w; });
+    y += 16;
+    doc.setFont("helvetica", "normal"); doc.setTextColor(51, 65, 85);
+  };
 
-  items.forEach((it) => {
+  const drawRow = (vals) => {
     if (y > H - 140) { doc.addPage(); y = 60; }
-    const vals = [it.riba_stage || "", it.description || "", supplierName(it.supplier_company_number), money(it.supplier_fee), money(it.internal_fee)];
-    x = x0 + 4;
+    let x = x0 + 4;
     cols.forEach((c, i) => {
-      const text = String(vals[i]).length > 28 ? String(vals[i]).slice(0, 27) + "…" : String(vals[i]);
+      const text = String(vals[i]).length > 32 ? String(vals[i]).slice(0, 31) + "…" : String(vals[i]);
       doc.text(text, c.align === "right" ? x + c.w - 8 : x, y + 11);
       x += c.w;
     });
     y += 15;
-  });
+  };
 
-  const totSup = items.reduce((a, it) => a + (Number(it.supplier_fee) || 0), 0);
-  const totFee = items.reduce((a, it) => a + (Number(it.internal_fee) || 0), 0);
-  const contribution = totFee - totSup;
-  const marginPct = totFee ? Math.round((contribution / totFee) * 100) : 0;
+  // Supplier lines
+  doc.setFont("helvetica", "bold"); doc.setFontSize(10); doc.setTextColor(15, 23, 42);
+  doc.text("Supplier fees (from Delivery Team)", x0, y); y += 14;
+  drawHeader();
+  supplierLines.forEach((l) => drawRow([l.riba_stage || "", l.description || "", money(l.supplier_fee), "—"]));
+  const totSup = supplierLines.reduce((a, l) => a + (Number(l.supplier_fee) || 0), 0);
+  doc.setDrawColor(203, 213, 225); doc.line(x0, y, x0 + tableW, y); y += 14;
+  doc.setFont("helvetica", "bold"); doc.text(`Total supplier fees: ${money(totSup)}`, x0, y); y += 18;
 
-  doc.setDrawColor(203, 213, 225); doc.line(x0, y, x0 + tableW, y); y += 16;
+  // ALS lines
+  doc.setFont("helvetica", "bold"); doc.setFontSize(10); doc.setTextColor(15, 23, 42);
+  doc.text("ALS & internal fees", x0, y); y += 14;
+  drawHeader();
+  alsLines.forEach((l) => drawRow([l.riba_stage || "", l.description || "", "—", money(l.internal_fee)]));
+  const totAls = alsLines.reduce((a, l) => a + (Number(l.internal_fee) || 0), 0);
+  doc.setDrawColor(203, 213, 225); doc.line(x0, y, x0 + tableW, y); y += 14;
+  doc.setFont("helvetica", "bold"); doc.text(`Total ALS fees: ${money(totAls)}`, x0, y); y += 20;
+
+  // Summary
+  const contribution = totAls - totSup;
+  const marginPct = totAls ? Math.round((contribution / totAls) * 100) : 0;
   doc.setFont("helvetica", "bold"); doc.setFontSize(9); doc.setTextColor(15, 23, 42);
-  doc.text(`Total supplier fees: ${money(totSup)}`, x0, y);
-  doc.text(`Total internal fees: ${money(totFee)}`, x0 + 220, y);
-  y += 14;
   doc.text(`Contribution: ${money(contribution)}`, x0, y);
   doc.text(`Margin: ${marginPct}%`, x0 + 220, y);
   y += 24;
@@ -81,15 +92,11 @@ export function exportFeeProposalPdf({ project, proposal, suppliers, poBySupplie
   doc.text("Supplier fees vs Purchase Orders", x0, y); y += 14;
   doc.setFont("helvetica", "normal"); doc.setFontSize(9); doc.setTextColor(51, 65, 85);
   const bySupplier = {};
-  items.forEach((it) => {
-    if (!it.supplier_company_number) return;
-    bySupplier[it.supplier_company_number] = (bySupplier[it.supplier_company_number] || 0) + (Number(it.supplier_fee) || 0);
-  });
-  const suppEntries = Object.entries(bySupplier);
-  if (suppEntries.length === 0) {
-    doc.text("No supplier fees entered.", x0, y); y += 12;
-  } else {
-    suppEntries.forEach(([cn, supFee]) => {
+  supplierLines.forEach((l) => { if (l.supplier_company_number) bySupplier[l.supplier_company_number] = (bySupplier[l.supplier_company_number] || 0) + (Number(l.supplier_fee) || 0); });
+  const entries = Object.entries(bySupplier);
+  if (entries.length === 0) { doc.text("No supplier fees entered.", x0, y); y += 12; }
+  else {
+    entries.forEach(([cn, supFee]) => {
       if (y > H - 80) { doc.addPage(); y = 60; }
       const poTotal = poBySupplier[cn] || 0;
       const diff = supFee - poTotal;
@@ -99,7 +106,6 @@ export function exportFeeProposalPdf({ project, proposal, suppliers, poBySupplie
     });
   }
 
-  // Footer
   doc.setFontSize(8); doc.setTextColor(148, 163, 184);
   doc.text(`Generated by ALS Live portal · ${new Date().toLocaleString("en-GB")}`, M, H - 24);
 

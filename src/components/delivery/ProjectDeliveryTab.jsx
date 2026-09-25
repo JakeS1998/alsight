@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useCallback } from "react";
+import React, { useEffect, useState, useCallback, useMemo } from "react";
 import { base44 } from "@/api/base44Client";
 import { DeliveryScoping } from "./DeliveryScoping";
 import { FeeProposalSection } from "./FeeProposalSection";
@@ -8,6 +8,7 @@ import { ProgrammeMilestones } from "./ProgrammeMilestones";
 import { RegisterList } from "./RegisterList";
 import { DeliveryConstruction } from "./DeliveryConstruction";
 import { DeliveryCloseout } from "./DeliveryCloseout";
+import { DeliveryTeam } from "./DeliveryTeam";
 
 const DELIVERY_DEFAULT = {
   funding_route: "", scope_summary: "", client_objectives: "", initial_constraints: "",
@@ -19,6 +20,7 @@ const DELIVERY_DEFAULT = {
   pc_achieved: "", pc_certificate: "", final_account_status: "", defects_period: "",
   retention: "", om_manuals: "", hs_file: "", warranties_status: "", training: "",
   asset_info: "", client_handover: "", lessons_learned: "",
+  delivery_team: "",
 };
 
 const ACTION_COLS = [
@@ -66,6 +68,12 @@ export function ProjectDeliveryTab({ project, legalDocs, dmas, jcts, warranties,
   const [savingDelivery, setSavingDelivery] = useState(false);
   const [feeProposals, setFeeProposals] = useState([]);
   const [bdmName, setBdmName] = useState(null);
+  const [suppliers, setSuppliers] = useState([]);
+
+  const loadSuppliers = useCallback(async () => {
+    const sup = await base44.entities.Account.filter({ account_type: "supplier" }, "name", 500).catch(() => []);
+    setSuppliers(sup);
+  }, []);
 
   const loadDelivery = useCallback(async () => {
     const existing = await base44.entities.ProjectDelivery.filter({ project_id: projectId }, "-created_date", 10).catch(() => []);
@@ -84,9 +92,13 @@ export function ProjectDeliveryTab({ project, legalDocs, dmas, jcts, warranties,
     setBdmName(c[0]?.full_name || null);
   }, [project.bdm_aad_id]);
 
-  useEffect(() => { loadDelivery(); loadBdmName(); }, [loadDelivery, loadBdmName]);
+  useEffect(() => { loadDelivery(); loadBdmName(); loadSuppliers(); }, [loadDelivery, loadBdmName, loadSuppliers]);
 
   const setField = (key, value) => setDelivery((prev) => ({ ...prev, [key]: value }));
+
+  const deliveryTeam = useMemo(() => {
+    try { return JSON.parse(delivery.delivery_team || "[]") || []; } catch { return []; }
+  }, [delivery.delivery_team]);
 
   const saveDelivery = async () => {
     setSavingDelivery(true);
@@ -111,7 +123,8 @@ export function ProjectDeliveryTab({ project, legalDocs, dmas, jcts, warranties,
   return (
     <div className="space-y-6">
       <DeliveryScoping project={project} accountMap={accountMap} bdmName={bdmName} delivery={delivery} setField={setField} onSave={saveDelivery} saving={savingDelivery} />
-      <FeeProposalSection projectId={projectId} project={project} onChanged={setFeeProposals} />
+      <DeliveryTeam project={project} delivery={delivery} setField={setField} onSave={saveDelivery} saving={savingDelivery} suppliers={suppliers} />
+      <FeeProposalSection projectId={projectId} project={project} onChanged={setFeeProposals} deliveryTeam={deliveryTeam} suppliers={suppliers} />
       <PreConstructionReadiness project={project} legalDocs={legalDocs} dmas={dmas} jcts={jcts} warranties={warranties} feeProposals={feeProposals} delivery={delivery} setField={setField} onSave={saveDelivery} saving={savingDelivery} />
       <DesignTeam legalDocs={legalDocs} jcts={jcts} warranties={warranties} accountMap={accountMap} />
       <ProgrammeMilestones project={project} feeProposals={feeProposals} jcts={jcts} />
