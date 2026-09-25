@@ -5,6 +5,7 @@ import {
   Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter,
 } from "@/components/ui/dialog";
 import { FormField, formInputClass } from "@/components/forms/PowerForm";
+import { AccountCombobox } from "@/components/contacts/AccountCombobox";
 import { Loader2, Mail, CheckCircle2, ShieldCheck } from "lucide-react";
 
 const ROLES = [
@@ -129,12 +130,11 @@ export function InviteUserDialog({ open, onOpenChange, contact, accounts, existi
                 label="Linked Account"
                 description="Determines which projects and documents this user can access"
               >
-                <select value={accountId} onChange={(e) => setAccountId(e.target.value)} className={formInputClass}>
-                  <option value="">— Select account —</option>
-                  {filteredAccounts.map((a) => (
-                    <option key={a.id} value={a.dataverse_id}>{a.name}</option>
-                  ))}
-                </select>
+                <AccountCombobox
+                  value={accountId}
+                  onChange={setAccountId}
+                  accounts={filteredAccounts}
+                />
               </FormField>
             )}
 
