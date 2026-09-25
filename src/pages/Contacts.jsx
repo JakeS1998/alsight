@@ -74,7 +74,7 @@ export default function Contacts() {
         type="text"
         placeholder="Search by name, company, email, or job title..."
         value={search}
-        onChange={(e) => setSearch(e.target.value)}
+        onInput={(e) => setSearch(e.currentTarget.value)}
         className="h-10 w-full max-w-md rounded-lg border border-slate-300 bg-white px-3 text-sm shadow-sm focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20"
       />
 
