@@ -92,6 +92,7 @@ function DateLabel({ date }) {
 export function ProjectTimelineTab({ project, legalDocs, dmas, jcts, warranties }) {
   const [pos, setPos] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [active, setActive] = useState(() => Object.keys(CATEGORIES));
 
   useEffect(() => {
     (async () => {
@@ -107,10 +108,19 @@ export function ProjectTimelineTab({ project, legalDocs, dmas, jcts, warranties 
     })();
   }, [project.id]);
 
-  const events = useMemo(
+  const allEvents = useMemo(
     () => buildEvents(project, legalDocs, dmas, jcts, warranties, pos),
     [project, legalDocs, dmas, jcts, warranties, pos]
   );
+  const events = useMemo(
+    () => allEvents.filter((e) => active.includes(e.cat)),
+    [allEvents, active]
+  );
+
+  const toggle = (key) =>
+    setActive((prev) =>
+      prev.includes(key) ? prev.filter((k) => k !== key) : [...prev, key]
+    );
 
   if (loading) {
     return (
@@ -122,14 +132,35 @@ export function ProjectTimelineTab({ project, legalDocs, dmas, jcts, warranties 
 
   return (
     <div className="space-y-6">
-      {/* Category legend */}
+      {/* Category filters */}
       <div className="flex flex-wrap gap-2">
-        {Object.entries(CATEGORIES).map(([key, c]) => (
-          <span key={key} className="inline-flex items-center gap-1.5 rounded-full border border-slate-200 bg-white px-2.5 py-1 text-xs text-slate-600">
-            <span className={`h-2 w-2 rounded-full ${c.dot}`} />
-            {c.label}
-          </span>
-        ))}
+        {Object.entries(CATEGORIES).map(([key, c]) => {
+          const on = active.includes(key);
+          return (
+            <button
+              key={key}
+              type="button"
+              onClick={() => toggle(key)}
+              className={`inline-flex items-center gap-1.5 rounded-full border px-2.5 py-1 text-xs font-medium transition-colors ${
+                on
+                  ? "border-slate-300 bg-white text-slate-900"
+                  : "border-slate-200 bg-slate-50 text-slate-400"
+              }`}
+            >
+              <span className={`h-2 w-2 rounded-full ${on ? c.dot : "bg-slate-300"}`} />
+              {c.label}
+            </button>
+          );
+        })}
+        {active.length !== Object.keys(CATEGORIES).length && (
+          <button
+            type="button"
+            onClick={() => setActive(Object.keys(CATEGORIES))}
+            className="inline-flex items-center rounded-full border border-slate-200 bg-white px-2.5 py-1 text-xs font-medium text-slate-500 hover:text-slate-900"
+          >
+            Show all
+          </button>
+        )}
       </div>
 
       {/* Invoice placeholder */}
