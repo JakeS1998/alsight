@@ -1,0 +1,31 @@
+{
+  "name": "ProjectCashFlow",
+  "type": "object",
+  "properties": {
+    "project_id": {
+      "type": "string",
+      "description": "Base44 ID of the project"
+    },
+    "date": {
+      "type": "string",
+      "format": "date"
+    },
+    "type": {
+      "type": "string",
+      "enum": [
+        "received",
+        "spent"
+      ]
+    },
+    "amount": {
+      "type": "number",
+      "exclusiveMinimum": 0
+    }
+  },
+  "required": [
+    "project_id",
+    "date",
+    "type",
+    "amount"
+  ]
+}
