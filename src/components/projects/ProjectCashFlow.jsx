@@ -2,9 +2,8 @@ import React, { useEffect, useState } from 'react';
 import { base44 } from '@/api/base44Client';
 import { filterAll } from '@/components/data/loadAll';
 import CashFlowChart from '@/components/projects/CashFlowChart';
-import InvoiceReceipts from '@/components/projects/InvoiceReceipts';
 
-export default function ProjectCashFlow({ projectId }) {
+export function useProjectCashFlow(projectId) {
   const [invoices, setInvoices] = useState([]);
   const [transactions, setTransactions] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -26,9 +25,13 @@ export default function ProjectCashFlow({ projectId }) {
     ...invoices.map(i => ({ date: i.paid_date, amount: i.amount, type: 'received' })),
     ...transactions,
   ];
+  return { invoices, entries, loading, error };
+}
+
+export default function ProjectCashFlow({ entries, loading, error }) {
   return <section className="rounded-2xl border border-border bg-card p-5 space-y-5">
     <div><h3 className="font-heading text-base font-semibold text-card-foreground">Money in & out</h3>
       <p className="text-xs text-muted-foreground">Cumulative client payments and recorded spending. Purchase orders are not payments; sample figures are illustrative.</p></div>
-    {loading ? <p className="py-12 text-center text-sm text-muted-foreground">Loading cash flow…</p> : error ? <p role="alert" className="text-sm text-destructive">{error}</p> : <><CashFlowChart entries={entries} /><InvoiceReceipts invoices={invoices} /></>}
+    {loading ? <p className="py-12 text-center text-sm text-muted-foreground">Loading cash flow…</p> : error ? <p role="alert" className="text-sm text-destructive">{error}</p> : <CashFlowChart entries={entries} />}
   </section>;
 }

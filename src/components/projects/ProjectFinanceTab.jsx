@@ -2,7 +2,8 @@ import React, { useEffect, useState, useMemo } from "react";
 import { base44 } from "@/api/base44Client";
 import { listAll, filterAll } from "@/components/data/loadAll";
 import { formatCurrency, formatDate } from "@/lib/portal";
-import ProjectCashFlow from '@/components/projects/ProjectCashFlow';
+import ProjectCashFlow, { useProjectCashFlow } from '@/components/projects/ProjectCashFlow';
+import InvoiceReceipts from '@/components/projects/InvoiceReceipts';
 import { Receipt, ChevronDown, ChevronRight, Building2, Layers, PoundSterling } from "lucide-react";
 
 function Spinner() {
@@ -34,6 +35,7 @@ export function ProjectFinanceTab({ project }) {
   const [accounts, setAccounts] = useState([]);
   const [loading, setLoading] = useState(true);
   const [expanded, setExpanded] = useState(null);
+  const cashFlow = useProjectCashFlow(project.id);
 
   useEffect(() => {
     (async () => {
@@ -109,7 +111,8 @@ export function ProjectFinanceTab({ project }) {
 
   if (!project.project_number) {
     return <div className="space-y-6">
-      <ProjectCashFlow projectId={project.id} />
+      <ProjectCashFlow {...cashFlow} />
+      <InvoiceReceipts invoices={cashFlow.invoices} loading={cashFlow.loading} error={cashFlow.error} />
       <div className="rounded-2xl border border-dashed border-slate-300 bg-white py-12 text-center">
         <Receipt className="mx-auto h-8 w-8 text-slate-300" />
         <p className="mt-3 text-sm text-slate-500">This project has no PROJ reference, so purchase orders can't be linked.</p>
@@ -119,7 +122,8 @@ export function ProjectFinanceTab({ project }) {
 
   if (pos.length === 0) {
     return <div className="space-y-6">
-      <ProjectCashFlow projectId={project.id} />
+      <ProjectCashFlow {...cashFlow} />
+      <InvoiceReceipts invoices={cashFlow.invoices} loading={cashFlow.loading} error={cashFlow.error} />
       <div className="rounded-2xl border border-dashed border-slate-300 bg-white py-12 text-center">
         <Receipt className="mx-auto h-8 w-8 text-slate-300" />
         <p className="mt-3 text-sm text-slate-500">No purchase orders linked to {project.project_number}.</p>
@@ -129,7 +133,7 @@ export function ProjectFinanceTab({ project }) {
 
   return (
     <div className="space-y-6">
-      <ProjectCashFlow projectId={project.id} />
+      <ProjectCashFlow {...cashFlow} />
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
         <StatCard icon={Receipt} label="Purchase Orders" value={totals.poCount} sub={`${totals.liCount} line items`} />
         <StatCard icon={PoundSterling} label="Line Net Value" value={formatCurrency(totals.liNet)} sub={`Gross ${formatCurrency(totals.liGross)}`} />
@@ -159,6 +163,7 @@ export function ProjectFinanceTab({ project }) {
         </div>
       )}
 
+      <InvoiceReceipts invoices={cashFlow.invoices} loading={cashFlow.loading} error={cashFlow.error} />
       <div className="rounded-2xl border border-slate-200 bg-white">
         <div className="border-b border-slate-100 px-5 py-4">
           <h3 className="font-heading text-base font-semibold text-slate-900">Purchase Orders</h3>
