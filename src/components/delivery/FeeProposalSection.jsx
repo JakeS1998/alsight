@@ -4,6 +4,7 @@ import { filterAll } from "@/components/data/loadAll";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { FormSection, FormGrid, FormField, formInputClass } from "@/components/forms/PowerForm";
+import { LookupCombobox } from "@/components/forms/LookupCombobox";
 import { Plus, Trash2, Loader2, FileDown, TrendingUp, ArrowUpRight, ArrowDownRight, Check, FileCheck } from "lucide-react";
 import { formatCurrency, formatDate } from "@/lib/portal";
 import { exportFeeProposalPdf } from "./exportFeeProposalPdf";
@@ -299,10 +300,7 @@ export function FeeProposalSection({ projectId, project, onChanged, deliveryTeam
                     {items.map((it, idx) => (
                       <tr key={idx}>
                         <td className="py-1.5 pr-2">
-                          <select value={it.riba_stage} onChange={(e) => updateItem(idx, "riba_stage", e.target.value)} className="h-9 rounded-lg border border-slate-300 bg-white px-2 text-sm focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20">
-                            <option value="">—</option>
-                            {RIBA_STAGES.map((s) => <option key={s} value={s}>{s}</option>)}
-                          </select>
+                          <div className="min-w-[150px]"><LookupCombobox value={it.riba_stage} onChange={(value) => updateItem(idx, "riba_stage", value)} options={RIBA_STAGES.map((stage) => ({ value: stage, label: stage }))} placeholder="—" searchPlaceholder="Search stages..." /></div>
                         </td>
                         <td className="py-1.5 pr-2">
                           <input value={it.description} onChange={(e) => updateItem(idx, "description", e.target.value)} placeholder="e.g. ALS Delivery fee" className="h-9 w-full min-w-[180px] rounded-lg border border-slate-300 bg-white px-2 text-sm focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20" />
@@ -342,12 +340,10 @@ export function FeeProposalSection({ projectId, project, onChanged, deliveryTeam
             <FormGrid>
               <FormField label="Revision number"><input type="number" min="1" value={header.revision_number} onChange={(e) => setHeader({ ...header, revision_number: e.target.value })} className={formInputClass} /></FormField>
               <FormField label="Fee basis">
-                <select value={header.fee_basis} onChange={(e) => setHeader({ ...header, fee_basis: e.target.value })} className={formInputClass}>
-                  <option value="">—</option>{BASIS.map((o) => <option key={o.value} value={o.value}>{o.label}</option>)}
-                </select>
+                <LookupCombobox value={header.fee_basis} onChange={(value) => setHeader((prev) => ({ ...prev, fee_basis: value }))} options={BASIS} placeholder="—" searchPlaceholder="Search fee bases..." />
               </FormField>
               <FormField label="Status">
-                <select value={header.status} onChange={(e) => setHeader({ ...header, status: e.target.value })} className={formInputClass}>{STATUS.map((o) => <option key={o.value} value={o.value}>{o.label}</option>)}</select>
+                <LookupCombobox value={header.status} onChange={(value) => setHeader((prev) => ({ ...prev, status: value }))} options={STATUS} placeholder="Select status" searchPlaceholder="Search statuses..." allowClear={false} />
               </FormField>
               <FormField label="Date issued"><input type="date" value={header.date_issued} onChange={(e) => setHeader({ ...header, date_issued: e.target.value })} className={formInputClass} /></FormField>
               <FormField label="Client approval date"><input type="date" value={header.client_approval_date} onChange={(e) => setHeader({ ...header, client_approval_date: e.target.value })} className={formInputClass} /></FormField>

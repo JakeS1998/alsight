@@ -8,7 +8,7 @@ import { cn } from "@/lib/utils";
  * Searchable combobox for selecting a single option from a {value, label} list.
  * Used for form lookups (BDM, Director, Region, etc.) where a native select is too limited.
  */
-export function LookupCombobox({ value, onChange, options, placeholder = "— Select —", searchPlaceholder = "Search..." }) {
+export function LookupCombobox({ value, onChange, options, placeholder = "— Select —", searchPlaceholder = "Search...", allowClear = true }) {
   const [open, setOpen] = useState(false);
   const selected = options.find((o) => o.value === value);
 
@@ -33,13 +33,13 @@ export function LookupCombobox({ value, onChange, options, placeholder = "— Se
           <CommandList>
             <CommandEmpty>No results found.</CommandEmpty>
             <CommandGroup>
-              <CommandItem
+              {allowClear && <CommandItem
                 onSelect={() => { onChange(""); setOpen(false); }}
                 className={cn(!value && "text-primary")}
               >
                 <Check className={cn("mr-2 h-4 w-4", !value ? "opacity-100" : "opacity-0")} />
                 {placeholder}
-              </CommandItem>
+              </CommandItem>}
               {options.map((o) => (
                 <CommandItem
                   key={o.value}
