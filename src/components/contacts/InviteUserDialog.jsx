@@ -6,12 +6,16 @@ import {
 } from "@/components/ui/dialog";
 import { FormField, formInputClass } from "@/components/forms/PowerForm";
 import { AccountCombobox } from "@/components/contacts/AccountCombobox";
+import { REGION_OPTIONS } from "@/lib/portal";
 import { Loader2, Mail, CheckCircle2, ShieldCheck } from "lucide-react";
 
 const ROLES = [
   { value: "admin", label: "Administrator" },
-  { value: "company_director", label: "Company Director" },
-  { value: "development_manager", label: "Development Manager (BDM)" },
+  { value: "director", label: "Director" },
+  { value: "regional_director", label: "Regional Director" },
+  { value: "bsm", label: "BSM" },
+  { value: "finance", label: "Finance" },
+  { value: "bdm", label: "BDM" },
   { value: "client", label: "Client" },
   { value: "supplier", label: "Supplier" },
 ];
@@ -19,6 +23,7 @@ const ROLES = [
 export function InviteUserDialog({ open, onOpenChange, contact, accounts, existingUser, onDone }) {
   const [role, setRole] = useState("client");
   const [accountId, setAccountId] = useState("");
+  const [region, setRegion] = useState("");
   const [submitting, setSubmitting] = useState(false);
   const [success, setSuccess] = useState(false);
   const [error, setError] = useState("");
@@ -28,10 +33,12 @@ export function InviteUserDialog({ open, onOpenChange, contact, accounts, existi
       if (existingUser) {
         setRole(existingUser.role || "client");
         setAccountId(existingUser.account_id || "");
+        setRegion(existingUser.region || "");
       } else {
         setRole("client");
         const matched = accounts.find((a) => a.company_number === contact.company_number);
         setAccountId(matched?.dataverse_id || "");
+        setRegion("");
       }
       setSuccess(false);
       setError("");
@@ -39,6 +46,15 @@ export function InviteUserDialog({ open, onOpenChange, contact, accounts, existi
   }, [open, contact, existingUser, accounts]);
 
   if (!contact) return null;
+
+  const updateContact = async (userId) => {
+    try {
+      await base44.entities.Contact.update(contact.id, {
+        aad_id: userId || null,
+        portal_role: role,
+      });
+    } catch (_) { /* best effort */ }
+  };
 
   const submit = async (e) => {
     e.preventDefault();
@@ -50,17 +66,23 @@ export function InviteUserDialog({ open, onOpenChange, contact, accounts, existi
         await base44.entities.User.update(existingUser.id, {
           role,
           account_id: accountId || null,
+          region: role === "regional_director" ? (region || null) : null,
         });
+        await updateContact(existingUser.id);
       } else {
         await base44.users.inviteUser(contact.email, role);
-        if (accountId) {
-          try {
-            const found = await base44.entities.User.filter({ email: contact.email });
-            if (found.length > 0) {
-              await base44.entities.User.update(found[0].id, { account_id: accountId });
-            }
-          } catch (_) { /* user may not exist until they accept */ }
-        }
+        let linkedId = "";
+        try {
+          const found = await base44.entities.User.filter({ email: contact.email });
+          if (found.length > 0) {
+            linkedId = found[0].id;
+            await base44.entities.User.update(found[0].id, {
+              account_id: accountId || null,
+              region: role === "regional_director" ? (region || null) : null,
+            });
+          }
+        } catch (_) { /* user may not exist until they accept */ }
+        await updateContact(linkedId);
       }
       setSuccess(true);
       onDone?.();
@@ -124,6 +146,15 @@ export function InviteUserDialog({ open, onOpenChange, contact, accounts, existi
                 {ROLES.map((r) => <option key={r.value} value={r.value}>{r.label}</option>)}
               </select>
             </FormField>
+
+            {role === "regional_director" && (
+              <FormField label="Region" description="Determines which projects this Regional Director can see">
+                <select value={region} onChange={(e) => setRegion(e.target.value)} className={formInputClass}>
+                  <option value="">—</option>
+                  {REGION_OPTIONS.map((r) => <option key={r.value} value={r.value}>{r.label}</option>)}
+                </select>
+              </FormField>
+            )}
 
             {(role === "client" || role === "supplier") && (
               <FormField

@@ -28,9 +28,9 @@ export default function AccountDetail() {
             ? base44.entities.Contact.filter({ company_number: companyNo }, "-created_date", 500).catch(() => [])
             : [],
           base44.entities.Project.filter({ $or: [{ client_account_id: dvId }, { account_id: dvId }] }, "-created_date", 500).catch(() => []),
-          base44.entities.LegalDocument.filter({ account_id: dvId, status: { $in: ["active", "inactive"] } }, "-created_date", 500).catch(() => []),
-          base44.entities.Warranty.filter({ $or: [{ account_id: dvId }, { supplier_id: dvId }] }, "-created_date", 500).catch(() => []),
-          base44.entities.JCT.filter({ $or: [{ account_id: dvId }, { contractor_id: dvId }] }, "-created_date", 500).catch(() => []),
+          base44.entities.LegalDocument.filter({ $or: [{ account_id: dvId }, { client_account_id: dvId }], status: { $in: ["active", "inactive"] } }, "-created_date", 500).catch(() => []),
+          base44.entities.Warranty.filter({ $or: [{ account_id: dvId }, { supplier_id: dvId }, { client_account_id: dvId }] }, "-created_date", 500).catch(() => []),
+          base44.entities.JCT.filter({ $or: [{ account_id: dvId }, { contractor_id: dvId }, { client_account_id: dvId }] }, "-created_date", 500).catch(() => []),
         ]);
 
         setContacts(c);

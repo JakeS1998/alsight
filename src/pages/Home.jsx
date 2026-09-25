@@ -38,13 +38,13 @@ export default function Home() {
   }, [accounts]);
 
   const { filteredProjects, filterLabel } = useMemo(() => {
-    if (role === "development_manager") {
+    if (role === "bdm") {
       return {
-        filteredProjects: projects.filter((p) => p.bdm_aad_id === user.id),
-        filterLabel: "Showing projects where you are the assigned BDM",
+        filteredProjects: projects.filter((p) => p.bdm_aad_id === user.id || p.bsm_aad_id === user.id),
+        filterLabel: "Showing projects where you are the assigned BDM or BSM",
       };
     }
-    if (role === "company_director") {
+    if (role === "regional_director") {
       const userRegion = regionName(user?.data?.region);
       if (userRegion) {
         return {

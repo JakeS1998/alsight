@@ -20,7 +20,7 @@ const SORT_OPTIONS = [
 export default function Projects() {
   const { user } = useAuth();
   const role = user?.role || "client";
-  const canRequest = ["development_manager", "company_director", "admin"].includes(role);
+  const canRequest = ["admin", "director", "bdm"].includes(role);
 
   const [projects, setProjects] = useState([]);
   const [accounts, setAccounts] = useState([]);

@@ -1,19 +1,55 @@
 // ─── Role labels & badges ───
 export const ROLE_LABELS = {
   admin: "Administrator",
-  company_director: "Company Director",
-  development_manager: "Development Manager",
+  director: "Director",
+  regional_director: "Regional Director",
+  bsm: "BSM",
+  finance: "Finance",
+  bdm: "BDM",
   client: "Client",
   supplier: "Supplier",
 };
 
 export const ROLE_BADGE_CLASS = {
   admin: "bg-slate-900 text-white",
-  company_director: "bg-indigo-600 text-white",
-  development_manager: "bg-sky-100 text-sky-700",
+  director: "bg-indigo-600 text-white",
+  regional_director: "bg-violet-100 text-violet-700",
+  bsm: "bg-teal-100 text-teal-700",
+  finance: "bg-rose-100 text-rose-700",
+  bdm: "bg-sky-100 text-sky-700",
   client: "bg-emerald-100 text-emerald-700",
   supplier: "bg-amber-100 text-amber-700",
 };
+
+// Internal staff roles (can delegate)
+export const INTERNAL_ROLES = ["admin", "director", "regional_director", "bsm", "finance", "bdm"];
+
+// Roles that see everything
+export const FULL_ACCESS_ROLES = ["admin", "director", "bsm", "finance"];
+
+// Delegation hierarchy: lower number = higher level. Top: Director, Middle: Regional Director, Bottom: the rest.
+export const ROLE_LEVEL = {
+  director: 0,
+  admin: 0,
+  regional_director: 1,
+  bdm: 2,
+  bsm: 2,
+  finance: 2,
+};
+
+// A user may delegate to someone at their level or above (up the chain or equal).
+export function canDelegateTo(myRole, targetRole) {
+  if (!INTERNAL_ROLES.includes(myRole) || !INTERNAL_ROLES.includes(targetRole)) return false;
+  if (myRole === "admin") return true;
+  const mine = ROLE_LEVEL[myRole] ?? 99;
+  const theirs = ROLE_LEVEL[targetRole] ?? 99;
+  return theirs <= mine;
+}
+
+// Document types hidden from clients (supplier-side appointments, PCSA, LOI)
+export const CLIENT_HIDDEN_DOC_TYPES = ["appointment_pm", "appointment_pd_cdm", "appointment_architect", "appointment_pd_br", "pcsa", "loi"];
+
+export const REGION_OPTIONS = Object.entries(REGION_MAP).map(([value, label]) => ({ value, label }));
 
 // ─── Document type (bss_documenttype) ───
 export const DOCUMENT_TYPE = {
@@ -161,6 +197,11 @@ export const REGION_MAP = {
 export function regionName(guid) {
   if (!guid) return null;
   return REGION_MAP[guid] || guid;
+}
+
+// ─── Role helpers ───
+export function isInternal(role) {
+  return INTERNAL_ROLES.includes(role);
 }
 
 // ─── Formatting helpers ───

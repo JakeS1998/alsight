@@ -22,6 +22,7 @@ import Contacts from '@/pages/Contacts';
 import AccountProfile from '@/pages/AccountProfile';
 import AccountDetail from '@/pages/AccountDetail';
 import Analytics from '@/pages/Analytics';
+import Delegation from '@/pages/Delegation';
 
 const AuthenticatedApp = () => {
   const { isLoadingAuth, isLoadingPublicSettings, authError, navigateToLogin } = useAuth();
@@ -61,6 +62,7 @@ const AuthenticatedApp = () => {
           <Route path="/accounts/:accountId" element={<AccountDetail />} />
           <Route path="/contacts" element={<Contacts />} />
           <Route path="/analytics" element={<Analytics />} />
+          <Route path="/delegation" element={<Delegation />} />
         </Route>
       </Route>
       <Route path="*" element={<PageNotFound />} />

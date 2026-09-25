@@ -6,9 +6,12 @@ import { Users, ExternalLink, Mail, Phone, BadgeCheck, UserPlus, ShieldCheck } f
 import { InviteUserDialog } from "@/components/contacts/InviteUserDialog";
 
 const ROLE_BADGE = {
-  admin: "bg-red-50 text-red-700 border-red-200",
-  company_director: "bg-indigo-50 text-indigo-700 border-indigo-200",
-  development_manager: "bg-sky-50 text-sky-700 border-sky-200",
+  admin: "bg-slate-900 text-white border-slate-700",
+  director: "bg-indigo-50 text-indigo-700 border-indigo-200",
+  regional_director: "bg-violet-50 text-violet-700 border-violet-200",
+  bsm: "bg-teal-50 text-teal-700 border-teal-200",
+  finance: "bg-rose-50 text-rose-700 border-rose-200",
+  bdm: "bg-sky-50 text-sky-700 border-sky-200",
   client: "bg-emerald-50 text-emerald-700 border-emerald-200",
   supplier: "bg-amber-50 text-amber-700 border-amber-200",
 };

@@ -3,15 +3,19 @@ import { Link, useLocation, useNavigate, Outlet } from "react-router-dom";
 import { useAuth } from "@/lib/AuthContext";
 import { ROLE_LABELS, ROLE_BADGE_CLASS } from "@/lib/portal";
 import { base44 } from "@/api/base44Client";
-import { LayoutDashboard, FolderKanban, Building2, UserCircle, LogOut, Menu, X, BarChart3, Users } from "lucide-react";
+import { LayoutDashboard, FolderKanban, Building2, UserCircle, LogOut, Menu, X, BarChart3, Users, UserCog } from "lucide-react";
 import Logo from "@/components/Logo";
+import { INTERNAL_ROLES } from "@/lib/portal";
+
+const ALL_ROLES = ["admin", "director", "regional_director", "bsm", "finance", "bdm", "client", "supplier"];
 
 const NAV_ITEMS = [
-  { label: "Dashboard", path: "/", icon: LayoutDashboard, roles: ["admin", "company_director", "development_manager", "client", "supplier"] },
-  { label: "Projects", path: "/projects", icon: FolderKanban, roles: ["admin", "company_director", "development_manager", "client", "supplier"] },
-  { label: "Analytics", path: "/analytics", icon: BarChart3, roles: ["admin", "company_director", "development_manager"] },
+  { label: "Dashboard", path: "/", icon: LayoutDashboard, roles: ALL_ROLES },
+  { label: "Projects", path: "/projects", icon: FolderKanban, roles: ALL_ROLES },
+  { label: "Analytics", path: "/analytics", icon: BarChart3, roles: INTERNAL_ROLES },
+  { label: "Delegation", path: "/delegation", icon: UserCog, roles: INTERNAL_ROLES },
   { label: "My Account", path: "/account", icon: UserCircle, roles: ["client", "supplier"] },
-  { label: "Accounts", path: "/accounts", icon: Building2, roles: ["admin", "company_director", "development_manager", "client", "supplier"] },
+  { label: "Accounts", path: "/accounts", icon: Building2, roles: ALL_ROLES },
   { label: "Contacts", path: "/contacts", icon: Users, roles: ["admin"] },
 ];
 

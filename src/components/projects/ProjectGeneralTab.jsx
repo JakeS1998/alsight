@@ -21,7 +21,7 @@ function fromDateInput(d) {
 export function ProjectGeneralTab({ project, accountMap }) {
   const { user } = useAuth();
   const role = user?.role || "client";
-  const canEdit = ["admin", "company_director", "development_manager"].includes(role);
+  const canEdit = ["admin", "director", "bdm"].includes(role);
 
   const [ribaDates, setRibaDates] = useState({
     riba1_end: toDateInput(project.riba1_end),
