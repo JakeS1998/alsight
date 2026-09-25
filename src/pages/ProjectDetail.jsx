@@ -5,7 +5,8 @@ import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { ProjectGeneralTab } from "@/components/projects/ProjectGeneralTab";
 import { ProjectDraftingTab } from "@/components/projects/ProjectDraftingTab";
 import { ProjectWarrantiesTab } from "@/components/projects/ProjectWarrantiesTab";
-import { ArrowLeft, FileText, ShieldCheck, LayoutDashboard } from "lucide-react";
+import { ProjectFinanceTab } from "@/components/projects/ProjectFinanceTab";
+import { ArrowLeft, FileText, ShieldCheck, LayoutDashboard, Receipt } from "lucide-react";
 
 export default function ProjectDetail() {
   const { projectId } = useParams();
@@ -85,12 +86,13 @@ export default function ProjectDetail() {
         {project.description && <p className="mt-1 text-sm text-slate-500">{project.description}</p>}
       </div>
 
-      <Tabs defaultValue={(() => { const t = new URLSearchParams(window.location.search).get("tab"); return ["general", "drafting", "warranties"].includes(t) ? t : "general"; })()}>
-        <TabsList>
-          <TabsTrigger value="general"><LayoutDashboard className="mr-1.5 h-4 w-4" /> General</TabsTrigger>
-          <TabsTrigger value="drafting"><FileText className="mr-1.5 h-4 w-4" /> Drafting List</TabsTrigger>
-          <TabsTrigger value="warranties"><ShieldCheck className="mr-1.5 h-4 w-4" /> Warranties</TabsTrigger>
-        </TabsList>
+      <Tabs defaultValue={(() => { const t = new URLSearchParams(window.location.search).get("tab"); return ["general", "drafting", "warranties", "finance"].includes(t) ? t : "general"; })()}>
+      <TabsList>
+        <TabsTrigger value="general"><LayoutDashboard className="mr-1.5 h-4 w-4" /> General</TabsTrigger>
+        <TabsTrigger value="drafting"><FileText className="mr-1.5 h-4 w-4" /> Drafting List</TabsTrigger>
+        <TabsTrigger value="warranties"><ShieldCheck className="mr-1.5 h-4 w-4" /> Warranties</TabsTrigger>
+        <TabsTrigger value="finance"><Receipt className="mr-1.5 h-4 w-4" /> Finance</TabsTrigger>
+      </TabsList>
         <TabsContent value="general" className="mt-6">
           <ProjectGeneralTab project={project} accountMap={accountMap} />
         </TabsContent>
@@ -99,6 +101,9 @@ export default function ProjectDetail() {
         </TabsContent>
         <TabsContent value="warranties" className="mt-6">
           <ProjectWarrantiesTab project={project} warranties={warranties} accountMap={accountMap} />
+        </TabsContent>
+        <TabsContent value="finance" className="mt-6">
+          <ProjectFinanceTab project={project} />
         </TabsContent>
       </Tabs>
     </div>
