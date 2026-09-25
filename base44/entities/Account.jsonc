@@ -72,8 +72,7 @@
       "type": "string"
     },
     "ch_links_self": {
-      "type": "string",
-      "description": "Companies House company URL"
+      "type": "string"
     },
     "ch_links_officers": {
       "type": "string"
@@ -98,12 +97,10 @@
       "type": "string"
     },
     "parent_account_id": {
-      "type": "string",
-      "description": "Dataverse GUID of parent account"
+      "type": "string"
     },
     "primary_contact_id": {
-      "type": "string",
-      "description": "Dataverse GUID of primary contact"
+      "type": "string"
     },
     "linked_user_id": {
       "type": "string",
@@ -139,12 +136,27 @@
         },
         {
           "user_condition": {
-            "role": "company_director"
+            "role": "director"
           }
         },
         {
           "user_condition": {
-            "role": "development_manager"
+            "role": "regional_director"
+          }
+        },
+        {
+          "user_condition": {
+            "role": "bsm"
+          }
+        },
+        {
+          "user_condition": {
+            "role": "finance"
+          }
+        },
+        {
+          "user_condition": {
+            "role": "bdm"
           }
         },
         {

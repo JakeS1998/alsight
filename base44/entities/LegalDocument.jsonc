@@ -10,6 +10,14 @@
       "type": "string",
       "description": "Dataverse GUID of parent project"
     },
+    "client_account_id": {
+      "type": "string",
+      "description": "Dataverse GUID of client account (backfilled from project for RLS)"
+    },
+    "bdm_aad_id": {
+      "type": "string",
+      "description": "BDM user id (backfilled from project for RLS)"
+    },
     "document_type": {
       "type": "string",
       "enum": [
@@ -138,7 +146,35 @@
     "read": {
       "$or": [
         {
+          "$and": [
+            {
+              "data.client_account_id": "{{user.data.account_id}}"
+            },
+            {
+              "data.document_type": {
+                "$nin": [
+                  "appointment_pm",
+                  "appointment_pd_cdm",
+                  "appointment_architect",
+                  "appointment_pd_br",
+                  "pcsa",
+                  "loi"
+                ]
+              }
+            }
+          ]
+        },
+        {
           "data.account_id": "{{user.data.account_id}}"
+        },
+        {
+          "data.bdm_aad_id": "{{user.id}}"
+        },
+        {
+          "data.bsm_aad_id": "{{user.data.delegate_of}}"
+        },
+        {
+          "data.bdm_aad_id": "{{user.data.delegate_of}}"
         },
         {
           "user_condition": {
@@ -147,12 +183,27 @@
         },
         {
           "user_condition": {
-            "role": "company_director"
+            "role": "director"
           }
         },
         {
           "user_condition": {
-            "role": "development_manager"
+            "role": "bsm"
+          }
+        },
+        {
+          "user_condition": {
+            "role": "finance"
+          }
+        },
+        {
+          "user_condition": {
+            "role": "regional_director"
+          }
+        },
+        {
+          "user_condition": {
+            "role": "bdm"
           }
         }
       ]

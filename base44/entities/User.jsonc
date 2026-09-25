@@ -6,8 +6,11 @@
       "type": "string",
       "enum": [
         "admin",
-        "company_director",
-        "development_manager",
+        "director",
+        "regional_director",
+        "bsm",
+        "finance",
+        "bdm",
         "client",
         "supplier"
       ],
@@ -15,7 +18,23 @@
     },
     "account_id": {
       "type": "string",
-      "description": "Account this user belongs to (set for client/supplier users)"
+      "description": "Dataverse GUID of account this user belongs to (set for client/supplier users)"
+    },
+    "region": {
+      "type": "string",
+      "description": "Region GUID for regional_director scoping"
+    },
+    "delegate_of": {
+      "type": "string",
+      "description": "User id this user is currently covering via delegation"
+    },
+    "delegate_of_name": {
+      "type": "string",
+      "description": "Display name of the colleague being covered"
+    },
+    "delegate_region": {
+      "type": "string",
+      "description": "Region GUID being covered (for regional director delegation)"
     },
     "phone": {
       "type": "string"

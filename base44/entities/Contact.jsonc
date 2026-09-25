@@ -95,7 +95,12 @@
       "type": "string"
     },
     "aad_id": {
-      "type": "string"
+      "type": "string",
+      "description": "Portal user id linked to this contact"
+    },
+    "portal_role": {
+      "type": "string",
+      "description": "Portal role of the linked user (admin/director/regional_director/bsm/finance/bdm/client/supplier)"
     },
     "managing_partner_id": {
       "type": "string"
@@ -126,12 +131,27 @@
         },
         {
           "user_condition": {
-            "role": "company_director"
+            "role": "director"
           }
         },
         {
           "user_condition": {
-            "role": "development_manager"
+            "role": "regional_director"
+          }
+        },
+        {
+          "user_condition": {
+            "role": "bsm"
+          }
+        },
+        {
+          "user_condition": {
+            "role": "finance"
+          }
+        },
+        {
+          "user_condition": {
+            "role": "bdm"
           }
         },
         {

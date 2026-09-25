@@ -29,15 +29,15 @@
     },
     "bdm_aad_id": {
       "type": "string",
-      "description": "BDM Azure AD object ID"
+      "description": "BDM user id"
     },
     "bsm_aad_id": {
       "type": "string",
-      "description": "BSM Azure AD object ID"
+      "description": "BSM user id"
     },
     "director_aad_id": {
       "type": "string",
-      "description": "Director Azure AD object ID"
+      "description": "Director user id"
     },
     "strategic_account_manager_aad_id": {
       "type": "string"
@@ -193,18 +193,41 @@
           "data.account_id": "{{user.data.account_id}}"
         },
         {
+          "data.bdm_aad_id": "{{user.id}}"
+        },
+        {
+          "data.bsm_aad_id": "{{user.id}}"
+        },
+        {
+          "data.bdm_aad_id": "{{user.data.delegate_of}}"
+        },
+        {
+          "data.bsm_aad_id": "{{user.data.delegate_of}}"
+        },
+        {
+          "data.department_id": "{{user.data.region}}"
+        },
+        {
+          "data.department_id": "{{user.data.delegate_region}}"
+        },
+        {
           "user_condition": {
             "role": "admin"
           }
         },
         {
           "user_condition": {
-            "role": "company_director"
+            "role": "director"
           }
         },
         {
           "user_condition": {
-            "role": "development_manager"
+            "role": "bsm"
+          }
+        },
+        {
+          "user_condition": {
+            "role": "finance"
           }
         }
       ]
@@ -213,17 +236,17 @@
       "$or": [
         {
           "user_condition": {
-            "role": "development_manager"
-          }
-        },
-        {
-          "user_condition": {
             "role": "admin"
           }
         },
         {
           "user_condition": {
-            "role": "company_director"
+            "role": "director"
+          }
+        },
+        {
+          "user_condition": {
+            "role": "bdm"
           }
         }
       ]
@@ -237,12 +260,12 @@
         },
         {
           "user_condition": {
-            "role": "company_director"
+            "role": "director"
           }
         },
         {
           "user_condition": {
-            "role": "development_manager"
+            "role": "bdm"
           }
         }
       ]
