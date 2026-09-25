@@ -7,7 +7,7 @@ import { LayoutDashboard, FolderKanban, Building2, UserCircle, LogOut, Menu, X, 
 import Logo from "@/components/Logo";
 import { INTERNAL_ROLES } from "@/lib/portal";
 
-const ALL_ROLES = ["admin", "director", "regional_director", "bsm", "finance", "bdm", "client", "supplier"];
+const ALL_ROLES = ["admin", "director", "regional_director", "bsm", "finance", "bdm", "client", "supplier", "project_manager"];
 
 const NAV_ITEMS = [
   { label: "Dashboard", path: "/", icon: LayoutDashboard, roles: ALL_ROLES },

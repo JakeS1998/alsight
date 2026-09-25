@@ -19,6 +19,7 @@ const ROLES = [
   { value: "bdm", label: "BDM" },
   { value: "client", label: "Client" },
   { value: "supplier", label: "Supplier" },
+  { value: "project_manager", label: "External Project Manager" },
 ];
 
 export function InviteUserDialog({ open, onOpenChange, contact, accounts, existingUser, pendingAssignment, onDone }) {
@@ -70,6 +71,7 @@ export function InviteUserDialog({ open, onOpenChange, contact, accounts, existi
           role,
           account_id: accountId || null,
           region: role === "regional_director" ? (region || null) : null,
+          contact_dataverse_id: role === "project_manager" ? (contact.dataverse_id || null) : null,
         });
         await updateContact(existingUser.id, address);
       } else {
@@ -102,6 +104,7 @@ export function InviteUserDialog({ open, onOpenChange, contact, accounts, existi
             role,
             account_id: accountId || null,
             region: role === "regional_director" ? (region || null) : null,
+          contact_dataverse_id: role === "project_manager" ? (contact.dataverse_id || null) : null,
           });
           await updateContact(created.id, address);
           await base44.entities.PendingPortalAccess.delete(staged.id);

@@ -1,6 +1,6 @@
 import { createClientFromRequest } from 'npm:@base44/sdk@0.8.49';
 
-const ROLES = ['admin', 'director', 'regional_director', 'bsm', 'finance', 'bdm', 'client', 'supplier'];
+const ROLES = ['admin', 'director', 'regional_director', 'bsm', 'finance', 'bdm', 'client', 'supplier', 'project_manager'];
 
 export default async function(req: Request): Promise<Response> {
   try {
@@ -16,12 +16,13 @@ export default async function(req: Request): Promise<Response> {
     const assignment = pending[0];
     if (!ROLES.includes(assignment.portal_role)) return Response.json({ error: 'Invalid pending access role' }, { status: 400 });
 
+    const contact = await base44.asServiceRole.entities.Contact.get(assignment.contact_id);
     await base44.asServiceRole.entities.User.update(user.id, {
+      contact_dataverse_id: assignment.portal_role === 'project_manager' && contact?.email?.trim().toLowerCase() === email ? (contact.dataverse_id || null) : null,
       role: assignment.portal_role,
       account_id: assignment.account_id || null,
       region: assignment.portal_role === 'regional_director' ? (assignment.region || null) : null,
     });
-    const contact = await base44.asServiceRole.entities.Contact.get(assignment.contact_id);
     if (contact?.email?.trim().toLowerCase() === email) {
       await base44.asServiceRole.entities.Contact.update(contact.id, { aad_id: user.id, portal_role: assignment.portal_role });
     }

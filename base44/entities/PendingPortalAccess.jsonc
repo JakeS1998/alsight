@@ -19,7 +19,8 @@
         "finance",
         "bdm",
         "client",
-        "supplier"
+        "supplier",
+        "project_manager"
       ]
     },
     "account_id": {

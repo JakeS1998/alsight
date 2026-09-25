@@ -12,29 +12,32 @@
         "finance",
         "bdm",
         "client",
-        "supplier"
+        "supplier",
+        "project_manager"
       ],
       "default": "client"
     },
     "account_id": {
       "type": "string",
-      "description": "Dataverse GUID of account this user belongs to (set for client/supplier users)"
+      "description": "Dataverse GUID of account this user belongs to"
+    },
+    "contact_dataverse_id": {
+      "type": "string",
+      "description": "Dataverse contact GUID for external project manager access"
     },
     "region": {
       "type": "string",
-      "description": "Region GUID for regional_director scoping"
+      "description": "Region GUID for regional director scoping"
     },
     "delegate_of": {
       "type": "string",
-      "description": "User id this user is currently covering via delegation"
+      "description": "User id covered via delegation"
     },
     "delegate_of_name": {
-      "type": "string",
-      "description": "Display name of the colleague being covered"
+      "type": "string"
     },
     "delegate_region": {
-      "type": "string",
-      "description": "Region GUID being covered (for regional director delegation)"
+      "type": "string"
     },
     "phone": {
       "type": "string"
