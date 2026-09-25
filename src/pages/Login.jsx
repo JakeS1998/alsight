@@ -40,7 +40,7 @@ export default function Login() {
     <AuthLayout
       icon={LogIn}
       title="Welcome back"
-      subtitle="Log in to your account"
+      subtitle="Sign in to the ALS Live stakeholder portal"
       footer={
         <>
           Don't have an account?{" "}

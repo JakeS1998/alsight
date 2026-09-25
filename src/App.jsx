@@ -18,6 +18,7 @@ import Contracts from '@/pages/Contracts';
 import Invoices from '@/pages/Invoices';
 import AccountProfile from '@/pages/AccountProfile';
 import Accounts from '@/pages/Accounts';
+import Analytics from '@/pages/Analytics';
 
 const AuthenticatedApp = () => {
   const { isLoadingAuth, isLoadingPublicSettings, authError, navigateToLogin } = useAuth();
@@ -57,6 +58,7 @@ const AuthenticatedApp = () => {
           <Route path="/invoices" element={<Invoices />} />
           <Route path="/account" element={<AccountProfile />} />
           <Route path="/accounts" element={<Accounts />} />
+          <Route path="/analytics" element={<Analytics />} />
         </Route>
       </Route>
       <Route path="*" element={<PageNotFound />} />

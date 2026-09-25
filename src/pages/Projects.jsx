@@ -10,6 +10,7 @@ import { Label } from "@/components/ui/label";
 import {
   Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter,
 } from "@/components/ui/dialog";
+import { FormSection, FormGrid, FormField, formInputClass } from "@/components/forms/PowerForm";
 import { Plus, Loader2, ChevronRight } from "lucide-react";
 
 const STATUS_OPTIONS = ["requested", "in_review", "approved", "active", "completed", "rejected"];
@@ -53,7 +54,7 @@ export default function Projects() {
           </p>
         </div>
         {canRequest && (
-          <Button onClick={() => setRequestOpen(true)} className="bg-slate-900 hover:bg-slate-800">
+          <Button onClick={() => setRequestOpen(true)} className="bg-primary hover:bg-primary/90">
             <Plus className="mr-1.5 h-4 w-4" /> Request Project
           </Button>
         )}
@@ -167,55 +168,54 @@ function RequestDialog({ open, onOpenChange, accounts, user, submitting, setSubm
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-lg">
+      <DialogContent className="sm:max-w-xl">
         <DialogHeader>
           <DialogTitle>Request a new project</DialogTitle>
           <DialogDescription>Submit a project request for director review.</DialogDescription>
         </DialogHeader>
         <form onSubmit={submit} className="space-y-4">
-          <div className="space-y-1.5">
-            <Label htmlFor="p-name">Project name</Label>
-            <Input id="p-name" value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} required />
-          </div>
-          <div className="space-y-1.5">
-            <Label htmlFor="p-desc">Description</Label>
-            <Textarea id="p-desc" rows={3} value={form.description} onChange={(e) => setForm({ ...form, description: e.target.value })} />
-          </div>
-          <div className="grid grid-cols-2 gap-4">
-            <div className="space-y-1.5">
-              <Label htmlFor="p-client">Client</Label>
-              <select id="p-client" value={form.client_account_id} onChange={(e) => setForm({ ...form, client_account_id: e.target.value })}
-                className="h-9 w-full rounded-md border border-input bg-transparent px-3 text-sm">
-                <option value="">—</option>
-                {clientAccounts.map((a) => <option key={a.id} value={a.id}>{a.name}</option>)}
-              </select>
+          <FormSection title="Project Details" description="Describe the project being requested">
+            <div className="space-y-4">
+              <FormField label="Project name" required>
+                <input id="p-name" value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} required className={formInputClass} />
+              </FormField>
+              <FormField label="Description" help="Outline scope, objectives and any key requirements">
+                <textarea id="p-desc" rows={3} value={form.description} onChange={(e) => setForm({ ...form, description: e.target.value })} className={`${formInputClass} h-auto py-2`} />
+              </FormField>
             </div>
-            <div className="space-y-1.5">
-              <Label htmlFor="p-supplier">Supplier</Label>
-              <select id="p-supplier" value={form.supplier_account_id} onChange={(e) => setForm({ ...form, supplier_account_id: e.target.value })}
-                className="h-9 w-full rounded-md border border-input bg-transparent px-3 text-sm">
-                <option value="">—</option>
-                {supplierAccounts.map((a) => <option key={a.id} value={a.id}>{a.name}</option>)}
-              </select>
+          </FormSection>
+
+          <FormSection title="Parties & Budget" description="Link the client and supplier for this project">
+            <FormGrid>
+              <FormField label="Client">
+                <select id="p-client" value={form.client_account_id} onChange={(e) => setForm({ ...form, client_account_id: e.target.value })} className={formInputClass}>
+                  <option value="">—</option>
+                  {clientAccounts.map((a) => <option key={a.id} value={a.id}>{a.name}</option>)}
+                </select>
+              </FormField>
+              <FormField label="Supplier">
+                <select id="p-supplier" value={form.supplier_account_id} onChange={(e) => setForm({ ...form, supplier_account_id: e.target.value })} className={formInputClass}>
+                  <option value="">—</option>
+                  {supplierAccounts.map((a) => <option key={a.id} value={a.id}>{a.name}</option>)}
+                </select>
+              </FormField>
+              <FormField label="Budget (£)" help="Estimated total project value">
+                <input id="p-budget" type="number" min="0" value={form.budget} onChange={(e) => setForm({ ...form, budget: e.target.value })} className={formInputClass} />
+              </FormField>
+              <FormField label="Start date">
+                <input id="p-start" type="date" value={form.start_date} onChange={(e) => setForm({ ...form, start_date: e.target.value })} className={formInputClass} />
+              </FormField>
+            </FormGrid>
+            <div className="mt-4">
+              <FormField label="Target end date">
+                <input id="p-end" type="date" value={form.target_end_date} onChange={(e) => setForm({ ...form, target_end_date: e.target.value })} className={formInputClass} />
+              </FormField>
             </div>
-          </div>
-          <div className="grid grid-cols-2 gap-4">
-            <div className="space-y-1.5">
-              <Label htmlFor="p-budget">Budget (£)</Label>
-              <Input id="p-budget" type="number" min="0" value={form.budget} onChange={(e) => setForm({ ...form, budget: e.target.value })} />
-            </div>
-            <div className="space-y-1.5">
-              <Label htmlFor="p-start">Start date</Label>
-              <Input id="p-start" type="date" value={form.start_date} onChange={(e) => setForm({ ...form, start_date: e.target.value })} />
-            </div>
-          </div>
-          <div className="space-y-1.5">
-            <Label htmlFor="p-end">Target end date</Label>
-            <Input id="p-end" type="date" value={form.target_end_date} onChange={(e) => setForm({ ...form, target_end_date: e.target.value })} />
-          </div>
+          </FormSection>
+
           <DialogFooter>
             <Button type="button" variant="outline" onClick={() => onOpenChange(false)} disabled={submitting}>Cancel</Button>
-            <Button type="submit" disabled={submitting} className="bg-slate-900 hover:bg-slate-800">
+            <Button type="submit" disabled={submitting} className="bg-primary hover:bg-primary/90">
               {submitting ? <Loader2 className="mr-1.5 h-4 w-4 animate-spin" /> : null} Submit request
             </Button>
           </DialogFooter>
@@ -269,7 +269,7 @@ function DetailDialog({ project, onClose, canEditStatus, onUpdated }) {
                   {STATUS_OPTIONS.map((s) => <option key={s} value={s}>{PROJECT_STATUS[s].label}</option>)}
                 </select>
               </div>
-              <Button onClick={saveStatus} disabled={saving || status === project.status} className="bg-slate-900 hover:bg-slate-800">
+              <Button onClick={saveStatus} disabled={saving || status === project.status} className="bg-primary hover:bg-primary/90">
                 {saving ? <Loader2 className="h-4 w-4 animate-spin" /> : "Save"}
               </Button>
             </div>
