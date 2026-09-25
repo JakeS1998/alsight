@@ -31,12 +31,12 @@ export default function PortalLayout() {
   const SidebarContent = (
     <div className="flex h-full flex-col">
       <div className="flex items-center gap-2.5 px-6 py-6">
-        <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-slate-900 text-white">
+        <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-primary text-primary-foreground">
           <Scale className="h-5 w-5" />
         </div>
         <div>
-          <p className="font-heading text-sm font-semibold tracking-tight text-slate-900">Stakeholder Portal</p>
-          <p className="text-[11px] text-slate-400">Legal & Projects</p>
+          <p className="font-heading text-base font-bold tracking-tight text-white">ALS Live</p>
+          <p className="text-[11px] text-white/60">Alliance Leisure Portal</p>
         </div>
       </div>
 
@@ -50,7 +50,7 @@ export default function PortalLayout() {
               to={item.path}
               onClick={() => setMobileOpen(false)}
               className={`flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-colors ${
-                active ? "bg-slate-900 text-white" : "text-slate-600 hover:bg-slate-100 hover:text-slate-900"
+                active ? "bg-primary text-primary-foreground" : "text-white/70 hover:bg-white/10 hover:text-white"
               }`}
             >
               <Icon className="h-[18px] w-[18px]" />
@@ -60,13 +60,13 @@ export default function PortalLayout() {
         })}
       </nav>
 
-      <div className="border-t border-slate-200 p-4">
+      <div className="border-t border-white/10 p-4">
         <div className="flex items-center gap-3 rounded-lg px-2 py-2">
-          <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-slate-200 text-sm font-semibold text-slate-700">
+          <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-primary text-sm font-semibold text-primary-foreground">
             {(user?.full_name || user?.email || "?").charAt(0).toUpperCase()}
           </div>
           <div className="min-w-0 flex-1">
-            <p className="truncate text-sm font-medium text-slate-900">{user?.full_name || user?.email}</p>
+            <p className="truncate text-sm font-medium text-white">{user?.full_name || user?.email}</p>
             <span className={`mt-0.5 inline-block rounded px-1.5 py-0.5 text-[10px] font-semibold ${ROLE_BADGE_CLASS[role] || ""}`}>
               {ROLE_LABELS[role] || role}
             </span>
@@ -74,7 +74,7 @@ export default function PortalLayout() {
         </div>
         <button
           onClick={handleLogout}
-          className="mt-2 flex w-full items-center gap-2 rounded-lg px-3 py-2 text-sm font-medium text-slate-500 hover:bg-slate-100 hover:text-slate-900"
+          className="mt-2 flex w-full items-center gap-2 rounded-lg px-3 py-2 text-sm font-medium text-white/60 hover:bg-white/10 hover:text-white"
         >
           <LogOut className="h-4 w-4" /> Sign out
         </button>
@@ -85,15 +85,15 @@ export default function PortalLayout() {
   return (
     <div className="min-h-screen bg-slate-50">
       {/* Desktop sidebar */}
-      <aside className="fixed inset-y-0 left-0 hidden w-64 border-r border-slate-200 bg-white lg:block">
+      <aside className="fixed inset-y-0 left-0 hidden w-64 bg-als-navy lg:block">
         {SidebarContent}
       </aside>
 
       {/* Mobile drawer */}
       {mobileOpen && (
         <div className="fixed inset-0 z-50 lg:hidden">
-          <div className="absolute inset-0 bg-slate-900/40" onClick={() => setMobileOpen(false)} />
-          <aside className="absolute inset-y-0 left-0 w-64 bg-white shadow-xl">{SidebarContent}</aside>
+          <div className="absolute inset-0 bg-slate-900/50" onClick={() => setMobileOpen(false)} />
+          <aside className="absolute inset-y-0 left-0 w-64 bg-als-navy shadow-xl">{SidebarContent}</aside>
         </div>
       )}
 
@@ -104,8 +104,8 @@ export default function PortalLayout() {
             <Menu className="h-5 w-5" />
           </button>
           <div className="flex items-center gap-2">
-            <Scale className="h-5 w-5 text-slate-900" />
-            <span className="font-heading text-sm font-semibold text-slate-900">Stakeholder Portal</span>
+            <Scale className="h-5 w-5 text-primary" />
+            <span className="font-heading text-sm font-bold text-slate-900">ALS Live</span>
           </div>
           <div className="w-9" />
         </header>

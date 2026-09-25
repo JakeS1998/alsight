@@ -91,7 +91,7 @@ export default function Home() {
           {isDevManager && (
             <Link
               to="/projects"
-              className="flex items-center justify-between rounded-2xl border border-slate-900 bg-slate-900 p-5 text-white transition-transform hover:scale-[1.01]"
+              className="flex items-center justify-between rounded-2xl bg-primary p-5 text-primary-foreground transition-transform hover:scale-[1.01]"
             >
               <div className="flex items-center gap-3">
                 <Plus className="h-5 w-5" />
