@@ -190,7 +190,10 @@ export const REGION_MAP = {
   "336dddc3-4600-f111-8407-000d3a7ed0c8": "Scotland & Northern Ireland",
   "a7da8d48-4600-f111-8407-000d3a7ed0c8": "South West & South Wales",
   "881a8516-e30b-f111-8407-7ced8d390a61": "Insights & Engagement",
-  "217d68a9-de01-f111-8407-6045bd11d101": "Internal / Head Office",
+  "00947699-c808-f111-8407-000d3ad60c67": "Marketing & Framework",
+  "ff937699-c808-f111-8407-000d3ad60c67": "Finance",
+  "217d68a9-de01-f111-8407-6045bd11d101": "Business Support Services",
+  "2780e6dc-c808-f111-8406-6045bdd07c35": "Executive",
 };
 
 export function regionName(guid) {
