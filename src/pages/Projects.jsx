@@ -2,7 +2,7 @@ import React, { useEffect, useState, useMemo } from "react";
 import { Link } from "react-router-dom";
 import { useAuth } from "@/lib/AuthContext";
 import { base44 } from "@/api/base44Client";
-import { formatCurrency, formatDate } from "@/lib/portal";
+import { formatCurrency, formatDate, regionName } from "@/lib/portal";
 import { RequestDialog } from "@/components/projects/RequestDialog";
 import { FilterSelect } from "@/components/FilterSelect";
 import { Button } from "@/components/ui/button";
@@ -77,7 +77,7 @@ export default function Projects() {
 
   const regionOptions = useMemo(() => {
     const regions = [...new Set(
-      projects.map((p) => accountMap[p.client_account_id]?.region).filter(Boolean)
+      projects.map((p) => regionName(accountMap[p.client_account_id]?.region)).filter(Boolean)
     )].sort();
     return regions.map((r) => ({ value: r, label: r }));
   }, [projects, accountMap]);
@@ -95,7 +95,7 @@ export default function Projects() {
     }
     if (bdmFilter) result = result.filter((p) => p.bdm_aad_id === bdmFilter);
     if (bsmFilter) result = result.filter((p) => p.bsm_aad_id === bsmFilter);
-    if (regionFilter) result = result.filter((p) => accountMap[p.client_account_id]?.region === regionFilter);
+    if (regionFilter) result = result.filter((p) => regionName(accountMap[p.client_account_id]?.region) === regionFilter);
     if (statusFilter === "live") result = result.filter((p) => p.live_project);
     else if (statusFilter === "inactive") result = result.filter((p) => !p.live_project);
 

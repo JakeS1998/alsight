@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { useParams, Link } from "react-router-dom";
 import { base44 } from "@/api/base44Client";
-import { formatDate, formatCurrency } from "@/lib/portal";
+import { formatDate, formatCurrency, regionName } from "@/lib/portal";
 import { DocTypeBadge, ExecutedBadge, WarrantyStatusBadge } from "@/components/StatusBadge";
 import { ArrowLeft, MapPin, ExternalLink, Users, FolderKanban, FileText, ShieldCheck, Mail, Phone, Gavel } from "lucide-react";
 
@@ -83,7 +83,7 @@ export default function AccountDetail() {
           <Detail label="Company Number" value={account.company_number} />
           <Detail label="Company Status" value={account.company_status} />
           <Detail label="Incorporated" value={formatDate(account.date_of_incorporation)} />
-          <Detail label="Region" value={account.region} />
+          <Detail label="Region" value={regionName(account.region)} />
         </div>
         {account.address_postcode && (
           <div className="mt-3 flex items-center gap-1.5 text-sm text-slate-500">

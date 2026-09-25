@@ -1,6 +1,6 @@
 import React, { useMemo } from "react";
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid, Cell } from "recharts";
-import { formatCurrency } from "@/lib/portal";
+import { formatCurrency, regionName } from "@/lib/portal";
 
 const PALETTE = ["#FCA311", "#1D1D35", "#2BB673", "#3B82F6", "#A855F7", "#F43F5E", "#0EA5E9", "#64748b"];
 
@@ -9,7 +9,7 @@ export function RegionBreakdown({ projects, accountMap }) {
     const map = {};
     projects.forEach((p) => {
       const account = accountMap[p.client_account_id];
-      const region = account?.region || "Unassigned";
+      const region = regionName(account?.region) || "Unassigned";
       if (!map[region]) map[region] = { region, count: 0, value: 0 };
       map[region].count++;
       map[region].value += p.estimated_value || 0;

@@ -147,6 +147,22 @@ export const JCT_CHECKLIST_ITEMS = [
   { key: "valuation_schedule", label: "Valuation Schedule", commentsKey: null },
 ];
 
+// ─── Region mapping (Dataverse GUID → readable name) ───
+export const REGION_MAP = {
+  "c180b661-4600-f111-8407-000d3a7ed0c8": "South East & London",
+  "9d15738c-4600-f111-8407-000d3a7ed0c8": "West Midlands & North Wales",
+  "0cde51a5-4600-f111-8407-000d3a7ed0c8": "East",
+  "a69051ab-4600-f111-8407-000d3a7ed0c8": "North",
+  "336dddc3-4600-f111-8407-000d3a7ed0c8": "Scotland & Northern Ireland",
+  "a7da8d48-4600-f111-8407-000d3a7ed0c8": "South West & South Wales",
+  "881a8516-e30b-f111-8407-7ced8d390a61": "Insights & Engagement",
+};
+
+export function regionName(guid) {
+  if (!guid) return null;
+  return REGION_MAP[guid] || guid;
+}
+
 // ─── Formatting helpers ───
 export function formatCurrency(n) {
   if (n == null || isNaN(n)) return "—";

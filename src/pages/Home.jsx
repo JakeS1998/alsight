@@ -2,7 +2,7 @@ import React, { useEffect, useState, useMemo } from "react";
 import { Link } from "react-router-dom";
 import { useAuth } from "@/lib/AuthContext";
 import { base44 } from "@/api/base44Client";
-import { ROLE_LABELS, formatCurrency } from "@/lib/portal";
+import { ROLE_LABELS, formatCurrency, regionName } from "@/lib/portal";
 import { DashboardKPIs } from "@/components/dashboard/DashboardKPIs";
 import { PipelineChart } from "@/components/dashboard/PipelineChart";
 import { RegionBreakdown } from "@/components/dashboard/RegionBreakdown";
@@ -45,12 +45,12 @@ export default function Home() {
       };
     }
     if (role === "company_director") {
-      const userRegion = user?.data?.region;
+      const userRegion = regionName(user?.data?.region);
       if (userRegion) {
         return {
           filteredProjects: projects.filter((p) => {
             const account = accountMap[p.client_account_id];
-            return account?.region === userRegion;
+            return regionName(account?.region) === userRegion;
           }),
           filterLabel: `Showing projects in your region: ${userRegion}`,
         };

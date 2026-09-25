@@ -2,7 +2,7 @@ import React, { useEffect, useState, useMemo } from "react";
 import { Link } from "react-router-dom";
 import { useAuth } from "@/lib/AuthContext";
 import { base44 } from "@/api/base44Client";
-import { formatDate } from "@/lib/portal";
+import { formatDate, regionName } from "@/lib/portal";
 import { FilterSelect } from "@/components/FilterSelect";
 import { Building2, ExternalLink, CheckCircle2, MapPin, Search, X } from "lucide-react";
 
@@ -35,7 +35,7 @@ export default function Accounts() {
   useEffect(() => { load(); }, []);
 
   const regionOptions = useMemo(() => {
-    const regions = [...new Set(accounts.map((a) => a.region).filter(Boolean))].sort();
+    const regions = [...new Set(accounts.map((a) => regionName(a.region)).filter(Boolean))].sort();
     return regions.map((r) => ({ value: r, label: r }));
   }, [accounts]);
 
@@ -51,7 +51,7 @@ export default function Accounts() {
         (a.address_city || "").toLowerCase().includes(s)
       );
     }
-    if (regionFilter) result = result.filter((a) => a.region === regionFilter);
+    if (regionFilter) result = result.filter((a) => regionName(a.region) === regionFilter);
     if (statusFilter === "active") result = result.filter((a) => a.status !== "inactive");
     else if (statusFilter === "inactive") result = result.filter((a) => a.status === "inactive");
 
