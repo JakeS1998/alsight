@@ -10,6 +10,14 @@
       "type": "string",
       "description": "Dataverse GUID of parent project"
     },
+    "client_account_id": {
+      "type": "string",
+      "description": "Dataverse GUID of client account (backfilled from project for RLS)"
+    },
+    "bdm_aad_id": {
+      "type": "string",
+      "description": "BDM user id (backfilled from project for RLS)"
+    },
     "account_id": {
       "type": "string",
       "description": "Dataverse GUID of account"
@@ -19,8 +27,7 @@
       "description": "Dataverse GUID of supplier"
     },
     "services": {
-      "type": "string",
-      "description": "Free text e.g. Roofing and Civils, PD CDM, Architect"
+      "type": "string"
     },
     "beneficiary": {
       "type": "string",
@@ -57,7 +64,8 @@
       "enum": [
         "deed",
         ""
-      ]
+      ],
+      "default": ""
     },
     "jct_signed": {
       "type": "string",
@@ -138,23 +146,45 @@
           "data.supplier_id": "{{user.data.account_id}}"
         },
         {
+          "data.client_account_id": "{{user.data.account_id}}"
+        },
+        {
+          "data.bdm_aad_id": "{{user.id}}"
+        },
+        {
+          "data.project_bsm_aad_id": "{{user.data.delegate_of}}"
+        },
+        {
+          "data.bdm_aad_id": "{{user.data.delegate_of}}"
+        },
+        {
           "user_condition": {
             "role": "admin"
           }
         },
         {
           "user_condition": {
-            "role": "company_director"
+            "role": "director"
           }
         },
         {
           "user_condition": {
-            "role": "development_manager"
+            "role": "bsm"
           }
         },
         {
           "user_condition": {
-            "role": "client"
+            "role": "finance"
+          }
+        },
+        {
+          "user_condition": {
+            "role": "regional_director"
+          }
+        },
+        {
+          "user_condition": {
+            "role": "bdm"
           }
         }
       ]
