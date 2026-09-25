@@ -14,13 +14,12 @@ const FEATURES = [
 
 export default function AuthLayout({ title, subtitle, footer, children }) {
   return (
-    <div className="min-h-screen flex bg-slate-100">
+    <div className="min-h-screen flex bg-white">
       {/* Hero panel (2/3) */}
       <div className="relative hidden lg:block lg:w-2/3 overflow-hidden bg-als-navy">
         <div className="absolute inset-0 bg-cover bg-center" style={{ backgroundImage: `url(${HERO_IMAGE})` }} />
         <div className="absolute inset-0 bg-gradient-to-br from-als-navy/90 via-als-navy/55 to-als-navy/90" />
         <div className="relative h-full flex flex-col justify-between p-12 xl:p-16">
-          <Logo className="h-12" onDark />
           <div className="max-w-xl">
             <h2 className="font-heading text-4xl xl:text-5xl font-bold leading-tight tracking-tight text-white">
               A clearer view for a brighter tomorrow.
@@ -48,10 +47,10 @@ export default function AuthLayout({ title, subtitle, footer, children }) {
       </div>
 
       {/* Login card (1/3) */}
-      <div className="flex-1 flex items-center justify-center px-6 py-10 bg-slate-100">
-        <div className="w-full max-w-sm rounded-2xl bg-white p-8 shadow-xl ring-1 ring-slate-200/60">
+      <div className="flex-1 flex items-center justify-center px-6 py-10 bg-white">
+        <div className="w-full max-w-md rounded-2xl bg-white p-10 shadow-xl ring-1 ring-slate-200/60">
           <div className="flex justify-center mb-6">
-            <Logo className="h-12" />
+            <Logo className="h-10" />
           </div>
           <div className="mb-6 text-center">
             <h1 className="font-heading text-2xl font-bold tracking-tight text-slate-900">{title}</h1>

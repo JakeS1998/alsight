@@ -56,7 +56,7 @@ export default function Login() {
               placeholder="you@example.com"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
-              className="pl-10 h-11"
+              className="pl-10 h-12"
               required
             />
           </div>
@@ -72,7 +72,7 @@ export default function Login() {
               placeholder="••••••••"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
-              className="pl-10 pr-10 h-11"
+              className="pl-10 pr-10 h-12"
               required
             />
             <button
@@ -99,7 +99,7 @@ export default function Login() {
             Forgot password?
           </Link>
         </div>
-        <Button type="submit" className="w-full h-11 font-medium" disabled={loading}>
+        <Button type="submit" className="w-full h-12 font-medium" disabled={loading}>
           {loading ? (
             <>
               <Loader2 className="w-4 h-4 mr-2 animate-spin" />
