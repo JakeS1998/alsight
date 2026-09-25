@@ -163,14 +163,15 @@ export function ProjectDraftingTab({ project, legalDocs, dmas, jcts, accountMap 
                         (doc.document_type === "access_agreement" && !psoStatus.aa) ||
                         (doc.document_type === "additional_works" && !psoStatus.aa_variations)
                       );
-                      return <LegalDocumentCard key={doc.id} doc={doc} accountName={accountMap[doc.account_id]?.name} psoOutstanding={psoOutstanding} />;
+                      return <LegalDocumentCard key={doc.id} doc={doc} projectName={project.name} accountName={accountMap[doc.account_id]?.name} psoOutstanding={psoOutstanding} />;
                     })}
-                  {stage.kind === "dma" && docs.map((doc) => <DMACard key={doc.id} doc={doc} psoOutstanding={!!doc.drafted_date && !psoStatus.dma} />)}
+                  {stage.kind === "dma" && docs.map((doc) => <DMACard key={doc.id} doc={doc} projectName={project.name} psoOutstanding={!!doc.drafted_date && !psoStatus.dma} />)}
                   {stage.kind === "jct" &&
                     docs.map((doc) => (
                       <JCTCard
                         key={doc.id}
                         doc={doc}
+                        projectName={project.name}
                         accountName={accountMap[doc.account_id]?.name}
                         contractorName={accountMap[doc.contractor_id]?.name}
                       />

@@ -1,11 +1,12 @@
 import React, { useState } from "react";
 import { formatDate, DMA_PSO_ITEMS } from "@/lib/portal";
+import { dmaName } from "@/components/documents/documentNames";
 import { ExecutedBadge } from "@/components/StatusBadge";
 import { ProgressTracker, getDMASteps } from "@/components/documents/ProgressTracker";
 import { ChecklistGrid, TriStateDisplay } from "@/components/documents/TriStateToggle";
 import { ChevronDown, ChevronRight, FileText, ExternalLink, AlertCircle } from "lucide-react";
 
-export function DMACard({ doc, psoOutstanding }) {
+export function DMACard({ doc, projectName, psoOutstanding }) {
   const [open, setOpen] = useState(false);
   const steps = getDMASteps(doc);
 
@@ -17,7 +18,7 @@ export function DMACard({ doc, psoOutstanding }) {
             {open ? <ChevronDown className="h-4 w-4 text-slate-400 shrink-0" /> : <ChevronRight className="h-4 w-4 text-slate-400 shrink-0" />}
             <FileText className="h-4 w-4 text-primary shrink-0" />
             <div className="min-w-0">
-              <p className="truncate text-sm font-semibold text-slate-900">{doc.document_id || "—"}</p>
+              <p className="truncate text-sm font-semibold text-slate-900">{dmaName(projectName)}</p>
               <span className="inline-block rounded bg-indigo-50 px-1.5 py-0.5 text-[10px] font-semibold text-indigo-600">DMA</span>
             </div>
           </div>

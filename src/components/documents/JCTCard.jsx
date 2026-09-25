@@ -1,11 +1,12 @@
 import React, { useState } from "react";
 import { FORM_OF_JCT, formatDate, JCT_CHECKLIST_ITEMS } from "@/lib/portal";
+import { jctName } from "@/components/documents/documentNames";
 import { ExecutedBadge, FormOfJCTBadge } from "@/components/StatusBadge";
 import { ProgressTracker, getJCTSteps } from "@/components/documents/ProgressTracker";
 import { ChecklistGrid } from "@/components/documents/TriStateToggle";
 import { ChevronDown, ChevronRight, FileText, ExternalLink } from "lucide-react";
 
-export function JCTCard({ doc, accountName, contractorName }) {
+export function JCTCard({ doc, projectName, accountName, contractorName }) {
   const [open, setOpen] = useState(false);
   const steps = getJCTSteps(doc);
 
@@ -17,7 +18,7 @@ export function JCTCard({ doc, accountName, contractorName }) {
             {open ? <ChevronDown className="h-4 w-4 text-slate-400 shrink-0" /> : <ChevronRight className="h-4 w-4 text-slate-400 shrink-0" />}
             <FileText className="h-4 w-4 text-primary shrink-0" />
             <div className="min-w-0">
-              <p className="truncate text-sm font-semibold text-slate-900">{doc.document_id || "—"}</p>
+              <p className="truncate text-sm font-semibold text-slate-900">{jctName(projectName, contractorName || accountName)}</p>
               <div className="mt-0.5 flex items-center gap-2">
                 <span className="inline-block rounded bg-violet-50 px-1.5 py-0.5 text-[10px] font-semibold text-violet-600">JCT</span>
                 {doc.form_of_jct && <FormOfJCTBadge status={doc.form_of_jct} />}

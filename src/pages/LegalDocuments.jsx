@@ -3,24 +3,28 @@ import { Link } from "react-router-dom";
 import { base44 } from "@/api/base44Client";
 import { listAll } from "@/components/data/loadAll";
 import { DOCUMENT_TYPE, formatDate } from "@/lib/portal";
+import { legalDocumentName } from "@/components/documents/documentNames";
 import { DocTypeBadge, ExecutedBadge } from "@/components/StatusBadge";
 import { FileText, ExternalLink, Filter } from "lucide-react";
 
 export default function LegalDocuments() {
   const [docs, setDocs] = useState([]);
   const [projects, setProjects] = useState([]);
+  const [accounts, setAccounts] = useState([]);
   const [loading, setLoading] = useState(true);
   const [typeFilter, setTypeFilter] = useState("all");
 
   useEffect(() => {
     (async () => {
       try {
-        const [d, p] = await Promise.all([
+        const [d, p, a] = await Promise.all([
           listAll(base44.entities.LegalDocument),
           listAll(base44.entities.Project).catch(() => []),
+          listAll(base44.entities.Account, '-name').catch(() => []),
         ]);
         setDocs(d);
         setProjects(p);
+        setAccounts(a);
       } finally {
         setLoading(false);
       }
@@ -29,6 +33,8 @@ export default function LegalDocuments() {
 
   const projectMap = {};
   projects.forEach((p) => { if (p.dataverse_id) projectMap[p.dataverse_id] = p; });
+  const accountMap = {};
+  accounts.forEach((a) => { if (a.dataverse_id) accountMap[a.dataverse_id] = a; });
 
   const filtered = typeFilter === "all" ? docs : docs.filter((d) => d.document_type === typeFilter);
   const types = Object.keys(DOCUMENT_TYPE).filter((t) => t !== "other" && docs.some((d) => d.document_type === t));
@@ -66,7 +72,7 @@ export default function LegalDocuments() {
               <div key={d.id} className="flex flex-col rounded-2xl border border-slate-200 bg-white p-5">
                 <div className="mb-3 flex items-start justify-between gap-2">
                   <div className="min-w-0">
-                    <p className="truncate text-sm font-semibold text-slate-900">{d.document_id}</p>
+                    <p className="text-sm font-semibold text-slate-900">{legalDocumentName(d, project?.name, accountMap[d.account_id]?.name)}</p>
                     <div className="mt-1"><DocTypeBadge type={d.document_type} /></div>
                   </div>
                   <ExecutedBadge status={d.executed} />

@@ -18,7 +18,7 @@ export function ProjectWarrantiesTab({ project, warranties, accountMap }) {
       <table className="w-full">
         <thead>
           <tr className="border-b border-slate-100 bg-slate-50 text-left text-xs font-medium uppercase tracking-wide text-slate-500">
-            <th className="px-4 py-3">Warranty ID</th>
+            <th className="px-4 py-3">Supplier</th>
             <th className="px-4 py-3">Services</th>
             <th className="hidden px-4 py-3 md:table-cell">Account</th>
             <th className="hidden px-4 py-3 sm:table-cell">Category</th>
@@ -31,7 +31,7 @@ export function ProjectWarrantiesTab({ project, warranties, accountMap }) {
         <tbody className="divide-y divide-slate-100">
           {warranties.map((w) => (
             <tr key={w.id} className="hover:bg-slate-50">
-              <td className="px-4 py-3 text-sm font-medium text-slate-900">{w.warranty_id || "—"}</td>
+              <td className="px-4 py-3 text-sm font-medium text-slate-900">{accountMap[w.supplier_id]?.name || accountMap[w.account_id]?.name || "Supplier unavailable"}</td>
               <td className="px-4 py-3 text-sm text-slate-600">{w.services || "—"}</td>
               <td className="hidden px-4 py-3 text-sm text-slate-600 md:table-cell">
                 {accountMap[w.account_id]?.name || accountMap[w.supplier_id]?.name || "—"}

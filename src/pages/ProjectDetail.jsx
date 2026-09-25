@@ -102,7 +102,7 @@ export default function ProjectDetail() {
           <ProjectGeneralTab project={project} accountMap={accountMap} />
         </TabsContent>
         <TabsContent value="timeline" className="mt-6">
-          <ProjectTimelineTab project={project} legalDocs={legalDocs} dmas={dmas} jcts={jcts} warranties={warranties} />
+          <ProjectTimelineTab project={project} legalDocs={legalDocs} dmas={dmas} jcts={jcts} warranties={warranties} accountMap={accountMap} />
         </TabsContent>
         <TabsContent value="drafting" className="mt-6">
           <ProjectDraftingTab project={project} legalDocs={legalDocs} dmas={dmas} jcts={jcts} accountMap={accountMap} />

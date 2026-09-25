@@ -1,6 +1,7 @@
 import React, { useEffect, useState, useMemo } from "react";
 import { base44 } from "@/api/base44Client";
 import { filterAll } from "@/components/data/loadAll";
+import { legalDocumentName, dmaName, jctName, warrantyName } from "@/components/documents/documentNames";
 import {
   Building2, FileText, FileCheck, Gavel, ShieldCheck, Receipt, FileX, Calendar,
 } from "lucide-react";
@@ -14,7 +15,7 @@ const CATEGORIES = {
   po: { label: "Purchase Order", icon: Receipt, dot: "bg-amber-500", chip: "bg-amber-50 text-amber-700 border-amber-200" },
 };
 
-function buildEvents(project, legalDocs, dmas, jcts, warranties, pos) {
+function buildEvents(project, legalDocs, dmas, jcts, warranties, pos, accountMap) {
   const ev = [];
   const add = (date, label, cat, detail) => {
     if (!date) return;
@@ -33,7 +34,7 @@ function buildEvents(project, legalDocs, dmas, jcts, warranties, pos) {
   add(project.riba4_end, "RIBA Stage 4 complete", "project");
 
   legalDocs.forEach((d) => {
-    const id = d.document_id || "Document";
+    const id = legalDocumentName(d, project.name, accountMap[d.account_id]?.name);
     add(d.drafted_date, `${id} drafted`, "legal");
     add(d.approval_date, `${id} approved`, "legal", d.approval_status);
     add(d.sent_to_client, `${id} sent to client`, "legal");
@@ -41,7 +42,7 @@ function buildEvents(project, legalDocs, dmas, jcts, warranties, pos) {
   });
 
   dmas.forEach((d) => {
-    const id = d.document_id || "DMA";
+    const id = dmaName(project.name);
     add(d.drafted_date, `${id} drafted`, "dma");
     add(d.approval_date, `${id} approved`, "dma", d.approval_status);
     add(d.sent_for_signing, `${id} sent for signing`, "dma");
@@ -49,7 +50,7 @@ function buildEvents(project, legalDocs, dmas, jcts, warranties, pos) {
   });
 
   jcts.forEach((d) => {
-    const id = d.document_id || "JCT";
+    const id = jctName(project.name, accountMap[d.contractor_id]?.name || accountMap[d.account_id]?.name);
     add(d.drafted_date, `${id} drafted`, "jct");
     add(d.sent_for_signing, `${id} sent for signing`, "jct");
     add(d.date_of_execution, `${id} executed`, "jct");
@@ -58,7 +59,7 @@ function buildEvents(project, legalDocs, dmas, jcts, warranties, pos) {
   });
 
   warranties.forEach((d) => {
-    const id = d.warranty_id || "Warranty";
+    const id = warrantyName(accountMap[d.supplier_id]?.name || accountMap[d.account_id]?.name, d.services);
     add(d.drafted_date, `${id} drafted`, "warranty");
     add(d.jct_signed, `${id} JCT signed`, "warranty");
     add(d.date_of_execution, `${id} executed`, "warranty");
@@ -90,7 +91,7 @@ function DateLabel({ date }) {
   );
 }
 
-export function ProjectTimelineTab({ project, legalDocs, dmas, jcts, warranties }) {
+export function ProjectTimelineTab({ project, legalDocs, dmas, jcts, warranties, accountMap }) {
   const [pos, setPos] = useState([]);
   const [loading, setLoading] = useState(true);
   const [active, setActive] = useState(() => Object.keys(CATEGORIES));
@@ -110,8 +111,8 @@ export function ProjectTimelineTab({ project, legalDocs, dmas, jcts, warranties 
   }, [project.id]);
 
   const allEvents = useMemo(
-    () => buildEvents(project, legalDocs, dmas, jcts, warranties, pos),
-    [project, legalDocs, dmas, jcts, warranties, pos]
+    () => buildEvents(project, legalDocs, dmas, jcts, warranties, pos, accountMap),
+    [project, legalDocs, dmas, jcts, warranties, pos, accountMap]
   );
   const events = useMemo(
     () => allEvents.filter((e) => active.includes(e.cat)).sort((a, b) => sortOrder === "newest" ? b.ts - a.ts : a.ts - b.ts),
