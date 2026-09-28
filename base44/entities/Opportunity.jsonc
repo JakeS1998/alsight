@@ -31,6 +31,78 @@
     },
     "lost_reason": {
       "type": "string"
+    },
+    "site_postcode": {
+      "type": "string"
+    },
+    "scope_summary": {
+      "type": "string"
+    },
+    "client_objectives": {
+      "type": "string"
+    },
+    "initial_constraints": {
+      "type": "string"
+    },
+    "target_programme": {
+      "type": "string"
+    },
+    "key_stakeholders": {
+      "type": "string"
+    },
+    "funding_route": {
+      "type": "string"
+    },
+    "design_team": {
+      "type": "array",
+      "items": {
+        "type": "object"
+      }
+    },
+    "fee_basis": {
+      "type": "string",
+      "enum": [
+        "fixed",
+        "percentage",
+        "day_rate",
+        ""
+      ]
+    },
+    "fee_status": {
+      "type": "string",
+      "enum": [
+        "draft",
+        "internal_review",
+        "sent",
+        "negotiation",
+        "accepted",
+        "lost",
+        ""
+      ]
+    },
+    "fee_services_included": {
+      "type": "string"
+    },
+    "fee_services_excluded": {
+      "type": "string"
+    },
+    "fee_consultants_required": {
+      "type": "string"
+    },
+    "fee_lines": {
+      "type": "array",
+      "items": {
+        "type": "object"
+      }
+    },
+    "fee_issued_date": {
+      "type": "string"
+    },
+    "fee_client_approval_date": {
+      "type": "string"
+    },
+    "fee_link_to_file": {
+      "type": "string"
     }
   },
   "required": [

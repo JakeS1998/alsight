@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom';
 import { base44 } from '@/api/base44Client';
 import { Button } from '@/components/ui/button';
 import { formatCurrency } from '@/lib/portal';
+import { convertOpportunity } from '@/components/crm/convertOpportunity';
 
 export default function OpportunityCard({ item, account, contacts, canEdit, canConvert, onUpdated, showRecordLink = true }) {
   const [reason, setReason] = useState('');
@@ -27,8 +28,7 @@ export default function OpportunityCard({ item, account, contacts, canEdit, canC
     if (!window.confirm(`Create a live project for “${item.title}”?`)) return;
     setBusy(true); setError('');
     try {
-      const project = item.project_id ? { id: item.project_id } : await base44.entities.Project.create({ name: item.title, description: item.project_details || '', client_account_id: account.dataverse_id || account.id, client_name: account.name, ...(item.budget != null ? { estimated_value: item.budget } : {}), live_project: true, status: 'active' });
-      await base44.entities.Opportunity.update(item.id, { project_id: project.id, status: 'won' });
+      await convertOpportunity(item, account);
       onUpdated();
     } catch (e) { setError(e.message || 'Unable to create project.'); }
     finally { setBusy(false); }
