@@ -24,6 +24,13 @@ import AdminContactsRoute from '@/components/contacts/AdminContactsRoute';
 import AccountProfile from '@/pages/AccountProfile';
 import AccountDetail from '@/pages/AccountDetail';
 import OpportunityDetail from '@/pages/OpportunityDetail';
+import CRMRoute from '@/components/crm/CRMRoute';
+import CRMHome from '@/pages/CRMHome';
+import CRMOpportunities from '@/pages/CRMOpportunities';
+import CRMPipeline from '@/pages/CRMPipeline';
+import CRMTasks from '@/pages/CRMTasks';
+import CRMActivities from '@/pages/CRMActivities';
+import CRMClients from '@/pages/CRMClients';
 import Analytics from '@/pages/Analytics';
 import Delegation from '@/pages/Delegation';
 
@@ -60,7 +67,15 @@ const AuthenticatedApp = () => {
           <Route path="/account" element={<AccountProfile />} />
           <Route path="/accounts" element={<Accounts />} />
           <Route path="/accounts/:accountId" element={<AccountDetail />} />
-          <Route path="/opportunities/:opportunityId" element={<OpportunityDetail />} />
+          <Route element={<CRMRoute />}>
+            <Route path="/crm" element={<CRMHome />} />
+            <Route path="/crm/opportunities" element={<CRMOpportunities />} />
+            <Route path="/crm/pipeline" element={<CRMPipeline />} />
+            <Route path="/crm/tasks" element={<CRMTasks />} />
+            <Route path="/crm/activities" element={<CRMActivities />} />
+            <Route path="/crm/clients" element={<CRMClients />} />
+            <Route path="/opportunities/:opportunityId" element={<OpportunityDetail />} />
+          </Route>
           <Route element={<AdminContactsRoute />}>
             <Route path="/contacts" element={<Contacts />} />
             <Route path="/contacts/:contactId" element={<ContactDetail />} />

@@ -3,12 +3,13 @@ import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '@/lib/AuthContext';
 import { ROLE_LABELS, ROLE_BADGE_CLASS, INTERNAL_ROLES } from '@/lib/portal';
 import Logo from '@/components/Logo';
-import { LayoutDashboard, FolderKanban, Building2, UserCircle, LogOut, Menu, X, BarChart3, Users, UserCog } from 'lucide-react';
+import { LayoutDashboard, FolderKanban, Building2, UserCircle, LogOut, Menu, X, BarChart3, Users, UserCog, BriefcaseBusiness } from 'lucide-react';
 
 const ALL_ROLES = ['admin', 'director', 'regional_director', 'bsm', 'finance', 'bdm', 'client', 'supplier', 'project_manager'];
 const NAV_ITEMS = [
   { label: 'Dashboard', path: '/', icon: LayoutDashboard, roles: INTERNAL_ROLES.concat(['client', 'supplier']) },
   { label: 'Projects', path: '/projects', icon: FolderKanban, roles: ALL_ROLES },
+  { label: 'CRM', path: '/crm', icon: BriefcaseBusiness, roles: INTERNAL_ROLES },
   { label: 'Analytics', path: '/analytics', icon: BarChart3, roles: INTERNAL_ROLES },
   { label: 'Delegation', path: '/delegation', icon: UserCog, roles: INTERNAL_ROLES },
   { label: 'My Account', path: '/account', icon: UserCircle, roles: ['client', 'supplier'] },
@@ -25,7 +26,7 @@ export default function PortalHeader() {
   const signOut = () => { setMenuOpen(false); logout(false); navigate('/login'); };
   const nav = (compact = false) => items.map(item => {
     const Icon = item.icon;
-    const active = location.pathname === item.path;
+    const active = item.path === '/crm' ? (location.pathname.startsWith('/crm') || location.pathname.startsWith('/opportunities/')) : location.pathname === item.path;
     return <Link key={item.path} to={item.path} onClick={() => setMenuOpen(false)} aria-current={active ? 'page' : undefined} className={`flex items-center gap-2 rounded-lg px-3 py-2 text-sm font-medium ${active ? 'bg-primary text-primary-foreground' : 'text-white/75 hover:bg-white/10 hover:text-white'} ${compact ? 'w-full' : 'whitespace-nowrap'}`}><Icon className="h-4 w-4 shrink-0" />{item.label}</Link>;
   });
   return <header className="sticky top-0 z-40 bg-als-navy text-white shadow-sm">

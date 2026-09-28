@@ -2,8 +2,13 @@ import React, { useEffect, useState } from 'react';
 import { Link, useParams } from 'react-router-dom';
 import { base44 } from '@/api/base44Client';
 import { useAuth } from '@/lib/AuthContext';
-import OpportunityCard from '@/components/crm/OpportunityCard';
-import ConversationTimeline from '@/components/crm/ConversationTimeline';
+import OpportunityHeader from '@/components/crm/OpportunityHeader';
+import OpportunityOverview from '@/components/crm/OpportunityOverview';
+import CRMActivityTimeline from '@/components/crm/CRMActivityTimeline';
+import OpportunityOutcome from '@/components/crm/OpportunityOutcome';
+import OpportunityConversionReview from '@/components/crm/OpportunityConversionReview';
+import { updateCRMOpportunity } from '@/components/crm/crm';
+import { convertOpportunity } from '@/components/crm/convertOpportunity';
 import OpportunityBrief from '@/components/crm/OpportunityBrief';
 import OpportunityTeam from '@/components/crm/OpportunityTeam';
 import OpportunityFee from '@/components/crm/OpportunityFee';
@@ -20,13 +25,27 @@ export default function OpportunityDetail() {
   const [planError, setPlanError] = useState('');
   const [saved, setSaved] = useState(false);
   const [saving, setSaving] = useState(false);
+  const [outcome, setOutcome] = useState(null);
+  const [reviewOpen, setReviewOpen] = useState(false);
   const savePlan = async patch => {
     setSaving(true); setSaved(false); setPlanError('');
     try {
-      const updated = await base44.entities.Opportunity.update(opportunityId, patch);
+      const updated = await updateCRMOpportunity(item, patch, user);
       setItem(updated);
       setSaved(true);
-    } catch (e) { setPlanError(e.message || 'Unable to save opportunity planning.'); }
+      return true;
+    } catch (e) { setPlanError(e.message || 'Unable to save opportunity planning.'); return false; }
+    finally { setSaving(false); }
+  };
+  const changeStage = value => {
+    if (value === 'won' || value === 'lost') { setOutcome(value); return; }
+    savePlan({ stage: value });
+  };
+  const submitOutcome = async patch => { if (await savePlan(patch)) setOutcome(null); };
+  const convert = async () => {
+    setSaving(true); setPlanError('');
+    try { await convertOpportunity(item, account); setReviewOpen(false); await load(); }
+    catch (e) { setPlanError(e.message || 'Unable to create project.'); }
     finally { setSaving(false); }
   };
   const load = async () => {
@@ -54,19 +73,22 @@ export default function OpportunityDetail() {
   if (!item || !account) return <p className="p-6 text-muted-foreground">Opportunity not found.</p>;
   const canEdit = ['admin', 'director', 'bdm', 'bsm'].includes(user?.role);
   return <div className="space-y-6">
-    <Link to={`/accounts/${account.id}#crm`} className="text-sm text-primary hover:underline">← Back to {account.name}</Link>
-    <div><p className="text-sm text-muted-foreground">Client opportunity · {account.name}</p><h1 className="font-heading text-2xl font-semibold">{item.title}</h1></div>
+    <Link to="/crm/opportunities" className="text-sm text-primary hover:underline">← All opportunities</Link>
+    <OpportunityHeader key={item.id} item={item} account={account} contacts={contacts} canEdit={canEdit} canConvert={['admin','director','bdm'].includes(user?.role)} busy={saving} onSave={savePlan} onStage={changeStage} onOutcome={setOutcome} onConvert={() => setReviewOpen(true)} />
     {planError && <p role="alert" className="text-sm text-destructive">{planError}</p>}
     {saved && <p role="status" className="text-sm text-emerald-700">Planning saved.</p>}
     <Tabs defaultValue="overview" className="space-y-4">
       <TabsList className="flex h-auto flex-wrap justify-start gap-1">
-        <TabsTrigger value="overview">Overview</TabsTrigger><TabsTrigger value="conversations">Conversations</TabsTrigger><TabsTrigger value="brief">Project design brief</TabsTrigger><TabsTrigger value="team">Design team</TabsTrigger><TabsTrigger value="fees">Fee proposal</TabsTrigger>
+        <TabsTrigger value="overview">Overview</TabsTrigger><TabsTrigger value="activity">Activity</TabsTrigger><TabsTrigger value="brief">Project Brief</TabsTrigger><TabsTrigger value="team">Design Team</TabsTrigger><TabsTrigger value="fees">Fee Proposal</TabsTrigger><TabsTrigger value="handover">Handover</TabsTrigger>
       </TabsList>
-      <TabsContent value="overview"><OpportunityCard item={item} account={account} contacts={contacts} canEdit={canEdit} canConvert={['admin', 'director', 'bdm'].includes(user?.role)} onUpdated={load} showRecordLink={false} /></TabsContent>
-      <TabsContent value="conversations"><ConversationTimeline key={item.contact_id || 'unlinked'} accountId={account.id} opportunityId={item.id} defaultContactId={item.contact_id} contacts={contacts} user={user} canEdit={canEdit} /></TabsContent>
+      <TabsContent value="overview"><OpportunityOverview item={item} account={account} contacts={contacts} user={user} canEdit={canEdit} /></TabsContent>
+      <TabsContent value="activity"><CRMActivityTimeline item={item} user={user} canEdit={canEdit} /></TabsContent>
       <TabsContent value="brief"><OpportunityBrief item={item} onSave={savePlan} canEdit={canEdit} saving={saving} /></TabsContent>
       <TabsContent value="team"><OpportunityTeam item={item} onSave={savePlan} canEdit={canEdit} saving={saving} /></TabsContent>
       <TabsContent value="fees"><OpportunityFee item={item} onSave={savePlan} canEdit={canEdit} saving={saving} /></TabsContent>
+      <TabsContent value="handover"><div className="rounded-xl border border-border bg-card p-5"><h2 className="font-semibold">Project handover</h2><p className="mt-2 text-sm text-muted-foreground">{item.status === 'won' ? 'This opportunity is won. Review the details before creating the project.' : 'Mark the opportunity Won after client confirmation to begin project handover.'}</p>{item.status === 'won' && !item.project_id && ['admin','director','bdm'].includes(user?.role) && <button onClick={() => setReviewOpen(true)} className="mt-3 rounded-lg bg-primary px-4 py-2 text-sm font-semibold text-primary-foreground">Review &amp; convert</button>}{item.project_id && <Link to={`/projects/${item.project_id}`} className="mt-3 block text-sm text-primary hover:underline">View converted project →</Link>}</div></TabsContent>
     </Tabs>
+    {outcome && <OpportunityOutcome type={outcome} onClose={() => setOutcome(null)} onSubmit={submitOutcome} busy={saving} />}
+    {reviewOpen && <OpportunityConversionReview open={reviewOpen} onClose={() => setReviewOpen(false)} onConfirm={convert} busy={saving} item={item} account={account} contacts={contacts} />}
   </div>;
 }

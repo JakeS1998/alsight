@@ -32,6 +32,76 @@
     "lost_reason": {
       "type": "string"
     },
+    "owner_id": {
+      "type": "string"
+    },
+    "owner_name": {
+      "type": "string"
+    },
+    "location": {
+      "type": "string"
+    },
+    "stage": {
+      "type": "string",
+      "enum": [
+        "lead",
+        "qualified",
+        "scope_development",
+        "design_feasibility",
+        "proposal_preparation",
+        "proposal_submitted",
+        "negotiation",
+        "preferred_partner",
+        "won",
+        "lost",
+        "on_hold"
+      ],
+      "default": "lead"
+    },
+    "stage_entered_at": {
+      "type": "string"
+    },
+    "probability": {
+      "type": "number",
+      "minimum": 0,
+      "maximum": 100
+    },
+    "expected_decision_date": {
+      "type": "string"
+    },
+    "alliance_fee": {
+      "type": "number"
+    },
+    "weighted_value": {
+      "type": "number"
+    },
+    "weighted_alliance_fee": {
+      "type": "number"
+    },
+    "expected_project_start": {
+      "type": "string"
+    },
+    "won_date": {
+      "type": "string"
+    },
+    "confirmed_project_value": {
+      "type": "number"
+    },
+    "confirmed_alliance_fee": {
+      "type": "number"
+    },
+    "award_details": {
+      "type": "string"
+    },
+    "lost_date": {
+      "type": "string"
+    },
+    "lost_competitor": {
+      "type": "string"
+    },
+    "lost_notes": {
+      "type": "string"
+    },
     "site_postcode": {
       "type": "string"
     },

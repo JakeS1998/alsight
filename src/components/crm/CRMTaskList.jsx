@@ -1,0 +1,18 @@
+import React, { useEffect, useState } from 'react';
+import { base44 } from '@/api/base44Client';
+import { Button } from '@/components/ui/button';
+import { isoToday, logCRMActivity } from '@/components/crm/crm';
+
+export default function CRMTaskList({ item, user, canEdit }) {
+  const [tasks, setTasks] = useState([]), [loading, setLoading] = useState(true), [busy, setBusy] = useState(false), [error, setError] = useState('');
+  const [form, setForm] = useState({ title: '', due_date: '', priority: 'normal', description: '' });
+  const load = async () => { setLoading(true); try { const page = await base44.entities.CRMTask.filter({ opportunity_id: item.id }, { sort: 'due_date', limit: 50 }); setTasks(page.items); } catch (e) { setError(e.message); } finally { setLoading(false); } };
+  useEffect(() => { load(); }, [item.id]);
+  const add = async e => { e.preventDefault(); setBusy(true); setError(''); try { await base44.entities.CRMTask.create({ ...form, opportunity_id: item.id, account_id: item.account_id, owner_id: user.id, owner_name: user.full_name || user.email, status: 'open' }); setForm({ title: '', due_date: '', priority: 'normal', description: '' }); await load(); } catch (e) { setError(e.message); } finally { setBusy(false); } };
+  const complete = async task => { setBusy(true); setError(''); try { await base44.entities.CRMTask.update(task.id, { status: 'completed', completed_at: new Date().toISOString() }); await logCRMActivity(item, user, 'task_completed', `Task completed: ${task.title}`); await load(); } catch (e) { setError(e.message); } finally { setBusy(false); } };
+  return <section className="space-y-3 rounded-xl border border-border bg-card p-5"><h2 className="font-semibold">Next actions &amp; tasks</h2>
+    {loading ? <p className="text-sm text-muted-foreground">Loading tasks…</p> : !tasks.length ? <p className="text-sm text-muted-foreground">No tasks yet. Add the next action to keep this opportunity moving.</p> : <ul className="space-y-2">{tasks.map(task => <li key={task.id} className="flex flex-wrap items-center gap-2 rounded-lg border border-border p-2 text-sm"><span className={task.status === 'completed' ? 'line-through text-muted-foreground' : 'font-medium'}>{task.title}</span><span className={task.due_date && task.due_date < isoToday() && !['completed','cancelled'].includes(task.status) ? 'text-destructive' : 'text-muted-foreground'}>{task.due_date || 'No due date'}</span><span className="text-xs text-muted-foreground">{task.priority}</span><span className="ml-auto text-xs">{task.status}</span>{canEdit && task.status !== 'completed' && task.status !== 'cancelled' && <Button size="sm" variant="outline" disabled={busy} onClick={() => complete(task)}>Complete</Button>}</li>)}</ul>}
+    {canEdit && item.status === 'open' && <form onSubmit={add} className="grid gap-2 sm:grid-cols-[1fr_auto_auto_auto]"><input required maxLength={200} aria-label="Task" placeholder="Next action" value={form.title} onChange={e => setForm({ ...form, title: e.target.value })} className="min-w-0 rounded-lg border border-input p-2 text-sm" /><input type="date" aria-label="Due date" value={form.due_date} onChange={e => setForm({ ...form, due_date: e.target.value })} className="rounded-lg border border-input p-2 text-sm" /><select aria-label="Priority" value={form.priority} onChange={e => setForm({ ...form, priority: e.target.value })} className="rounded-lg border border-input p-2 text-sm">{['low','normal','high','urgent'].map(v => <option key={v}>{v}</option>)}</select><Button disabled={busy}>{busy ? 'Saving…' : 'Add task'}</Button></form>}
+    {error && <p role="alert" className="text-sm text-destructive">{error}</p>}
+  </section>;
+}

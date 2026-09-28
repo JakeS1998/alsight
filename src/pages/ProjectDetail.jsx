@@ -4,6 +4,7 @@ import { base44 } from "@/api/base44Client";
 import { useAuth } from "@/lib/AuthContext";
 import { INTERNAL_ROLES } from '@/lib/portal';
 import ProjectValuationsTab from "@/components/valuations/ProjectValuationsTab";
+import SourceOpportunityLink from '@/components/crm/SourceOpportunityLink';
 import { listAll, filterAll } from "@/components/data/loadAll";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { ProjectGeneralTab } from "@/components/projects/ProjectGeneralTab";
@@ -98,6 +99,7 @@ export default function ProjectDetail() {
           )}
         </div>
         {!isSupplier && project.description && <p className="mt-1 text-sm text-slate-500">{project.description}</p>}
+        {INTERNAL_ROLES.includes(user?.role) && <SourceOpportunityLink projectId={project.id} />}
       </div>
 
       <Tabs value={activeTab} onValueChange={setActiveTab}>
