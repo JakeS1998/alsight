@@ -41,11 +41,19 @@ export default function AliceWidget() {
   }, [open]);
   useEffect(() => {
     if (!conversation?.id) return;
-    const unsubscribe = base44.agents.subscribeToConversation(conversation.id, data => {
+    let active = true;
+    const subscription = base44.agents.subscribeToConversation(conversation.id, data => {
+      if (!active) return;
       setMessages(data.messages || []);
       if ((data.messages || []).filter(m => m.role === 'assistant' && m.content).length > pendingAssistantCount.current) setBusy(false);
     });
-    return unsubscribe;
+    return () => {
+      active = false;
+      Promise.resolve(subscription).then(stop => {
+        if (typeof stop === 'function') stop();
+        else if (typeof stop?.unsubscribe === 'function') stop.unsubscribe();
+      });
+    };
   }, [conversation?.id]);
   const send = async (value, draft = false) => {
     if (!value.trim() || busy || restoring) return;

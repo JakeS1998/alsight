@@ -2,7 +2,7 @@ import React, { useEffect, useRef } from 'react';
 import ReactMarkdown from 'react-markdown';
 export default function AliceMessages({ messages, busy, draftMode, onApply }) {
   const bottom = useRef(null);
-  useEffect(() => bottom.current?.scrollIntoView({ block: 'end' }), [messages, busy]);
+  useEffect(() => { bottom.current?.scrollIntoView({ block: 'end' }); }, [messages, busy]);
   const lastReply = [...messages].reverse().find(m => m.role === 'assistant' && m.content)?.content;
   return <div className="flex-1 space-y-3 overflow-y-auto px-4 py-4" aria-live="polite">
     {messages.map((message, i) => <div key={message.id || i} className={message.role === 'user' ? 'ml-8 rounded-xl bg-primary/15 px-3 py-2 text-sm text-foreground' : 'mr-8 rounded-xl bg-secondary px-3 py-2 text-sm text-foreground'}>
