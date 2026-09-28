@@ -4,7 +4,6 @@ import { base44 } from '@/api/base44Client';
 import { useAuth } from '@/lib/AuthContext';
 import { INTERNAL_ROLES } from '@/lib/portal';
 import ContactHeader from '@/components/crm/contact360/ContactHeader';
-import ContactProfileEditor from '@/components/crm/contact360/ContactProfileEditor';
 import ContactOverviewCards from '@/components/crm/contact360/ContactOverviewCards';
 import ContactActivity from '@/components/crm/contact360/ContactActivity';
 import ContactTasks from '@/components/crm/contact360/ContactTasks';
@@ -22,6 +21,7 @@ export default function ContactDetail() {
   const [contact, setContact] = useState(null), [account, setAccount] = useState(null), [profile, setProfile] = useState(null), [staff, setStaff] = useState([]), [opportunities, setOpportunities] = useState([]);
   const [last, setLast] = useState(null), [next, setNext] = useState(null), [openCount, setOpenCount] = useState(0), [revision, setRevision] = useState(0);
   const [loading, setLoading] = useState(true), [error, setError] = useState(''), [action, setAction] = useState('');
+  const [editingSection, setEditingSection] = useState(null);
   const refreshSignals = async () => {
     if (!internal) return;
     const [activities, conversations, tasks, count] = await Promise.all([
@@ -66,18 +66,20 @@ export default function ContactDetail() {
   const owner = staff.find(s => s.id === profile?.relationship_owner_contact_id)?.full_name;
   const days = last ? Math.max(0, Math.floor((Date.now() - new Date(last).getTime()) / 86400000)) : null;
   const health = days == null ? 'Relationship health: No interaction logged yet' : days > 180 && !openCount ? `Dormant · No interaction for ${days} days` : days > 60 && openCount ? `Attention required · No interaction for ${days} days with an open opportunity` : `Active · Last interaction ${days} days ago`;
+  const editProps = { contact, profile, staff, isAdmin: user?.role === 'admin', onCancel: () => setEditingSection(null), onSaved: async updated => { setProfile(updated); setContact(await base44.entities.Contact.get(contact.id)); setEditingSection(null); } };
+  const editCards = { editingSection, onEdit: section => { setAction(''); setEditingSection(section); }, editorProps: editProps, canEdit };
   return <div className="min-w-0 space-y-5" data-alice-contact-id={contact.id} data-alice-contact-name={contact.full_name}>
     <Link to={account ? `/accounts/${account.id}` : user?.role === 'admin' ? '/contacts' : '/crm/clients'} className="text-sm text-primary hover:underline">← Back to {account?.name || 'Contacts'}</Link>
-    <ContactHeader contact={contact} account={account} profile={profile} owner={owner} last={last} next={next} health={health} canEdit={canEdit} onAction={setAction} />
-    <div id="contact-action-panel">{action === 'edit' && <ContactProfileEditor key={profile?.id || 'new'} contact={contact} profile={profile} staff={staff} isAdmin={user?.role === 'admin'} onCancel={() => setAction('')} onSaved={async updated => { setProfile(updated); setContact(await base44.entities.Contact.get(contact.id)); setAction(''); }} />}{action === 'opportunity' && account?.account_type === 'client' && <ContactOpportunityForm contact={contact} account={account} user={user} onCancel={() => setAction('')} onSaved={() => { setAction(''); setRevision(r => r + 1); }} />}</div>
+    <ContactHeader contact={contact} account={account} profile={profile} owner={owner} last={last} next={next} health={health} canEdit={canEdit} onAction={key => { setEditingSection(null); setAction(key); }} />
+    <div id="contact-action-panel">{action === 'opportunity' && account?.account_type === 'client' && <ContactOpportunityForm contact={contact} account={account} user={user} onCancel={() => setAction('')} onSaved={() => { setAction(''); setRevision(r => r + 1); }} />}</div>
     <div className="grid gap-5 xl:grid-cols-[minmax(0,7fr)_minmax(290px,3fr)]"><main className="min-w-0 space-y-5">
-      <ContactOverviewCards contact={contact} profile={profile} owner={owner} health={health} />
+      <ContactOverviewCards contact={contact} profile={profile} owner={owner} health={health} {...editCards} />
       <div id="contact-activity"><ContactActivity contact={contact} account={account} user={user} canEdit={canEdit} mode={action} onClose={() => setAction('')} onLogged={() => { refreshSignals().catch(e => setError(e.message)); setRevision(r => r + 1); }} opportunities={opportunities} /></div>
       {account?.account_type === 'client' && <ContactOpportunities key={revision} contactId={contact.id} />}
       <ContactProjects contact={contact} />
     </main><aside className="min-w-0 space-y-5">
       <div id="contact-tasks"><ContactTasks contact={contact} account={account} user={user} canEdit={canEdit} mode={action} onClose={() => setAction('')} onChanged={() => refreshSignals().catch(e => setError(e.message))} /></div>
-      <ContactOverviewCards contact={contact} profile={profile} owner={owner} health={health} column="side" />
+      <ContactOverviewCards contact={contact} profile={profile} owner={owner} health={health} column="side" {...editCards} />
       <ContactKeyDates contact={contact} user={user} canEdit={canEdit} />
       <ContactConnections contactId={contact.id} staff={staff} ownerId={profile?.relationship_owner_contact_id} canEdit={canEdit} user={user} />
     </aside></div>
