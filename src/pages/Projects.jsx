@@ -166,7 +166,7 @@ export default function Projects() {
             <FilterSelect label="BDMs" value={bdmFilter} onChange={setBdmFilter} options={bdmOptions} />
             <FilterSelect label="BSMs" value={bsmFilter} onChange={setBsmFilter} options={bsmOptions} />
             <FilterSelect label="Regions" value={regionFilter} onChange={setRegionFilter} options={regionOptions} />
-            <FilterSelect label="Status" value={statusFilter} onChange={setStatusFilter} options={[
+            <FilterSelect label="Live / On Hold" value={statusFilter} onChange={setStatusFilter} options={[
               { value: "live", label: "Live" },
               { value: "on_hold", label: "On Hold" },
             ]} />
