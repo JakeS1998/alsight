@@ -14,6 +14,7 @@ import usePortfolioExtras from "@/components/dashboard/usePortfolioExtras";
 import { buildPortfolio } from "@/components/dashboard/portfolioMetrics";
 import PortfolioSummary from "@/components/dashboard/PortfolioSummary";
 import ProjectRiskTracker from "@/components/dashboard/ProjectRiskTracker";
+import OpportunityPipelineSummary from "@/components/dashboard/OpportunityPipelineSummary";
 
 export default function Home() {
   const { user } = useAuth();
@@ -106,6 +107,8 @@ export default function Home() {
       {internal && !extrasError && !extrasLoading ? <PortfolioSummary metrics={portfolio.metrics} /> : <DashboardKPIs projects={filteredProjects} hideValues={role === 'supplier'} />}
 
       {internal && !extrasError && !extrasLoading && <ProjectRiskTracker atRisk={portfolio.atRisk} compact />}
+
+      {internal && <OpportunityPipelineSummary />}
 
       {role !== 'supplier' && <div className="grid gap-6 lg:grid-cols-2">
         <PipelineChart projects={filteredProjects} />

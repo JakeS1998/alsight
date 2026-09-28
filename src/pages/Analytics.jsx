@@ -7,6 +7,7 @@ import usePortfolioExtras from "@/components/dashboard/usePortfolioExtras";
 import { buildPortfolio } from "@/components/dashboard/portfolioMetrics";
 import PortfolioSummary from "@/components/dashboard/PortfolioSummary";
 import ProjectRiskTracker from "@/components/dashboard/ProjectRiskTracker";
+import OpportunityPipelineSummary from "@/components/dashboard/OpportunityPipelineSummary";
 import FinancialBreakdown from "@/components/dashboard/FinancialBreakdown";
 import { PipelineChart } from "@/components/dashboard/PipelineChart";
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, PieChart, Pie, Cell, AreaChart, Area, CartesianGrid } from "recharts";
@@ -114,6 +115,7 @@ export default function Analytics() {
         </div>
         <div id="at-risk"><ProjectRiskTracker atRisk={portfolio.atRisk} /></div>
       </>}
+      <OpportunityPipelineSummary detailed />
       <div className="grid grid-cols-2 gap-4 sm:grid-cols-3">
         <div className="rounded-2xl border border-slate-200 bg-white p-4"><p className="text-2xl font-semibold text-slate-900">{metrics.totalDocs}</p><p className="text-sm text-slate-600">Legal documents · {metrics.executedDocs} executed</p></div>
         <div className="rounded-2xl border border-slate-200 bg-white p-4"><p className="text-2xl font-semibold text-slate-900">{metrics.totalWarranties}</p><p className="text-sm text-slate-600">Warranties tracked</p></div>
