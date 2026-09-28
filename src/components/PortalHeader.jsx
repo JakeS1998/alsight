@@ -15,6 +15,7 @@ const NAV_ITEMS = [
   { label: 'My Account', path: '/account', icon: UserCircle, roles: ['client', 'supplier'] },
   { label: 'Accounts', path: '/accounts', icon: Building2, roles: ALL_ROLES },
   { label: 'Contacts', path: '/contacts', icon: Users, roles: ['admin'] },
+  { label: 'Admin', path: '/admin', icon: UserCog, roles: ['admin'] },
 ];
 export default function PortalHeader() {
   const { user, logout } = useAuth();

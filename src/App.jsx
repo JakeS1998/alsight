@@ -19,6 +19,7 @@ import LegalDocuments from '@/pages/LegalDocuments';
 import Warranties from '@/pages/Warranties';
 import Accounts from '@/pages/Accounts';
 import Contacts from '@/pages/Contacts';
+import Admin from '@/pages/Admin';
 import ContactDetail from '@/pages/ContactDetail';
 import AdminContactsRoute from '@/components/contacts/AdminContactsRoute';
 import AccountProfile from '@/pages/AccountProfile';
@@ -77,6 +78,7 @@ const AuthenticatedApp = () => {
             <Route path="/opportunities/:opportunityId" element={<OpportunityDetail />} />
           </Route>
           <Route element={<AdminContactsRoute />}>
+            <Route path="/admin" element={<Admin />} />
             <Route path="/contacts" element={<Contacts />} />
             <Route path="/contacts/:contactId" element={<ContactDetail />} />
           </Route>
