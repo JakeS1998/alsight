@@ -6,8 +6,8 @@ export default function StaffReportingDirectory({ revision, onUpdated }) {
   const [lines, setLines] = useState([]), [users, setUsers] = useState([]);
   const [loading, setLoading] = useState(true), [busy, setBusy] = useState(false), [error, setError] = useState(''), [notice, setNotice] = useState('');
   const load = async () => {
-    const [page, people] = await Promise.all([base44.entities.StaffReportingLine.filter({}, { sort: 'staff_name', limit: 50 }), base44.entities.User.list()]);
-    setLines(page.items); setUsers(people);
+    const [page, response] = await Promise.all([base44.entities.StaffReportingLine.filter({}, { sort: 'staff_name', limit: 50 }), base44.functions.invoke('assignPipelineManager', { action: 'list' })]);
+    setLines(page.items); setUsers(response.data.users);
   };
   useEffect(() => { load().catch(e => setError(e.message)).finally(() => setLoading(false)); }, [revision]);
   const byEmail = new Map(users.filter(u => u.email).map(u => [u.email.trim().toLowerCase(), u]));

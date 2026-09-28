@@ -6,11 +6,16 @@ export default async function(req: Request): Promise<Response> {
     const actor = await base44.auth.me();
     if (!actor) return Response.json({ error: 'Unauthorized' }, { status: 401 });
     if (actor.role !== 'admin') return Response.json({ error: 'Forbidden' }, { status: 403 });
-    const { employeeId, managerId } = await req.json();
-    if (typeof employeeId !== 'string' || !employeeId || typeof managerId !== 'string' || employeeId === managerId) return Response.json({ error: 'Choose a staff member and a different manager.' }, { status: 400 });
-    const employee = await base44.entities.User.get(employeeId);
-    const manager = managerId ? await base44.entities.User.get(managerId) : null;
+    const payload = await req.json();
     const internal = ['admin', 'director', 'regional_director', 'bsm', 'finance', 'bdm'];
+    if (payload.action === 'list') {
+      const all = await base44.asServiceRole.entities.User.list();
+      return Response.json({ users: all.filter(person => internal.includes(person.role)).map(person => ({ id: person.id, full_name: person.full_name, email: person.email, role: person.role, line_manager_id: person.line_manager_id || '' })) });
+    }
+    const { employeeId, managerId } = payload;
+    if (typeof employeeId !== 'string' || !employeeId || typeof managerId !== 'string' || employeeId === managerId) return Response.json({ error: 'Choose a staff member and a different manager.' }, { status: 400 });
+    const employee = await base44.asServiceRole.entities.User.get(employeeId);
+    const manager = managerId ? await base44.asServiceRole.entities.User.get(managerId) : null;
     if (!employee || !internal.includes(employee.role) || (managerId && (!manager || !internal.includes(manager.role)))) return Response.json({ error: 'Both people must be internal staff.' }, { status: 400 });
     const next = managerId || '';
     await base44.asServiceRole.entities.User.update(employeeId, { line_manager_id: next });
