@@ -3,6 +3,7 @@ import { base44 } from "@/api/base44Client";
 import { filterAll } from "@/components/data/loadAll";
 import { Button } from "@/components/ui/button";
 import SearchableSelect from '@/components/forms/SearchableSelect';
+import ActionOwnerInput from './ActionOwnerInput';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { FormField, FormGrid, formInputClass } from "@/components/forms/PowerForm";
 import { Plus, Pencil, Trash2, Loader2 } from "lucide-react";
@@ -52,6 +53,7 @@ export function RegisterList({ title, description, entityName, projectId, projec
     e.preventDefault();
     const required = columns.filter((c) => c.required);
     if (required.some((c) => !String(form[c.key] ?? "").trim())) return;
+    if (columns.some(c => c.type === "action_owner" && form[c.key]?.trim() && !form[c.key].trim().includes(' '))) return;
     setSaving(true);
     try {
       const payload = {
@@ -80,6 +82,8 @@ export function RegisterList({ title, description, entityName, projectId, projec
           {col.options.map((o) => <option key={o.value} value={o.value}>{o.label}</option>)}
         </SearchableSelect>
       );
+    if (col.type === "action_owner")
+      return <ActionOwnerInput value={val} onChange={(name) => setForm({ ...form, [col.key]: name })} />;
     if (col.type === "textarea")
       return <textarea rows={2} value={val} onChange={(e) => setForm({ ...form, [col.key]: e.target.value })} className={`${formInputClass} h-auto py-2`} />;
     if (col.type === "date")

@@ -26,7 +26,7 @@ const DELIVERY_DEFAULT = {
 
 const ACTION_COLS = [
   { key: "action", label: "Action", required: true, fullWidth: true, type: "text" },
-  { key: "owner", label: "Owner", type: "text" },
+  { key: "owner", label: "Owner", type: "action_owner" },
   { key: "due_date", label: "Due", type: "date" },
   { key: "priority", label: "Priority", type: "select", options: [{ value: "low", label: "Low" }, { value: "medium", label: "Medium" }, { value: "high", label: "High" }] },
   { key: "status", label: "Status", type: "select", options: [{ value: "open", label: "Open" }, { value: "in_progress", label: "In progress" }, { value: "done", label: "Done" }] },

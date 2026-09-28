@@ -37,7 +37,7 @@ export default function PortalHeader() {
       <nav aria-label="Main navigation" className="hidden min-w-0 flex-1 items-center gap-1 xl:flex">{nav()}</nav>
       {INTERNAL_ROLES.includes(role) && <NotificationCenter user={user} />}
       <div className="hidden shrink-0 items-center gap-3 xl:flex">
-        <div className="text-right"><p className="max-w-40 truncate text-sm font-medium">{user?.full_name || user?.email}</p><span className={`inline-block rounded px-1.5 py-0.5 text-[10px] font-semibold ${ROLE_BADGE_CLASS[role] || ''}`}>{ROLE_LABELS[role] || role}</span></div>
+        <div className="text-right"><p className="max-w-72 text-right text-sm font-medium leading-tight" title={user?.full_name || user?.email}>{user?.full_name || user?.email}</p><span className={`inline-block rounded px-1.5 py-0.5 text-[10px] font-semibold ${ROLE_BADGE_CLASS[role] || ''}`}>{ROLE_LABELS[role] || role}</span></div>
         <button type="button" onClick={signOut} aria-label="Sign out" title="Sign out" className="rounded-lg p-2 text-white/75 hover:bg-white/10 hover:text-white"><LogOut className="h-5 w-5" /></button>
       </div>
       <button type="button" aria-label={menuOpen ? 'Close menu' : 'Open menu'} aria-expanded={menuOpen} onClick={() => setMenuOpen(v => !v)} className="rounded-lg p-2 text-white xl:hidden">{menuOpen ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}</button>
