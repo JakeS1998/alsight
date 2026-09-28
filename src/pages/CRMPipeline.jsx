@@ -13,10 +13,11 @@ export default function CRMPipeline() {
   const editable = ['admin','director','bdm','bsm'].includes(user?.role);
   const query = stage => stage === 'lead' ? { status: 'open', $or: [{ stage: 'lead' }, { stage: { $exists: false } }] } : { status: 'open', stage };
   const load = async () => { setLoading(true); try {
-    const [results, aggregate] = await Promise.all([Promise.all(columns.map(s => base44.entities.Opportunity.filter(query(s.value), { sort: '-created_date', limit: 30 }))), base44.entities.Opportunity.aggregate({ query: { status: 'open' }, groupBy: 'stage', sum: ['budget','weighted_value'] })]);
-    setCards(Object.fromEntries(columns.map((s,i) => [s.value, results[i].items])));
+    const [results, aggregate, leadAggregate] = await Promise.all([Promise.all(columns.map(s => base44.entities.Opportunity.filter(query(s.value), { sort: '-created_date', limit: 30 }))), base44.entities.Opportunity.aggregate({ query: { status: 'open' }, groupBy: 'stage', sum: ['budget','weighted_value'] }), base44.entities.Opportunity.aggregate({ query: query('lead'), sum: ['budget','weighted_value'] })]);
+    setCards(Object.fromEntries(columns.map((s,i) => [s.value, results[i].items.filter(o => (o.stage || 'lead') === s.value)])));
     setPages(Object.fromEntries(columns.map((s,i) => [s.value, results[i]])));
-    const sums = {}; (aggregate.rows || []).forEach(row => { const key = row.stage || 'lead'; sums[key] = { count: (sums[key]?.count || 0) + row.count, budget: (sums[key]?.budget || 0) + (row.sum_budget || 0), weighted: (sums[key]?.weighted || 0) + (row.sum_weighted_value || 0) }; }); setTotals(sums);
+    const sums = {}; (aggregate.rows || []).forEach(row => { if (row.stage) sums[row.stage] = { count: row.count, budget: row.sum_budget || 0, weighted: row.sum_weighted_value || 0 }; });
+    const lead = leadAggregate.rows?.[0]; sums.lead = { count: lead?.count || 0, budget: lead?.sum_budget || 0, weighted: lead?.sum_weighted_value || 0 }; setTotals(sums);
   } catch (e) { setError(e.message); } finally { setLoading(false); } };
   useEffect(() => { load(); }, []);
   const more = async stage => { try { const page = await base44.entities.Opportunity.filter(query(stage), { sort: '-created_date', limit: 30, cursor: pages[stage].next_cursor }); setCards(old => ({ ...old, [stage]: [...old[stage], ...page.items] })); setPages(old => ({ ...old, [stage]: page })); } catch (e) { setError(e.message); } };
