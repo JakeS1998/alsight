@@ -9,7 +9,7 @@ export function RegionBreakdown({ projects, accountMap }) {
     const map = {};
     projects.forEach((p) => {
       const region = regionName(p.department_id);
-      if (!region || region === p.department_id) return; // skip unmapped/unassigned
+      if (!region || region === p.department_id || region === "Business Support Services") return; // skip unmapped/unassigned and Business Support Services
       if (!map[region]) map[region] = { region, count: 0, value: 0 };
       map[region].count++;
       map[region].value += p.estimated_value || 0;
@@ -20,8 +20,8 @@ export function RegionBreakdown({ projects, accountMap }) {
   return (
     <div className="rounded-2xl border border-slate-200 bg-white p-5">
       <div className="mb-4">
-        <h3 className="text-sm font-semibold text-slate-900">Projects by Region</h3>
-        <p className="text-xs text-slate-500">Pipeline value and project count by region</p>
+        <h3 className="text-sm font-semibold text-slate-900">Projects by Department</h3>
+        <p className="text-xs text-slate-500">Pipeline value and project count by department</p>
       </div>
       {data.length === 0 ? (
         <div className="flex h-[260px] items-center justify-center text-sm text-slate-400">No data available</div>
