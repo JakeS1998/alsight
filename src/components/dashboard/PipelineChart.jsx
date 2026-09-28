@@ -30,12 +30,12 @@ export function PipelineChart({ projects }) {
   }, [projects]);
 
   return (
-    <div className="rounded-2xl border border-slate-200 bg-white p-5">
+    <div className="flex h-full min-w-0 flex-col rounded-2xl border border-slate-200 bg-white p-5">
       <div className="mb-4">
         <h3 className="text-sm font-semibold text-slate-900">Pipeline Value by Stage</h3>
         <p className="text-xs text-slate-500">Total estimated value at each RIBA stage</p>
       </div>
-      <ResponsiveContainer width="100%" height={260}>
+      <div className="h-80 min-w-0 w-full"><ResponsiveContainer width="100%" height="100%">
         <BarChart data={data} margin={{ left: -10, right: 10, top: 10, bottom: 0 }}>
           <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#e2e8f0" />
           <XAxis dataKey="stage" tick={{ fontSize: 11, fill: "#64748b" }} axisLine={false} tickLine={false} />
@@ -45,11 +45,11 @@ export function PipelineChart({ projects }) {
             formatter={(v) => [formatCurrency(v), "Value"]}
             cursor={{ fill: "#f1f5f9" }}
           />
-          <Bar dataKey="value" radius={[6, 6, 0, 0]} barSize={36}>
+          <Bar dataKey="value" radius={[6, 6, 0, 0]} maxBarSize={80}>
             {data.map((_, i) => <Cell key={i} fill={COLORS[i]} />)}
           </Bar>
         </BarChart>
-      </ResponsiveContainer>
+      </ResponsiveContainer></div>
     </div>
   );
 }

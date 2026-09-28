@@ -8,6 +8,7 @@ export default function FinancialBreakdown({ portfolio }) {
     const regionByRef = new Map();
     portfolio.pipeline.forEach((p) => {
       const region = regionName(p.department_id) || "Unassigned";
+      if (region === "Business Support Services") return;
       if (p.project_number) regionByRef.set(p.project_number, region);
       const row = byRegion.get(region) || { region, value: 0, poNet: 0 };
       row.value += Number(p.estimated_value) || 0;
@@ -19,10 +20,10 @@ export default function FinancialBreakdown({ portfolio }) {
     });
     return [...byRegion.values()].sort((a, b) => b.value - a.value);
   }, [portfolio]);
-  return <section className="rounded-2xl border border-slate-200 bg-white p-5">
+  return <section className="flex h-full min-w-0 flex-col rounded-2xl border border-slate-200 bg-white p-5">
     <h2 className="font-heading text-base font-semibold text-slate-900">Financial exposure by region</h2>
     <p className="mb-5 text-xs text-slate-500">Estimated project value versus purchase orders (net) for active projects; not revenue or invoiced totals</p>
-    {data.length ? <div className="h-80 w-full"><ResponsiveContainer width="100%" height="100%">
+    {data.length ? <div className="h-80 min-w-0 w-full"><ResponsiveContainer width="100%" height="100%">
       <BarChart data={data} layout="vertical" margin={{ left: 10, right: 20 }}>
         <CartesianGrid strokeDasharray="3 3" horizontal={false} stroke="#e2e8f0" />
         <XAxis type="number" tickFormatter={(v) => `£${(v / 1e6).toFixed(1)}m`} tick={{ fontSize: 11 }} />
