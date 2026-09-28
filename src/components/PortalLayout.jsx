@@ -5,6 +5,7 @@ import { ROLE_LABELS, ROLE_BADGE_CLASS } from "@/lib/portal";
 import { base44 } from "@/api/base44Client";
 import { LayoutDashboard, FolderKanban, Building2, UserCircle, LogOut, Menu, X, BarChart3, Users, UserCog } from "lucide-react";
 import Logo from "@/components/Logo";
+import AliceWidget from '@/components/alice/AliceWidget';
 import { INTERNAL_ROLES } from "@/lib/portal";
 
 const ALL_ROLES = ["admin", "director", "regional_director", "bsm", "finance", "bdm", "client", "supplier", "project_manager"];
@@ -109,6 +110,7 @@ export default function PortalLayout() {
         <main className="mx-auto max-w-6xl px-5 py-8 sm:px-8">
           <Outlet />
         </main>
+        <AliceWidget />
       </div>
     </div>
   );
