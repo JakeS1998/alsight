@@ -32,6 +32,7 @@ export async function createCRMOpportunity(data, user) {
   const matches = await base44.entities.Opportunity.filter({ account_id: data.account_id, title: data.title.trim() }, { limit: 1 });
   if (matches.items.length) throw new Error('An opportunity with this name already exists for this client. Open the existing record instead.');
   const stage = data.stage || 'lead';
+  const currentUser = await base44.auth.me();
   const probability = STAGES.find(s => s.value === stage)?.probability ?? 10;
-  return base44.entities.Opportunity.create({ ...data, title: data.title.trim(), owner_id: user.id, owner_name: user.full_name || user.email, line_manager_id: user.data?.line_manager_id || user.line_manager_id || '', stage, probability, stage_entered_at: new Date().toISOString(), status: 'open', weighted_value: Math.round((Number(data.budget) || 0) * probability) / 100, weighted_alliance_fee: 0 });
+  return base44.entities.Opportunity.create({ ...data, title: data.title.trim(), owner_id: currentUser.id, owner_name: currentUser.full_name || currentUser.email, line_manager_id: currentUser.data?.line_manager_id || currentUser.line_manager_id || '', stage, probability, stage_entered_at: new Date().toISOString(), status: 'open', weighted_value: Math.round((Number(data.budget) || 0) * probability) / 100, weighted_alliance_fee: 0 });
 }

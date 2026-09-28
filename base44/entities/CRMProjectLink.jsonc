@@ -31,16 +31,20 @@
         },
         {
           "data.line_manager_id": "{{user.id}}"
-        },
-        {
-          "created_by_id": "{{user.id}}"
         }
       ]
     },
     "create": {
       "$and": [
         {
-          "data.owner_id": "{{user.id}}"
+          "$or": [
+            {
+              "data.owner_id": "{{user.id}}"
+            },
+            {
+              "data.line_manager_id": "{{user.id}}"
+            }
+          ]
         },
         {
           "$or": [
@@ -64,12 +68,21 @@
       ]
     },
     "update": {
-      "$or": [
+      "$and": [
         {
-          "data.owner_id": "{{user.id}}"
+          "user_condition": {
+            "role": "admin"
+          }
         },
         {
-          "data.line_manager_id": "{{user.id}}"
+          "$or": [
+            {
+              "data.owner_id": "{{user.id}}"
+            },
+            {
+              "data.line_manager_id": "{{user.id}}"
+            }
+          ]
         }
       ]
     },
