@@ -1,6 +1,6 @@
 import React, { useEffect, useMemo, useState } from "react";
 import { base44 } from "@/api/base44Client";
-import { listAll } from "@/components/data/loadAll";
+import { listAll, filterAll } from "@/components/data/loadAll";
 import { DOCUMENT_TYPE, WARRANTY_STATUS, INTERNAL_ROLES, regionName } from "@/lib/portal";
 import { useAuth } from "@/lib/AuthContext";
 import usePortfolioExtras from "@/components/dashboard/usePortfolioExtras";
@@ -25,7 +25,7 @@ export default function Analytics() {
     (async () => {
       try {
         const [projects, docs, warranties, accounts] = await Promise.all([
-          listAll(base44.entities.Project).catch(() => []),
+          filterAll(base44.entities.Project, { status: { $ne: "inactive" } }).catch(() => []),
           listAll(base44.entities.LegalDocument).catch(() => []),
           listAll(base44.entities.Warranty).catch(() => []),
           listAll(base44.entities.Account, "-name").catch(() => []),

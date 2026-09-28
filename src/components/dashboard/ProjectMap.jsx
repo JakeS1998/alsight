@@ -13,7 +13,7 @@ const REGION_PALETTE = [
 ];
 
 export function ProjectMap({ projects, showValues = true }) {
-  const validProjects = projects.filter((p) => p.latitude && p.longitude);
+  const validProjects = projects.filter((p) => p.status !== "inactive" && p.latitude && p.longitude);
 
   const { regionColors, legend } = useMemo(() => {
     const map = {};
@@ -54,7 +54,7 @@ export function ProjectMap({ projects, showValues = true }) {
         {validProjects.map((p) => {
           const region = regionName(p.department_id);
           const color = (region && regionColors[region]) || "hsl(var(--chart-3))";
-          const live = p.live_project;
+          const onHold = p.live_project === true;
           return (
             <CircleMarker
               key={p.id}
@@ -63,8 +63,8 @@ export function ProjectMap({ projects, showValues = true }) {
               pathOptions={{
                 color,
                 fillColor: color,
-                fillOpacity: live ? 0.8 : 0.3,
-                weight: live ? 2 : 1.5,
+                fillOpacity: onHold ? 0.8 : 0,
+                                 weight: 2,
               }}
             >
               <Popup>
@@ -77,9 +77,7 @@ export function ProjectMap({ projects, showValues = true }) {
                   {region && <p className="mt-0.5 text-xs text-slate-600">{region}</p>}
                   {showValues && <p className="mt-1 text-xs text-slate-600">{formatCurrency(p.estimated_value)}</p>}
                   <p className="text-xs text-slate-500">
-                    Status: <span className={live ? "font-medium text-emerald-600" : "text-slate-400"}>
-                      {live ? "Live" : "Inactive"}
-                    </span>
+                    On Hold: <span className="font-medium text-slate-700">{onHold ? "Yes" : "No"}</span>
                   </p>
                   <Link to={`/projects/${p.id}`} className="mt-1 inline-block text-xs text-als-navy hover:underline">
                     View project →
@@ -103,15 +101,15 @@ export function ProjectMap({ projects, showValues = true }) {
           ))}
         </div>
         <div className="mt-2 border-t border-slate-100 pt-1.5">
-          <p className="mb-1 text-[11px] font-semibold text-slate-700">Status</p>
-          <div className="flex items-center gap-1.5">
-            <span className="inline-block h-2.5 w-2.5 rounded-full bg-primary" />
-            <span className="text-[10px] text-slate-600">Live (filled)</span>
-          </div>
-          <div className="flex items-center gap-1.5">
-            <span className="inline-block h-2.5 w-2.5 rounded-full border border-slate-400 bg-white/30" />
-            <span className="text-[10px] text-slate-600">Inactive (hollow)</span>
-          </div>
+          <p className="mb-1 text-[11px] font-semibold text-slate-700">On Hold</p>
+                     <div className="flex items-center gap-1.5">
+                       <span className="inline-block h-2.5 w-2.5 rounded-full bg-primary" />
+                       <span className="text-[10px] text-slate-600">Yes (filled)</span>
+                     </div>
+                     <div className="flex items-center gap-1.5">
+                       <span className="inline-block h-2.5 w-2.5 rounded-full border-2 border-primary bg-white" />
+                       <span className="text-[10px] text-slate-600">No (hollow)</span>
+                     </div>
         </div>
       </div>
     </div>

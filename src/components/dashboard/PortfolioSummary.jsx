@@ -4,7 +4,7 @@ import { Activity, AlertTriangle, FileText, FolderKanban, PoundSterling, Receipt
 
 export default function PortfolioSummary({ metrics }) {
   const cards = [
-    { label: "Active pipeline", value: metrics.projects, detail: `${metrics.live} live`, icon: FolderKanban, tone: "bg-chart-4/30 text-als-navy" },
+    { label: "Active pipeline", value: metrics.projects, detail: `${metrics.live} on hold`, icon: FolderKanban, tone: "bg-chart-4/30 text-als-navy" },
     { label: "Estimated project value", value: formatCurrency(metrics.value), detail: "Active pipeline", icon: PoundSterling, tone: "bg-primary/15 text-als-navy" },
     { label: "Projects at risk", value: metrics.atRisk, detail: `${metrics.highRisk} high priority`, icon: AlertTriangle, tone: "bg-rose-50 text-rose-700" },
     { label: "Purchase orders (net)", value: formatCurrency(metrics.poNet), detail: "Linked to active projects", icon: Receipt, tone: "bg-chart-5/30 text-als-navy" },

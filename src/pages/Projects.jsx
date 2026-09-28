@@ -42,11 +42,11 @@ export default function Projects() {
     try {
       if (role === 'project_manager') {
         const response = await base44.functions.invoke('manageValuation', { action: 'projects' });
-        setProjects(response.data.projects || []);
+        setProjects((response.data.projects || []).filter((p) => p.status !== 'inactive'));
         return;
       }
       const [p, a, u, staffContacts] = await Promise.all([
-        listAll(base44.entities.Project),
+        filterAll(base44.entities.Project, { status: { $ne: 'inactive' } }),
         listAll(base44.entities.Account, "-name").catch(() => []),
         listAll(base44.entities.User).catch(() => []),
         (async () => {
@@ -112,8 +112,8 @@ export default function Projects() {
     if (bdmFilter) result = result.filter((p) => p.bdm_aad_id === bdmFilter);
     if (bsmFilter) result = result.filter((p) => p.bsm_aad_id === bsmFilter);
     if (regionFilter) result = result.filter((p) => regionName(p.department_id) === regionFilter);
-    if (statusFilter === "live") result = result.filter((p) => p.live_project);
-    else if (statusFilter === "inactive") result = result.filter((p) => !p.live_project);
+    if (statusFilter === "yes") result = result.filter((p) => p.live_project === true);
+    else if (statusFilter === "no") result = result.filter((p) => p.live_project === false);
 
     return [...result].sort((a, b) => {
       switch (sortBy) {
@@ -166,9 +166,9 @@ export default function Projects() {
             <FilterSelect label="BDMs" value={bdmFilter} onChange={setBdmFilter} options={bdmOptions} />
             <FilterSelect label="BSMs" value={bsmFilter} onChange={setBsmFilter} options={bsmOptions} />
             <FilterSelect label="Regions" value={regionFilter} onChange={setRegionFilter} options={regionOptions} />
-            <FilterSelect label="Status" value={statusFilter} onChange={setStatusFilter} options={[
-              { value: "live", label: "Live" },
-              { value: "inactive", label: "Inactive" },
+            <FilterSelect label="On Hold" value={statusFilter} onChange={setStatusFilter} options={[
+              { value: "yes", label: "Yes" },
+              { value: "no", label: "No" },
             ]} />
             {hasFilters && (
               <button onClick={clearFilters} className="inline-flex items-center gap-1 rounded-lg px-2 py-1.5 text-xs text-slate-500 hover:bg-slate-100">
@@ -208,9 +208,9 @@ export default function Projects() {
                       {p.project_number && (
                         <span className="rounded bg-slate-100 px-1.5 py-0.5 text-[10px] font-semibold text-slate-600">{p.project_number}</span>
                       )}
-                      {p.live_project && (
-                        <span className="rounded-full bg-emerald-50 px-2 py-0.5 text-[10px] font-medium text-emerald-700">Live</span>
-                      )}
+                      <span className={p.live_project ? "rounded-full bg-amber-50 px-2 py-0.5 text-[10px] font-medium text-amber-800" : "rounded-full border border-slate-400 bg-white px-2 py-0.5 text-[10px] font-medium text-slate-600"}>
+                                               On Hold: {p.live_project ? "Yes" : "No"}
+                                             </span>
                     </div>
                     <p className="mt-1.5 truncate text-sm font-semibold text-slate-900">{p.name}</p>
                   </div>

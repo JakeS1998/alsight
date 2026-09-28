@@ -2,7 +2,7 @@ import React, { useEffect, useState, useMemo } from "react";
 import { Link, Navigate } from "react-router-dom";
 import { useAuth } from "@/lib/AuthContext";
 import { base44 } from "@/api/base44Client";
-import { listAll } from "@/components/data/loadAll";
+import { listAll, filterAll } from "@/components/data/loadAll";
 import { ROLE_LABELS, formatCurrency, regionName } from "@/lib/portal";
 import { DashboardKPIs } from "@/components/dashboard/DashboardKPIs";
 import { PipelineChart } from "@/components/dashboard/PipelineChart";
@@ -28,7 +28,7 @@ export default function Home() {
     (async () => {
       try {
         const [p, a] = await Promise.all([
-          listAll(base44.entities.Project, "-created_date"),
+          filterAll(base44.entities.Project, { status: { $ne: "inactive" } }, "-created_date"),
           listAll(base44.entities.Account, "-name").catch(() => []),
         ]);
         setProjects(p);

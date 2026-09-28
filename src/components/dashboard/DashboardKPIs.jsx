@@ -10,7 +10,7 @@ export function DashboardKPIs({ projects, hideValues = false }) {
   const kpis = [
     { label: "Pipeline Value", value: formatCurrency(totalValue), icon: PoundSterling, accent: "bg-primary/15 text-als-navy" },
     { label: "Active Projects", value: projects.length, icon: FolderKanban, accent: "bg-chart-4/30 text-als-navy" },
-    { label: "Live Projects", value: liveCount, icon: Activity, accent: "bg-chart-5/30 text-als-navy" },
+    { label: "On Hold Projects", value: liveCount, icon: Activity, accent: "bg-chart-5/30 text-als-navy" },
     { label: "Avg Project Value", value: formatCurrency(avgValue), icon: TrendingUp, accent: "bg-chart-2/15 text-als-navy" },
   ];
 

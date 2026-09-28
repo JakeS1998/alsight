@@ -28,7 +28,7 @@ export default function AccountDetail() {
 
         const [allContacts, directProjects, d, w, j] = await Promise.all([
           listAll(base44.entities.Contact).catch(() => []),
-          filterAll(base44.entities.Project, { $or: [{ client_account_id: dvId }, { account_id: dvId }] }).catch(() => []),
+          filterAll(base44.entities.Project, { $or: [{ client_account_id: dvId }, { account_id: dvId }], status: { $ne: "inactive" } }).catch(() => []),
           filterAll(base44.entities.LegalDocument, { $or: [{ account_id: dvId }, { client_account_id: dvId }], status: { $in: ["active", "inactive"] } }).catch(() => []),
           filterAll(base44.entities.Warranty, { $or: [{ account_id: dvId }, { supplier_id: dvId }, { client_account_id: dvId }] }).catch(() => []),
           filterAll(base44.entities.JCT, { $or: [{ account_id: dvId }, { contractor_id: dvId }, { client_account_id: dvId }] }).catch(() => []),
@@ -53,7 +53,7 @@ export default function AccountDetail() {
         [d, w, j].forEach((arr) => arr.forEach((r) => r.project_id && projectIdSet.add(r.project_id)));
         let projects = directProjects;
         if (projectIdSet.size > directProjects.length) {
-          const derived = await filterAll(base44.entities.Project, { dataverse_id: { $in: [...projectIdSet] } }).catch(() => []);
+          const derived = await filterAll(base44.entities.Project, { dataverse_id: { $in: [...projectIdSet] }, status: { $ne: "inactive" } }).catch(() => []);
           const map = {};
           [...directProjects, ...derived].forEach((p) => { if (p.dataverse_id) map[p.dataverse_id] = p; });
           projects = Object.values(map);
@@ -153,7 +153,7 @@ export default function AccountDetail() {
               <Link key={p.id} to={`/projects/${p.id}`} className="group rounded-xl border border-slate-200 bg-white p-4 transition-shadow hover:shadow-md">
                 <div className="flex items-center gap-2">
                   {p.project_number && <span className="rounded bg-slate-100 px-1.5 py-0.5 text-[10px] font-semibold text-slate-600">{p.project_number}</span>}
-                  {p.live_project && <span className="rounded-full bg-emerald-50 px-2 py-0.5 text-[10px] font-medium text-emerald-700">Live</span>}
+                  <span className={p.live_project ? "rounded-full bg-amber-50 px-2 py-0.5 text-[10px] font-medium text-amber-800" : "rounded-full border border-slate-400 bg-white px-2 py-0.5 text-[10px] font-medium text-slate-600"}>On Hold: {p.live_project ? "Yes" : "No"}</span>
                 </div>
                 <p className="mt-1.5 text-sm font-semibold text-slate-900 group-hover:text-primary">{p.name}</p>
                 {user?.role !== 'supplier' && <p className="text-xs text-slate-500">{formatCurrency(p.estimated_value)}</p>}

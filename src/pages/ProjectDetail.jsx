@@ -36,7 +36,7 @@ export default function ProjectDetail() {
     (async () => {
       try {
         const proj = isExternalPM ? (await base44.functions.invoke('manageValuation', { action: 'project', projectId }).catch(() => ({ data: { project: null } }))).data.project : await base44.entities.Project.get(projectId).catch(() => null);
-        if (!proj) { setProject(null); return; }
+        if (!proj || proj.status === 'inactive') { setProject(null); return; }
         setProject(proj);
         if (isExternalPM) return;
         const dvId = proj.dataverse_id;
@@ -92,9 +92,7 @@ export default function ProjectDetail() {
           {project.project_number && (
             <span className="rounded-lg bg-slate-100 px-2.5 py-1 text-sm font-medium text-slate-600">{project.project_number}</span>
           )}
-          {project.live_project && (
-            <span className="rounded-full bg-emerald-50 px-2.5 py-0.5 text-xs font-medium text-emerald-700 border border-emerald-200">Live</span>
-          )}
+          <span className={project.live_project ? "rounded-full border border-amber-200 bg-amber-50 px-2.5 py-0.5 text-xs font-medium text-amber-800" : "rounded-full border border-slate-400 bg-white px-2.5 py-0.5 text-xs font-medium text-slate-600"}>On Hold: {project.live_project ? "Yes" : "No"}</span>
           {project.procurement_route && (
             <span className="rounded-full bg-primary/10 px-2.5 py-0.5 text-xs font-medium text-primary">UKLF</span>
           )}
