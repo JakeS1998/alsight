@@ -45,7 +45,8 @@ export default function ContactDetail() {
         internal ? base44.entities.Contact.filter({ portal_role: { $in: ['admin','director','regional_director','bsm','finance','bdm'] } }, { sort: 'full_name', limit: 100, fields: ['full_name','portal_role'] }) : Promise.resolve({ items: [] }),
         internal ? base44.entities.Opportunity.filter({ contact_id: contactId }, { sort: '-created_date', limit: 50, fields: ['title','stage','status','account_id'] }) : Promise.resolve({ items: [] }),
       ]);
-      if (active) { setContact(c); setAccount(a); setProfile(p.items[0] || null); setStaff(s.items); setOpportunities(o.items); }
+      const linkedAccount = a || (!accountId && o.items[0]?.account_id ? await base44.entities.Account.get(o.items[0].account_id) : null);
+      if (active) { setContact(c); setAccount(linkedAccount); setProfile(p.items[0] || null); setStaff(s.items); setOpportunities(o.items); }
       if (internal) await refreshSignals();
     })().catch(e => { if (active) setError(e.message || 'Unable to load contact.'); }).finally(() => { if (active) setLoading(false); });
     return () => { active = false; };
