@@ -1,0 +1,130 @@
+{
+  "name": "Opportunity",
+  "type": "object",
+  "properties": {
+    "account_id": {
+      "type": "string"
+    },
+    "contact_id": {
+      "type": "string"
+    },
+    "title": {
+      "type": "string"
+    },
+    "project_details": {
+      "type": "string"
+    },
+    "budget": {
+      "type": "number"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "open",
+        "lost",
+        "won"
+      ],
+      "default": "open"
+    },
+    "project_id": {
+      "type": "string"
+    },
+    "lost_reason": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "account_id",
+    "title",
+    "status"
+  ],
+  "rls": {
+    "read": {
+      "$or": [
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        },
+        {
+          "user_condition": {
+            "role": "director"
+          }
+        },
+        {
+          "user_condition": {
+            "role": "regional_director"
+          }
+        },
+        {
+          "user_condition": {
+            "role": "bsm"
+          }
+        },
+        {
+          "user_condition": {
+            "role": "finance"
+          }
+        },
+        {
+          "user_condition": {
+            "role": "bdm"
+          }
+        }
+      ]
+    },
+    "create": {
+      "$or": [
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        },
+        {
+          "user_condition": {
+            "role": "director"
+          }
+        },
+        {
+          "user_condition": {
+            "role": "bdm"
+          }
+        },
+        {
+          "user_condition": {
+            "role": "bsm"
+          }
+        }
+      ]
+    },
+    "update": {
+      "$or": [
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        },
+        {
+          "user_condition": {
+            "role": "director"
+          }
+        },
+        {
+          "user_condition": {
+            "role": "bdm"
+          }
+        },
+        {
+          "user_condition": {
+            "role": "bsm"
+          }
+        }
+      ]
+    },
+    "delete": {
+      "user_condition": {
+        "role": "admin"
+      }
+    }
+  }
+}

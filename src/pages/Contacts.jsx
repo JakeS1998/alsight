@@ -1,4 +1,5 @@
 import React, { useEffect, useState, useMemo } from "react";
+import { Link } from 'react-router-dom';
 import { base44 } from "@/api/base44Client";
 import { listAll } from "@/components/data/loadAll";
 import { useAuth } from "@/lib/AuthContext";
@@ -95,6 +96,7 @@ export default function Contacts() {
           {filtered.map((c) => {
             const linkedUser = c.email ? userByEmail[c.email.toLowerCase()] : null;
             const hasAccess = !!(linkedUser || pendingByContact[c.id]);
+             const relatedAccount = accounts.find(a => (a.company_number && a.company_number === c.company_number) || (a.company_name && a.company_name.toLowerCase() === (c.company_name || '').toLowerCase()));
             return (
               <div key={c.id} className="flex flex-col rounded-2xl border border-slate-200 bg-white p-5">
                 <div className="flex items-start justify-between gap-2">
@@ -103,7 +105,7 @@ export default function Contacts() {
                       {c.full_name?.charAt(0).toUpperCase()}
                     </div>
                     <div className="min-w-0">
-                      <p className="truncate text-sm font-semibold text-slate-900">{c.full_name}</p>
+                      <Link to={relatedAccount ? `/accounts/${relatedAccount.id}/contacts/${c.id}` : `/contacts/${c.id}`} className="truncate text-sm font-semibold text-primary hover:underline">{c.full_name}</Link>
                       {c.job_title && <p className="truncate text-xs text-slate-500">{c.job_title}</p>}
                     </div>
                   </div>

@@ -19,6 +19,8 @@ import LegalDocuments from '@/pages/LegalDocuments';
 import Warranties from '@/pages/Warranties';
 import Accounts from '@/pages/Accounts';
 import Contacts from '@/pages/Contacts';
+import ContactDetail from '@/pages/ContactDetail';
+import AdminContactsRoute from '@/components/contacts/AdminContactsRoute';
 import AccountProfile from '@/pages/AccountProfile';
 import AccountDetail from '@/pages/AccountDetail';
 import Analytics from '@/pages/Analytics';
@@ -57,7 +59,11 @@ const AuthenticatedApp = () => {
           <Route path="/account" element={<AccountProfile />} />
           <Route path="/accounts" element={<Accounts />} />
           <Route path="/accounts/:accountId" element={<AccountDetail />} />
-          <Route path="/contacts" element={<Contacts />} />
+          <Route element={<AdminContactsRoute />}>
+            <Route path="/contacts" element={<Contacts />} />
+            <Route path="/contacts/:contactId" element={<ContactDetail />} />
+          </Route>
+          <Route path="/accounts/:accountId/contacts/:contactId" element={<ContactDetail />} />
           <Route path="/analytics" element={<Analytics />} />
           <Route path="/delegation" element={<Delegation />} />
         </Route>

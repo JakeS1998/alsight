@@ -184,6 +184,11 @@
           "user_condition": {
             "role": "bdm"
           }
+        },
+        {
+          "user_condition": {
+            "role": "project_manager"
+          }
         }
       ]
     },

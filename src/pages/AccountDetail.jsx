@@ -5,6 +5,7 @@ import { useAuth } from "@/lib/AuthContext";
 import { listAll, filterAll } from "@/components/data/loadAll";
 import { formatDate, formatCurrency, regionName } from "@/lib/portal";
 import { DocTypeBadge, ExecutedBadge, WarrantyStatusBadge } from "@/components/StatusBadge";
+import AccountCRM from '@/components/crm/AccountCRM';
 import { ArrowLeft, MapPin, ExternalLink, Users, FolderKanban, FileText, ShieldCheck, Mail, Phone, Gavel } from "lucide-react";
 
 export default function AccountDetail() {
@@ -24,11 +25,12 @@ export default function AccountDetail() {
         const acc = await base44.entities.Account.get(accountId);
         setAccount(acc);
         const dvId = acc.dataverse_id;
-        const companyNo = acc.company_number;
+                 const projectAccountId = dvId || acc.id;
+                 const companyNo = acc.company_number;
 
         const [allContacts, directProjects, d, w, j] = await Promise.all([
           listAll(base44.entities.Contact).catch(() => []),
-          filterAll(base44.entities.Project, { $or: [{ client_account_id: dvId }, { account_id: dvId }], status: { $ne: "inactive" } }).catch(() => []),
+          filterAll(base44.entities.Project, { $or: [{ client_account_id: projectAccountId }, { account_id: projectAccountId }], status: { $ne: "inactive" } }).catch(() => []),
           filterAll(base44.entities.LegalDocument, { $or: [{ account_id: dvId }, { client_account_id: dvId }], status: { $in: ["active", "inactive"] } }).catch(() => []),
           filterAll(base44.entities.Warranty, { $or: [{ account_id: dvId }, { supplier_id: dvId }, { client_account_id: dvId }] }).catch(() => []),
           filterAll(base44.entities.JCT, { $or: [{ account_id: dvId }, { contractor_id: dvId }, { client_account_id: dvId }] }).catch(() => []),
@@ -55,7 +57,7 @@ export default function AccountDetail() {
         if (projectIdSet.size > directProjects.length) {
           const derived = await filterAll(base44.entities.Project, { dataverse_id: { $in: [...projectIdSet] }, status: { $ne: "inactive" } }).catch(() => []);
           const map = {};
-          [...directProjects, ...derived].forEach((p) => { if (p.dataverse_id) map[p.dataverse_id] = p; });
+          [...directProjects, ...derived].forEach((p) => { map[p.dataverse_id || p.id] = p; });
           projects = Object.values(map);
         }
 
@@ -134,7 +136,7 @@ export default function AccountDetail() {
           <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
             {contacts.map((c) => (
               <div key={c.id} className="rounded-xl border border-slate-200 bg-white p-4">
-                <p className="text-sm font-semibold text-slate-900">{c.full_name}</p>
+                               <Link to={`/accounts/${account.id}/contacts/${c.id}`} className="text-sm font-semibold text-primary hover:underline">{c.full_name}</Link>
                 {c.job_title && <p className="text-xs text-slate-500">{c.job_title}</p>}
                 {c.email && <p className="mt-1 flex items-center gap-1 text-xs text-slate-500"><Mail className="h-3 w-3" /> {c.email}</p>}
                 {c.phone && <p className="text-xs text-slate-500">{c.phone}</p>}
@@ -144,6 +146,8 @@ export default function AccountDetail() {
           </div>
         )}
       </Section>
+
+      {['admin','director','regional_director','bsm','finance','bdm'].includes(user?.role) && <AccountCRM account={account} contacts={contacts} user={user} />}
 
       {/* Related Projects */}
       <Section icon={FolderKanban} title="Related Projects" count={projects.length}>

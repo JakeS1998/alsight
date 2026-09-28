@@ -15,7 +15,7 @@ const NAV_ITEMS = [
   { label: "Analytics", path: "/analytics", icon: BarChart3, roles: INTERNAL_ROLES },
   { label: "Delegation", path: "/delegation", icon: UserCog, roles: INTERNAL_ROLES },
   { label: "My Account", path: "/account", icon: UserCircle, roles: ["client", "supplier"] },
-  { label: "Accounts", path: "/accounts", icon: Building2, roles: INTERNAL_ROLES.concat(['client', 'supplier']) },
+  { label: "Accounts", path: "/accounts", icon: Building2, roles: ALL_ROLES },
   { label: "Contacts", path: "/contacts", icon: Users, roles: ["admin"] },
 ];
 
