@@ -62,6 +62,7 @@ export function FeeProposalSection({ projectId, project, onChanged, deliveryTeam
         if (fee > 0) {
           out.push({
             riba_stage: STAGE_LABEL[st],
+            role: m.role || "Supplier",
             description: `${m.role || "Supplier"}${m.supplier_company_number ? " — " + supplierName(m.supplier_company_number) : ""}`,
             supplier_company_number: m.supplier_company_number || "",
             supplier_fee: fee,

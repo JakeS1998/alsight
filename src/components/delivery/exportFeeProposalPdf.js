@@ -1,11 +1,12 @@
 import { jsPDF } from "jspdf";
-import { formatCurrency, formatDate } from "@/lib/portal";
+import { formatDate } from "@/lib/portal";
+import { drawFeeMatrix } from "./drawFeeMatrix";
 
 const parseItems = (s) => { try { return JSON.parse(s) || []; } catch { return []; } };
 const money = (n) => (n == null || n === "" ? "—" : `£${Number(n).toLocaleString("en-GB", { minimumFractionDigits: 0, maximumFractionDigits: 0 })}`);
 
 export function exportFeeProposalPdf({ project, proposal, suppliers, poBySupplier, supplierLines }) {
-  const doc = new jsPDF({ unit: "pt", format: "a4" });
+  const doc = new jsPDF({ unit: "pt", format: "a4", orientation: "landscape" });
   const W = doc.internal.pageSize.getWidth();
   const H = doc.internal.pageSize.getHeight();
   const M = 40;
@@ -32,54 +33,13 @@ export function exportFeeProposalPdf({ project, proposal, suppliers, poBySupplie
   const supplierName = (cn) => suppliers.find((s) => s.company_number === cn)?.name || cn || "—";
   const alsLines = parseItems(proposal.line_items);
 
-  const cols = [
-    { h: "RIBA Stage", w: 72 },
-    { h: "Description", w: 200 },
-    { h: "Supplier £", w: 62, align: "right" },
-    { h: "ALS £", w: 62, align: "right" },
-  ];
-  const tableW = cols.reduce((a, c) => a + c.w, 0);
   const x0 = M;
-
-  const drawHeader = () => {
-    doc.setFillColor(241, 245, 249); doc.rect(x0, y, tableW, 16, "F");
-    doc.setTextColor(15, 23, 42); doc.setFontSize(8); doc.setFont("helvetica", "bold");
-    let x = x0 + 4;
-    cols.forEach((c) => { doc.text(c.h, c.align === "right" ? x + c.w - 8 : x, y + 11); x += c.w; });
-    y += 16;
-    doc.setFont("helvetica", "normal"); doc.setTextColor(51, 65, 85);
-  };
-
-  const drawRow = (vals) => {
-    if (y > H - 140) { doc.addPage(); y = 60; }
-    let x = x0 + 4;
-    cols.forEach((c, i) => {
-      const text = String(vals[i]).length > 32 ? String(vals[i]).slice(0, 31) + "…" : String(vals[i]);
-      doc.text(text, c.align === "right" ? x + c.w - 8 : x, y + 11);
-      x += c.w;
-    });
-    y += 15;
-  };
-
-  // Supplier lines
-  doc.setFont("helvetica", "bold"); doc.setFontSize(10); doc.setTextColor(15, 23, 42);
-  doc.text("Supplier fees (from Delivery Team)", x0, y); y += 14;
-  drawHeader();
-  supplierLines.forEach((l) => drawRow([l.riba_stage || "", l.description || "", money(l.supplier_fee), "—"]));
-  const totSup = supplierLines.reduce((a, l) => a + (Number(l.supplier_fee) || 0), 0);
-  doc.setDrawColor(203, 213, 225); doc.line(x0, y, x0 + tableW, y); y += 14;
-  doc.setFont("helvetica", "bold"); doc.text(`Total supplier fees: ${money(totSup)}`, x0, y); y += 18;
-
-  // ALS lines
-  doc.setFont("helvetica", "bold"); doc.setFontSize(10); doc.setTextColor(15, 23, 42);
-  doc.text("ALS & internal fees", x0, y); y += 14;
-  drawHeader();
-  alsLines.forEach((l) => drawRow([l.riba_stage || "", l.description || "", "—", money(l.internal_fee)]));
-  const totAls = alsLines.reduce((a, l) => a + (Number(l.internal_fee) || 0), 0);
-  doc.setDrawColor(203, 213, 225); doc.line(x0, y, x0 + tableW, y); y += 14;
-  doc.setFont("helvetica", "bold"); doc.text(`Total ALS fees: ${money(totAls)}`, x0, y); y += 20;
+  const matrix = drawFeeMatrix(doc, { supplierLines, alsLines, supplierName, money, x: x0, startY: y, width: W - 2 * M, height: H });
+  y = matrix.y;
+  const { totSup, totAls } = matrix;
 
   // Summary
+  if (y + 70 > H - 55) { doc.addPage(); y = 60; }
   const contribution = totAls - totSup;
   const marginPct = totAls ? Math.round((contribution / totAls) * 100) : 0;
   doc.setFont("helvetica", "bold"); doc.setFontSize(9); doc.setTextColor(15, 23, 42);
@@ -88,6 +48,7 @@ export function exportFeeProposalPdf({ project, proposal, suppliers, poBySupplie
   y += 24;
 
   // Supplier vs PO comparison
+  if (y + 35 > H - 55) { doc.addPage(); y = 60; }
   doc.setFont("helvetica", "bold"); doc.setFontSize(10); doc.setTextColor(15, 23, 42);
   doc.text("Supplier fees vs Purchase Orders", x0, y); y += 14;
   doc.setFont("helvetica", "normal"); doc.setFontSize(9); doc.setTextColor(51, 65, 85);
