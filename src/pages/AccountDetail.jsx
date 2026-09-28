@@ -153,7 +153,7 @@ export default function AccountDetail() {
               <Link key={p.id} to={`/projects/${p.id}`} className="group rounded-xl border border-slate-200 bg-white p-4 transition-shadow hover:shadow-md">
                 <div className="flex items-center gap-2">
                   {p.project_number && <span className="rounded bg-slate-100 px-1.5 py-0.5 text-[10px] font-semibold text-slate-600">{p.project_number}</span>}
-                  <span className={p.live_project ? "rounded-full bg-amber-50 px-2 py-0.5 text-[10px] font-medium text-amber-800" : "rounded-full border border-slate-400 bg-white px-2 py-0.5 text-[10px] font-medium text-slate-600"}>On Hold: {p.live_project ? "Yes" : "No"}</span>
+                  <span className={p.live_project ? "rounded-full border border-emerald-200 bg-emerald-50 px-2 py-0.5 text-[10px] font-medium text-emerald-700" : "rounded-full border border-orange-200 bg-orange-50 px-2 py-0.5 text-[10px] font-medium text-orange-700"}>{p.live_project ? "Live" : "On Hold"}</span>
                 </div>
                 <p className="mt-1.5 text-sm font-semibold text-slate-900 group-hover:text-primary">{p.name}</p>
                 {user?.role !== 'supplier' && <p className="text-xs text-slate-500">{formatCurrency(p.estimated_value)}</p>}

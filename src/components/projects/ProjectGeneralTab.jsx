@@ -212,7 +212,7 @@ export function ProjectGeneralTab({ project, accountMap }) {
         <h3 className="mb-4 text-sm font-semibold text-slate-900">Additional Details</h3>
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
           <Detail label="Procurement Route" value={project.procurement_route ? "UK Leisure Framework" : "Other"} />
-          <Detail label="On Hold" value={project.live_project ? "Yes" : "No"} />
+          <Detail label="Live Project" value={project.live_project ? "Yes" : "No"} />
           <Detail label="Approval Status" value={project.approval_status || "—"} />
           <Detail label="AA Executed" value={formatDate(project.aa_executed_date)} />
           <Detail label="PQ Approval" value={formatDate(project.pq_approval_date)} />

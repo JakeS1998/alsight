@@ -92,7 +92,7 @@ export default function ProjectDetail() {
           {project.project_number && (
             <span className="rounded-lg bg-slate-100 px-2.5 py-1 text-sm font-medium text-slate-600">{project.project_number}</span>
           )}
-          <span className={project.live_project ? "rounded-full border border-amber-200 bg-amber-50 px-2.5 py-0.5 text-xs font-medium text-amber-800" : "rounded-full border border-slate-400 bg-white px-2.5 py-0.5 text-xs font-medium text-slate-600"}>On Hold: {project.live_project ? "Yes" : "No"}</span>
+          <span className={project.live_project ? "rounded-full border border-emerald-200 bg-emerald-50 px-2.5 py-0.5 text-xs font-medium text-emerald-700" : "rounded-full border border-orange-200 bg-orange-50 px-2.5 py-0.5 text-xs font-medium text-orange-700"}>{project.live_project ? "Live" : "On Hold"}</span>
           {project.procurement_route && (
             <span className="rounded-full bg-primary/10 px-2.5 py-0.5 text-xs font-medium text-primary">UKLF</span>
           )}

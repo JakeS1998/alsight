@@ -54,7 +54,7 @@ export function ProjectMap({ projects, showValues = true }) {
         {validProjects.map((p) => {
           const region = regionName(p.department_id);
           const color = (region && regionColors[region]) || "hsl(var(--chart-3))";
-          const onHold = p.live_project === true;
+          const live = p.live_project === true;
           return (
             <CircleMarker
               key={p.id}
@@ -63,7 +63,7 @@ export function ProjectMap({ projects, showValues = true }) {
               pathOptions={{
                 color,
                 fillColor: color,
-                fillOpacity: onHold ? 0.8 : 0,
+                fillOpacity: live ? 0.8 : 0,
                                  weight: 2,
               }}
             >
@@ -77,7 +77,7 @@ export function ProjectMap({ projects, showValues = true }) {
                   {region && <p className="mt-0.5 text-xs text-slate-600">{region}</p>}
                   {showValues && <p className="mt-1 text-xs text-slate-600">{formatCurrency(p.estimated_value)}</p>}
                   <p className="text-xs text-slate-500">
-                    On Hold: <span className="font-medium text-slate-700">{onHold ? "Yes" : "No"}</span>
+                    Status: <span className={live ? "font-medium text-emerald-700" : "font-medium text-orange-700"}>{live ? "Live" : "On Hold"}</span>
                   </p>
                   <Link to={`/projects/${p.id}`} className="mt-1 inline-block text-xs text-als-navy hover:underline">
                     View project →
@@ -101,14 +101,14 @@ export function ProjectMap({ projects, showValues = true }) {
           ))}
         </div>
         <div className="mt-2 border-t border-slate-100 pt-1.5">
-          <p className="mb-1 text-[11px] font-semibold text-slate-700">On Hold</p>
+          <p className="mb-1 text-[11px] font-semibold text-slate-700">Status</p>
                      <div className="flex items-center gap-1.5">
-                       <span className="inline-block h-2.5 w-2.5 rounded-full bg-primary" />
-                       <span className="text-[10px] text-slate-600">Yes (filled)</span>
+                       <span className="inline-block h-2.5 w-2.5 rounded-full bg-slate-600" />
+                                    <span className="text-[10px] font-medium text-emerald-700">Live (filled)</span>
                      </div>
                      <div className="flex items-center gap-1.5">
-                       <span className="inline-block h-2.5 w-2.5 rounded-full border-2 border-primary bg-white" />
-                       <span className="text-[10px] text-slate-600">No (hollow)</span>
+                       <span className="inline-block h-2.5 w-2.5 rounded-full border-2 border-slate-600 bg-white" />
+                                    <span className="text-[10px] font-medium text-orange-700">On Hold (hollow)</span>
                      </div>
         </div>
       </div>
