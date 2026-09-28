@@ -11,7 +11,7 @@ export const chance = item => item.probability ?? (STAGES.find(s => s.value === 
 export const weighted = item => (Number(item.budget) || 0) * chance(item) / 100;
 export const isoToday = () => new Date().toISOString().slice(0, 10);
 export async function logCRMActivity(item, user, type, subject, description = '') {
-  return base44.entities.CRMActivity.create({ opportunity_id: item.id, account_id: item.account_id, type, occurred_at: new Date().toISOString(), subject, description, author_id: user?.id || '', author_name: user?.full_name || user?.email || 'Team member' });
+  return base44.entities.CRMActivity.create({ opportunity_id: item.id, account_id: item.account_id, type, occurred_at: new Date().toISOString(), subject, description, owner_id: item.owner_id || user?.id, line_manager_id: item.line_manager_id || user?.data?.line_manager_id || user?.line_manager_id || '', author_id: user?.id || '', author_name: user?.full_name || user?.email || 'Team member' });
 }
 export async function updateCRMOpportunity(item, patch, user) {
   const next = { ...item, ...patch };
@@ -33,5 +33,5 @@ export async function createCRMOpportunity(data, user) {
   if (matches.items.length) throw new Error('An opportunity with this name already exists for this client. Open the existing record instead.');
   const stage = data.stage || 'lead';
   const probability = STAGES.find(s => s.value === stage)?.probability ?? 10;
-  return base44.entities.Opportunity.create({ ...data, title: data.title.trim(), owner_id: data.owner_id || user.id, owner_name: data.owner_name || user.full_name || user.email, stage, probability, stage_entered_at: new Date().toISOString(), status: 'open', weighted_value: Math.round((Number(data.budget) || 0) * probability) / 100, weighted_alliance_fee: 0 });
+  return base44.entities.Opportunity.create({ ...data, title: data.title.trim(), owner_id: user.id, owner_name: user.full_name || user.email, line_manager_id: user.data?.line_manager_id || user.line_manager_id || '', stage, probability, stage_entered_at: new Date().toISOString(), status: 'open', weighted_value: Math.round((Number(data.budget) || 0) * probability) / 100, weighted_alliance_fee: 0 });
 }

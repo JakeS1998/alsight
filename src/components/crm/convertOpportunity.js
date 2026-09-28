@@ -27,7 +27,7 @@ export async function convertOpportunity(item, account) {
     else await base44.entities.FeeProposal.create({ project_id: project.id, client_account_id: account.dataverse_id || account.id, bdm_aad_id: item.owner_id || undefined, ...data });
   }
   const links = await base44.entities.CRMProjectLink.filter({ project_id: project.id }, { limit: 1 });
-  if (!links.items.length) await base44.entities.CRMProjectLink.create({ project_id: project.id, opportunity_id: item.id, account_id: item.account_id });
+  if (!links.items.length) await base44.entities.CRMProjectLink.create({ project_id: project.id, opportunity_id: item.id, account_id: item.account_id, owner_id: item.owner_id, line_manager_id: item.line_manager_id || '' });
   await base44.entities.Opportunity.update(item.id, { project_id: project.id, status: 'won' });
   return project;
 }

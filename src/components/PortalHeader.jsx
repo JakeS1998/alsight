@@ -9,7 +9,7 @@ const ALL_ROLES = ['admin', 'director', 'regional_director', 'bsm', 'finance', '
 const NAV_ITEMS = [
   { label: 'Dashboard', path: '/', icon: LayoutDashboard, roles: INTERNAL_ROLES.concat(['client', 'supplier']) },
   { label: 'Projects', path: '/projects', icon: FolderKanban, roles: ALL_ROLES },
-  { label: 'CRM', path: '/crm', icon: BriefcaseBusiness, roles: INTERNAL_ROLES },
+  { label: 'Pipeline', path: '/crm', icon: BriefcaseBusiness, roles: INTERNAL_ROLES },
   { label: 'Analytics', path: '/analytics', icon: BarChart3, roles: INTERNAL_ROLES },
   { label: 'Delegation', path: '/delegation', icon: UserCog, roles: INTERNAL_ROLES },
   { label: 'My Account', path: '/account', icon: UserCircle, roles: ['client', 'supplier'] },

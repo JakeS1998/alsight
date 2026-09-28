@@ -32,6 +32,12 @@
     },
     "author_name": {
       "type": "string"
+    },
+    "owner_id": {
+      "type": "string"
+    },
+    "line_manager_id": {
+      "type": "string"
     }
   },
   "required": [
@@ -44,89 +50,75 @@
     "read": {
       "$or": [
         {
-          "user_condition": {
-            "role": "admin"
-          }
+          "data.owner_id": "{{user.id}}"
         },
         {
-          "user_condition": {
-            "role": "director"
-          }
+          "data.line_manager_id": "{{user.id}}"
         },
         {
-          "user_condition": {
-            "role": "regional_director"
-          }
-        },
-        {
-          "user_condition": {
-            "role": "bsm"
-          }
-        },
-        {
-          "user_condition": {
-            "role": "finance"
-          }
-        },
-        {
-          "user_condition": {
-            "role": "bdm"
-          }
+          "created_by_id": "{{user.id}}"
         }
       ]
     },
     "create": {
-      "$or": [
+      "$and": [
         {
-          "user_condition": {
-            "role": "admin"
-          }
+          "data.owner_id": "{{user.id}}"
         },
         {
-          "user_condition": {
-            "role": "director"
-          }
-        },
-        {
-          "user_condition": {
-            "role": "bdm"
-          }
-        },
-        {
-          "user_condition": {
-            "role": "bsm"
-          }
+          "$or": [
+            {
+              "user_condition": {
+                "role": "admin"
+              }
+            },
+            {
+              "user_condition": {
+                "role": "director"
+              }
+            },
+            {
+              "user_condition": {
+                "role": "bdm"
+              }
+            },
+            {
+              "user_condition": {
+                "role": "bsm"
+              }
+            }
+          ]
         }
       ]
     },
     "update": {
       "$or": [
         {
+          "data.owner_id": "{{user.id}}"
+        },
+        {
+          "data.line_manager_id": "{{user.id}}"
+        }
+      ]
+    },
+    "delete": {
+      "$and": [
+        {
           "user_condition": {
             "role": "admin"
           }
         },
         {
-          "user_condition": {
-            "role": "director"
-          }
-        },
-        {
-          "user_condition": {
-            "role": "bdm"
-          }
-        },
-        {
-          "user_condition": {
-            "role": "bsm"
-          }
+          "$or": [
+            {
+              "data.owner_id": "{{user.id}}"
+            },
+            {
+              "data.line_manager_id": "{{user.id}}"
+            }
+          ]
         }
       ]
-    },
-    "delete": {
-      "user_condition": {
-        "role": "admin"
-      }
     }
   }
 }

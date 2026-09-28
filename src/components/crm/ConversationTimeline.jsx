@@ -26,7 +26,7 @@ export default function ConversationTimeline({ accountId, contactId, defaultCont
   const save = async e => {
     e.preventDefault(); setError(''); setSaving(true);
     try {
-      await base44.entities.Conversation.create({ account_id: accountId, contact_id: contactId || form.contact_id, ...((opportunityId || form.opportunity_id) ? { opportunity_id: opportunityId || form.opportunity_id } : {}), occurred_at: new Date(form.occurred_at).toISOString(), channel: form.channel, summary: form.summary.trim(), next_step: form.next_step.trim(), author_name: user?.full_name || user?.email || 'Team member' });
+      await base44.entities.Conversation.create({ account_id: accountId, contact_id: contactId || form.contact_id, ...((opportunityId || form.opportunity_id) ? { opportunity_id: opportunityId || form.opportunity_id } : {}), occurred_at: new Date(form.occurred_at).toISOString(), channel: form.channel, summary: form.summary.trim(), next_step: form.next_step.trim(), author_name: user?.full_name || user?.email || 'Team member', owner_id: user?.id, line_manager_id: user?.data?.line_manager_id || user?.line_manager_id || '' });
       setForm(f => ({ ...f, summary: '', next_step: '' }));
       await load();
     } catch (e) { setError(e.message || 'Unable to save conversation.'); }

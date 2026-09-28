@@ -45,6 +45,10 @@
     },
     "phone": {
       "type": "string"
+    },
+    "line_manager_id": {
+      "type": "string",
+      "description": "Direct line manager's portal user ID; assigned by an administrator for pipeline visibility"
     }
   }
 }
