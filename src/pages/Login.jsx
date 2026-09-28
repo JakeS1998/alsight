@@ -4,7 +4,7 @@ import { base44 } from "@/api/base44Client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Mail, Lock, Loader2, Eye, EyeOff, ArrowRight } from "lucide-react";
+import { Mail, Lock, Loader2, Eye, EyeOff, ArrowRight, Building2 } from "lucide-react";
 import AuthLayout from "@/components/AuthLayout";
 import { safeReturnTo } from "@/lib/authReturnTo";
 
@@ -33,8 +33,20 @@ export default function Login() {
     }
   };
 
+  const handleALSLogin = async () => {
+    setError("");
+    setLoading(true);
+    try {
+      await base44.auth.loginWithProvider("microsoft", returnTo);
+    } catch (err) {
+      setError(err.message || "Unable to sign in with your ALS account");
+      setLoading(false);
+    }
+  };
+
   return (
     <AuthLayout
+      overlay
       title="Welcome"
       subtitle="Sign in to access ALS Live"
       footer="Need access? Contact your ALS Live administrator."
@@ -112,6 +124,13 @@ export default function Login() {
           )}
         </Button>
       </form>
+      <div className="mt-5 space-y-4">
+        <div className="flex items-center gap-3 text-xs text-muted-foreground"><span className="h-px flex-1 bg-border" />or<span className="h-px flex-1 bg-border" /></div>
+        <Button type="button" variant="outline" className="w-full h-12" onClick={handleALSLogin} disabled={loading}>
+          {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : <Building2 className="w-4 h-4" />}
+          Login with ALS account
+        </Button>
+      </div>
       <p className="mt-5 text-center text-sm text-muted-foreground">
         Accepted an invitation?{" "}
         <Link to={"/register" + (returnTo !== "/" ? "?returnTo=" + encodeURIComponent(returnTo) : "")} className="font-medium text-primary hover:underline">
