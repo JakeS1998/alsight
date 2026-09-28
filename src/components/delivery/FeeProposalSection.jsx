@@ -8,6 +8,7 @@ import { LookupCombobox } from "@/components/forms/LookupCombobox";
 import { Plus, Trash2, Loader2, FileDown, TrendingUp, ArrowUpRight, ArrowDownRight, Check, FileCheck } from "lucide-react";
 import { formatCurrency, formatDate } from "@/lib/portal";
 import { exportFeeProposalPdf } from "./exportFeeProposalPdf";
+import { feeProposalTotals } from "./feeProposalTotals";
 
 const BASIS = [
   { value: "fixed", label: "Fixed" },
@@ -110,11 +111,7 @@ export function FeeProposalSection({ projectId, project, onChanged, deliveryTeam
     return m;
   }, [pos]);
 
-  const totals = useMemo(() => {
-    const sup = supplierLines.reduce((a, l) => a + (Number(l.supplier_fee) || 0), 0);
-    const als = items.reduce((a, l) => a + (Number(l.internal_fee) || 0), 0);
-    return { sup, als, contribution: als - sup, marginPct: als ? Math.round(((als - sup) / als) * 100) : 0 };
-  }, [supplierLines, items]);
+  const totals = useMemo(() => feeProposalTotals(supplierLines, items), [supplierLines, items]);
 
   const supplierComparison = useMemo(() => {
     const bySup = {};
@@ -135,8 +132,8 @@ export function FeeProposalSection({ projectId, project, onChanged, deliveryTeam
     try {
       await base44.entities.FeeProposal.update(selectedId, {
         line_items: JSON.stringify(items),
-        fee_value: totals.als || null,
-        external_cost: totals.sup || null,
+        fee_value: totals.alsFee || null,
+        external_cost: totals.supplierFees || null,
       });
       load();
     } finally { setSavingBuilder(false); }
@@ -189,14 +186,15 @@ export function FeeProposalSection({ projectId, project, onChanged, deliveryTeam
 
   const removeProposal = async (id) => { await base44.entities.FeeProposal.delete(id); load(); };
 
-  const doExport = () => {
+  const doExport = (includeInternal = false) => {
     if (!selected) return;
     exportFeeProposalPdf({
       project,
-      proposal: { ...selected, line_items: JSON.stringify(items), fee_value: totals.als, external_cost: totals.sup },
+      proposal: { ...selected, line_items: JSON.stringify(items), fee_value: totals.alsFee, external_cost: totals.supplierFees },
       suppliers,
       poBySupplier,
       supplierLines,
+      includeInternal,
     });
   };
 
@@ -249,7 +247,8 @@ export function FeeProposalSection({ projectId, project, onChanged, deliveryTeam
             <div className="flex flex-wrap items-center justify-between gap-2">
               <h4 className="text-sm font-semibold text-slate-900">Fee Proposal Builder · R{selected.revision_number || 1}</h4>
               <div className="flex items-center gap-2">
-                <Button type="button" variant="outline" size="sm" onClick={doExport}><FileDown className="mr-1.5 h-4 w-4" /> Export PDF</Button>
+                <Button type="button" variant="outline" size="sm" onClick={() => doExport(false)}><FileDown className="mr-1.5 h-4 w-4" /> Client PDF</Button>
+                <Button type="button" variant="outline" size="sm" onClick={() => doExport(true)}><FileDown className="mr-1.5 h-4 w-4" /> Internal PDF</Button>
                 <Button type="button" size="sm" onClick={saveBuilder} disabled={savingBuilder} className="bg-primary hover:bg-primary/90">
                   {savingBuilder && <Loader2 className="mr-1.5 h-4 w-4 animate-spin" />} Save builder
                 </Button>
@@ -257,10 +256,10 @@ export function FeeProposalSection({ projectId, project, onChanged, deliveryTeam
             </div>
 
             <div className="grid gap-3 rounded-lg bg-primary/5 p-3 sm:grid-cols-4">
-              <Stat label="ALS fees" value={formatCurrency(totals.als)} />
-              <Stat label="Supplier fees" value={formatCurrency(totals.sup)} />
-              <Stat label="Contribution" value={formatCurrency(totals.contribution)} />
-              <Stat label="Margin" value={`${totals.marginPct}%`} accent />
+              <Stat label="ALS fee (recorded profit)" value={formatCurrency(totals.alsFee)} />
+              <Stat label="Supplier fees" value={formatCurrency(totals.supplierFees)} />
+              <Stat label="Proposed client fees" value={formatCurrency(totals.proposedFees)} />
+              <Stat label="ALS fee as % of proposal" value={totals.alsFeePct == null ? "—" : `${totals.alsFeePct}%`} accent />
             </div>
 
             {/* Supplier fees (from delivery team) */}
@@ -291,7 +290,8 @@ export function FeeProposalSection({ projectId, project, onChanged, deliveryTeam
 
             {/* ALS / internal lines */}
             <div>
-              <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-slate-500">ALS &amp; internal fees</p>
+              <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-slate-500">ALS fee &amp; internal lines</p>
+              <p className="mb-2 text-xs text-slate-500">Only the ALS Delivery fee appears on the client PDF; other lines appear on the internal page only.</p>
               <div className="overflow-x-auto">
                 <table className="w-full text-sm">
                   <thead className="text-left text-xs text-slate-500">

@@ -1,6 +1,8 @@
+import { isAlsFeeLine } from './feeProposalTotals';
+
 const STAGES = ['RIBA 1', 'RIBA 2', 'RIBA 3', 'RIBA 4', 'RIBA 5-7'];
 
-export function drawFeeMatrix(doc, { supplierLines, alsLines, supplierName, money, x, startY, width, height }) {
+export function drawFeeMatrix(doc, { supplierLines, alsLines, supplierName, money, x, startY, width, height, mode = 'client' }) {
   const widths = [width - 550, 78, 78, 78, 78, 78, 70, 90];
   const headers = ['Supplier / role', ...STAGES, 'Other', 'Total'];
   const supplierRows = new Map();
@@ -13,7 +15,7 @@ export function drawFeeMatrix(doc, { supplierLines, alsLines, supplierName, mone
     supplierRows.get(key).amounts[stage < 0 ? 5 : stage] += Number(line.supplier_fee) || 0;
   });
   const alsRows = new Map();
-  alsLines.forEach(line => {
+  alsLines.filter(line => mode === 'internal' || isAlsFeeLine(line)).forEach(line => {
     const stage = STAGES.indexOf(line.riba_stage);
     const name = `${line.description || 'ALS fee'}${stage < 0 && line.riba_stage ? ` (${line.riba_stage})` : ''}`;
     if (!alsRows.has(name)) alsRows.set(name, { name, role: '', amounts: Array(6).fill(0) });
@@ -56,7 +58,11 @@ export function drawFeeMatrix(doc, { supplierLines, alsLines, supplierName, mone
     y += 22;
     return totals.reduce((sum, amount) => sum + amount, 0);
   };
-  const totSup = section('Supplier fees (from Delivery Team)', [...supplierRows.values()], 'Total supplier fees');
-  const totAls = section('ALS & internal fees', [...alsRows.values()], 'Total ALS fees');
-  return { y, totSup, totAls };
+  if (mode === 'client') {
+    section('Proposed supplier fees', [...supplierRows.values()], 'Total supplier fees');
+    section('ALS fee', [...alsRows.values()], 'Total ALS fee');
+  } else {
+    section('ALS & internal fee breakdown', [...alsRows.values()], 'Total recorded fees');
+  }
+  return { y };
 }
