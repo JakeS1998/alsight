@@ -147,7 +147,7 @@ export default function AccountDetail() {
         )}
       </Section>
 
-      {['admin','director','regional_director','bsm','finance','bdm'].includes(user?.role) && <AccountCRM account={account} contacts={contacts} user={user} />}
+      {account.account_type === 'client' && ['admin','director','regional_director','bsm','finance','bdm'].includes(user?.role) && <AccountCRM account={account} contacts={contacts} user={user} />}
 
       {/* Related Projects */}
       <Section icon={FolderKanban} title="Related Projects" count={projects.length}>

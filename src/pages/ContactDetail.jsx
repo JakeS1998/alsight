@@ -51,7 +51,7 @@ export default function ContactDetail() {
       {canEdit ? <form onSubmit={save} className="space-y-3"><div className="grid gap-3 sm:grid-cols-2">{FIELDS.map(([key, label, type]) => <label key={key} className="space-y-1 text-sm"><span>{label}</span><input type={type} aria-label={label} maxLength={1000} value={form[key] || ''} onChange={e => setForm({ ...form, [key]: e.target.value })} className="w-full rounded-lg border border-input p-2" /></label>)}</div><Button disabled={saving}>{saving ? 'Saving…' : 'Save details'}</Button>{saved && <span className="ml-3 text-sm text-emerald-700">Saved</span>}</form> : <dl className="grid gap-3 sm:grid-cols-2">{FIELDS.map(([key, label]) => <div key={key}><dt className="text-xs text-muted-foreground">{label}</dt><dd className="whitespace-pre-wrap text-sm">{key === 'birthday' ? formatDate(profile?.birthday) : profile?.[key] || '—'}</dd></div>)}</dl>}
       {error && <p role="alert" className="text-sm text-destructive">{error}</p>}
     </section>
-    {INTERNAL_ROLES.includes(user?.role) && <ContactOpportunities contactId={contactId} />}
+    {INTERNAL_ROLES.includes(user?.role) && (!account || account.account_type === 'client') && <ContactOpportunities contactId={contactId} />}
     {INTERNAL_ROLES.includes(user?.role) && <ConversationTimeline accountId={account?.id} contactId={contactId} user={user} canEdit={canEdit} />}
   </div>;
 }

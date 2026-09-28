@@ -4,7 +4,7 @@ import { base44 } from '@/api/base44Client';
 import { Button } from '@/components/ui/button';
 import { formatCurrency } from '@/lib/portal';
 
-export default function OpportunityCard({ item, account, contacts, canEdit, canConvert, onUpdated }) {
+export default function OpportunityCard({ item, account, contacts, canEdit, canConvert, onUpdated, showRecordLink = true }) {
   const [reason, setReason] = useState('');
   const [editing, setEditing] = useState(false);
   const [draft, setDraft] = useState({ title: item.title, contact_id: item.contact_id || '', budget: item.budget ?? '', project_details: item.project_details || '' });
@@ -36,6 +36,7 @@ export default function OpportunityCard({ item, account, contacts, canEdit, canC
   const contact = contacts.find(c => c.id === item.contact_id);
   return <article className="rounded-xl border border-border bg-card p-4 space-y-2 text-sm">
     <div className="flex flex-wrap items-center justify-between gap-2"><h4 className="font-semibold">{item.title}</h4><span className="rounded-full bg-secondary px-2 py-0.5 text-xs capitalize">{item.status === 'won' ? 'Live project' : item.status}</span></div>
+    {showRecordLink && <Link className="inline-block text-primary hover:underline" to={`/opportunities/${item.id}`}>Open opportunity record →</Link>}
     {contact && <Link className="text-primary hover:underline" to={`/accounts/${account.id}/contacts/${contact.id}`}>{contact.full_name}</Link>}
     {item.budget != null && <p>Budget: {formatCurrency(item.budget)}</p>}
     {item.project_details && <p className="whitespace-pre-wrap text-muted-foreground">{item.project_details}</p>}

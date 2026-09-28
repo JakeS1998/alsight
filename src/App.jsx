@@ -23,6 +23,7 @@ import ContactDetail from '@/pages/ContactDetail';
 import AdminContactsRoute from '@/components/contacts/AdminContactsRoute';
 import AccountProfile from '@/pages/AccountProfile';
 import AccountDetail from '@/pages/AccountDetail';
+import OpportunityDetail from '@/pages/OpportunityDetail';
 import Analytics from '@/pages/Analytics';
 import Delegation from '@/pages/Delegation';
 
@@ -59,6 +60,7 @@ const AuthenticatedApp = () => {
           <Route path="/account" element={<AccountProfile />} />
           <Route path="/accounts" element={<Accounts />} />
           <Route path="/accounts/:accountId" element={<AccountDetail />} />
+          <Route path="/opportunities/:opportunityId" element={<OpportunityDetail />} />
           <Route element={<AdminContactsRoute />}>
             <Route path="/contacts" element={<Contacts />} />
             <Route path="/contacts/:contactId" element={<ContactDetail />} />

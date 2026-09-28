@@ -3,14 +3,14 @@ import { base44 } from '@/api/base44Client';
 import { formatDateTime } from '@/lib/portal';
 import { Button } from '@/components/ui/button';
 
-export default function ConversationTimeline({ accountId, contactId, contacts = [], opportunities = [], user, canEdit, opportunityId }) {
+export default function ConversationTimeline({ accountId, contactId, defaultContactId, contacts = [], opportunities = [], user, canEdit, opportunityId }) {
   const [items, setItems] = useState([]);
   const [cursor, setCursor] = useState(null);
   const [hasMore, setHasMore] = useState(false);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState('');
-  const [form, setForm] = useState({ contact_id: contactId || '', occurred_at: new Date(Date.now() - new Date().getTimezoneOffset() * 60000).toISOString().slice(0, 16), channel: 'call', summary: '', next_step: '', opportunity_id: '' });
+  const [form, setForm] = useState({ contact_id: contactId || defaultContactId || '', occurred_at: new Date(Date.now() - new Date().getTimezoneOffset() * 60000).toISOString().slice(0, 16), channel: 'call', summary: '', next_step: '', opportunity_id: '' });
   const query = { ...(accountId ? { account_id: accountId } : {}), ...(contactId ? { contact_id: contactId } : {}), ...(opportunityId ? { opportunity_id: opportunityId } : {}) };
   const load = async (next = null) => {
     setLoading(true);
