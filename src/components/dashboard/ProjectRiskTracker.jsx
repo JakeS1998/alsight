@@ -2,13 +2,13 @@ import React from "react";
 import { Link } from "react-router-dom";
 import { AlertTriangle, ArrowUpRight } from "lucide-react";
 import { formatCurrency } from "@/lib/portal";
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
+import DashboardInfoTooltip from "@/components/dashboard/DashboardInfoTooltip";
 
 export default function ProjectRiskTracker({ atRisk, compact = false }) {
   const rows = compact ? atRisk.slice(0, 5) : atRisk;
   return <section className="overflow-hidden rounded-2xl border border-slate-200 bg-white">
     <div className="flex flex-wrap items-center justify-between gap-2 border-b border-slate-100 px-5 py-4">
-      <div><h2 className="flex items-center gap-2 font-heading text-base font-semibold text-slate-900"><AlertTriangle className="h-4 w-4 text-amber-600" /> Projects at risk <TooltipProvider><Tooltip><TooltipTrigger asChild><button type="button" aria-label="How projects are flagged at risk" className="flex h-5 w-5 items-center justify-center rounded-full border border-slate-400 text-xs font-semibold text-slate-600 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring">?</button></TooltipTrigger><TooltipContent side="bottom" className="max-w-xs bg-als-navy p-3 text-left text-xs font-normal text-sidebar-foreground shadow-lg"><p className="font-semibold">An active pipeline project is flagged when it has:</p><ul className="mt-1 list-disc space-y-1 pl-4"><li>An open project risk;</li><li>An unfinished action past its due date;</li><li>An unachieved forecast completion date that has passed; or</li><li>An unachieved forecast completion date later than the original date.</li></ul><p className="mt-2">High priority means a red risk (or high probability and impact), an overdue high-priority action, or an overdue forecast completion date.</p></TooltipContent></Tooltip></TooltipProvider></h2>
+      <div><h2 className="flex items-center gap-2 font-heading text-base font-semibold text-slate-900"><AlertTriangle className="h-4 w-4 text-amber-600" /> Projects at risk <DashboardInfoTooltip label="projects at risk" side="bottom"><p className="font-semibold">An active pipeline project is flagged when it has:</p><ul className="mt-1 list-disc space-y-1 pl-4"><li>An open project risk;</li><li>An unfinished action past its due date;</li><li>An unachieved forecast completion date that has passed; or</li><li>An unachieved forecast completion date later than the original date.</li></ul><p className="mt-2">High priority means a red risk (or high probability and impact), an overdue high-priority action, or an overdue forecast completion date.</p></DashboardInfoTooltip></h2>
         <p className="text-xs text-slate-500">Open risks, overdue actions and completion dates · {atRisk.length} flagged</p></div>
       {compact && <Link to="/analytics#at-risk" className="text-xs font-medium text-primary hover:underline">View all</Link>}
     </div>
