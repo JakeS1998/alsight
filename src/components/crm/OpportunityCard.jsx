@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
+import SearchableSelect from '@/components/forms/SearchableSelect';
 import { formatCurrency } from '@/lib/portal';
 import { updateCRMOpportunity } from '@/components/crm/crm';
 
@@ -25,7 +26,7 @@ export default function OpportunityCard({ item, account, contacts, canEdit, user
     {item.lost_reason && <p className="text-muted-foreground">Lost: {item.lost_reason}</p>}
     {item.project_id && <Link className="text-primary hover:underline" to={`/projects/${item.project_id}`}>View live project</Link>}
     {item.status === 'open' && canEdit && <Button type="button" variant="outline" onClick={() => setEditing(v => !v)}>{editing ? 'Cancel editing' : 'Edit opportunity'}</Button>}
-    {editing && <form onSubmit={saveChanges} className="space-y-2 rounded-lg bg-secondary p-3"><input required aria-label="Opportunity name" maxLength={200} className="w-full rounded-lg border border-input p-2" value={draft.title} onChange={e => setDraft({ ...draft, title: e.target.value })} /><select aria-label="Linked contact" className="w-full rounded-lg border border-input p-2" value={draft.contact_id} onChange={e => setDraft({ ...draft, contact_id: e.target.value })}><option value="">Select contact (optional)</option>{contacts.map(c => <option key={c.id} value={c.id}>{c.full_name}</option>)}</select><input aria-label="Estimated budget in pounds" type="number" min="0" step="0.01" placeholder="Budget (£)" className="w-full rounded-lg border border-input p-2" value={draft.budget} onChange={e => setDraft({ ...draft, budget: e.target.value })} /><textarea aria-label="Project details" maxLength={5000} className="w-full rounded-lg border border-input p-2" value={draft.project_details} onChange={e => setDraft({ ...draft, project_details: e.target.value })} /><Button disabled={busy || !draft.title.trim()}>Save changes</Button></form>}
+    {editing && <form onSubmit={saveChanges} className="space-y-2 rounded-lg bg-secondary p-3"><input required aria-label="Opportunity name" maxLength={200} className="w-full rounded-lg border border-input p-2" value={draft.title} onChange={e => setDraft({ ...draft, title: e.target.value })} /><SearchableSelect aria-label="Linked contact" className="w-full rounded-lg border border-input p-2" value={draft.contact_id} onChange={e => setDraft({ ...draft, contact_id: e.target.value })}><option value="">Select contact (optional)</option>{contacts.map(c => <option key={c.id} value={c.id}>{c.full_name}</option>)}</SearchableSelect><input aria-label="Estimated budget in pounds" type="number" min="0" step="0.01" placeholder="Budget (£)" className="w-full rounded-lg border border-input p-2" value={draft.budget} onChange={e => setDraft({ ...draft, budget: e.target.value })} /><textarea aria-label="Project details" maxLength={5000} className="w-full rounded-lg border border-input p-2" value={draft.project_details} onChange={e => setDraft({ ...draft, project_details: e.target.value })} /><Button disabled={busy || !draft.title.trim()}>Save changes</Button></form>}
     {error && <p role="alert" className="text-destructive">{error}</p>}
   </article>;
 }

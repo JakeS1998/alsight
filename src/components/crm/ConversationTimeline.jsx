@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { base44 } from '@/api/base44Client';
 import { formatDateTime } from '@/lib/portal';
 import { Button } from '@/components/ui/button';
+import SearchableSelect from '@/components/forms/SearchableSelect';
 
 export default function ConversationTimeline({ accountId, contactId, defaultContactId, contacts = [], opportunities = [], user, canEdit, opportunityId }) {
   const [items, setItems] = useState([]);
@@ -36,9 +37,9 @@ export default function ConversationTimeline({ accountId, contactId, defaultCont
   return <section className="space-y-4 rounded-xl border border-slate-200 bg-white p-5">
     <h3 className="font-semibold text-slate-900">Conversation timeline</h3>
     {canEdit && accountId && <form onSubmit={save} className="space-y-3">
-      {!contactId && <select aria-label="Contact" required className="w-full rounded-lg border border-input p-2 text-sm" value={form.contact_id} onChange={e => setForm({ ...form, contact_id: e.target.value })}><option value="">Select contact</option>{contacts.map(c => <option key={c.id} value={c.id}>{c.full_name}</option>)}</select>}
-      {!!opportunities.length && <select aria-label="Opportunity" className="w-full rounded-lg border border-input p-2 text-sm" value={form.opportunity_id} onChange={e => setForm({ ...form, opportunity_id: e.target.value })}><option value="">General conversation</option>{opportunities.map(o => <option key={o.id} value={o.id}>{o.title}</option>)}</select>}
-      <div className="flex flex-wrap gap-2"><input aria-label="Conversation date and time" required type="datetime-local" className="rounded-lg border border-input p-2 text-sm" value={form.occurred_at} onChange={e => setForm({ ...form, occurred_at: e.target.value })} /><select aria-label="Conversation type" className="rounded-lg border border-input p-2 text-sm" value={form.channel} onChange={e => setForm({ ...form, channel: e.target.value })}>{['call','meeting','email','other'].map(v => <option key={v} value={v}>{v[0].toUpperCase() + v.slice(1)}</option>)}</select></div>
+      {!contactId && <SearchableSelect aria-label="Contact" required className="w-full rounded-lg border border-input p-2 text-sm" value={form.contact_id} onChange={e => setForm({ ...form, contact_id: e.target.value })}><option value="">Select contact</option>{contacts.map(c => <option key={c.id} value={c.id}>{c.full_name}</option>)}</SearchableSelect>}
+      {!!opportunities.length && <SearchableSelect aria-label="Opportunity" className="w-full rounded-lg border border-input p-2 text-sm" value={form.opportunity_id} onChange={e => setForm({ ...form, opportunity_id: e.target.value })}><option value="">General conversation</option>{opportunities.map(o => <option key={o.id} value={o.id}>{o.title}</option>)}</SearchableSelect>}
+      <div className="flex flex-wrap gap-2"><input aria-label="Conversation date and time" required type="datetime-local" className="rounded-lg border border-input p-2 text-sm" value={form.occurred_at} onChange={e => setForm({ ...form, occurred_at: e.target.value })} /><SearchableSelect aria-label="Conversation type" className="rounded-lg border border-input p-2 text-sm" value={form.channel} onChange={e => setForm({ ...form, channel: e.target.value })}>{['call','meeting','email','other'].map(v => <option key={v} value={v}>{v[0].toUpperCase() + v.slice(1)}</option>)}</SearchableSelect></div>
       <textarea required maxLength={5000} placeholder="What was discussed?" className="w-full rounded-lg border border-input p-2 text-sm" value={form.summary} onChange={e => setForm({ ...form, summary: e.target.value })} />
       <input maxLength={500} placeholder="Next step (optional)" className="w-full rounded-lg border border-input p-2 text-sm" value={form.next_step} onChange={e => setForm({ ...form, next_step: e.target.value })} />
       <Button type="submit" disabled={saving}>{saving ? 'Saving…' : 'Log conversation'}</Button>

@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { FormSection, FormField, formInputClass } from "@/components/forms/PowerForm";
 import { Button } from "@/components/ui/button";
+import SearchableSelect from '@/components/forms/SearchableSelect';
 import { base44 } from "@/api/base44Client";
 import { Plus, Trash2, Loader2, Upload, FileCheck } from "lucide-react";
 
@@ -46,16 +47,16 @@ export function DeliveryTeam({ project, delivery, setField, onSave, saving, supp
             <div className="flex items-start justify-between gap-2">
               <div className="grid flex-1 gap-3 sm:grid-cols-3">
                 <FormField label="Role">
-                  <select value={m.role} onChange={(e) => setMember(idx, "role", e.target.value)} className={formInputClass}>
+                  <SearchableSelect value={m.role} onChange={(e) => setMember(idx, "role", e.target.value)} className={formInputClass}>
                     <option value="">—</option>
                     {ROLES.map((r) => <option key={r} value={r}>{r}</option>)}
-                  </select>
+                  </SearchableSelect>
                 </FormField>
                 <FormField label="Supplier (optional)">
-                  <select value={m.supplier_company_number} onChange={(e) => setMember(idx, "supplier_company_number", e.target.value)} className={formInputClass}>
+                  <SearchableSelect value={m.supplier_company_number} onChange={(e) => setMember(idx, "supplier_company_number", e.target.value)} className={formInputClass}>
                     <option value="">—</option>
                     {suppliers.map((s) => <option key={s.id} value={s.company_number}>{s.name}</option>)}
-                  </select>
+                  </SearchableSelect>
                 </FormField>
                 <FormField label="Fee proposal received">
                   {m.fee_proposal_link ? (

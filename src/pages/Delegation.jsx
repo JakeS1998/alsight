@@ -4,6 +4,7 @@ import { base44 } from "@/api/base44Client";
 import { listAll } from "@/components/data/loadAll";
 import { ROLE_LABELS, INTERNAL_ROLES, canDelegateTo, REGION_MAP, regionName } from "@/lib/portal";
 import { Button } from "@/components/ui/button";
+import SearchableSelect from '@/components/forms/SearchableSelect';
 import { UserCog, Search, X, Loader2, ArrowLeftRight } from "lucide-react";
 
 export default function Delegation() {
@@ -181,7 +182,7 @@ export default function Delegation() {
           {selected && isRDTarget && (
             <div className="mt-3">
               <label className="mb-1 block text-xs font-medium text-slate-600">Region to cover</label>
-              <select
+              <SearchableSelect
                 value={regionPick}
                 onChange={(e) => setRegionPick(e.target.value)}
                 className="h-9 w-full rounded-lg border border-slate-300 bg-white px-3 text-sm"
@@ -190,7 +191,7 @@ export default function Delegation() {
                 {Object.entries(REGION_MAP).map(([guid, name]) => (
                   <option key={guid} value={guid}>{name}</option>
                 ))}
-              </select>
+              </SearchableSelect>
             </div>
           )}
 

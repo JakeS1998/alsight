@@ -2,6 +2,7 @@ import React, { useState, useEffect } from "react";
 import { base44 } from "@/api/base44Client";
 import { filterAll } from "@/components/data/loadAll";
 import { Button } from "@/components/ui/button";
+import SearchableSelect from '@/components/forms/SearchableSelect';
 import {
   Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter,
 } from "@/components/ui/dialog";
@@ -178,17 +179,17 @@ export function InviteUserDialog({ open, onOpenChange, contact, accounts, existi
             )}
 
             <FormField label="Portal Role" required>
-              <select value={role} onChange={(e) => setRole(e.target.value)} className={formInputClass}>
+              <SearchableSelect value={role} onChange={(e) => setRole(e.target.value)} className={formInputClass}>
                 {ROLES.map((r) => <option key={r.value} value={r.value}>{r.label}</option>)}
-              </select>
+              </SearchableSelect>
             </FormField>
 
             {role === "regional_director" && (
               <FormField label="Region" description="Determines which projects this Regional Director can see">
-                <select value={region} onChange={(e) => setRegion(e.target.value)} className={formInputClass}>
+                <SearchableSelect value={region} onChange={(e) => setRegion(e.target.value)} className={formInputClass}>
                   <option value="">—</option>
                   {REGION_OPTIONS.map((r) => <option key={r.value} value={r.value}>{r.label}</option>)}
-                </select>
+                </SearchableSelect>
               </FormField>
             )}
 

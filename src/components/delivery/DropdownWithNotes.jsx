@@ -1,5 +1,6 @@
 import React, { useState } from "react";
 import { FormField, formInputClass } from "@/components/forms/PowerForm";
+import SearchableSelect from '@/components/forms/SearchableSelect';
 
 const norm = (o) => (typeof o === "string" ? { value: o, label: o } : o);
 
@@ -9,10 +10,10 @@ export function DropdownWithNotes({ label, value, onChange, options, notes, onNo
   return (
     <div className="space-y-1">
       <FormField label={label}>
-        <select value={value || ""} onChange={(e) => onChange(e.target.value)} className={formInputClass}>
+        <SearchableSelect value={value || ""} onChange={(e) => onChange(e.target.value)} className={formInputClass}>
           <option value="">{placeholder}</option>
           {opts.map((o) => <option key={o.value} value={o.value}>{o.label}</option>)}
-        </select>
+        </SearchableSelect>
       </FormField>
       {showNotes ? (
         <div className="flex items-start gap-1">

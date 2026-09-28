@@ -2,6 +2,7 @@ import React, { useEffect, useState, useCallback } from "react";
 import { base44 } from "@/api/base44Client";
 import { filterAll } from "@/components/data/loadAll";
 import { Button } from "@/components/ui/button";
+import SearchableSelect from '@/components/forms/SearchableSelect';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { FormField, FormGrid, formInputClass } from "@/components/forms/PowerForm";
 import { Plus, Pencil, Trash2, Loader2 } from "lucide-react";
@@ -74,10 +75,10 @@ export function RegisterList({ title, description, entityName, projectId, projec
     const val = form[col.key];
     if (col.type === "select")
       return (
-        <select value={val} onChange={(e) => setForm({ ...form, [col.key]: e.target.value })} className={formInputClass}>
+        <SearchableSelect value={val} onChange={(e) => setForm({ ...form, [col.key]: e.target.value })} className={formInputClass}>
           <option value="">—</option>
           {col.options.map((o) => <option key={o.value} value={o.value}>{o.label}</option>)}
-        </select>
+        </SearchableSelect>
       );
     if (col.type === "textarea")
       return <textarea rows={2} value={val} onChange={(e) => setForm({ ...form, [col.key]: e.target.value })} className={`${formInputClass} h-auto py-2`} />;
