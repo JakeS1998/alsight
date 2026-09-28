@@ -30,6 +30,14 @@ export default function ContactDetail() {
     ]).then(([c, a, profiles]) => { setContact(c); setAccount(a); setProfile(profiles.items[0] || null); setForm(profiles.items[0] || {}); })
       .catch(e => setError(e.message || 'Unable to load contact.')).finally(() => setLoading(false));
   }, [contactId, accountId]);
+  useEffect(() => {
+    const unsubscribe = base44.entities.ContactProfile.subscribe(event => {
+      if (event.data?.contact_id !== contactId || !['create', 'update'].includes(event.type)) return;
+      setProfile(event.data);
+      setForm(previous => ({ ...previous, relationship_notes: event.data.relationship_notes || '' }));
+    });
+    return unsubscribe;
+  }, [contactId]);
   const save = async e => {
     e.preventDefault(); setSaving(true); setError(''); setSaved(false);
     try {
@@ -44,7 +52,7 @@ export default function ContactDetail() {
   const token = (account?.name?.split(/\s+/)[0] || '').toLowerCase().replace(/[^a-z]/g, '');
   const belongs = !account || (account.company_number && contact.company_number === account.company_number) || (account.company_name && (contact.company_name || '').toLowerCase() === account.company_name.toLowerCase()) || (token.length > 2 && ((contact.email || '').split('@')[1] || '').toLowerCase().startsWith(token));
   if (!belongs) return <p>Contact not linked to this account.</p>;
-  return <div className="space-y-6">
+  return <div className="space-y-6" data-alice-contact-id={contact.id} data-alice-contact-name={contact.full_name}>
     <Link to={account ? `/accounts/${account.id}` : '/contacts'} className="text-sm text-primary hover:underline">← Back to {account ? account.name : 'Contacts'}</Link>
     <div><h1 className="font-heading text-2xl font-semibold">{contact.full_name}</h1><p className="text-sm text-muted-foreground">{contact.job_title} {contact.company_name && `· ${contact.company_name}`}</p><div className="mt-2 flex flex-wrap gap-4 text-sm">{contact.email && <a href={`mailto:${contact.email}`} className="text-primary">{contact.email}</a>}{contact.phone && <span>{contact.phone}</span>}</div></div>
     <section className="rounded-xl border border-border bg-card p-5 space-y-4"><h2 className="font-semibold">Relationship details</h2>

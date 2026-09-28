@@ -62,7 +62,9 @@ export default function AliceWidget() {
     try {
       const chat = conversation || await base44.agents.createConversation({ agent_name: AGENT, metadata: { name: 'ALICE conversation' } });
       if (!conversation) { setConversation(chat); sessionStorage.setItem('alice_conversation_id', chat.id); }
-      const content = `${draft ? 'DRAFT FIELD' : 'QUESTION'} | Current page: ${window.location.pathname}\n${value.trim()}`;
+      const activeContact = document.querySelector('[data-alice-contact-id]');
+      const pageContext = activeContact ? `\nCurrent contact ID: ${activeContact.dataset.aliceContactId}\nCurrent contact name: ${activeContact.dataset.aliceContactName}` : '';
+      const content = `${draft ? 'DRAFT FIELD' : 'QUESTION'} | Current page: ${window.location.pathname}${pageContext}\n${value.trim()}`;
       setMessages(old => [...old, { role: 'user', content: value.trim() }]);
       await base44.agents.addMessage(chat, { role: 'user', content });
     } catch (e) { setBusy(false); setError(e.message || 'Unable to reach ALICE. Please try again.'); }
