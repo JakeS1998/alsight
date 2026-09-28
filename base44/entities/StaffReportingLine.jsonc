@@ -1,0 +1,56 @@
+{
+  "name": "StaffReportingLine",
+  "type": "object",
+  "properties": {
+    "contact_id": {
+      "type": "string"
+    },
+    "staff_name": {
+      "type": "string"
+    },
+    "staff_email": {
+      "type": "string"
+    },
+    "staff_aad_id": {
+      "type": "string"
+    },
+    "manager_name": {
+      "type": "string"
+    },
+    "manager_email": {
+      "type": "string"
+    },
+    "manager_aad_id": {
+      "type": "string"
+    },
+    "source_matched": {
+      "type": "boolean"
+    }
+  },
+  "required": [
+    "contact_id",
+    "staff_name"
+  ],
+  "rls": {
+    "read": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "create": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "update": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "delete": {
+      "user_condition": {
+        "role": "admin"
+      }
+    }
+  }
+}
