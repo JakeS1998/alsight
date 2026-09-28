@@ -8,6 +8,9 @@
     "opportunity_id": {
       "type": "string"
     },
+    "contact_id": {
+      "type": "string"
+    },
     "activity_id": {
       "type": "string"
     },
@@ -25,7 +28,6 @@
   },
   "required": [
     "user_id",
-    "opportunity_id",
     "subject",
     "remind_at"
   ],

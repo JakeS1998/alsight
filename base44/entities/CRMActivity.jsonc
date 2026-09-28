@@ -29,6 +29,10 @@
         "teams_meeting",
         "client_visit",
         "internal_meeting",
+        "lunch",
+        "event",
+        "site_visit",
+        "project_meeting",
         "note",
         "document_sent",
         "proposal_sent",
@@ -61,11 +65,27 @@
     },
     "follow_up_owner_id": {
       "type": "string"
+    },
+    "sentiment": {
+      "type": "string",
+      "enum": [
+        "positive",
+        "neutral",
+        "concern",
+        ""
+      ]
+    },
+    "key_points": {
+      "type": "string"
+    },
+    "commitments": {
+      "type": "string"
+    },
+    "next_action": {
+      "type": "string"
     }
   },
   "required": [
-    "opportunity_id",
-    "account_id",
     "type",
     "occurred_at",
     "subject"

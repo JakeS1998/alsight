@@ -1,0 +1,8 @@
+import React, { useState } from 'react';
+import { Button } from '@/components/ui/button';
+import { createCRMOpportunity } from '@/components/crm/crm';
+export default function ContactOpportunityForm({ contact, account, user, onSaved, onCancel }) {
+  const [title, setTitle] = useState(''), [budget, setBudget] = useState(''), [saving, setSaving] = useState(false), [error, setError] = useState('');
+  const save = async e => { e.preventDefault(); setSaving(true); setError(''); try { await createCRMOpportunity({ title, account_id: account.id, contact_id: contact.id, ...(budget ? { budget: Number(budget) } : {}) }, user); setTitle(''); setBudget(''); onSaved(); } catch (e) { setError(e.message); } finally { setSaving(false); } };
+  return <form onSubmit={save} className="space-y-3 rounded-xl border border-border bg-card p-5"><h2 className="font-semibold">Add opportunity for {contact.full_name}</h2><input required maxLength={200} aria-label="Opportunity name" placeholder="Opportunity name" value={title} onChange={e => setTitle(e.target.value)} className="w-full rounded-lg border border-input bg-background p-2 text-sm" /><input type="number" min="0" aria-label="Estimated value" placeholder="Estimated value (£)" value={budget} onChange={e => setBudget(e.target.value)} className="w-full rounded-lg border border-input bg-background p-2 text-sm" />{error && <p role="alert" className="text-sm text-destructive">{error}</p>}<Button disabled={saving}>{saving ? 'Saving…' : 'Create opportunity'}</Button> <Button type="button" variant="outline" onClick={onCancel}>Cancel</Button></form>;
+}

@@ -6,8 +6,7 @@
       "type": "string"
     },
     "birthday": {
-      "type": "string",
-      "format": "date"
+      "type": "string"
     },
     "likes": {
       "type": "string"
@@ -19,6 +18,77 @@
       "type": "string"
     },
     "relationship_notes": {
+      "type": "string"
+    },
+    "preferred_name": {
+      "type": "string"
+    },
+    "linkedin_url": {
+      "type": "string"
+    },
+    "office_location": {
+      "type": "string"
+    },
+    "alternative_email": {
+      "type": "string"
+    },
+    "preferred_communication": {
+      "type": "string"
+    },
+    "preferred_times": {
+      "type": "string"
+    },
+    "relationship_status": {
+      "type": "string",
+      "enum": [
+        "prospect",
+        "new_relationship",
+        "developing",
+        "established",
+        "strong",
+        "dormant",
+        "former_contact",
+        ""
+      ]
+    },
+    "relationship_strength": {
+      "type": "string",
+      "enum": [
+        "new",
+        "developing",
+        "established",
+        "strong",
+        ""
+      ]
+    },
+    "relationship_owner_contact_id": {
+      "type": "string"
+    },
+    "known_since": {
+      "type": "string"
+    },
+    "contact_priority": {
+      "type": "string",
+      "enum": [
+        "standard",
+        "important",
+        "strategic",
+        ""
+      ]
+    },
+    "interests": {
+      "type": "string"
+    },
+    "professional_priorities": {
+      "type": "string"
+    },
+    "professional_challenges": {
+      "type": "string"
+    },
+    "strategic_objectives": {
+      "type": "string"
+    },
+    "personal_context": {
       "type": "string"
     }
   },
@@ -56,21 +126,6 @@
         {
           "user_condition": {
             "role": "bdm"
-          }
-        },
-        {
-          "user_condition": {
-            "role": "client"
-          }
-        },
-        {
-          "user_condition": {
-            "role": "supplier"
-          }
-        },
-        {
-          "user_condition": {
-            "role": "project_manager"
           }
         }
       ]

@@ -75,6 +75,7 @@ const AuthenticatedApp = () => {
             <Route path="/crm/tasks" element={<CRMTasks />} />
             <Route path="/crm/activities" element={<CRMActivities />} />
             <Route path="/crm/clients" element={<CRMClients />} />
+            <Route path="/crm/contacts/:contactId" element={<ContactDetail />} />
             <Route path="/opportunities/:opportunityId" element={<OpportunityDetail />} />
           </Route>
           <Route element={<AdminContactsRoute />}>
