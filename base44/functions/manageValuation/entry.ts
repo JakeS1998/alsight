@@ -32,7 +32,7 @@ export default async function(req: Request): Promise<Response> {
     if (action === 'list') {
       if (!isManager) return response('Project manager access required', 403);
       const valuations = await base44.asServiceRole.entities.Valuation.filter({ project_id: projectId }, '-number', 500);
-      return Response.json({ valuations });
+      return Response.json({ valuations: valuations.filter(v => v.status !== 'draft' || v.draft_owner_id === user.id || (!v.draft_owner_id && v.audit?.find(e => e.kind === 'Created')?.actor_id === user.id)) });
     }
     const actor = user.full_name || user.email;
     const now = new Date().toISOString();
@@ -48,12 +48,13 @@ export default async function(req: Request): Promise<Response> {
       if (!isManager && user.role !== 'admin') return response('Only the assigned project manager can create a valuation', 403);
       const existing = await db.filter({ project_id: projectId }, '-number', 500);
       const number = Math.max(0, ...existing.map(v => Number(v.number) || 0)) + 1;
-      const record = await db.create({ project_id: projectId, project_manager_contact_id: project.project_manager_id || '', bdm_aad_id: project.bdm_aad_id || '', bsm_aad_id: project.bsm_aad_id || '', department_id: project.department_id || '', number, status: 'draft', items: [], deductions: [], attachments: [], comments: [], audit: [event('Created', '', `Valuation ${number}`)], retention_percent: 0, payment_status: 'awaiting_invoice' });
+      const record = await db.create({ project_id: projectId, project_manager_contact_id: project.project_manager_id || '', bdm_aad_id: project.bdm_aad_id || '', bsm_aad_id: project.bsm_aad_id || '', department_id: project.department_id || '', number, status: 'draft', draft_owner_id: user.id, items: [], deductions: [], attachments: [], comments: [], audit: [event('Created', '', `Valuation ${number}`)], retention_percent: 0, payment_status: 'awaiting_invoice' });
       return Response.json({ valuation: record });
     }
     if (!valuationId || typeof valuationId !== 'string') return response('Valuation required');
     const record = await db.get(valuationId).catch(() => null);
     if (!record || record.project_id !== projectId) return response('Valuation not available', 404);
+    if (record.status === 'draft' && (record.draft_owner_id || record.audit?.find(e => e.kind === 'Created')?.actor_id) !== user.id) return response('Valuation not available', 404);
     const audit = [...(record.audit || [])];
     if (audit.length > 400) return response('Audit history is full; contact an administrator');
     let changes = {};
@@ -63,11 +64,11 @@ export default async function(req: Request): Promise<Response> {
       const items = input.items;
       if (!Array.isArray(items) || items.length > 100) return response('Too many schedule items');
       const cleanItems = items.map((item, index) => ({ number: index + 1, description: str(item.description, 250), contract_value: money(item.contract_value), variations: money(item.variations), previous: money(item.previous), completed: money(item.completed), materials: money(item.materials) }));
-      if (cleanItems.some(i => !i.description || [i.contract_value, i.variations, i.previous, i.completed, i.materials].some(n => !Number.isFinite(n) || n < 0) || i.previous + i.completed + i.materials > i.contract_value + i.variations + 0.001)) return response('Complete each item and keep its total within its revised value');
+      if (cleanItems.some(i => [i.contract_value, i.variations, i.previous, i.completed, i.materials].some(n => !Number.isFinite(n) || n < 0))) return response('Schedule amounts must be valid and non-negative');
       const deductions = input.deductions;
       if (!Array.isArray(deductions) || deductions.length > 30) return response('Too many deductions');
       const cleanDeductions = deductions.map(d => ({ description: str(d.description, 120), amount: money(d.amount), notes: str(d.notes, 500) }));
-      if (cleanDeductions.some(d => !d.description || !Number.isFinite(d.amount) || d.amount < 0)) return response('Each deduction needs a description and valid amount');
+      if (cleanDeductions.some(d => !Number.isFinite(d.amount) || d.amount < 0)) return response('Deduction amounts must be valid and non-negative');
       const retention = user.role === 'admin' ? money(input.retention_percent) : money(record.retention_percent);
       if (!Number.isFinite(retention) || retention < 0 || retention > 100) return response('Retention must be between 0 and 100%');
       changes = { ...(date(input.period_start) ? { period_start: date(input.period_start) } : {}), ...(date(input.period_end) ? { period_end: date(input.period_end) } : {}), ...(date(input.valuation_date) ? { valuation_date: date(input.valuation_date) } : {}), ...(date(input.payment_due_date) ? { payment_due_date: date(input.payment_due_date) } : {}), notes: str(input.notes), items: cleanItems, deductions: cleanDeductions, retention_percent: retention };
@@ -77,6 +78,8 @@ export default async function(req: Request): Promise<Response> {
       if (!isManager && user.role !== 'admin') return response('Only the project manager can submit', 403);
       if (!['draft', 'returned'].includes(record.status)) return response('This valuation cannot be submitted');
       if (!record.period_start || !record.period_end || record.period_end < record.period_start || !record.valuation_date || !(record.items || []).length) return response('Save a valid period, valuation date and at least one schedule item before submitting');
+      if (record.items.some(i => !i.description || i.previous + i.completed + i.materials > i.contract_value + i.variations + 0.001) || (record.deductions || []).some(d => !d.description)) return response('Complete each schedule item and deduction; no item may exceed its revised value');
+      if (!(record.attachments || []).some(file => file.type === 'NOP' && file.file_uri)) return response('Upload an NOP document before submitting');
       changes = { status: 'submitted', submitted_at: now, submitted_by: user.id, submitted_by_name: actor };
       audit.push(event(record.status === 'returned' ? 'Resubmitted' : 'Submitted', record.status, 'submitted'));
     } else if (action === 'review' || action === 'return' || action === 'reject' || action === 'approve') {

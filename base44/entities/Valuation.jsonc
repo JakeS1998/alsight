@@ -17,6 +17,10 @@
     "department_id": {
       "type": "string"
     },
+    "draft_owner_id": {
+      "type": "string",
+      "description": "App user who created the private draft"
+    },
     "number": {
       "type": "integer"
     },
@@ -158,71 +162,94 @@
   ],
   "rls": {
     "read": {
-      "$and": [
+      "$or": [
         {
-          "$or": [
+          "$and": [
             {
-              "user_condition": {
-                "role": "admin"
-              }
+              "data.status": "draft"
             },
             {
-              "user_condition": {
-                "role": "director"
-              }
-            },
-            {
-              "user_condition": {
-                "role": "regional_director"
-              }
-            },
-            {
-              "user_condition": {
-                "role": "bsm"
-              }
-            },
-            {
-              "user_condition": {
-                "role": "finance"
-              }
-            },
-            {
-              "user_condition": {
-                "role": "bdm"
-              }
+              "data.draft_owner_id": "{{user.id}}"
             }
           ]
         },
         {
-          "$or": [
+          "$and": [
             {
-              "data.bdm_aad_id": "{{user.id}}"
-            },
-            {
-              "data.bsm_aad_id": "{{user.id}}"
-            },
-            {
-              "data.department_id": "{{user.data.region}}"
-            },
-            {
-              "user_condition": {
-                "role": "admin"
+              "data.status": {
+                "$ne": "draft"
               }
             },
             {
-              "user_condition": {
-                "role": "director"
-              }
-            },
-            {
-              "user_condition": {
-                "role": "bsm"
-              }
-            },
-            {
-              "user_condition": {
-                "role": "finance"
-              }
+              "$and": [
+                {
+                  "$or": [
+                    {
+                      "user_condition": {
+                        "role": "admin"
+                      }
+                    },
+                    {
+                      "user_condition": {
+                        "role": "director"
+                      }
+                    },
+                    {
+                      "user_condition": {
+                        "role": "regional_director"
+                      }
+                    },
+                    {
+                      "user_condition": {
+                        "role": "bsm"
+                      }
+                    },
+                    {
+                      "user_condition": {
+                        "role": "finance"
+                      }
+                    },
+                    {
+                      "user_condition": {
+                        "role": "bdm"
+                      }
+                    }
+                  ]
+                },
+                {
+                  "$or": [
+                    {
+                      "data.bdm_aad_id": "{{user.id}}"
+                    },
+                    {
+                      "data.bsm_aad_id": "{{user.id}}"
+                    },
+                    {
+                      "data.department_id": "{{user.data.region}}"
+                    },
+                    {
+                      "user_condition": {
+                        "role": "admin"
+                      }
+                    },
+                    {
+                      "user_condition": {
+                        "role": "director"
+                      }
+                    },
+                    {
+                      "user_condition": {
+                        "role": "bsm"
+                      }
+                    },
+                    {
+                      "user_condition": {
+                        "role": "finance"
+                      }
+                    }
+                  ]
+                }
+              ]
             }
           ]
         }
