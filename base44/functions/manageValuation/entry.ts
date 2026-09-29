@@ -75,13 +75,13 @@ export default async function(req: Request): Promise<Response> {
     }
     if (action === 'document_status') {
       if (!isManager && !isSupplierManager) return response('Project manager access required', 403);
-      if (!project.dataverse_id) return Response.json({ statuses: {} });
+      if (!project.dataverse_id) return Response.json({ statuses: {}, timeline: [], warranties: [] });
       const db = base44.asServiceRole.entities;
-      const [pcsa, aa, dma, jct] = await Promise.all([
-        db.LegalDocument.filter({ project_id: project.dataverse_id, document_type: 'pcsa' }, '-created_date', 1),
-        db.LegalDocument.filter({ project_id: project.dataverse_id, document_type: 'access_agreement' }, '-created_date', 1),
-        db.DMA.filter({ project_id: project.dataverse_id }, '-created_date', 1),
-        db.JCT.filter({ project_id: project.dataverse_id }, '-created_date', 1),
+      const [docs, dmas, jcts, warranties] = await Promise.all([
+        db.LegalDocument.filter({ project_id: project.dataverse_id }, '-created_date', 200),
+        db.DMA.filter({ project_id: project.dataverse_id }, '-created_date', 100),
+        db.JCT.filter({ project_id: project.dataverse_id }, '-created_date', 100),
+        db.Warranty.filter({ project_id: project.dataverse_id }, '-created_date', 200),
       ]);
       const status = doc => {
         if (!doc) return 'Not recorded';
@@ -92,7 +92,61 @@ export default async function(req: Request): Promise<Response> {
         if (doc.drafted_date) return 'Drafted';
         return 'In progress';
       };
-      return Response.json({ statuses: { pcsa: status(pcsa[0]), aa: aa.length ? status(aa[0]) : project.aa_executed_date ? 'Executed' : 'Not recorded', dma: status(dma[0]), jct: status(jct[0]) } });
+      const aa = docs.find(d => d.document_type === 'access_agreement');
+      const statuses = {
+        pcsa: status(docs.find(d => d.document_type === 'pcsa')),
+        aa: aa ? status(aa) : project.aa_executed_date ? 'Executed' : 'Not recorded',
+        dma: status(dmas[0]), jct: status(jcts[0]),
+      };
+      const accountId = supplierAccount(user);
+      const own = record => !!accountId && [record.account_id, record.supplier_id, record.contractor_id].includes(accountId);
+      const timeline = [];
+      const add = (date, label, cat) => {
+        if (date && !Number.isNaN(Date.parse(date))) timeline.push({ date, label, cat });
+      };
+      add(project.pq_approval_date, 'Project Questionnaire approved', 'project');
+      add(project.aa_executed_date, 'Access Agreement executed', 'project');
+      add(project.practical_completion_date, 'Practical completion', 'project');
+      for (const n of [1, 2, 3, 4]) add(project[`riba${n}_end`], `RIBA Stage ${n} complete`, 'project');
+      for (const doc of docs) {
+        if (isSupplierManager && own(doc)) continue;
+        const label = ({ pcsa: 'PCSA', access_agreement: 'Access Agreement', appointment_pm: 'PM appointment', appointment_architect: 'Architect appointment', appointment_pd_cdm: 'PD CDM appointment', appointment_pd_br: 'PD BR appointment', loi: 'LOI', additional_works: 'Additional works' })[doc.document_type] || 'Legal document';
+        add(doc.drafted_date, `${label} drafted`, 'legal');
+        add(doc.approval_date, `${label} approved`, 'legal');
+        add(doc.sent_to_client, `${label} sent to client`, 'legal');
+        add(doc.date_of_execution, `${label} executed`, 'legal');
+      }
+      for (const doc of dmas) {
+        add(doc.drafted_date, 'DMA drafted', 'dma');
+        add(doc.approval_date, 'DMA approved', 'dma');
+        add(doc.sent_for_signing, 'DMA sent for signing', 'dma');
+        add(doc.date_of_execution, 'DMA executed', 'dma');
+      }
+      for (const doc of jcts) {
+        if (isSupplierManager && own(doc)) continue;
+        add(doc.drafted_date, 'JCT drafted', 'jct');
+        add(doc.sent_for_signing, 'JCT sent for signing', 'jct');
+        add(doc.date_of_execution, 'JCT executed', 'jct');
+        add(doc.practical_completion, 'JCT practical completion', 'jct');
+      }
+      for (const doc of warranties) {
+        if (isSupplierManager && own(doc)) continue;
+        const label = `Warranty ${doc.warranty_id || ''}`.trim();
+        add(doc.drafted_date, `${label} drafted`, 'warranty');
+        add(doc.date_of_execution, `${label} executed`, 'warranty');
+        add(doc.warranty_due, `${label} due`, 'warranty');
+      }
+      const warrantyStatuses = {
+        awaiting_jct: 'Awaiting JCT', awaiting_appointment: 'Awaiting appointment',
+        in_review: 'In review', sent_for_seal: 'Sent for seal', drafted: 'Drafted',
+      };
+      return Response.json({ statuses,
+        timeline: timeline.sort((a, b) => Date.parse(b.date) - Date.parse(a.date)).slice(0, 150),
+        warranties: warranties.filter(w => !isSupplierManager || !own(w)).map(w => ({
+          id: w.id, reference: w.warranty_id || '', service: w.services || '',
+          status: w.date_of_execution ? 'Executed' : warrantyStatuses[w.warranty_status] || 'Not recorded',
+        })),
+      });
     }
     if (action === 'list') {
       if (!isManager && !isSupplierManager) return response('Project manager access required', 403);
