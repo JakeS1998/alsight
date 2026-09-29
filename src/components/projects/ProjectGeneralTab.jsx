@@ -5,6 +5,7 @@ import { base44 } from "@/api/base44Client";
 import { listAll } from "@/components/data/loadAll";
 import ValuationSnapshot from '@/components/valuations/ValuationSnapshot';
 import ProjectPOReferences from '@/components/projects/ProjectPOReferences';
+import StageDrawing from '@/components/projects/StageDrawing';
 import { projectStaffName } from '@/components/projects/projectStaffName';
 import { formatDate, formatCurrency, regionName, INTERNAL_ROLES } from "@/lib/portal";
 import { Button } from "@/components/ui/button";
@@ -160,7 +161,7 @@ export function ProjectGeneralTab({ project, accountMap }) {
             <tbody className="divide-y divide-slate-50">
               {ribaRows.map((r) => (
                 <tr key={r.stage}>
-                  <td className="py-2.5 pr-4 font-medium text-slate-900">{r.stage}</td>
+                  <td className="py-2.5 pr-4 font-medium text-slate-900"><span className="inline-flex items-center gap-2"><StageDrawing stage={r.stage} className="h-10 w-10" />{r.stage}</span></td>
                   <td className="py-2.5 pr-4 text-slate-600">{r.term || "—"}</td>
                   <td className="py-2.5">
                     {canEdit ? (
@@ -177,7 +178,7 @@ export function ProjectGeneralTab({ project, accountMap }) {
                 </tr>
               ))}
               <tr className="bg-slate-50">
-                <td className="py-2.5 pr-4 font-medium text-slate-900">Construction</td>
+                <td className="py-2.5 pr-4 font-medium text-slate-900"><span className="inline-flex items-center gap-2"><StageDrawing stage="RIBA 5–7" className="h-10 w-10" />Construction</span></td>
                 <td className="py-2.5 pr-4 text-slate-600">{project.construction_term_weeks || "—"}</td>
                 <td className="py-2.5 text-slate-600">{formatDate(project.practical_completion_date)}</td>
               </tr>

@@ -5,6 +5,7 @@ import { ChevronRight } from 'lucide-react';
 import { projectStage, STAGES } from '@/components/dashboard/pipelineStage';
 import PipelineTimelineDetail from '@/components/dashboard/PipelineTimelineDetail';
 import PipelineOpportunityDetail from '@/components/dashboard/PipelineOpportunityDetail';
+import StageDrawing from '@/components/projects/StageDrawing';
 
 export default function PipelineTimeline({ projects, accountMap }) {
   const [selected, setSelected] = useState(null);
@@ -28,6 +29,7 @@ export default function PipelineTimeline({ projects, accountMap }) {
       {nodes.map((node, index) => <React.Fragment key={node.stage}>
         {index > 0 && <div aria-hidden="true" className="flex h-7 items-center justify-center text-slate-400 md:h-auto md:w-5 md:shrink-0"><ChevronRight className="h-4 w-4 rotate-90 md:rotate-0" /></div>}
         <button type="button" onClick={() => setSelected(selected === node.stage ? null : node.stage)} aria-expanded={selected === node.stage} aria-controls="pipeline-timeline-detail" className={`min-w-0 rounded-xl border px-3 py-4 text-left transition-colors md:min-w-36 md:flex-1 ${selected === node.stage ? 'border-primary bg-primary/10' : index === 0 ? 'border-als-navy bg-als-navy text-white hover:bg-als-navy-light' : 'border-slate-200 bg-slate-50 hover:border-primary'}`}>
+          <StageDrawing stage={index === 0 ? 'PIPELINE' : node.stage} className="mb-3 h-14 w-14" />
           <span className={`block text-xs font-bold tracking-wide ${selected === node.stage ? 'text-als-navy' : index === 0 ? 'text-white' : 'text-slate-600'}`}>{node.label}</span>
           <strong className="mt-3 block text-xl">{index === 0 && opportunityError ? 'Unavailable' : node.count ?? 'Loading…'} <span className="text-xs font-normal">{index === 0 ? 'opportunities' : 'projects'}</span></strong>
           <span className="mt-1 block text-sm font-medium">{index === 0 && opportunityError ? '—' : node.value == null ? 'Loading…' : formatCurrency(node.value)}</span>
