@@ -12,7 +12,7 @@ export default function ValuationDetail({ project, initial, valuations, user, on
   const [value, setValue] = useState(initial);
   const [busy, setBusy] = useState(false); const [error, setError] = useState('');
   const role = user?.role;
-  const editable = ['draft','returned'].includes(value.status) && (role === 'project_manager' || role === 'admin');
+  const editable = ['draft','returned'].includes(value.status) && (role === 'project_manager' || role === 'supplier' || role === 'admin');
   const previousCertified = Math.max(0, ...valuations.filter(v => v.id !== value.id && v.number < value.number && ['approved','paid'].includes(v.status)).map(v => Number(v.approved_gross) || 0));
   const totals = valuationTotals(value, previousCertified);
   const hasOver = (value.items || []).some(i => Number(i.previous || 0) + Number(i.completed || 0) + Number(i.materials || 0) > Number(i.contract_value || 0) + Number(i.variations || 0));

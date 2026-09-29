@@ -7,6 +7,27 @@ const str = (s, max = 2000) => typeof s === 'string' ? s.trim().slice(0, max) : 
 const internal = ['admin', 'director', 'regional_director', 'bsm', 'bdm', 'finance'];
 const reviewers = ['admin', 'director', 'bsm', 'bdm'];
 const paymentStates = ['awaiting_invoice', 'invoice_received', 'approved_for_payment', 'scheduled', 'paid', 'on_hold'];
+const managerServices = 'project manager|project management|(^|[^a-z])pm([^a-z]|$)';
+const supplierAccount = user => user.account_id || user.data?.account_id;
+const supplierWarrantyQuery = accountId => ({ $or: [{ account_id: accountId }, { supplier_id: accountId }] });
+
+async function supplierCanManage(base44, accountId, projectDvId) {
+  if (!accountId || !projectDvId) return false;
+  const [appointments, warranties] = await Promise.all([
+    base44.asServiceRole.entities.LegalDocument.filter({ project_id: projectDvId, account_id: accountId, document_type: 'appointment_pm', status: 'active' }, '-created_date', 1),
+    base44.asServiceRole.entities.Warranty.filter({ project_id: projectDvId, status: 'active', services: { $regex: managerServices, $options: 'i' }, ...supplierWarrantyQuery(accountId) }, '-created_date', 1),
+  ]);
+  return appointments.length > 0 || warranties.length > 0;
+}
+
+async function allMatches(entity, query) {
+  const rows = [];
+  for (let skip = 0; ; skip += 500) {
+    const batch = await entity.filter(query, '-created_date', 500, skip);
+    rows.push(...batch);
+    if (batch.length < 500) return rows;
+  }
+}
 
 export default async function(req: Request): Promise<Response> {
   try {
@@ -17,20 +38,31 @@ export default async function(req: Request): Promise<Response> {
     const { action, projectId, valuationId } = input;
     const contactId = user.contact_dataverse_id || user.data?.contact_dataverse_id;
     const external = user.role === 'project_manager' && !!contactId;
-    const publicProject = p => ({ id: p.id, name: p.name, project_number: p.project_number, project_manager_id: p.project_manager_id, client_name: p.client_name, site_postcode: p.site_postcode, bdm_aad_id: p.bdm_aad_id, bsm_aad_id: p.bsm_aad_id, live_project: p.live_project });
+    const publicProject = p => ({ id: p.id, name: p.name, project_number: p.project_number, dataverse_id: p.dataverse_id, project_manager_id: p.project_manager_id, client_name: p.client_name, site_postcode: p.site_postcode, bdm_aad_id: p.bdm_aad_id, bsm_aad_id: p.bsm_aad_id, live_project: p.live_project });
     if (action === 'projects') {
-      if (!external) return response('Project manager access required', 403);
-      const projects = await base44.asServiceRole.entities.Project.filter({ project_manager_id: contactId }, '-created_date', 500);
-      return Response.json({ projects: projects.map(publicProject) });
+      if (external) {
+        const projects = await base44.asServiceRole.entities.Project.filter({ project_manager_id: contactId }, '-created_date', 500);
+        return Response.json({ projects: projects.map(publicProject) });
+      }
+      if (user.role !== 'supplier' || !supplierAccount(user)) return response('Project manager access required', 403);
+      const accountId = supplierAccount(user);
+      const [appointments, warranties] = await Promise.all([
+        allMatches(base44.asServiceRole.entities.LegalDocument, { account_id: accountId, document_type: 'appointment_pm', status: 'active' }),
+        allMatches(base44.asServiceRole.entities.Warranty, { status: 'active', services: { $regex: managerServices, $options: 'i' }, ...supplierWarrantyQuery(accountId) }),
+      ]);
+      const ids = [...new Set([...appointments, ...warranties].map(row => row.project_id).filter(Boolean))];
+      const projects = ids.length ? await allMatches(base44.asServiceRole.entities.Project, { dataverse_id: { $in: ids }, status: { $ne: 'inactive' } }) : [];
+      return Response.json({ projects: projects.map(project => ({ ...publicProject(project), can_submit_valuation: true })) });
     }
     if (!projectId || typeof projectId !== 'string') return response('Project required');
-    const project = external ? await base44.asServiceRole.entities.Project.get(projectId).catch(() => null) : await base44.entities.Project.get(projectId).catch(() => null);
+    const project = external || user.role === 'supplier' ? await base44.asServiceRole.entities.Project.get(projectId).catch(() => null) : await base44.entities.Project.get(projectId).catch(() => null);
     const isManager = external && project?.project_manager_id === contactId;
+    const isSupplierManager = user.role === 'supplier' && project?.status !== 'inactive' && await supplierCanManage(base44, supplierAccount(user), project?.dataverse_id);
     if (!project || (external && !isManager)) return response('Project not available', 403);
-    if (!isManager && !internal.includes(user.role)) return response('Not authorised for valuations', 403);
-    if (action === 'project') return Response.json({ project: publicProject(project) });
+    if (!isManager && !isSupplierManager && !internal.includes(user.role)) return response('Not authorised for valuations', 403);
+    if (action === 'project') return Response.json({ project: { ...publicProject(project), can_submit_valuation: isManager || isSupplierManager } });
     if (action === 'list') {
-      if (!isManager) return response('Project manager access required', 403);
+      if (!isManager && !isSupplierManager) return response('Project manager access required', 403);
       const valuations = await base44.asServiceRole.entities.Valuation.filter({ project_id: projectId }, '-number', 500);
       return Response.json({ valuations: valuations.filter(v => v.status !== 'draft' || v.draft_owner_id === user.id || (!v.draft_owner_id && v.audit?.find(e => e.kind === 'Created')?.actor_id === user.id)) });
     }
@@ -43,9 +75,9 @@ export default async function(req: Request): Promise<Response> {
       const contractor = project.contractor_contact_id ? await base44.asServiceRole.entities.Contact.filter({ dataverse_id: project.contractor_contact_id }, '-created_date', 1) : [];
       return Response.json({ meta: { contract_sum: delivery[0]?.contract_sum ?? null, contract_start: delivery[0]?.contract_start || null, manager_name: manager[0]?.full_name || '', contractor_name: contractor[0]?.full_name || '' } });
     }
-    const event = (kind, previous = '', next = '') => ({ kind, actor, actor_id: user.id, organisation: isManager ? 'External Project Manager' : 'Alliance Leisure', at: now, previous, next });
+    const event = (kind, previous = '', next = '') => ({ kind, actor, actor_id: user.id, organisation: isManager || isSupplierManager ? 'External Project Manager' : 'Alliance Leisure', at: now, previous, next });
     if (action === 'create') {
-      if (!isManager && user.role !== 'admin') return response('Only the assigned project manager can create a valuation', 403);
+      if (!isManager && !isSupplierManager && user.role !== 'admin') return response('Only the assigned project manager can create a valuation', 403);
       const existing = await db.filter({ project_id: projectId }, '-number', 500);
       const number = Math.max(0, ...existing.map(v => Number(v.number) || 0)) + 1;
       const record = await db.create({ project_id: projectId, project_manager_contact_id: project.project_manager_id || '', bdm_aad_id: project.bdm_aad_id || '', bsm_aad_id: project.bsm_aad_id || '', department_id: project.department_id || '', number, status: 'draft', draft_owner_id: user.id, items: [], deductions: [], attachments: [], comments: [], audit: [event('Created', '', `Valuation ${number}`)], retention_percent: 0, payment_status: 'awaiting_invoice' });
@@ -59,7 +91,7 @@ export default async function(req: Request): Promise<Response> {
     if (audit.length > 400) return response('Audit history is full; contact an administrator');
     let changes = {};
     if (action === 'save') {
-      if (!isManager && user.role !== 'admin') return response('Only the project manager may edit the draft', 403);
+      if (!isManager && !isSupplierManager && user.role !== 'admin') return response('Only the project manager may edit the draft', 403);
       if (!['draft', 'returned'].includes(record.status)) return response('This valuation is locked');
       const items = input.items;
       if (!Array.isArray(items) || items.length > 100) return response('Too many schedule items');
@@ -75,7 +107,7 @@ export default async function(req: Request): Promise<Response> {
       if (changes.period_start && changes.period_end && changes.period_end < changes.period_start) return response('Period end must follow period start');
       audit.push(event('Draft updated', JSON.stringify({ period_start: record.period_start, period_end: record.period_end, items: record.items, deductions: record.deductions, retention_percent: record.retention_percent }), JSON.stringify(changes).slice(0, 5000)));
     } else if (action === 'submit') {
-      if (!isManager && user.role !== 'admin') return response('Only the project manager can submit', 403);
+      if (!isManager && !isSupplierManager && user.role !== 'admin') return response('Only the project manager can submit', 403);
       if (!['draft', 'returned'].includes(record.status)) return response('This valuation cannot be submitted');
       if (!record.period_start || !record.period_end || record.period_end < record.period_start || !record.valuation_date || !(record.items || []).length) return response('Save a valid period, valuation date and at least one schedule item before submitting');
       if (record.items.some(i => !i.description || i.previous + i.completed + i.materials > i.contract_value + i.variations + 0.001) || (record.deductions || []).some(d => !d.description)) return response('Complete each schedule item and deduction; no item may exceed its revised value');
@@ -116,11 +148,11 @@ export default async function(req: Request): Promise<Response> {
       if (!text) return response('Write a comment');
       const comments = [...(record.comments || [])];
       if (comments.length >= 200) return response('Comment limit reached');
-      comments.push({ id: crypto.randomUUID(), text, actor, organisation: isManager ? 'External Project Manager' : 'Alliance Leisure', at: now, reply_to: str(input.reply_to, 100) });
+      comments.push({ id: crypto.randomUUID(), text, actor, organisation: isManager || isSupplierManager ? 'External Project Manager' : 'Alliance Leisure', at: now, reply_to: str(input.reply_to, 100) });
       changes = { comments };
       audit.push(event('Comment added', '', text));
     } else if (action === 'attachment') {
-      if (!isManager && user.role !== 'admin') return response('Only the project manager can attach evidence', 403);
+      if (!isManager && !isSupplierManager && user.role !== 'admin') return response('Only the project manager can attach evidence', 403);
       if (!['draft', 'returned'].includes(record.status)) return response('Evidence is locked');
       if (typeof input.file_uri !== 'string' || !input.file_uri || input.file_uri.length > 500 || (record.attachments || []).length >= 30) return response('Invalid attachment');
       changes = { attachments: [...(record.attachments || []), { file_uri: input.file_uri, name: str(input.name, 150), type: str(input.type, 100), size: Math.max(0, Number(input.size) || 0), actor, at: now }] };

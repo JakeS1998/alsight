@@ -26,11 +26,11 @@ export default function ProjectDetail() {
   const isExternalPM = user?.role === 'project_manager';
   const isSupplier = user?.role === 'supplier';
   const supplierAccountId = user?.account_id || user?.data?.account_id;
-  const canSeeValuations = isExternalPM || INTERNAL_ROLES.includes(user?.role);
+  const [project, setProject] = useState(null);
+  const canSeeValuations = isExternalPM || INTERNAL_ROLES.includes(user?.role) || (isSupplier && !!project?.can_submit_valuation);
   const [activeTab, setActiveTab] = useState('general');
   const [editUKLFKpis, setEditUKLFKpis] = useState(false);
-  useEffect(() => { const tab = new URLSearchParams(location.search).get('tab'); setActiveTab(isExternalPM ? 'valuations' : isSupplier ? 'timeline' : (tab === 'valuations' && !canSeeValuations) ? 'general' : ['general','timeline','drafting','warranties','finance','delivery','valuations','uklf'].includes(tab) ? tab : 'general'); }, [location.search, isExternalPM, isSupplier, canSeeValuations]);
-  const [project, setProject] = useState(null);
+  useEffect(() => { const tab = new URLSearchParams(location.search).get('tab'); setActiveTab(isExternalPM ? 'valuations' : isSupplier ? (tab === 'valuations' && canSeeValuations ? 'valuations' : 'timeline') : (tab === 'valuations' && !canSeeValuations) ? 'general' : ['general','timeline','drafting','warranties','finance','delivery','valuations','uklf'].includes(tab) ? tab : 'general'); }, [location.search, isExternalPM, isSupplier, canSeeValuations]);
   const [legalDocs, setLegalDocs] = useState([]);
   const [dmas, setDmas] = useState([]);
   const [jcts, setJcts] = useState([]);
@@ -41,7 +41,7 @@ export default function ProjectDetail() {
   useEffect(() => {
     (async () => {
       try {
-        const proj = isExternalPM ? (await base44.functions.invoke('manageValuation', { action: 'project', projectId }).catch(() => ({ data: { project: null } }))).data.project : await base44.entities.Project.get(projectId).catch(() => null);
+        const proj = isExternalPM ? (await base44.functions.invoke('manageValuation', { action: 'project', projectId }).catch(() => ({ data: { project: null } }))).data.project : isSupplier ? (await Promise.all([base44.entities.Project.get(projectId).catch(() => null), base44.functions.invoke('manageValuation', { action: 'project', projectId }).then(res => res.data.project).catch(() => null)]).then(([full, allowed]) => allowed ? { ...(full || allowed), can_submit_valuation: true } : full)) : await base44.entities.Project.get(projectId).catch(() => null);
         if (!proj || proj.status === 'inactive') { setProject(null); return; }
         setProject(proj);
         if (isExternalPM) return;
