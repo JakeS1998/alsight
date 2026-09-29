@@ -14,8 +14,8 @@ const NAV_ITEMS = [
   { label: 'Projects', path: '/projects', icon: FolderKanban, roles: ALL_ROLES },
   { label: 'Framework reports', path: '/framework-reports', icon: ChartNoAxesCombined, roles: INTERNAL_ROLES.concat(['framework_stakeholder']) },
   { label: 'Pipeline', path: '/crm', icon: BriefcaseBusiness, roles: INTERNAL_ROLES },
-  { label: 'My Account', path: '/account', icon: UserCircle, roles: ['client', 'supplier'] },
-  { label: 'Accounts', path: '/accounts', icon: Building2, roles: ALL_ROLES },
+  { label: 'My Account', path: '/account', icon: UserCircle, roles: ['client'] },
+  { label: 'Accounts', path: '/accounts', icon: Building2, roles: ALL_ROLES.filter(role => role !== 'supplier') },
   { label: 'Contacts', path: '/contacts', icon: Users, roles: ['admin'] },
   { label: 'Admin', path: '/admin', icon: UserCog, roles: ['admin'] },
 ];
