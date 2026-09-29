@@ -86,7 +86,7 @@ export default function AliceWidget() {
   };
   return <div data-alice-widget className="fixed bottom-4 right-4 z-50 sm:bottom-6 sm:right-6">
     {open && <section role="dialog" aria-label="Chat with ALICE" className="mb-3 flex h-[min(620px,calc(100dvh-110px))] w-[min(380px,calc(100vw-32px))] flex-col overflow-hidden rounded-2xl border border-border bg-card shadow-2xl">
-      <header className="flex items-center justify-between bg-als-navy px-4 py-3 text-white"><div><strong>ALICE</strong><p className="text-[11px] text-white/75">ALSight project assistant</p></div><button type="button" aria-label="Close ALICE" onClick={() => setOpen(false)}><X className="h-5 w-5" /></button></header>
+      <header className="flex items-center justify-between bg-als-navy px-4 py-3 text-white"><div><strong>ALICE</strong><p className="text-[11px] text-white/75">Alliance Leisure Intelligence &amp; Construction Expert</p></div><button type="button" aria-label="Close ALICE" onClick={() => setOpen(false)}><X className="h-5 w-5" /></button></header>
       {!messages.length && <div className="space-y-2 px-4 pt-4"><p className="text-sm text-muted-foreground">Ask me a question, or pick a suggestion:</p><div className="flex flex-wrap gap-2">{SUGGESTIONS.map(s => <button type="button" key={s} onClick={() => send(s)} disabled={busy || restoring} className="rounded-full border border-border px-3 py-1.5 text-xs hover:bg-secondary">{s}</button>)}</div></div>}
       <AliceMessages messages={messages} busy={busy} draftMode={draftMode} onApply={apply} />
       {error && <p role="alert" className="px-4 text-xs text-destructive">{error}</p>}
