@@ -8,7 +8,7 @@ import ProjectPOReferences from '@/components/projects/ProjectPOReferences';
 import { projectStaffName } from '@/components/projects/projectStaffName';
 import { formatDate, formatCurrency, regionName, INTERNAL_ROLES } from "@/lib/portal";
 import { Button } from "@/components/ui/button";
-import { Building2, Users, PoundSterling, Calendar, ExternalLink, UserCircle, Save, Loader2, Check } from "lucide-react";
+import { Building2, MapPin, PoundSterling, Calendar, ExternalLink, UserCircle, Save, Loader2, Check } from "lucide-react";
 
 function toDateInput(d) {
   if (!d) return "";
@@ -35,7 +35,8 @@ export function ProjectGeneralTab({ project, accountMap }) {
   });
   const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState(false);
-  const [staff, setStaff] = useState({ byAad: {}, byDv: {}, userRegion: {}, rds: [] });
+  const [staff, setStaff] = useState({ byAad: {}, byDv: {} });
+  const [directorName, setDirectorName] = useState('');
 
   useEffect(() => {
     (async () => {
@@ -47,12 +48,7 @@ export function ProjectGeneralTab({ project, accountMap }) {
       const byDv = {};
       contacts.forEach((c) => { if (c.aad_id) byAad[c.aad_id] = c.full_name; if (c.dataverse_id) byDv[c.dataverse_id] = c.full_name; });
       users.forEach((u) => { if (!byAad[u.id]) byAad[u.id] = u.full_name || u.email; });
-      const userRegion = {};
-      users.forEach((u) => { if (u.id) userRegion[u.id] = u.data?.region || u.region || null; });
-      const rds = users
-        .filter((u) => u.role === "regional_director")
-        .map((u) => ({ id: u.id, name: u.full_name || u.email, region: u.data?.region || u.region || null }));
-      setStaff({ byAad, byDv, userRegion, rds });
+      setStaff({ byAad, byDv });
     })();
   }, []);
 
@@ -63,6 +59,15 @@ export function ProjectGeneralTab({ project, accountMap }) {
       riba3_end: toDateInput(project.riba3_end),
       riba4_end: toDateInput(project.riba4_end),
     });
+  }, [project.id]);
+
+  useEffect(() => {
+    let active = true;
+    setDirectorName('');
+    base44.functions.invoke('getProjectBDMManager', { projectId: project.id })
+      .then(({ data }) => { if (active) setDirectorName(data.managerName || ''); })
+      .catch(() => { if (active) setDirectorName(''); });
+    return () => { active = false; };
   }, [project.id]);
 
   const handleSave = async () => {
@@ -83,12 +88,6 @@ export function ProjectGeneralTab({ project, accountMap }) {
   };
 
   const client = accountMap[project.client_account_id];
-  // The project's Dataverse department is the assigned region; portal staff profiles may not have a region yet.
-  const projectRegion = project.department_id || null;
-  const bdmRegion = projectRegion || staff.userRegion[project.bdm_aad_id];
-  const bsmRegion = projectRegion || staff.userRegion[project.bsm_aad_id];
-  const bdmRd = bdmRegion ? staff.rds.find((r) => r.region === bdmRegion) : null;
-  const bsmRd = bsmRegion ? staff.rds.find((r) => r.region === bsmRegion) : null;
 
   const ribaRows = [
     { stage: "RIBA 1", term: project.riba1_term_weeks, key: "riba1_end" },
@@ -118,7 +117,7 @@ export function ProjectGeneralTab({ project, accountMap }) {
           <InfoCard icon={Building2} label="Client" value="—" />
         )}
         <InfoCard icon={PoundSterling} label="Estimated Value" value={formatCurrency(project.estimated_value)} />
-        <InfoCard icon={Users} label="Project team" value={<><span className="block truncate">BDM: {projectStaffName(project.bdm_aad_id, staff.byAad) || '—'}</span><span className="block truncate">BSM: {projectStaffName(project.bsm_aad_id, staff.byAad) || '—'}</span></>} />
+        <InfoCard icon={MapPin} label="Department" value={regionName(project.department_id) || '—'} />
         <InfoCard icon={Calendar} label="Practical Completion" value={formatDate(project.practical_completion_date)} />
       </div>
 
@@ -126,10 +125,10 @@ export function ProjectGeneralTab({ project, accountMap }) {
       <div className="rounded-xl border border-slate-200 bg-white p-5">
         <h3 className="mb-4 text-sm font-semibold text-slate-900">Team Assignments</h3>
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-          <Assignment label="BDM" name={projectStaffName(project.bdm_aad_id, staff.byAad)} sub={<RegionSub region={bdmRegion} rd={bdmRd} />} />
-          <Assignment label="BSM" name={projectStaffName(project.bsm_aad_id, staff.byAad) || (project.bsm_aad_id ? "Assigned BSM not identified" : null)} sub={<RegionSub region={bsmRegion} rd={bsmRd} />} />
-          <Assignment label="Director" name={staff.byAad[project.director_aad_id]} />
-          <Assignment label="Strategic Account Manager" name={staff.byAad[project.strategic_account_manager_aad_id]} />
+          <Assignment label="BDM" name={projectStaffName(project.bdm_aad_id, staff.byAad)} />
+          <Assignment label="BSM" name={projectStaffName(project.bsm_aad_id, staff.byAad) || (project.bsm_aad_id ? "Assigned BSM not identified" : null)} />
+          <Assignment label="Director" name={directorName} />
+          <Assignment label="Project postcode" name={project.site_postcode} />
           <Assignment label="Project Manager" name={staff.byDv[project.project_manager_id]} />
           <Assignment label="Client Representative" name={staff.byDv[project.client_rep_id]} />
         </div>
@@ -240,25 +239,14 @@ function InfoCard({ icon: Icon, label, value }) {
     </div>
   );
 }
-function Assignment({ label, name, sub }) {
+function Assignment({ label, name }) {
   return (
     <div className="flex items-start gap-2">
       <UserCircle className="mt-0.5 h-4 w-4 text-slate-400" />
       <div>
         <p className="text-xs text-slate-500">{label}</p>
         <p className="text-sm font-medium text-slate-700">{name || "—"}</p>
-        {sub}
       </div>
-    </div>
-  );
-}
-function RegionSub({ region, rd }) {
-  return (
-    <div className="text-xs text-slate-500">
-      <span className="text-slate-400">Region </span>
-      {region ? regionName(region) : <span className="text-amber-600">not set on profile</span>}
-      <span className="text-slate-400"> · RD </span>
-      {region ? (rd ? rd.name : <span className="text-amber-600">not assigned</span>) : "—"}
     </div>
   );
 }
