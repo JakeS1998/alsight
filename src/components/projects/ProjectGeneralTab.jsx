@@ -6,6 +6,7 @@ import { listAll } from "@/components/data/loadAll";
 import ValuationSnapshot from '@/components/valuations/ValuationSnapshot';
 import ProjectPOReferences from '@/components/projects/ProjectPOReferences';
 import StageDrawing from '@/components/projects/StageDrawing';
+import ProjectDocumentStatuses from '@/components/projects/ProjectDocumentStatuses';
 import { projectStaffName } from '@/components/projects/projectStaffName';
 import { formatDate, formatCurrency, regionName, INTERNAL_ROLES } from "@/lib/portal";
 import { Button } from "@/components/ui/button";
@@ -190,6 +191,8 @@ export function ProjectGeneralTab({ project, accountMap, onProjectUpdated }) {
           </table>
         </div>
       </div>
+
+      {(role === 'project_manager' || (role === 'supplier' && project.can_submit_valuation)) && <ProjectDocumentStatuses projectId={project.id} />}
 
       {/* Comments & Links */}
       {role !== 'supplier' && role !== 'project_manager' && <div className="grid gap-4 lg:grid-cols-2">

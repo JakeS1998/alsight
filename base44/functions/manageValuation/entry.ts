@@ -73,6 +73,27 @@ export default async function(req: Request): Promise<Response> {
       const updated = await base44.asServiceRole.entities.Project.update(projectId, changes);
       return Response.json({ project: publicProject(updated) });
     }
+    if (action === 'document_status') {
+      if (!isManager && !isSupplierManager) return response('Project manager access required', 403);
+      if (!project.dataverse_id) return Response.json({ statuses: {} });
+      const db = base44.asServiceRole.entities;
+      const [pcsa, aa, dma, jct] = await Promise.all([
+        db.LegalDocument.filter({ project_id: project.dataverse_id, document_type: 'pcsa' }, '-created_date', 1),
+        db.LegalDocument.filter({ project_id: project.dataverse_id, document_type: 'access_agreement' }, '-created_date', 1),
+        db.DMA.filter({ project_id: project.dataverse_id }, '-created_date', 1),
+        db.JCT.filter({ project_id: project.dataverse_id }, '-created_date', 1),
+      ]);
+      const status = doc => {
+        if (!doc) return 'Not recorded';
+        if (doc.executed === 'yes' || doc.date_of_execution) return 'Executed';
+        if (doc.executed === 'po') return 'PO issued';
+        if (doc.sent_for_signing || doc.sent_to_client) return 'Sent for signing';
+        if (doc.approval_date || /^approved/i.test(doc.approval_status || '')) return 'Approved';
+        if (doc.drafted_date) return 'Drafted';
+        return 'In progress';
+      };
+      return Response.json({ statuses: { pcsa: status(pcsa[0]), aa: aa.length ? status(aa[0]) : project.aa_executed_date ? 'Executed' : 'Not recorded', dma: status(dma[0]), jct: status(jct[0]) } });
+    }
     if (action === 'list') {
       if (!isManager && !isSupplierManager) return response('Project manager access required', 403);
       const valuations = await base44.asServiceRole.entities.Valuation.filter({ project_id: projectId }, '-number', 500);
