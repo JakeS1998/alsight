@@ -29,6 +29,9 @@
     },
     "region": {
       "type": "string"
+    },
+    "staff_aad_id": {
+      "type": "string"
     }
   },
   "required": [

@@ -53,9 +53,9 @@ export default function Home() {
 
   const { filteredProjects, filterLabel } = useMemo(() => {
     if (role === "bdm" || role === "bsm") {
-      const assignedIds = [user?.id, staffAadId, user?.data?.delegate_of || user?.delegate_of].filter(Boolean);
+      const assignedIds = [user?.id, user?.data?.staff_aad_id || user?.staff_aad_id, staffAadId, user?.data?.delegate_of || user?.delegate_of].filter(Boolean);
       return {
-        filteredProjects: projects.filter((p) => assignedIds.includes(p.bdm_aad_id) || assignedIds.includes(p.bsm_aad_id)),
+        filteredProjects: projects.filter((p) => role === 'bsm' ? assignedIds.includes(p.bsm_aad_id) : assignedIds.includes(p.bdm_aad_id) || assignedIds.includes(p.bsm_aad_id)),
         filterLabel: "Showing your assigned projects",
       };
     }
@@ -81,7 +81,7 @@ export default function Home() {
 
   if (role === 'project_manager') return <Navigate to="/projects" replace />;
 
-  if (loading) {
+  if (loading || (internal && extrasLoading)) {
     return (
       <div className="flex items-center justify-center py-20">
         <div className="h-8 w-8 animate-spin rounded-full border-4 border-slate-200 border-t-slate-800" />
@@ -107,8 +107,7 @@ export default function Home() {
       </div>
 
       {extrasError && internal && <p className="rounded-lg border border-rose-200 bg-rose-50 p-3 text-sm text-rose-700">{extrasError}</p>}
-      {internal && extrasLoading && <p className="text-sm text-slate-500">Loading portfolio data…</p>}
-      {internal && !extrasError && !extrasLoading ? <PortfolioSummary metrics={portfolio.metrics} onRiskClick={() => { setRiskExpanded(true); document.getElementById('dashboard-attention')?.scrollIntoView(); }} /> : <DashboardKPIs projects={filteredProjects} hideValues={role === 'supplier'} />}
+      {internal ? !extrasError && <PortfolioSummary metrics={portfolio.metrics} onRiskClick={() => { setRiskExpanded(true); document.getElementById('dashboard-attention')?.scrollIntoView(); }} /> : <DashboardKPIs projects={filteredProjects} hideValues={role === 'supplier'} />}
 
       {internal && !extrasError && !extrasLoading && <PipelineTimeline projects={portfolio.pipeline} accountMap={accountMap} />}
 

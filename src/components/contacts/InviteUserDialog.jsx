@@ -70,9 +70,14 @@ export function InviteUserDialog({ open, onOpenChange, contact, accounts, existi
     setSubmitting(true);
     setError("");
     try {
+      const staffLine = ['bsm', 'bdm'].includes(role)
+        ? await base44.entities.StaffReportingLine.filter({ contact_id: contact.id }, { limit: 1 }).then(page => page.items[0])
+        : null;
       if (existingUser) {
         await base44.entities.User.update(existingUser.id, {
           role,
+          staff_aad_id: staffLine?.staff_aad_id || null,
+          ...(existingUser.role !== role ? { delegate_of: null, delegate_of_name: null, delegate_region: null } : {}),
           account_id: linkedAccountId,
           company_number: companyNumber,
           region: role === "regional_director" ? (region || null) : null,
@@ -89,6 +94,7 @@ export function InviteUserDialog({ open, onOpenChange, contact, accounts, existi
           email: address,
           portal_role: role,
           account_id: linkedAccountId || "",
+          staff_aad_id: staffLine?.staff_aad_id || '',
           region: role === "regional_director" ? (region || "") : "",
         };
         const staged = matching[0]
@@ -107,6 +113,7 @@ export function InviteUserDialog({ open, onOpenChange, contact, accounts, existi
         if (created) {
           await base44.entities.User.update(created.id, {
             role,
+            staff_aad_id: staffLine?.staff_aad_id || null,
             account_id: linkedAccountId,
             region: role === "regional_director" ? (region || null) : null,
           contact_dataverse_id: role === "project_manager" ? (contact.dataverse_id || null) : null,

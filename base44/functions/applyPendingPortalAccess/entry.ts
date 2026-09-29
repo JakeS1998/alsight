@@ -23,6 +23,10 @@ export default async function(req: Request): Promise<Response> {
     await base44.asServiceRole.entities.User.update(user.id, {
       contact_dataverse_id: assignment.portal_role === 'project_manager' && contact?.email?.trim().toLowerCase() === email ? (contact.dataverse_id || null) : null,
       role: assignment.portal_role,
+      staff_aad_id: assignment.staff_aad_id || null,
+      delegate_of: null,
+      delegate_of_name: null,
+      delegate_region: null,
       account_id: assignment.account_id || null,
       company_number: supplierAccounts[0]?.company_number || null,
       region: assignment.portal_role === 'regional_director' ? (assignment.region || null) : null,
