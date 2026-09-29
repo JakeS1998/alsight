@@ -23,10 +23,10 @@ function fromDateInput(d) {
   return new Date(d + "T00:00:00").toISOString();
 }
 
-export function ProjectGeneralTab({ project, accountMap }) {
+export function ProjectGeneralTab({ project, accountMap, onProjectUpdated }) {
   const { user } = useAuth();
   const role = user?.role || "client";
-  const canEdit = ["admin", "director", "bdm"].includes(role);
+  const canEdit = ["admin", "director", "bdm", "project_manager"].includes(role) || (role === 'supplier' && !!project.can_submit_valuation);
 
   const [ribaDates, setRibaDates] = useState({
     riba1_end: toDateInput(project.riba1_end),
@@ -36,6 +36,7 @@ export function ProjectGeneralTab({ project, accountMap }) {
   });
   const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState(false);
+  const [saveError, setSaveError] = useState('');
   const [staff, setStaff] = useState({ byAad: {}, byDv: {} });
   const [directorName, setDirectorName] = useState('');
 
@@ -74,15 +75,17 @@ export function ProjectGeneralTab({ project, accountMap }) {
   const handleSave = async () => {
     setSaving(true);
     setSaved(false);
+    setSaveError('');
     try {
-      await base44.entities.Project.update(project.id, {
-        riba1_end: fromDateInput(ribaDates.riba1_end),
-        riba2_end: fromDateInput(ribaDates.riba2_end),
-        riba3_end: fromDateInput(ribaDates.riba3_end),
-        riba4_end: fromDateInput(ribaDates.riba4_end),
-      });
+      const dates = Object.fromEntries(Object.entries(ribaDates).map(([key, value]) => [key, value || null]));
+      const updated = role === 'project_manager' || role === 'supplier'
+        ? (await base44.functions.invoke('manageValuation', { action: 'riba_dates', projectId: project.id, ...dates })).data.project
+        : await base44.entities.Project.update(project.id, Object.fromEntries(Object.entries(ribaDates).map(([key, value]) => [key, fromDateInput(value)])));
+      onProjectUpdated?.(updated);
       setSaved(true);
       setTimeout(() => setSaved(false), 2500);
+    } catch (error) {
+      setSaveError(error.response?.data?.error || error.message || 'Unable to save dates');
     } finally {
       setSaving(false);
     }
@@ -117,7 +120,7 @@ export function ProjectGeneralTab({ project, accountMap }) {
         ) : (
           <InfoCard icon={Building2} label="Client" value={project.client_name || '—'} />
         )}
-        {role !== 'supplier' && <InfoCard icon={PoundSterling} label="Estimated Value" value={formatCurrency(project.estimated_value)} />}
+        {role !== 'supplier' && role !== 'project_manager' && <InfoCard icon={PoundSterling} label="Estimated Value" value={formatCurrency(project.estimated_value)} />}
         <InfoCard icon={MapPin} label="Department" value={regionName(project.department_id) || '—'} />
         <InfoCard icon={Calendar} label="Practical Completion" value={formatDate(project.practical_completion_date)} />
       </div>
@@ -141,6 +144,7 @@ export function ProjectGeneralTab({ project, accountMap }) {
           <h3 className="text-sm font-semibold text-slate-900">RIBA Timeframes</h3>
           {canEdit && (
             <div className="flex items-center gap-3">
+              {saveError && <span role="alert" className="text-xs text-destructive">{saveError}</span>}
               {saved && <span className="flex items-center gap-1 text-xs text-emerald-600"><Check className="h-3.5 w-3.5" /> Saved</span>}
               <Button size="sm" onClick={handleSave} disabled={saving} className="bg-primary hover:bg-primary/90">
                 {saving ? <Loader2 className="mr-1.5 h-3.5 w-3.5 animate-spin" /> : <Save className="mr-1.5 h-3.5 w-3.5" />}
@@ -188,7 +192,7 @@ export function ProjectGeneralTab({ project, accountMap }) {
       </div>
 
       {/* Comments & Links */}
-      {role !== 'supplier' && <div className="grid gap-4 lg:grid-cols-2">
+      {role !== 'supplier' && role !== 'project_manager' && <div className="grid gap-4 lg:grid-cols-2">
         {project.comments && (
           <div className="rounded-xl border border-slate-200 bg-white p-5">
             <h3 className="mb-2 text-sm font-semibold text-slate-900">Comments</h3>
@@ -220,7 +224,7 @@ export function ProjectGeneralTab({ project, accountMap }) {
           <Detail label="AA Executed" value={formatDate(project.aa_executed_date)} />
           <Detail label="PQ Approval" value={formatDate(project.pq_approval_date)} />
           <Detail label="Construction Term" value={project.construction_term_weeks ? `${project.construction_term_weeks} weeks` : "—"} />
-          {role !== 'supplier' && <><Detail label="IE Value" value={formatCurrency(project.ie_value)} />
+          {role !== 'supplier' && role !== 'project_manager' && <><Detail label="IE Value" value={formatCurrency(project.ie_value)} />
           <Detail label="IE Commencement" value={formatDate(project.ie_commencement_date)} />
           <Detail label="Payment Type" value={project.payment_type || "—"} /></>}
         </div>

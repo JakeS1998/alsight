@@ -38,7 +38,7 @@ export default async function(req: Request): Promise<Response> {
     const { action, projectId, valuationId } = input;
     const contactId = user.contact_dataverse_id || user.data?.contact_dataverse_id;
     const external = user.role === 'project_manager' && !!contactId;
-    const publicProject = p => ({ id: p.id, name: p.name, project_number: p.project_number, dataverse_id: p.dataverse_id, project_manager_id: p.project_manager_id, client_name: p.client_name, site_postcode: p.site_postcode, bdm_aad_id: p.bdm_aad_id, bsm_aad_id: p.bsm_aad_id, live_project: p.live_project });
+    const publicProject = p => ({ id: p.id, name: p.name, project_number: p.project_number, dataverse_id: p.dataverse_id, project_manager_id: p.project_manager_id, client_name: p.client_name, site_postcode: p.site_postcode, bdm_aad_id: p.bdm_aad_id, bsm_aad_id: p.bsm_aad_id, live_project: p.live_project, department_id: p.department_id, practical_completion_date: p.practical_completion_date, riba1_end: p.riba1_end, riba2_end: p.riba2_end, riba3_end: p.riba3_end, riba4_end: p.riba4_end, riba1_term_weeks: p.riba1_term_weeks, riba2_term_weeks: p.riba2_term_weeks, riba3_term_weeks: p.riba3_term_weeks, riba4_term_weeks: p.riba4_term_weeks, construction_term_weeks: p.construction_term_weeks, procurement_route: p.procurement_route, approval_status: p.approval_status, aa_executed_date: p.aa_executed_date, pq_approval_date: p.pq_approval_date, client_rep_id: p.client_rep_id });
     if (action === 'projects') {
       if (external) {
         const projects = await base44.asServiceRole.entities.Project.filter({ project_manager_id: contactId }, '-created_date', 500);
@@ -61,6 +61,18 @@ export default async function(req: Request): Promise<Response> {
     if (!project || (external && !isManager)) return response('Project not available', 403);
     if (!isManager && !isSupplierManager && !internal.includes(user.role)) return response('Not authorised for valuations', 403);
     if (action === 'project') return Response.json({ project: { ...publicProject(project), can_submit_valuation: isManager || isSupplierManager } });
+    if (action === 'riba_dates') {
+      if (!isManager && !isSupplierManager) return response('Project manager access required', 403);
+      const keys = ['riba1_end', 'riba2_end', 'riba3_end', 'riba4_end'];
+      const changes = {};
+      for (const key of keys) {
+        const value = input[key];
+        if (value !== null && (typeof value !== 'string' || !/^\d{4}-\d{2}-\d{2}$/.test(value) || !Number.isFinite(Date.parse(value)) || new Date(value).toISOString().slice(0, 10) !== value)) return response('Enter valid RIBA end dates');
+        changes[key] = value ? `${value}T00:00:00.000Z` : null;
+      }
+      const updated = await base44.asServiceRole.entities.Project.update(projectId, changes);
+      return Response.json({ project: publicProject(updated) });
+    }
     if (action === 'list') {
       if (!isManager && !isSupplierManager) return response('Project manager access required', 403);
       const valuations = await base44.asServiceRole.entities.Valuation.filter({ project_id: projectId }, '-number', 500);
