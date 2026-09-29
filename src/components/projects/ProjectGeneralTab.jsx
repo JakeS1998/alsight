@@ -115,9 +115,9 @@ export function ProjectGeneralTab({ project, accountMap }) {
             <InfoCard icon={Building2} label="Client" value={client.name} />
           </Link>
         ) : (
-          <InfoCard icon={Building2} label="Client" value="—" />
+          <InfoCard icon={Building2} label="Client" value={project.client_name || '—'} />
         )}
-        <InfoCard icon={PoundSterling} label="Estimated Value" value={formatCurrency(project.estimated_value)} />
+        {role !== 'supplier' && <InfoCard icon={PoundSterling} label="Estimated Value" value={formatCurrency(project.estimated_value)} />}
         <InfoCard icon={MapPin} label="Department" value={regionName(project.department_id) || '—'} />
         <InfoCard icon={Calendar} label="Practical Completion" value={formatDate(project.practical_completion_date)} />
       </div>
@@ -188,7 +188,7 @@ export function ProjectGeneralTab({ project, accountMap }) {
       </div>
 
       {/* Comments & Links */}
-      <div className="grid gap-4 lg:grid-cols-2">
+      {role !== 'supplier' && <div className="grid gap-4 lg:grid-cols-2">
         {project.comments && (
           <div className="rounded-xl border border-slate-200 bg-white p-5">
             <h3 className="mb-2 text-sm font-semibold text-slate-900">Comments</h3>
@@ -208,7 +208,7 @@ export function ProjectGeneralTab({ project, accountMap }) {
             </div>
           </div>
         )}
-      </div>
+      </div>}
 
       {/* Additional details */}
       <div className="rounded-xl border border-slate-200 bg-white p-5">
@@ -220,9 +220,9 @@ export function ProjectGeneralTab({ project, accountMap }) {
           <Detail label="AA Executed" value={formatDate(project.aa_executed_date)} />
           <Detail label="PQ Approval" value={formatDate(project.pq_approval_date)} />
           <Detail label="Construction Term" value={project.construction_term_weeks ? `${project.construction_term_weeks} weeks` : "—"} />
-          <Detail label="IE Value" value={formatCurrency(project.ie_value)} />
+          {role !== 'supplier' && <><Detail label="IE Value" value={formatCurrency(project.ie_value)} />
           <Detail label="IE Commencement" value={formatDate(project.ie_commencement_date)} />
-          <Detail label="Payment Type" value={project.payment_type || "—"} />
+          <Detail label="Payment Type" value={project.payment_type || "—"} /></>}
         </div>
       </div>
     </div>

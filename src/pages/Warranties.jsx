@@ -1,11 +1,13 @@
 import React, { useEffect, useState } from "react";
 import { base44 } from "@/api/base44Client";
+import { useAuth } from '@/lib/AuthContext';
 import { listAll } from "@/components/data/loadAll";
 import { formatDate, WARRANTY_STATUS } from "@/lib/portal";
 import { WarrantyStatusBadge, WarrantyCategoryBadge } from "@/components/StatusBadge";
 import { ShieldCheck, ExternalLink } from "lucide-react";
 
 export default function Warranties() {
+  const { user } = useAuth();
   const [warranties, setWarranties] = useState([]);
   const [accounts, setAccounts] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -89,7 +91,7 @@ export default function Warranties() {
                   <td className="hidden px-4 py-3 text-sm text-slate-600 lg:table-cell">{formatDate(w.jct_signed)}</td>
                   <td className="hidden px-4 py-3 text-sm text-slate-600 lg:table-cell">{formatDate(w.warranty_due)}</td>
                   <td className="px-4 py-3 text-right">
-                    {w.link_to_file && (
+                    {user?.role !== 'supplier' && w.link_to_file && (
                       <a href={w.link_to_file} target="_blank" rel="noreferrer" className="inline-flex items-center text-blue-600 hover:underline">
                         <ExternalLink className="h-4 w-4" />
                       </a>

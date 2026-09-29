@@ -32,7 +32,7 @@ export default function ProjectDetail() {
   const canSeeValuations = isExternalPM || INTERNAL_ROLES.includes(user?.role) || (isSupplier && !!project?.can_submit_valuation);
   const [activeTab, setActiveTab] = useState('general');
   const [editUKLFKpis, setEditUKLFKpis] = useState(false);
-  useEffect(() => { const tab = new URLSearchParams(location.search).get('tab'); setActiveTab(isExternalPM ? 'valuations' : isSupplier ? (['timeline','drafting','warranties','purchase-orders'].includes(tab) ? tab : tab === 'valuations' && canSeeValuations ? 'valuations' : 'timeline') : (tab === 'valuations' && !canSeeValuations) ? 'general' : ['general','timeline','drafting','warranties','finance','delivery','valuations','uklf'].includes(tab) ? tab : 'general'); }, [location.search, isExternalPM, isSupplier, canSeeValuations]);
+  useEffect(() => { const tab = new URLSearchParams(location.search).get('tab'); setActiveTab(isExternalPM ? 'valuations' : isSupplier ? (['general','timeline','drafting','warranties','purchase-orders'].includes(tab) ? tab : tab === 'valuations' && canSeeValuations ? 'valuations' : 'timeline') : (tab === 'valuations' && !canSeeValuations) ? 'general' : ['general','timeline','drafting','warranties','finance','delivery','valuations','uklf'].includes(tab) ? tab : 'general'); }, [location.search, isExternalPM, isSupplier, canSeeValuations]);
   const [legalDocs, setLegalDocs] = useState([]);
   const [dmas, setDmas] = useState([]);
   const [jcts, setJcts] = useState([]);
@@ -116,7 +116,7 @@ export default function ProjectDetail() {
 
       <Tabs value={activeTab} onValueChange={tab => { setActiveTab(tab); setEditUKLFKpis(false); }}>
       <TabsList className="h-auto flex-wrap justify-start">
-        {!isExternalPM && !isSupplier && <TabsTrigger value="general"><LayoutDashboard className="mr-1.5 h-4 w-4" /> General</TabsTrigger>}
+        {!isExternalPM && <TabsTrigger value="general"><LayoutDashboard className="mr-1.5 h-4 w-4" /> {isSupplier ? 'Project details' : 'General'}</TabsTrigger>}
         {!isExternalPM && <TabsTrigger value="timeline"><Calendar className="mr-1.5 h-4 w-4" /> Timeline</TabsTrigger>}
         {!isExternalPM && <TabsTrigger value="drafting"><FileText className="mr-1.5 h-4 w-4" /> Documents</TabsTrigger>}
         {!isExternalPM && <TabsTrigger value="warranties"><ShieldCheck className="mr-1.5 h-4 w-4" /> Warranties</TabsTrigger>}
@@ -126,7 +126,7 @@ export default function ProjectDetail() {
         {canSeeValuations && <TabsTrigger value="valuations"><ListChecks className="mr-1.5 h-4 w-4" /> Valuations</TabsTrigger>}
         {INTERNAL_ROLES.includes(user?.role) && <TabsTrigger value="uklf"><UKLFIcon /> UKLF</TabsTrigger>}
       </TabsList>
-        {!isExternalPM && !isSupplier && <TabsContent value="general" className="mt-6">
+        {!isExternalPM && <TabsContent value="general" className="mt-6">
           <ProjectGeneralTab project={project} accountMap={accountMap} />
         </TabsContent>}
         {!isExternalPM && <TabsContent value="timeline" className="mt-6">
@@ -136,7 +136,7 @@ export default function ProjectDetail() {
           {isSupplier ? <SupplierProjectDocuments project={project} legalDocs={legalDocs} jcts={jcts} accountMap={accountMap} /> : <ProjectDraftingTab project={project} legalDocs={legalDocs} dmas={dmas} jcts={jcts} accountMap={accountMap} />}
         </TabsContent>}
         {!isExternalPM && <TabsContent value="warranties" className="mt-6">
-          <ProjectWarrantiesTab project={project} warranties={warranties} accountMap={accountMap} />
+          <ProjectWarrantiesTab project={project} warranties={warranties} accountMap={accountMap} hideCommentsAndLinks={isSupplier} />
         </TabsContent>}
         {isSupplier && <TabsContent value="purchase-orders" className="mt-6"><SupplierPurchaseOrders project={project} orders={supplierOrders} /></TabsContent>}
         {!isExternalPM && !isSupplier && <TabsContent value="finance" className="mt-6">

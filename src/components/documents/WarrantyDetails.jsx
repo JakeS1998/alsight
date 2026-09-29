@@ -6,7 +6,7 @@ function Row({ label, value }) {
   return <div className="flex justify-between gap-2 text-xs"><span className="shrink-0 text-slate-500">{label}</span><span className="text-right text-slate-700">{value || "—"}</span></div>;
 }
 
-export function WarrantyDetails({ warranty: w, accountMap }) {
+export function WarrantyDetails({ warranty: w, accountMap, hideCommentsAndLinks = false }) {
   return (
     <div className="grid items-start gap-4 sm:grid-cols-3">
       <div className="space-y-1.5">
@@ -30,12 +30,12 @@ export function WarrantyDetails({ warranty: w, accountMap }) {
         <Row label="Approval Date" value={formatDate(w.approval_date)} />
         <Row label="Execution Date" value={formatDate(w.date_of_execution)} />
       </div>
-      <div className="space-y-1.5">
+      {!hideCommentsAndLinks && <div className="space-y-1.5">
         <p className="text-[10px] font-semibold uppercase tracking-wide text-slate-400">Comments & links</p>
         {w.approval_comments && <p className="whitespace-pre-line text-xs text-slate-600">Approval: {w.approval_comments}</p>}
         {w.comments && <p className="whitespace-pre-line text-xs text-slate-600">{w.comments}</p>}
         {w.link_to_file && <a href={w.link_to_file} target="_blank" rel="noreferrer" className="inline-flex items-center gap-1 text-xs text-blue-600 hover:underline"><ExternalLink className="h-3 w-3" /> View file</a>}
-      </div>
+      </div>}
     </div>
   );
 }

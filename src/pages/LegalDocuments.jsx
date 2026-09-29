@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { base44 } from "@/api/base44Client";
+import { useAuth } from '@/lib/AuthContext';
 import { listAll } from "@/components/data/loadAll";
 import { DOCUMENT_TYPE, formatDate } from "@/lib/portal";
 import { legalDocumentName } from "@/components/documents/documentNames";
@@ -8,6 +9,7 @@ import { DocTypeBadge, ExecutedBadge } from "@/components/StatusBadge";
 import { FileText, ExternalLink, Filter } from "lucide-react";
 
 export default function LegalDocuments() {
+  const { user } = useAuth();
   const [docs, setDocs] = useState([]);
   const [projects, setProjects] = useState([]);
   const [accounts, setAccounts] = useState([]);
@@ -89,7 +91,7 @@ export default function LegalDocuments() {
                   <div className="flex justify-between"><dt>Approval</dt><dd className="text-slate-700">{d.approval_status || "—"}</dd></div>
                   <div className="flex justify-between"><dt>Execution</dt><dd className="text-slate-700">{formatDate(d.date_of_execution)}</dd></div>
                 </dl>
-                {d.link_to_file && (
+                {user?.role !== 'supplier' && d.link_to_file && (
                   <a href={d.link_to_file} target="_blank" rel="noreferrer"
                     className="mt-3 flex items-center justify-center gap-2 rounded-lg border border-slate-200 px-3 py-2 text-sm font-medium text-slate-700 transition-colors hover:bg-slate-50">
                     <ExternalLink className="h-4 w-4" /> View File

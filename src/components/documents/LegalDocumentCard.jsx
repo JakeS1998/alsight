@@ -5,7 +5,7 @@ import { DocTypeBadge, ExecutedBadge } from "@/components/StatusBadge";
 import { ProgressTracker, getLegalDocSteps } from "@/components/documents/ProgressTracker";
 import { ChevronDown, ChevronRight, Download, ExternalLink, FileText, AlertCircle } from "lucide-react";
 
-export function LegalDocumentCard({ doc, projectName, accountName, psoOutstanding }) {
+export function LegalDocumentCard({ doc, projectName, accountName, psoOutstanding, hideCommentsAndLinks = false }) {
   const [open, setOpen] = useState(false);
   const steps = getLegalDocSteps(doc);
   const typeCfg = DOCUMENT_TYPE[doc.document_type] || { label: doc.document_type };
@@ -55,14 +55,14 @@ export function LegalDocumentCard({ doc, projectName, accountName, psoOutstandin
               <DetailRow label="Approval Date" value={formatDate(doc.approval_date)} />
               <DetailRow label="BSM Owner" value={doc.is_bsm_document_owner ? "Yes" : "No"} />
             </DetailColumn>
-            <DetailColumn title="Comments & Links">
+            {!hideCommentsAndLinks && <DetailColumn title="Comments & Links">
               {doc.comments && <p className="text-xs text-slate-600 whitespace-pre-line">{doc.comments}</p>}
               <div className="space-y-1">
                 {doc.link_to_file && <LinkRow href={doc.link_to_file} label="File" />}
                 {doc.link_to_client_proposal && <LinkRow href={doc.link_to_client_proposal} label="Client Proposal" />}
                 {doc.link_to_fee_proposal && <LinkRow href={doc.link_to_fee_proposal} label="Fee Proposal" />}
               </div>
-            </DetailColumn>
+            </DetailColumn>}
           </div>
         </div>
       )}

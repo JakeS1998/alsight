@@ -2,7 +2,7 @@ import React from "react";
 import { WarrantyCard } from "@/components/documents/WarrantyCard";
 import { ShieldCheck } from "lucide-react";
 
-export function ProjectWarrantiesTab({ project, warranties, accountMap }) {
+export function ProjectWarrantiesTab({ project, warranties, accountMap, hideCommentsAndLinks = false }) {
   if (warranties.length === 0) {
     return (
       <div className="rounded-xl border border-dashed border-slate-300 bg-white py-12 text-center">
@@ -14,7 +14,7 @@ export function ProjectWarrantiesTab({ project, warranties, accountMap }) {
 
   return (
     <div className="space-y-2">
-      {warranties.map((w) => <WarrantyCard key={w.id} warranty={w} accountMap={accountMap} />)}
+      {warranties.map((w) => <WarrantyCard key={w.id} warranty={w} accountMap={accountMap} hideCommentsAndLinks={hideCommentsAndLinks} />)}
     </div>
   );
 }

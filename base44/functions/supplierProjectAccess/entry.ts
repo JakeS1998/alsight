@@ -20,7 +20,7 @@ async function all(entity, query) {
     if (batch.length < 500) return rows;
   }
 }
-const summary = p => ({ id: p.id, name: p.name, project_number: p.project_number, dataverse_id: p.dataverse_id, client_name: p.client_name, client_account_id: p.client_account_id, live_project: p.live_project, status: p.status, department_id: p.department_id, latitude: p.latitude, longitude: p.longitude, riba1_end: p.riba1_end, riba2_end: p.riba2_end, riba3_end: p.riba3_end, riba4_end: p.riba4_end, riba5_system_date: p.riba5_system_date, practical_completion_date: p.practical_completion_date, created_date: p.created_date });
+const summary = p => ({ id: p.id, name: p.name, project_number: p.project_number, dataverse_id: p.dataverse_id, client_name: p.client_name, client_account_id: p.client_account_id, live_project: p.live_project, status: p.status, department_id: p.department_id, latitude: p.latitude, longitude: p.longitude, riba1_end: p.riba1_end, riba2_end: p.riba2_end, riba3_end: p.riba3_end, riba4_end: p.riba4_end, riba5_system_date: p.riba5_system_date, practical_completion_date: p.practical_completion_date, site_postcode: p.site_postcode, procurement_route: p.procurement_route, approval_status: p.approval_status, aa_executed_date: p.aa_executed_date, pq_approval_date: p.pq_approval_date, riba1_term_weeks: p.riba1_term_weeks, riba2_term_weeks: p.riba2_term_weeks, riba3_term_weeks: p.riba3_term_weeks, riba4_term_weeks: p.riba4_term_weeks, construction_term_weeks: p.construction_term_weeks, bdm_aad_id: p.bdm_aad_id, bsm_aad_id: p.bsm_aad_id, project_manager_id: p.project_manager_id, client_rep_id: p.client_rep_id, created_date: p.created_date });
 
 export default async function(req: Request): Promise<Response> {
   try {
@@ -70,7 +70,7 @@ export default async function(req: Request): Promise<Response> {
     const orders = supplierPOs.filter(po => matchesPO(po, project));
     if (!docs.length && !warranties.length && !jcts.length && !orders.length) return reply('Project not available');
     if (action === 'project') return Response.json({ project: summary(project) });
-    return Response.json({ orders: orders.map(po => ({ id: po.id, po_number: po.po_number, project_ref: po.project_ref, approval_status: po.approval_status, approval_date: po.approval_date, sent_date: po.sent_date, total_net_value: po.total_net_value, attachment: po.attachment, supporting_documentation: po.supporting_documentation, notes: po.notes })) });
+    return Response.json({ orders: orders.map(po => ({ id: po.id, po_number: po.po_number, project_ref: po.project_ref, approval_status: po.approval_status, approval_date: po.approval_date, sent_date: po.sent_date, total_net_value: po.total_net_value })) });
   } catch (error) {
     console.error('Supplier project access failed', error);
     return reply(error.message || 'Unable to load supplier projects', 500);

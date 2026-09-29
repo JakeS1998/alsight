@@ -6,7 +6,7 @@ import { ProgressTracker, getJCTSteps } from "@/components/documents/ProgressTra
 import { ChecklistGrid } from "@/components/documents/TriStateToggle";
 import { ChevronDown, ChevronRight, FileText, ExternalLink } from "lucide-react";
 
-export function JCTCard({ doc, projectName, accountName, contractorName }) {
+export function JCTCard({ doc, projectName, accountName, contractorName, hideCommentsAndLinks = false }) {
   const [open, setOpen] = useState(false);
   const steps = getJCTSteps(doc);
 
@@ -52,7 +52,7 @@ export function JCTCard({ doc, projectName, accountName, contractorName }) {
               <Row label="Shared with Contractor" value={doc.shared_with_contractor ? "Yes" : "No"} />
               <Row label="BSM Owner" value={doc.is_bsm_document_owner ? "Yes" : "No"} />
             </div>
-            <div className="space-y-1.5">
+            {!hideCommentsAndLinks && <div className="space-y-1.5">
               <p className="text-[10px] font-semibold uppercase tracking-wide text-slate-400">Comments & Links</p>
               {doc.comments && <p className="text-xs text-slate-600 whitespace-pre-line">{doc.comments}</p>}
               {doc.variation_comments && <p className="text-xs text-slate-500">Variation: {doc.variation_comments}</p>}
@@ -61,11 +61,11 @@ export function JCTCard({ doc, projectName, accountName, contractorName }) {
                   <ExternalLink className="h-3 w-3" /> File
                 </a>
               )}
-            </div>
+            </div>}
           </div>
           <div>
             <p className="mb-2 text-[10px] font-semibold uppercase tracking-wide text-slate-400">Contract Particulars Checklist</p>
-            <ChecklistGrid items={JCT_CHECKLIST_ITEMS} data={doc} />
+            <ChecklistGrid items={JCT_CHECKLIST_ITEMS} data={doc} hideComments={hideCommentsAndLinks} />
           </div>
         </div>
       )}

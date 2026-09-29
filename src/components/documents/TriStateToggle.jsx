@@ -34,7 +34,7 @@ export function TriStateDisplay({ value, options = "pso" }) {
  * Checklist grid for DMA and JCT — shows each checklist item with its
  * tri-state value and optional comments below.
  */
-export function ChecklistGrid({ items, data }) {
+export function ChecklistGrid({ items, data, hideComments = false }) {
   return (
     <div className="grid gap-3 sm:grid-cols-2">
       {items.map((item) => {
@@ -46,7 +46,7 @@ export function ChecklistGrid({ items, data }) {
               <span className="text-xs font-semibold text-slate-700">{item.label}</span>
               <TriStateDisplay value={value} />
             </div>
-            {comments && (
+            {!hideComments && comments && (
               <p className="mt-1.5 text-xs text-slate-500 line-clamp-2">{comments}</p>
             )}
           </div>

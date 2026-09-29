@@ -5,7 +5,7 @@ import { ProgressTracker, getWarrantySteps } from "@/components/documents/Progre
 import { WarrantyDetails } from "@/components/documents/WarrantyDetails";
 import { ChevronDown, ChevronRight, ShieldCheck } from "lucide-react";
 
-export function WarrantyCard({ warranty, accountMap }) {
+export function WarrantyCard({ warranty, accountMap, hideCommentsAndLinks = false }) {
   const [open, setOpen] = useState(false);
   const supplierName = accountMap[warranty.supplier_id]?.name || accountMap[warranty.account_id]?.name;
   return (
@@ -29,7 +29,7 @@ export function WarrantyCard({ warranty, accountMap }) {
       {open && (
         <div className="space-y-4 border-t border-slate-100 bg-slate-50/60 p-4">
           <ProgressTracker steps={getWarrantySteps(warranty)} />
-          <WarrantyDetails warranty={warranty} accountMap={accountMap} />
+          <WarrantyDetails warranty={warranty} accountMap={accountMap} hideCommentsAndLinks={hideCommentsAndLinks} />
         </div>
       )}
     </div>
