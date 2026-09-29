@@ -28,11 +28,11 @@ export default function PipelineTimeline({ projects, accountMap }) {
     <div className="flex flex-col gap-0 px-5 py-5 md:flex-row md:items-stretch md:overflow-x-auto">
       {nodes.map((node, index) => <React.Fragment key={node.stage}>
         {index > 0 && <div aria-hidden="true" className="flex h-7 items-center justify-center text-slate-400 md:h-auto md:w-5 md:shrink-0"><ChevronRight className="h-4 w-4 rotate-90 md:rotate-0" /></div>}
-        <button type="button" onClick={() => setSelected(selected === node.stage ? null : node.stage)} aria-expanded={selected === node.stage} aria-controls="pipeline-timeline-detail" className={`min-w-0 rounded-xl border px-3 py-4 text-left transition-colors md:min-w-36 md:flex-1 ${selected === node.stage ? 'border-primary bg-primary/10' : index === 0 ? 'border-als-navy bg-als-navy text-white hover:bg-als-navy-light' : 'border-slate-200 bg-slate-50 hover:border-primary'}`}>
-          <StageDrawing stage={index === 0 ? 'PIPELINE' : node.stage} className="mb-3 h-14 w-14" />
-          <span className={`block text-xs font-bold tracking-wide ${selected === node.stage ? 'text-als-navy' : index === 0 ? 'text-white' : 'text-slate-600'}`}>{node.label}</span>
-          <strong className="mt-3 block text-xl">{index === 0 && opportunityError ? 'Unavailable' : node.count ?? 'Loading…'} <span className="text-xs font-normal">{index === 0 ? 'opportunities' : 'projects'}</span></strong>
-          <span className="mt-1 block text-sm font-medium">{index === 0 && opportunityError ? '—' : node.value == null ? 'Loading…' : formatCurrency(node.value)}</span>
+        <button type="button" onClick={() => setSelected(selected === node.stage ? null : node.stage)} aria-expanded={selected === node.stage} aria-controls="pipeline-timeline-detail" className={`relative isolate min-h-36 min-w-0 overflow-hidden rounded-xl border px-3 py-4 text-left transition-colors md:min-w-36 md:flex-1 ${selected === node.stage ? 'border-primary bg-primary/10' : index === 0 ? 'border-als-navy bg-als-navy text-white hover:bg-als-navy-light' : 'border-slate-200 bg-slate-50 hover:border-primary'}`}>
+          <StageDrawing bare stage={index === 0 ? 'PIPELINE' : node.stage} className={`pointer-events-none absolute bottom-0 right-0 h-24 w-24 opacity-60 contrast-125 brightness-105 ${index === 0 && selected !== node.stage ? 'invert grayscale mix-blend-screen' : 'mix-blend-multiply'}`} />
+          <span className={`relative z-10 block text-xs font-bold tracking-wide ${selected === node.stage ? 'text-als-navy' : index === 0 ? 'text-white' : 'text-slate-600'}`}>{node.label}</span>
+          <strong className="relative z-10 mt-3 block text-xl">{index === 0 && opportunityError ? 'Unavailable' : node.count ?? 'Loading…'} <span className="text-xs font-normal">{index === 0 ? 'opportunities' : 'projects'}</span></strong>
+          <span className="relative z-10 mt-1 block text-sm font-medium">{index === 0 && opportunityError ? '—' : node.value == null ? 'Loading…' : formatCurrency(node.value)}</span>
         </button>
       </React.Fragment>)}
     </div>
