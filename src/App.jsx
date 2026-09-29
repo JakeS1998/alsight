@@ -14,6 +14,7 @@ import ForgotPassword from '@/pages/ForgotPassword';
 import ResetPassword from '@/pages/ResetPassword';
 import Home from '@/pages/Home';
 import Projects from '@/pages/Projects';
+import FrameworkReports from '@/pages/FrameworkReports';
 import ProjectDetail from '@/pages/ProjectDetail';
 import LegalDocuments from '@/pages/LegalDocuments';
 import Warranties from '@/pages/Warranties';
@@ -62,6 +63,7 @@ const AuthenticatedApp = () => {
         <Route element={<PortalLayout />}>
           <Route path="/" element={<Home />} />
           <Route path="/projects" element={<Projects />} />
+          <Route path="/framework-reports" element={<CRMRoute><FrameworkReports /></CRMRoute>} />
           <Route path="/projects/:projectId" element={<ProjectDetail />} />
           <Route path="/documents" element={<LegalDocuments />} />
           <Route path="/warranties" element={<Warranties />} />

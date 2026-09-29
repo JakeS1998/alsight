@@ -5,12 +5,13 @@ import { INTERNAL_ROLES } from '@/lib/portal';
 import Logo from '@/components/Logo';
 import NotificationCenter from '@/components/NotificationCenter';
 import UserMenu from '@/components/UserMenu';
-import { LayoutDashboard, FolderKanban, Building2, UserCircle, Menu, X, Users, UserCog, BriefcaseBusiness } from 'lucide-react';
+import { LayoutDashboard, FolderKanban, Building2, ChartNoAxesCombined, UserCircle, Menu, X, Users, UserCog, BriefcaseBusiness } from 'lucide-react';
 
 const ALL_ROLES = ['admin', 'director', 'regional_director', 'bsm', 'finance', 'bdm', 'client', 'supplier', 'project_manager'];
 const NAV_ITEMS = [
   { label: 'Dashboard', path: '/', icon: LayoutDashboard, roles: INTERNAL_ROLES.concat(['client', 'supplier']) },
   { label: 'Projects', path: '/projects', icon: FolderKanban, roles: ALL_ROLES },
+  { label: 'Framework reports', path: '/framework-reports', icon: ChartNoAxesCombined, roles: INTERNAL_ROLES },
   { label: 'Pipeline', path: '/crm', icon: BriefcaseBusiness, roles: INTERNAL_ROLES },
   { label: 'My Account', path: '/account', icon: UserCircle, roles: ['client', 'supplier'] },
   { label: 'Accounts', path: '/accounts', icon: Building2, roles: ALL_ROLES },

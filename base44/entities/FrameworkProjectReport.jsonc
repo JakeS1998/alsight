@@ -1,0 +1,120 @@
+{
+  "name": "FrameworkProjectReport",
+  "type": "object",
+  "properties": {
+    "framework_ref": {
+      "type": "string"
+    },
+    "project_id": {
+      "type": "string"
+    },
+    "project_number": {
+      "type": "string"
+    },
+    "client": {
+      "type": "string"
+    },
+    "site": {
+      "type": "string"
+    },
+    "pq_date": {
+      "type": "string"
+    },
+    "pq_status": {
+      "type": "string"
+    },
+    "indicative_value": {
+      "type": "number"
+    },
+    "aa_sent": {
+      "type": "string"
+    },
+    "aa_signed": {
+      "type": "string"
+    },
+    "aa_value": {
+      "type": "number"
+    },
+    "calloff_date": {
+      "type": "string"
+    },
+    "calloff_value": {
+      "type": "number"
+    },
+    "access_fee": {
+      "type": "number"
+    },
+    "completion_value": {
+      "type": "number"
+    },
+    "completed_on_time": {
+      "type": "string"
+    },
+    "completed_to_budget": {
+      "type": "string"
+    },
+    "zero_riddor": {
+      "type": "string"
+    },
+    "local_spend": {
+      "type": "number"
+    },
+    "apprenticeships": {
+      "type": "number"
+    }
+  },
+  "required": [
+    "framework_ref"
+  ],
+  "rls": {
+    "read": {
+      "$or": [
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        },
+        {
+          "user_condition": {
+            "role": "director"
+          }
+        },
+        {
+          "user_condition": {
+            "role": "regional_director"
+          }
+        },
+        {
+          "user_condition": {
+            "role": "bsm"
+          }
+        },
+        {
+          "user_condition": {
+            "role": "finance"
+          }
+        },
+        {
+          "user_condition": {
+            "role": "bdm"
+          }
+        }
+      ]
+    },
+    "create": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "update": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "delete": {
+      "user_condition": {
+        "role": "admin"
+      }
+    }
+  }
+}

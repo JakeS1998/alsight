@@ -4,6 +4,8 @@ import { useAuth } from "@/lib/AuthContext";
 import { base44 } from "@/api/base44Client";
 import { listAll } from "@/components/data/loadAll";
 import ValuationSnapshot from '@/components/valuations/ValuationSnapshot';
+import ProjectPOReferences from '@/components/projects/ProjectPOReferences';
+import ProjectFrameworkReport from '@/components/projects/ProjectFrameworkReport';
 import { formatDate, formatCurrency, regionName, INTERNAL_ROLES } from "@/lib/portal";
 import { Button } from "@/components/ui/button";
 import { Building2, MapPin, PoundSterling, Calendar, ExternalLink, UserCircle, Save, Loader2, Check } from "lucide-react";
@@ -105,6 +107,7 @@ export function ProjectGeneralTab({ project, accountMap }) {
   return (
     <div className="space-y-6">
       {INTERNAL_ROLES.includes(role) && <ValuationSnapshot project={project} />}
+      {INTERNAL_ROLES.includes(role) && <><div className="rounded-xl border border-slate-200 bg-white p-5"><h3 className="mb-2 font-semibold text-slate-900">Project references</h3><p className="text-sm text-slate-600">Legal project: {project.project_number || '—'}</p><ProjectPOReferences project={project} compact /></div><ProjectFrameworkReport project={project} /></>}
       {/* Key info cards */}
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
         {client ? (
