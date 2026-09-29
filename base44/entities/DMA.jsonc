@@ -248,48 +248,101 @@
   ],
   "rls": {
     "read": {
-      "$or": [
+      "$and": [
         {
-          "data.client_account_id": "{{user.data.account_id}}"
+          "$or": [
+            {
+              "user_condition": {
+                "role": "admin"
+              }
+            },
+            {
+              "user_condition": {
+                "role": "director"
+              }
+            },
+            {
+              "user_condition": {
+                "role": "regional_director"
+              }
+            },
+            {
+              "user_condition": {
+                "role": "bsm"
+              }
+            },
+            {
+              "user_condition": {
+                "role": "finance"
+              }
+            },
+            {
+              "user_condition": {
+                "role": "bdm"
+              }
+            },
+            {
+              "user_condition": {
+                "role": "client"
+              }
+            },
+            {
+              "user_condition": {
+                "role": "supplier"
+              }
+            },
+            {
+              "user_condition": {
+                "role": "project_manager"
+              }
+            }
+          ]
         },
         {
-          "data.bdm_aad_id": "{{user.id}}"
-        },
-        {
-          "data.bsm_aad_id": "{{user.data.delegate_of}}"
-        },
-        {
-          "data.bdm_aad_id": "{{user.data.delegate_of}}"
-        },
-        {
-          "user_condition": {
-            "role": "admin"
-          }
-        },
-        {
-          "user_condition": {
-            "role": "director"
-          }
-        },
-        {
-          "user_condition": {
-            "role": "bsm"
-          }
-        },
-        {
-          "user_condition": {
-            "role": "finance"
-          }
-        },
-        {
-          "user_condition": {
-            "role": "regional_director"
-          }
-        },
-        {
-          "user_condition": {
-            "role": "bdm"
-          }
+          "$or": [
+            {
+              "data.client_account_id": "{{user.data.account_id}}"
+            },
+            {
+              "data.bdm_aad_id": "{{user.id}}"
+            },
+            {
+              "data.bsm_aad_id": "{{user.data.delegate_of}}"
+            },
+            {
+              "data.bdm_aad_id": "{{user.data.delegate_of}}"
+            },
+            {
+              "user_condition": {
+                "role": "admin"
+              }
+            },
+            {
+              "user_condition": {
+                "role": "director"
+              }
+            },
+            {
+              "user_condition": {
+                "role": "bsm"
+              }
+            },
+            {
+              "user_condition": {
+                "role": "finance"
+              }
+            },
+            {
+              "user_condition": {
+                "role": "regional_director"
+              }
+            },
+            {
+              "user_condition": {
+                "role": "bdm"
+              }
+            }
+          ]
         }
       ]
     },
