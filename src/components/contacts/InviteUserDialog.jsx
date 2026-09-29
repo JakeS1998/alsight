@@ -21,6 +21,7 @@ const ROLES = [
   { value: "client", label: "Client" },
   { value: "supplier", label: "Supplier" },
   { value: "project_manager", label: "External Project Manager" },
+  { value: "framework_stakeholder", label: "UK Leisure Framework Stakeholder" },
 ];
 
 export function InviteUserDialog({ open, onOpenChange, contact, accounts, existingUser, pendingAssignment, onDone }) {
@@ -65,13 +66,14 @@ export function InviteUserDialog({ open, onOpenChange, contact, accounts, existi
     const address = email.trim().toLowerCase();
     if (!address) return;
     const companyNumber = role === 'supplier' ? (accounts.find(a => a.dataverse_id === accountId)?.company_number || null) : null;
+    const linkedAccountId = role === 'framework_stakeholder' ? null : accountId || null;
     setSubmitting(true);
     setError("");
     try {
       if (existingUser) {
         await base44.entities.User.update(existingUser.id, {
           role,
-          account_id: accountId || null,
+          account_id: linkedAccountId,
           company_number: companyNumber,
           region: role === "regional_director" ? (region || null) : null,
           contact_dataverse_id: role === "project_manager" ? (contact.dataverse_id || null) : null,
@@ -86,7 +88,7 @@ export function InviteUserDialog({ open, onOpenChange, contact, accounts, existi
           contact_id: contact.id,
           email: address,
           portal_role: role,
-          account_id: accountId || "",
+          account_id: linkedAccountId || "",
           region: role === "regional_director" ? (region || "") : "",
         };
         const staged = matching[0]
@@ -105,7 +107,7 @@ export function InviteUserDialog({ open, onOpenChange, contact, accounts, existi
         if (created) {
           await base44.entities.User.update(created.id, {
             role,
-            account_id: accountId || null,
+            account_id: linkedAccountId,
             region: role === "regional_director" ? (region || null) : null,
           contact_dataverse_id: role === "project_manager" ? (contact.dataverse_id || null) : null,
           });

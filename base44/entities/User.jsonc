@@ -13,7 +13,8 @@
         "bdm",
         "client",
         "supplier",
-        "project_manager"
+        "project_manager",
+        "framework_stakeholder"
       ],
       "default": "client"
     },

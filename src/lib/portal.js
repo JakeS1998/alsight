@@ -9,6 +9,7 @@ export const ROLE_LABELS = {
   client: "Client",
   supplier: "Supplier",
   project_manager: "Project Manager",
+  framework_stakeholder: "Framework Stakeholder",
 };
 
 export const ROLE_BADGE_CLASS = {
@@ -21,6 +22,7 @@ export const ROLE_BADGE_CLASS = {
   client: "bg-emerald-100 text-emerald-700",
   supplier: "bg-amber-100 text-amber-700",
   project_manager: "bg-blue-100 text-blue-700",
+  framework_stakeholder: "bg-violet-100 text-violet-700",
 };
 
 // Internal staff roles (can delegate)

@@ -12,6 +12,7 @@ import PortalLayout from '@/components/PortalLayout';
 import AdminContactsRoute from '@/components/contacts/AdminContactsRoute';
 import CRMRoute from '@/components/crm/CRMRoute';
 import PageLoadBoundary from '@/components/PageLoadBoundary';
+import StakeholderRoute from '@/components/StakeholderRoute';
 const Login = lazy(() => import('@/pages/Login'));
 const Register = lazy(() => import('@/pages/Register'));
 const ForgotPassword = lazy(() => import('@/pages/ForgotPassword'));
@@ -19,6 +20,7 @@ const ResetPassword = lazy(() => import('@/pages/ResetPassword'));
 const Home = lazy(() => import('@/pages/Home'));
 const Projects = lazy(() => import('@/pages/Projects'));
 const FrameworkReports = lazy(() => import('@/pages/FrameworkReports'));
+const StakeholderFrameworkReports = lazy(() => import('@/pages/StakeholderFrameworkReports'));
 const ProjectDetail = lazy(() => import('@/pages/ProjectDetail'));
 const LegalDocuments = lazy(() => import('@/pages/LegalDocuments'));
 const Warranties = lazy(() => import('@/pages/Warranties'));
@@ -39,8 +41,9 @@ const Delegation = lazy(() => import('@/pages/Delegation'));
 const AccountSettings = lazy(() => import('@/pages/AccountSettings'));
 
 const AuthenticatedApp = () => {
-  const { isLoadingAuth, isLoadingPublicSettings, authError } = useAuth();
+  const { isLoadingAuth, isLoadingPublicSettings, authError, user } = useAuth();
   const location = useLocation();
+  const useStakeholderView = user?.role === 'framework_stakeholder';
 
   if (isLoadingPublicSettings || isLoadingAuth) {
     return (
@@ -66,9 +69,11 @@ const AuthenticatedApp = () => {
       <Route path="/reset-password" element={<ResetPassword />} />
       <Route element={<ProtectedRoute unauthenticatedElement={<Navigate to="/login" replace />} />}>
         <Route element={<PortalLayout />}>
+          <Route path="/framework-reports" element={useStakeholderView ? <StakeholderFrameworkReports /> : <FrameworkReports />} />
+          <Route path="/account-settings" element={<AccountSettings />} />
+          <Route element={<StakeholderRoute />}>
           <Route path="/" element={<Home />} />
           <Route path="/projects" element={<Projects />} />
-          <Route path="/framework-reports" element={<FrameworkReports />} />
           <Route path="/projects/:projectId" element={<ProjectDetail />} />
           <Route path="/documents" element={<LegalDocuments />} />
           <Route path="/warranties" element={<Warranties />} />
@@ -92,7 +97,7 @@ const AuthenticatedApp = () => {
           </Route>
           <Route path="/accounts/:accountId/contacts/:contactId" element={<ContactDetail />} />
           <Route path="/delegation" element={<Delegation />} />
-          <Route path="/account-settings" element={<AccountSettings />} />
+          </Route>
         </Route>
       </Route>
       <Route path="*" element={<PageNotFound />} />

@@ -20,7 +20,8 @@
         "bdm",
         "client",
         "supplier",
-        "project_manager"
+        "project_manager",
+        "framework_stakeholder"
       ]
     },
     "account_id": {

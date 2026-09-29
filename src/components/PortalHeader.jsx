@@ -11,7 +11,7 @@ const ALL_ROLES = ['admin', 'director', 'regional_director', 'bsm', 'finance', '
 const NAV_ITEMS = [
   { label: 'Dashboard', path: '/', icon: LayoutDashboard, roles: INTERNAL_ROLES.concat(['client', 'supplier']) },
   { label: 'Projects', path: '/projects', icon: FolderKanban, roles: ALL_ROLES },
-  { label: 'Framework reports', path: '/framework-reports', icon: ChartNoAxesCombined, roles: INTERNAL_ROLES },
+  { label: 'Framework reports', path: '/framework-reports', icon: ChartNoAxesCombined, roles: INTERNAL_ROLES.concat(['framework_stakeholder']) },
   { label: 'Pipeline', path: '/crm', icon: BriefcaseBusiness, roles: INTERNAL_ROLES },
   { label: 'My Account', path: '/account', icon: UserCircle, roles: ['client', 'supplier'] },
   { label: 'Accounts', path: '/accounts', icon: Building2, roles: ALL_ROLES },
@@ -33,7 +33,7 @@ export default function PortalHeader() {
   });
   return <header className="sticky top-0 z-40 bg-als-navy text-white shadow-sm">
     <div className="mx-auto flex min-h-16 max-w-screen-2xl items-center gap-5 px-5 sm:px-8">
-      <Link to="/" aria-label="ALSight home" onClick={() => setMenuOpen(false)} className="shrink-0"><Logo variant="header" className="h-11 w-44" /></Link>
+      <Link to={role === 'framework_stakeholder' ? '/framework-reports' : '/'} aria-label="ALSight home" onClick={() => setMenuOpen(false)} className="shrink-0"><Logo variant="header" className="h-11 w-44" /></Link>
       <nav aria-label="Main navigation" className="hidden min-w-0 flex-1 items-center gap-1 xl:flex">{nav()}</nav>
       {INTERNAL_ROLES.includes(role) && <NotificationCenter user={user} />}
       <div className="hidden shrink-0 xl:block"><UserMenu user={user} onSignOut={signOut} /></div>
