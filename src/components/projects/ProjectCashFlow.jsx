@@ -31,7 +31,7 @@ export function useProjectCashFlow(projectId) {
 export default function ProjectCashFlow({ entries, commitments = [], loading, error }) {
   return <section className="rounded-2xl border border-border bg-card p-5 space-y-5">
     <div><h3 className="font-heading text-base font-semibold text-card-foreground">Money in & out</h3>
-      <p className="text-xs text-muted-foreground">Cumulative client payments, recorded spending and approved PO commitments (net, using line items where the PO total is missing). Commitments are not payments; sample figures are illustrative.</p></div>
+      <p className="text-xs text-muted-foreground">Cumulative client payments, recorded spending and approved PO commitments (net, using line items where the PO total is missing). The dashed line is a running total of commitments, not new commitments each day or payments; sample figures are illustrative.</p></div>
     {loading ? <p className="py-12 text-center text-sm text-muted-foreground">Loading cash flow…</p> : error ? <p role="alert" className="text-sm text-destructive">{error}</p> : <CashFlowChart entries={entries} commitments={commitments} />}
   </section>;
 }

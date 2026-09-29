@@ -18,6 +18,10 @@ export default function CashFlowChart({ entries, commitments = [] }) {
       row.committed = (row.committed || 0) + (Number(amount) || 0);
       byDate.set(day, row);
     });
+    const today = new Date().toISOString().slice(0, 10);
+    if (commitments.some(({ date }) => date && date.slice(0, 10) <= today) && [...byDate.keys()].every(date => date < today)) {
+      byDate.set(today, { date: today, received: 0, spent: 0, committed: 0 });
+    }
     let received = 0, spent = 0, committed = 0;
     return [...byDate.values()].sort((a, b) => a.date.localeCompare(b.date)).map(row => {
       received += row.received;
@@ -38,7 +42,7 @@ export default function CashFlowChart({ entries, commitments = [] }) {
         <Legend />
         <Line type="linear" dataKey="received" name="Payments received" stroke="hsl(var(--chart-1))" strokeWidth={3} dot={{ r: 4 }} activeDot={{ r: 6 }} />
         <Line type="linear" dataKey="spent" name="Money out" stroke="hsl(var(--chart-3))" strokeWidth={3} dot={{ r: 4 }} activeDot={{ r: 6 }} />
-        {commitments.length > 0 && <Line type="linear" dataKey="committed" name="PO commitments" stroke="hsl(var(--chart-3))" strokeWidth={3} strokeDasharray="7 5" dot={{ r: 4 }} activeDot={{ r: 6 }} />}
+        {commitments.length > 0 && <Line type="linear" dataKey="committed" name="Cumulative PO commitments" stroke="hsl(var(--chart-3))" strokeWidth={3} strokeDasharray="7 5" dot={{ r: 4 }} activeDot={{ r: 6 }} />}
         <Line type="linear" dataKey="balance" name="Net balance" stroke="hsl(var(--chart-2))" strokeWidth={3} dot={{ r: 4 }} activeDot={{ r: 6 }} />
       </LineChart>
     </ResponsiveContainer>
