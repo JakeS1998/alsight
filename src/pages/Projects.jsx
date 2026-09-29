@@ -46,8 +46,8 @@ export default function Projects() {
         setProjects((response.data.projects || []).filter((p) => p.status !== 'inactive'));
         return;
       }
-      const [p, a, u, staffContacts, supplierLinkedProjects] = await Promise.all([
-        filterAll(base44.entities.Project, { status: { $ne: 'inactive' } }),
+      const [p, a, u, staffContacts] = await Promise.all([
+        role === 'supplier' ? base44.functions.invoke('supplierProjectAccess', { action: 'projects' }).then(res => res.data.projects || []) : filterAll(base44.entities.Project, { status: { $ne: 'inactive' } }),
         listAll(base44.entities.Account, "-name").catch(() => []),
         listAll(base44.entities.User).catch(() => []),
         (async () => {
@@ -57,11 +57,8 @@ export default function Projects() {
           ]);
           return [...bdmC, ...bsmC];
         })(),
-        role === 'supplier' && (user?.account_id || user?.data?.account_id) ? base44.functions.invoke('supplierProjectAccess', { action: 'projects' }).then(res => res.data.projects || []) : [],
       ]);
-      const visible = new Map(p.map(project => [project.id, project]));
-      supplierLinkedProjects.forEach(project => visible.set(project.id, { ...visible.get(project.id), ...project }));
-      setProjects(role === 'supplier' ? [...visible.values()] : p);
+      setProjects(p);
       setAccounts(a);
       setUsers(u);
       setContacts(staffContacts);

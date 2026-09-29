@@ -32,7 +32,7 @@ export default function Home() {
     (async () => {
       try {
         const [p, a, contact] = await Promise.all([
-          filterAll(base44.entities.Project, { status: { $ne: "inactive" } }, "-created_date"),
+          role === 'supplier' ? base44.functions.invoke('supplierProjectAccess', { action: 'projects' }).then(res => res.data.projects || []) : filterAll(base44.entities.Project, { status: { $ne: "inactive" } }, "-created_date"),
           listAll(base44.entities.Account, "-name").catch(() => []),
           ['bdm', 'bsm'].includes(role) && user?.email ? base44.entities.Contact.filter({ email: { $regex: `^${user.email.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}$`, $options: 'i' } }, { limit: 1, fields: ['aad_id'] }).then(page => page.items[0]).catch(() => null) : null,
         ]);

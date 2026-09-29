@@ -20,7 +20,7 @@ async function all(entity, query) {
     if (batch.length < 500) return rows;
   }
 }
-const summary = p => ({ id: p.id, name: p.name, project_number: p.project_number, dataverse_id: p.dataverse_id, client_name: p.client_name, live_project: p.live_project, status: p.status });
+const summary = p => ({ id: p.id, name: p.name, project_number: p.project_number, dataverse_id: p.dataverse_id, client_name: p.client_name, client_account_id: p.client_account_id, live_project: p.live_project, status: p.status, department_id: p.department_id, latitude: p.latitude, longitude: p.longitude, riba1_end: p.riba1_end, riba2_end: p.riba2_end, riba3_end: p.riba3_end, riba4_end: p.riba4_end, riba5_system_date: p.riba5_system_date, practical_completion_date: p.practical_completion_date, created_date: p.created_date });
 
 export default async function(req: Request): Promise<Response> {
   try {
