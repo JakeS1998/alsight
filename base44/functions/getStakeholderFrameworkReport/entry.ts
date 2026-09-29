@@ -25,14 +25,14 @@ async function suggestedKpis(base44, report) {
   if (Number.isFinite(project.estimated_value) && project.estimated_value > 0 && project.project_number) {
     const orders = base44.asServiceRole.entities.PurchaseOrder;
     const legacy = /^PROJ\s*0*(\d+)$/i.exec(project.project_number);
-    let query = { project_ref: project.project_number, status: { $ne: 'inactive' } };
+    let query = { project_ref: project.project_number, status: { $ne: 'inactive' }, total_net_value: { $gt: 0 } };
     if (legacy && Number(legacy[1]) < 600) {
       const name = legacyName(project);
       const candidates = [];
-      if (name.length >= 8) {
+      {
         for (let skip = 0; ; skip += 500) {
-          const page = await orders.filter({ $or: [{ legal_project_id: project.id }, { notes: { $regex: name.split(' ')[0], $options: 'i' } }] }, '-created_date', 500, skip);
-          candidates.push(...page.filter(po => po.status !== 'inactive' && (po.legal_project_id ? po.legal_project_id === project.id : normalize((po.notes || '').split(/\bDetail\s*:/i).pop()).includes(` ${name} `))));
+          const page = await orders.filter({ $or: [{ legal_project_id: project.id }, ...(name.length >= 8 ? [{ notes: { $regex: name.split(' ')[0], $options: 'i' } }] : [])] }, '-created_date', 500, skip);
+          candidates.push(...page.filter(po => po.status !== 'inactive' && Number(po.total_net_value) > 0 && (po.legal_project_id ? po.legal_project_id === project.id : normalize((po.notes || '').split(/\bDetail\s*:/i).pop()).includes(` ${name} `))));
           if (page.length < 500) break;
         }
       }
@@ -102,7 +102,7 @@ export default async function(req: Request): Promise<Response> {
       source.count({ completed_on_time: { $gt: '' } }),
       source.count({ completed_on_time: 'Y' }), source.count({ completed_on_time: { $gt: '' } }),
       source.count({ completed_to_budget: 'Y' }), source.count({ completed_to_budget: { $gt: '' } }),
-      source.count({ zero_riddor: 'Y' }), source.count({ zero_riddor: { $gt: '' } }),
+      source.count({ $or: [{ riddor_incidents: 0 }, { zero_riddor: 'Y' }, { zero_riddor: { $in: ['', null] } }] }), source.count({}),
       internal ? source.aggregate({ sum: ['calloff_value', 'completion_value'] }) : Promise.resolve(null),
     ]);
     const numbers = [...new Set(records.map(r => /^\d+$/.test(r.framework_ref || '') ? `PROJ${r.framework_ref}` : r.project_number).filter(Boolean))];

@@ -25,7 +25,7 @@ export default function UKLFKPIEditor({ report, defaults = {}, onSaved, onCancel
         kpis: {
           completed_on_time: form.completed_on_time,
           completed_to_budget: form.completed_to_budget,
-          riddor_incidents: Number(form.riddor_incidents),
+          riddor_incidents: form.riddor_incidents === '' ? null : Number(form.riddor_incidents),
           local_spend: form.local_spend === '' ? null : Number(form.local_spend),
           apprenticeships: form.apprenticeships === '' ? null : Number(form.apprenticeships),
         },

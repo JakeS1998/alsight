@@ -9,7 +9,7 @@ export default function StakeholderReportTable({ rows }) {
       <td className="px-4 py-4">{row.site || '—'}<span className="block text-xs text-slate-500">{row.client || 'Client not recorded'}</span></td>
       <td className="px-4 py-4">{row.pq_status || '—'}<span className="block text-xs text-slate-500">{formatDate(row.pq_date)}</span></td>
       <td className="px-4 py-4">{formatDate(row.aa_signed)}</td><td className="px-4 py-4">{formatDate(row.calloff_date)}</td>
-      <td className="px-4 py-4 text-xs"><span className="block">On time: {row.completed_on_time || '—'}</span><span className="block">To budget: {row.completed_to_budget || '—'}</span><span className="block">Zero RIDDOR: {row.zero_riddor || '—'}</span><span className="block">Apprenticeships: {row.apprenticeships ?? '—'}</span></td>
+      <td className="px-4 py-4 text-xs"><span className="block">On time: {row.completed_on_time || '—'}</span><span className="block">To budget: {row.completed_to_budget || '—'}</span><span className="block">RIDDOR incidents: {row.riddor_incidents ?? '—'}</span><span className="block">Apprenticeships: {row.apprenticeships ?? '—'}</span></td>
     </tr>)}</tbody>
   </table></div>;
 }
