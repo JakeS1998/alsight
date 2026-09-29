@@ -5,6 +5,7 @@ import { useAuth } from "@/lib/AuthContext";
 import { INTERNAL_ROLES } from '@/lib/portal';
 import ProjectValuationsTab from "@/components/valuations/ProjectValuationsTab";
 import UKLFProjectTab from '@/components/framework/UKLFProjectTab';
+import UKLFIcon from '@/components/framework/UKLFIcon';
 import SourceOpportunityLink from '@/components/crm/SourceOpportunityLink';
 import { listAll, filterAll } from "@/components/data/loadAll";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
@@ -114,7 +115,7 @@ export default function ProjectDetail() {
         {!isExternalPM && !isSupplier && <TabsTrigger value="finance"><Receipt className="mr-1.5 h-4 w-4" /> Finance</TabsTrigger>}
         {!isExternalPM && !isSupplier && <TabsTrigger value="delivery"><ClipboardList className="mr-1.5 h-4 w-4" /> Delivery</TabsTrigger>}
         {canSeeValuations && <TabsTrigger value="valuations"><ListChecks className="mr-1.5 h-4 w-4" /> Valuations</TabsTrigger>}
-        {INTERNAL_ROLES.includes(user?.role) && <TabsTrigger value="uklf">UKLF</TabsTrigger>}
+        {INTERNAL_ROLES.includes(user?.role) && <TabsTrigger value="uklf"><UKLFIcon /> UKLF</TabsTrigger>}
       </TabsList>
         {!isExternalPM && !isSupplier && <TabsContent value="general" className="mt-6">
           <ProjectGeneralTab project={project} accountMap={accountMap} />
