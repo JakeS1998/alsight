@@ -11,7 +11,7 @@ import { safeReturnTo } from "@/lib/authReturnTo";
 function signInError(err) {
   const message = String(err?.message || "").toLowerCase();
   if (/invit.*expir/.test(message)) return "Your invitation has expired. Request a new invitation.";
-  if (/inactive|disabled|not active|suspend/.test(message)) return "Your account is not currently active. Please contact an ALS Live administrator.";
+  if (/inactive|disabled|not active|suspend/.test(message)) return "Your account is not currently active. Please contact an ALSight administrator.";
   if (/invalid|incorrect|wrong|credential|password|unauthorized/.test(message)) return "Incorrect email address or password.";
   return "Sign-in is temporarily unavailable. Please try again.";
 }
@@ -135,7 +135,7 @@ export default function Login() {
         </Button>
       </div>
       <p className="mt-6 text-center text-sm text-muted-foreground">
-        Received an ALS Live invitation?{" "}
+        Received an ALSight invitation?{" "}
         <Link to={"/register" + (returnTo !== "/" ? "?returnTo=" + encodeURIComponent(returnTo) : "")} className="font-medium text-primary hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring">
           Activate your account
         </Link>

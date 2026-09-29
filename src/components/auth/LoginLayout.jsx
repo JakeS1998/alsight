@@ -23,15 +23,14 @@ export default function LoginLayout({ children }) {
             <p className="mt-7 text-sm font-medium tracking-wide text-white/85">Projects · Pipeline · Delivery · Insight</p>
           </div>
         </div>
-        <section aria-label="Sign in to ALS Live" className="w-full max-w-[460px] self-center rounded-[20px] bg-card p-6 text-center shadow-2xl sm:p-10 lg:justify-self-center">
+        <section aria-label="Sign in to ALSight" className="w-full max-w-[460px] self-center rounded-[20px] bg-card p-6 text-center shadow-2xl sm:p-10 lg:justify-self-center">
           <div className="mb-8">
-            <Logo className="mx-auto h-10" />
-            <p className="mt-5 font-heading text-2xl font-extrabold tracking-tight text-als-navy">ALS Live</p>
+            <Logo className="mx-auto h-24 w-64" />
             <h2 className="mt-4 font-heading text-xl font-bold text-als-navy">Welcome back</h2>
             <p className="mt-1 text-sm text-muted-foreground">Sign in to continue.</p>
           </div>
           {children}
-          <p className="mt-7 text-center text-xs text-muted-foreground">Need access? Contact your ALS Live administrator.</p>
+          <p className="mt-7 text-center text-xs text-muted-foreground">Need access? Contact your ALSight administrator.</p>
         </section>
       </div>
     </main>

@@ -16,7 +16,7 @@ export function exportFeeProposalPdf({ project, proposal, suppliers, poBySupplie
 
   doc.setFillColor(...BRAND); doc.rect(0, 0, W, 56, "F");
   doc.setTextColor(255, 255, 255); doc.setFont("helvetica", "bold"); doc.setFontSize(16);
-  doc.text("ALS Live", M, 34);
+  doc.text("ALSight", M, 34);
   doc.setFont("helvetica", "normal"); doc.setFontSize(11);
   doc.text("Fee Proposal", W - M, 34, { align: "right" });
 
@@ -47,7 +47,7 @@ export function exportFeeProposalPdf({ project, proposal, suppliers, poBySupplie
     doc.addPage(); y = 84;
     doc.setFillColor(...BRAND); doc.rect(0, 0, W, 56, "F");
     doc.setFont("helvetica", "bold"); doc.setFontSize(16); doc.setTextColor(255, 255, 255);
-    doc.text("ALS Live", M, 34);
+    doc.text("ALSight", M, 34);
     doc.setFontSize(11); doc.text("Internal commercial", W - M, 34, { align: "right" });
     doc.setFontSize(13); doc.setTextColor(15, 23, 42);
     doc.text("INTERNAL COMMERCIAL — NOT FOR CLIENT DISTRIBUTION", x0, y); y += 22;
@@ -84,7 +84,7 @@ export function exportFeeProposalPdf({ project, proposal, suppliers, poBySupplie
   for (let page = 1; page <= doc.getNumberOfPages(); page++) {
     doc.setPage(page);
     doc.setFontSize(8); doc.setTextColor(148, 163, 184);
-    doc.text(`ALS Live · ${page <= clientPageCount ? 'Client copy' : 'INTERNAL — NOT FOR CLIENT DISTRIBUTION'} · ${new Date().toLocaleDateString("en-GB")}`, M, H - 24);
+    doc.text(`ALSight · ${page <= clientPageCount ? 'Client copy' : 'INTERNAL — NOT FOR CLIENT DISTRIBUTION'} · ${new Date().toLocaleDateString("en-GB")}`, M, H - 24);
   }
 
   doc.save(`Fee-Proposal-${project.project_number || project.name || "project"}-R${proposal.revision_number || 1}${includeInternal ? '-INTERNAL' : '-CLIENT'}.pdf`);

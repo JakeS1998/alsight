@@ -50,7 +50,7 @@ export default function AuthLayout({ title, subtitle, footer, children, overlay 
       <div className={overlay ? "relative z-10 flex min-h-screen items-center justify-center px-6 py-10 lg:absolute lg:inset-y-0 lg:right-0 lg:w-1/3 lg:px-8" : "flex-1 flex items-center justify-center px-6 py-10 bg-white"}>
         <div className="w-full max-w-md rounded-2xl bg-card p-6 sm:p-10 shadow-xl ring-1 ring-border/60">
           <div className="flex justify-center mb-6">
-            <Logo className="h-10" />
+            <Logo className="h-24 w-64" />
           </div>
           <div className="mb-6 text-center">
             <h1 className="font-heading text-2xl font-extrabold tracking-tight text-als-navy">{title}</h1>
