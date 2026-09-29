@@ -23,6 +23,7 @@ export default function Login() {
   const [remember, setRemember] = useState(false);
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
+  const [showEmailLogin, setShowEmailLogin] = useState(false);
   // Post-login destination (e.g. the MCP OAuth consent page sends users here
   // with returnTo so the grant flow can resume). Same-origin paths only.
   const returnTo = safeReturnTo();
@@ -58,7 +59,17 @@ export default function Login() {
         <div role="alert" className="mb-5 rounded-lg bg-destructive/10 p-3 text-sm font-medium text-destructive">{error}</div>
       )}
 
-      <form onSubmit={handleSubmit} className="space-y-4">
+      <Button type="button" className="h-12 w-full font-medium" onClick={handleALSLogin} disabled={loading}>
+        {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Building2 className="h-4 w-4" aria-hidden="true" />}
+        Sign in with your Alliance account
+      </Button>
+      <div className="mt-5 text-center text-sm text-muted-foreground">
+        External user?{" "}
+        <button type="button" aria-expanded={showEmailLogin} aria-controls="external-email-login" onClick={() => setShowEmailLogin((open) => !open)} disabled={loading} className="font-semibold text-primary hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring">
+          Sign in with email
+        </button>
+      </div>
+      {showEmailLogin && <form id="external-email-login" onSubmit={handleSubmit} className="mt-5 space-y-4 border-t border-border pt-5 text-left">
         <div className="space-y-2">
           <Label htmlFor="email">Email address</Label>
           <div className="relative">
@@ -126,15 +137,8 @@ export default function Login() {
             </>
           )}
         </Button>
-      </form>
-      <div className="mt-5 space-y-4">
-        <div className="flex items-center gap-3 text-xs text-muted-foreground"><span className="h-px flex-1 bg-border" />or<span className="h-px flex-1 bg-border" /></div>
-        <Button type="button" variant="outline" className="w-full h-12" onClick={handleALSLogin} disabled={loading}>
-          {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : <Building2 className="w-4 h-4" />}
-          Sign in with your Alliance account
-        </Button>
-      </div>
-      <p className="mt-6 text-center text-sm text-muted-foreground">
+      </form>}
+      <p className="mt-7 text-center text-sm text-muted-foreground">
         Received an ALSight invitation?{" "}
         <Link to={"/register" + (returnTo !== "/" ? "?returnTo=" + encodeURIComponent(returnTo) : "")} className="font-medium text-primary hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring">
           Activate your account
