@@ -21,6 +21,7 @@ export default function AliceWidget() {
   const [draftMode, setDraftMode] = useState(false);
   const [restoring, setRestoring] = useState(true);
   const pendingAssistantCount = useRef(0);
+  const session = useRef(0);
   const field = useRef(null);
   useEffect(() => {
     const track = e => {
@@ -49,8 +50,9 @@ export default function AliceWidget() {
   useEffect(() => {
     if (!conversation?.id) return;
     let active = true;
+    const currentSession = session.current;
     const subscription = base44.agents.subscribeToConversation(conversation.id, data => {
-      if (!active) return;
+      if (!active || currentSession !== session.current) return;
       setMessages(data.messages || []);
       if ((data.messages || []).filter(m => m.role === 'assistant' && m.content).length > pendingAssistantCount.current) setBusy(false);
     });
@@ -69,17 +71,32 @@ export default function AliceWidget() {
       const type = intent?.[1]?.toLowerCase() || intent?.[2]?.toLowerCase();
       if (type && GUIDES[type].roles.includes(user?.role)) { start(type); setText(''); return; }
     }
+    const currentSession = session.current;
     pendingAssistantCount.current = messages.filter(m => m.role === 'assistant' && m.content).length;
     setBusy(true); setError(''); setDraftMode(draft); setText('');
     try {
       const chat = conversation || await base44.agents.createConversation({ agent_name: AGENT, metadata: { name: 'ALICE conversation' } });
+      if (currentSession !== session.current) return;
       if (!conversation) { setConversation(chat); sessionStorage.setItem('alice_conversation_id', chat.id); }
       const activeContact = document.querySelector('[data-alice-contact-id]');
       const pageContext = activeContact ? `\nCurrent contact ID: ${activeContact.dataset.aliceContactId}\nCurrent contact name: ${activeContact.dataset.aliceContactName}` : '';
       const content = `${draft ? 'DRAFT FIELD' : 'QUESTION'} | Current page: ${window.location.pathname}${pageContext}\n${value.trim()}`;
       setMessages(old => [...old, { role: 'user', content: value.trim() }]);
       await base44.agents.addMessage(chat, { role: 'user', content });
-    } catch (e) { setBusy(false); setError(e.message || 'Unable to reach ALICE. Please try again.'); }
+    } catch (e) { if (currentSession === session.current) { setBusy(false); setError(e.message || 'Unable to reach ALICE. Please try again.'); } }
+  };
+  const endChat = () => {
+    session.current += 1;
+    sessionStorage.removeItem('alice_conversation_id');
+    setConversation(null);
+    setMessages([]);
+    setText('');
+    setShowTasks(false);
+    setBusy(false);
+    setError('');
+    setDraftMode(false);
+    pendingAssistantCount.current = 0;
+    cancel();
   };
   const draft = () => {
     const el = field.current;
@@ -98,7 +115,7 @@ export default function AliceWidget() {
   };
   return <div data-alice-widget className="fixed bottom-4 right-4 z-50 sm:bottom-6 sm:right-6">
     {open && <section role="dialog" aria-label="Chat with ALICE" className="mb-3 flex h-[min(710px,calc(100dvh-110px))] w-[min(500px,calc(100vw-32px))] flex-col overflow-hidden rounded-3xl border border-border bg-card text-foreground shadow-2xl">
-      <header className="flex items-center gap-3 border-b border-border bg-card px-5 py-4"><span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-assistant text-white"><Bot className="h-6 w-6" /></span><div className="min-w-0 flex-1"><strong className="font-heading text-base font-semibold">ALICE</strong><p className="text-xs leading-tight text-muted-foreground">Alliance Leisure Intelligence &amp; Construction Expert</p></div><button type="button" aria-label="Close ALICE" onClick={() => setOpen(false)} className="shrink-0 rounded-lg p-1 text-muted-foreground hover:bg-muted hover:text-foreground"><X className="h-5 w-5" /></button></header>
+      <header className="flex items-center gap-3 border-b border-border bg-card px-5 py-4"><span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-assistant text-white"><Bot className="h-6 w-6" /></span><div className="min-w-0 flex-1"><strong className="font-heading text-base font-semibold">ALICE</strong><p className="text-xs leading-tight text-muted-foreground">Alliance Leisure Intelligence &amp; Construction Expert</p></div>{(conversation || messages.length > 0 || guide) && <button type="button" onClick={endChat} disabled={restoring || guide?.saving} className="shrink-0 rounded-lg px-2 py-1 text-xs font-medium text-assistant hover:bg-muted disabled:opacity-50">End chat</button>}<button type="button" aria-label="Close ALICE" onClick={() => setOpen(false)} className="shrink-0 rounded-lg p-1 text-muted-foreground hover:bg-muted hover:text-foreground"><X className="h-5 w-5" /></button></header>
       {guide ? <AliceGuidedChat guide={guide} onNext={next} onBack={back} onConfirm={confirm} onCancel={cancel} /> : <>
         {!messages.length ? <AliceWelcome role={user?.role} disabled={busy || restoring} onStart={start} /> : <>
           <button type="button" onClick={() => setShowTasks(v => !v)} aria-expanded={showTasks} className="block w-full border-b border-border px-5 py-2 text-left text-xs font-semibold text-assistant hover:bg-muted">{showTasks ? 'Hide tasks' : 'Start a task'}</button>
