@@ -83,10 +83,15 @@ export const AuthProvider = ({ children }) => {
     try {
       // Now check if the user is authenticated
       setIsLoadingAuth(true);
-      const [signedInUser, { data: accessResult }] = await Promise.all([
-        base44.auth.me(),
-        base44.functions.invoke('applyPendingPortalAccess', {}),
-      ]);
+      const signedInUser = await base44.auth.me();
+      // applyPendingPortalAccess is best-effort — a failure (e.g. backend
+      // functions unavailable on the current plan) must not block login.
+      let accessResult = null;
+      try {
+        ({ data: accessResult } = await base44.functions.invoke('applyPendingPortalAccess', {}));
+      } catch (pendingError) {
+        console.warn('applyPendingPortalAccess skipped:', pendingError);
+      }
       const currentUser = accessResult?.applied ? await base44.auth.me() : signedInUser;
       setUser(currentUser);
       setIsAuthenticated(true);
