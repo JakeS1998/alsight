@@ -12,6 +12,7 @@ import { MapPin, Filter } from "lucide-react";
 import { INTERNAL_ROLES } from "@/lib/portal";
 import usePortfolioExtras from "@/components/dashboard/usePortfolioExtras";
 import { buildPortfolio } from "@/components/dashboard/portfolioMetrics";
+import useConfirmedInvoices from "@/components/dashboard/useConfirmedInvoices";
 import PortfolioSummary from "@/components/dashboard/PortfolioSummary";
 import ProjectRiskTracker from "@/components/dashboard/ProjectRiskTracker";
 import OpportunityPipelineSummary from "@/components/dashboard/OpportunityPipelineSummary";
@@ -67,6 +68,7 @@ export default function Home() {
   }, [projects, accountMap, role, user]);
 
   const portfolio = useMemo(() => buildPortfolio(filteredProjects, extras), [filteredProjects, extras]);
+  const { amounts: confirmedAmounts, loading: invoicesLoading, error: invoicesError } = useConfirmedInvoices(filteredProjects, role !== 'supplier' && role !== 'project_manager');
 
   const greeting = () => {
     const h = new Date().getHours();
@@ -111,8 +113,8 @@ export default function Home() {
       {internal && <OpportunityPipelineSummary />}
 
       {role !== 'supplier' && <div className="grid gap-6 lg:grid-cols-2">
-        <PipelineChart projects={filteredProjects} />
-        <RegionBreakdown projects={filteredProjects} accountMap={accountMap} />
+        <PipelineChart projects={filteredProjects} confirmedAmounts={confirmedAmounts} invoicesLoading={invoicesLoading} invoicesError={invoicesError} />
+        <RegionBreakdown projects={filteredProjects} confirmedAmounts={confirmedAmounts} invoicesLoading={invoicesLoading} invoicesError={invoicesError} />
       </div>}
 
       <div className="rounded-2xl border border-slate-200 bg-white p-5">

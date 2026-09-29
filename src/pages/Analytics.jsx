@@ -10,6 +10,7 @@ import ProjectRiskTracker from "@/components/dashboard/ProjectRiskTracker";
 import OpportunityPipelineSummary from "@/components/dashboard/OpportunityPipelineSummary";
 import FinancialBreakdown from "@/components/dashboard/FinancialBreakdown";
 import { PipelineChart } from "@/components/dashboard/PipelineChart";
+import useConfirmedInvoices from "@/components/dashboard/useConfirmedInvoices";
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, PieChart, Pie, Cell, AreaChart, Area, CartesianGrid } from "recharts";
 import { TrendingUp } from "lucide-react";
 
@@ -89,6 +90,7 @@ export default function Analytics() {
     return data.projects;
   }, [data.projects, user]);
   const portfolio = useMemo(() => buildPortfolio(scopedProjects, extras), [scopedProjects, extras]);
+  const { amounts: confirmedAmounts, loading: invoicesLoading, error: invoicesError } = useConfirmedInvoices(scopedProjects, internal);
 
   if (!internal) return <p className="rounded-xl border border-slate-200 bg-white p-6 text-sm text-slate-600">Analytics is available to internal teams.</p>;
   if (loading) return <div className="flex justify-center py-20"><div className="h-8 w-8 animate-spin rounded-full border-4 border-slate-200 border-t-primary" /></div>;
@@ -111,7 +113,7 @@ export default function Analytics() {
         <PortfolioSummary metrics={portfolio.metrics} />
         <div className="grid gap-6 lg:grid-cols-2">
           <FinancialBreakdown portfolio={portfolio} />
-          <PipelineChart projects={portfolio.pipeline} />
+          <PipelineChart projects={portfolio.pipeline} confirmedAmounts={confirmedAmounts} invoicesLoading={invoicesLoading} invoicesError={invoicesError} />
         </div>
         <div id="at-risk"><ProjectRiskTracker atRisk={portfolio.atRisk} /></div>
       </>}
