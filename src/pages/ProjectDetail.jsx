@@ -6,6 +6,7 @@ import { INTERNAL_ROLES } from '@/lib/portal';
 import ProjectValuationsTab from "@/components/valuations/ProjectValuationsTab";
 import UKLFProjectTab from '@/components/framework/UKLFProjectTab';
 import UKLFIcon from '@/components/framework/UKLFIcon';
+import ProjectUKLFKPIAction from '@/components/projects/ProjectUKLFKPIAction';
 import SourceOpportunityLink from '@/components/crm/SourceOpportunityLink';
 import { listAll, filterAll } from "@/components/data/loadAll";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
@@ -27,6 +28,7 @@ export default function ProjectDetail() {
   const supplierAccountId = user?.account_id || user?.data?.account_id;
   const canSeeValuations = isExternalPM || INTERNAL_ROLES.includes(user?.role);
   const [activeTab, setActiveTab] = useState('general');
+  const [editUKLFKpis, setEditUKLFKpis] = useState(false);
   useEffect(() => { const tab = new URLSearchParams(location.search).get('tab'); setActiveTab(isExternalPM ? 'valuations' : isSupplier ? 'timeline' : (tab === 'valuations' && !canSeeValuations) ? 'general' : ['general','timeline','drafting','warranties','finance','delivery','valuations','uklf'].includes(tab) ? tab : 'general'); }, [location.search, isExternalPM, isSupplier, canSeeValuations]);
   const [project, setProject] = useState(null);
   const [legalDocs, setLegalDocs] = useState([]);
@@ -101,12 +103,13 @@ export default function ProjectDetail() {
             <span className="rounded-full bg-primary/10 px-2.5 py-0.5 text-xs font-medium text-primary">{project.procurement_route ? 'Framework' : 'Direct'}</span>
           )}
         </div>
+        {INTERNAL_ROLES.includes(user?.role) && <div className="mt-3"><ProjectUKLFKPIAction projectId={project.id} onEdit={() => { setActiveTab('uklf'); setEditUKLFKpis(true); }} /></div>}
         <ProjectPOReferences project={project} />
         {!isSupplier && project.description && <p className="mt-1 text-sm text-slate-500">{project.description}</p>}
         {INTERNAL_ROLES.includes(user?.role) && <SourceOpportunityLink projectId={project.id} />}
       </div>
 
-      <Tabs value={activeTab} onValueChange={setActiveTab}>
+      <Tabs value={activeTab} onValueChange={tab => { setActiveTab(tab); setEditUKLFKpis(false); }}>
       <TabsList className="h-auto flex-wrap justify-start">
         {!isExternalPM && !isSupplier && <TabsTrigger value="general"><LayoutDashboard className="mr-1.5 h-4 w-4" /> General</TabsTrigger>}
         {!isExternalPM && <TabsTrigger value="timeline"><Calendar className="mr-1.5 h-4 w-4" /> Timeline</TabsTrigger>}
@@ -136,7 +139,7 @@ export default function ProjectDetail() {
           <ProjectDeliveryTab project={project} legalDocs={legalDocs} dmas={dmas} jcts={jcts} warranties={warranties} accountMap={accountMap} />
         </TabsContent>}
         {canSeeValuations && <TabsContent value="valuations" className="mt-6"><ProjectValuationsTab project={project} /></TabsContent>}
-        {INTERNAL_ROLES.includes(user?.role) && <TabsContent value="uklf" className="mt-6"><UKLFProjectTab projectId={project.id} /></TabsContent>}
+        {INTERNAL_ROLES.includes(user?.role) && <TabsContent value="uklf" className="mt-6"><UKLFProjectTab projectId={project.id} startEditing={editUKLFKpis} onEditDone={() => setEditUKLFKpis(false)} /></TabsContent>}
       </Tabs>
     </div>
   );
