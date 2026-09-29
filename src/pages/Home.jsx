@@ -5,7 +5,6 @@ import { base44 } from "@/api/base44Client";
 import { listAll, filterAll } from "@/components/data/loadAll";
 import { ROLE_LABELS, formatCurrency, regionName } from "@/lib/portal";
 import { DashboardKPIs } from "@/components/dashboard/DashboardKPIs";
-import { PipelineChart } from "@/components/dashboard/PipelineChart";
 import { RegionBreakdown } from "@/components/dashboard/RegionBreakdown";
 import { ProjectMap } from "@/components/dashboard/ProjectMap";
 import { MapPin, Filter } from "lucide-react";
@@ -111,12 +110,12 @@ export default function Home() {
       {internal && extrasLoading && <p className="text-sm text-slate-500">Loading portfolio data…</p>}
       {internal && !extrasError && !extrasLoading ? <PortfolioSummary metrics={portfolio.metrics} onRiskClick={() => { setRiskExpanded(true); document.getElementById('dashboard-attention')?.scrollIntoView(); }} /> : <DashboardKPIs projects={filteredProjects} hideValues={role === 'supplier'} />}
 
-      {internal && !extrasError && !extrasLoading && <><PipelineTimeline projects={portfolio.pipeline} accountMap={accountMap} /><DashboardAttention portfolio={portfolio} riskExpanded={riskExpanded} onRiskExpandedChange={setRiskExpanded} /></>}
+      {internal && !extrasError && !extrasLoading && <PipelineTimeline projects={portfolio.pipeline} accountMap={accountMap} />}
 
-      {role !== 'supplier' && <div className="grid gap-6 lg:grid-cols-2">
-        <PipelineChart projects={filteredProjects} confirmedAmounts={confirmedAmounts} invoicesLoading={invoicesLoading} invoicesError={invoicesError} />
+      {internal && !extrasError && !extrasLoading ? <div className="grid gap-6 lg:grid-cols-2">
+        <DashboardAttention portfolio={portfolio} riskExpanded={riskExpanded} onRiskExpandedChange={setRiskExpanded} />
         <RegionBreakdown projects={filteredProjects} confirmedAmounts={confirmedAmounts} invoicesLoading={invoicesLoading} invoicesError={invoicesError} />
-      </div>}
+      </div> : role !== 'supplier' && <RegionBreakdown projects={filteredProjects} confirmedAmounts={confirmedAmounts} invoicesLoading={invoicesLoading} invoicesError={invoicesError} />}
 
       <div className="rounded-2xl border border-slate-200 bg-white p-5">
         <div className="mb-4 flex items-center gap-2">
