@@ -6,15 +6,16 @@ import { INTERNAL_ROLES } from '@/lib/portal';
 export default function ProjectPOReferences({ project, compact = false }) {
   const { user } = useAuth();
   const [refs, setRefs] = useState([]);
-  const allowed = INTERNAL_ROLES.includes(user?.role);
+  const supplierCompanyNumber = user?.company_number || user?.data?.company_number;
+  const allowed = INTERNAL_ROLES.includes(user?.role) || (user?.role === 'supplier' && !!supplierCompanyNumber);
   useEffect(() => {
     if (!allowed || !project.project_number) return;
     let active = true;
-    loadProjectPOs(project).then(orders => {
+    loadProjectPOs(project, user?.role === 'supplier' ? supplierCompanyNumber : undefined).then(orders => {
       if (active) setRefs([...new Set(orders.map(o => o.project_ref).filter(ref => ref && ref !== project.project_number))].sort());
     }).catch(() => { if (active) setRefs([]); });
     return () => { active = false; };
-  }, [allowed, project.id, project.project_number]);
+  }, [allowed, project.id, project.project_number, supplierCompanyNumber, user?.role]);
   if (!allowed || !refs.length) return null;
   return <div className={compact ? 'text-xs text-slate-500' : 'mt-2 text-sm text-slate-600'}>
     <span className="font-semibold">Legal: {project.project_number} · PO project: </span>{refs.join(', ')}

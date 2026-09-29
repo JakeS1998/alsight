@@ -63,7 +63,7 @@ const AuthenticatedApp = () => {
         <Route element={<PortalLayout />}>
           <Route path="/" element={<Home />} />
           <Route path="/projects" element={<Projects />} />
-          <Route path="/framework-reports" element={<CRMRoute><FrameworkReports /></CRMRoute>} />
+          <Route path="/framework-reports" element={<FrameworkReports />} />
           <Route path="/projects/:projectId" element={<ProjectDetail />} />
           <Route path="/documents" element={<LegalDocuments />} />
           <Route path="/warranties" element={<Warranties />} />

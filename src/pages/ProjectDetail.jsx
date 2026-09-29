@@ -8,6 +8,7 @@ import SourceOpportunityLink from '@/components/crm/SourceOpportunityLink';
 import { listAll, filterAll } from "@/components/data/loadAll";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { ProjectGeneralTab } from "@/components/projects/ProjectGeneralTab";
+import ProjectPOReferences from '@/components/projects/ProjectPOReferences';
 import { ProjectDraftingTab } from "@/components/projects/ProjectDraftingTab";
 import { ProjectWarrantiesTab } from "@/components/projects/ProjectWarrantiesTab";
 import { ProjectFinanceTab } from "@/components/projects/ProjectFinanceTab";
@@ -98,6 +99,7 @@ export default function ProjectDetail() {
             <span className="rounded-full bg-primary/10 px-2.5 py-0.5 text-xs font-medium text-primary">{project.procurement_route ? 'Framework' : 'Direct'}</span>
           )}
         </div>
+        <ProjectPOReferences project={project} />
         {!isSupplier && project.description && <p className="mt-1 text-sm text-slate-500">{project.description}</p>}
         {INTERNAL_ROLES.includes(user?.role) && <SourceOpportunityLink projectId={project.id} />}
       </div>
