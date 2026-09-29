@@ -2,7 +2,7 @@ import React, { useMemo } from 'react';
 import { CartesianGrid, Legend, Line, LineChart, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts';
 import { formatCurrency } from '@/lib/portal';
 
-export default function CashFlowChart({ entries }) {
+export default function CashFlowChart({ entries, commitments = [] }) {
   const data = useMemo(() => {
     const byDate = new Map();
     entries.forEach(({ date, type, amount }) => {
@@ -11,16 +11,24 @@ export default function CashFlowChart({ entries }) {
       row[type] += Number(amount) || 0;
       byDate.set(date, row);
     });
-    let received = 0, spent = 0;
+    commitments.forEach(({ date, amount }) => {
+      if (!date) return;
+      const day = date.slice(0, 10);
+      const row = byDate.get(day) || { date: day, received: 0, spent: 0, committed: 0 };
+      row.committed = (row.committed || 0) + (Number(amount) || 0);
+      byDate.set(day, row);
+    });
+    let received = 0, spent = 0, committed = 0;
     return [...byDate.values()].sort((a, b) => a.date.localeCompare(b.date)).map(row => {
       received += row.received;
       spent += row.spent;
-      return { date: row.date, received, spent, balance: received - spent };
+      committed += row.committed || 0;
+      return { date: row.date, received, spent, committed, balance: received - spent };
     });
-  }, [entries]);
+  }, [entries, commitments]);
 
-  if (!data.length) return <p className="py-10 text-center text-sm text-muted-foreground">No paid invoices or dated spending recorded for this project yet.</p>;
-  return <div className="h-72 w-full" role="img" aria-label="Cumulative client payments, spending and net cash balance over time">
+  if (!data.length) return <p className="py-10 text-center text-sm text-muted-foreground">No paid invoices, dated spending or PO commitments recorded for this project yet.</p>;
+  return <div className="h-72 w-full" role="img" aria-label="Cumulative client payments, spending, purchase order commitments and net cash balance over time">
     <ResponsiveContainer width="100%" height="100%">
       <LineChart data={data} margin={{ top: 8, right: 16, bottom: 8, left: 12 }}>
         <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
@@ -30,6 +38,7 @@ export default function CashFlowChart({ entries }) {
         <Legend />
         <Line type="linear" dataKey="received" name="Payments received" stroke="hsl(var(--chart-1))" strokeWidth={3} dot={{ r: 4 }} activeDot={{ r: 6 }} />
         <Line type="linear" dataKey="spent" name="Money out" stroke="hsl(var(--chart-3))" strokeWidth={3} dot={{ r: 4 }} activeDot={{ r: 6 }} />
+        {commitments.length > 0 && <Line type="linear" dataKey="committed" name="PO commitments" stroke="hsl(var(--chart-3))" strokeWidth={3} strokeDasharray="7 5" dot={{ r: 4 }} activeDot={{ r: 6 }} />}
         <Line type="linear" dataKey="balance" name="Net balance" stroke="hsl(var(--chart-2))" strokeWidth={3} dot={{ r: 4 }} activeDot={{ r: 6 }} />
       </LineChart>
     </ResponsiveContainer>

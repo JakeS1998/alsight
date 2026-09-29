@@ -112,6 +112,11 @@ export function ProjectFinanceTab({ project }) {
     return m;
   }, [projectLineItems]);
 
+  const commitments = useMemo(() => pos.filter(po => po.status !== 'inactive' && (po.approved || po.sent)).map(po => ({
+    date: (po.approval_date || po.sent_date || po.created_date || '').slice(0, 10),
+    amount: po.total_net_value != null ? Number(po.total_net_value) : (lineItemsByPo[po.dataverse_id] || []).reduce((sum, li) => sum + (Number(li.net_value) || 0), 0),
+  })).filter(po => po.date && po.amount > 0), [pos, lineItemsByPo]);
+
   if (loading) return <Spinner />;
 
   if (!project.project_number) {
@@ -141,7 +146,7 @@ export function ProjectFinanceTab({ project }) {
   return (
     <div className="space-y-6">
       {canSeeValuations && <ValuationSnapshot project={project} finance />}
-      <ProjectCashFlow {...cashFlow} />
+      <ProjectCashFlow {...cashFlow} commitments={commitments} />
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
         <StatCard icon={Receipt} label="Purchase Orders" value={totals.poCount} sub={`${totals.liCount} line items`} />
         <StatCard icon={PoundSterling} label="Line Net Value" value={formatCurrency(totals.liNet)} sub={`Gross ${formatCurrency(totals.liGross)}`} />
