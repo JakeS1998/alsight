@@ -31,10 +31,10 @@ export default function ProjectDetail() {
   const supplierAccountId = user?.account_id || user?.data?.account_id;
   const [project, setProject] = useState(null);
   const canSeeValuations = isExternalPM || INTERNAL_ROLES.includes(user?.role) || (isSupplier && !!project?.can_submit_valuation);
-  const canSeeProjectOverview = isExternalPM || (isSupplier && !!project?.can_submit_valuation);
+  const canSeeProjectOverview = isSupplier && !!project?.can_submit_valuation;
   const [activeTab, setActiveTab] = useState('general');
   const [editUKLFKpis, setEditUKLFKpis] = useState(false);
-  useEffect(() => { const tab = new URLSearchParams(location.search).get('tab'); setActiveTab(isExternalPM ? (['valuations','timeline','warranties'].includes(tab) ? tab : 'general') : isSupplier ? (['general','timeline','drafting','warranties','purchase-orders'].includes(tab) ? tab : tab === 'valuations' && canSeeValuations ? 'valuations' : 'general') : (tab === 'valuations' && !canSeeValuations) ? 'general' : ['general','timeline','drafting','warranties','finance','delivery','valuations','uklf'].includes(tab) ? tab : 'general'); }, [location.search, isExternalPM, isSupplier, canSeeValuations]);
+  useEffect(() => { const tab = new URLSearchParams(location.search).get('tab'); setActiveTab(isExternalPM ? (['valuations','timeline','drafting','warranties'].includes(tab) ? tab : 'general') : isSupplier ? (['general','timeline','drafting','warranties','purchase-orders'].includes(tab) ? tab : tab === 'valuations' && canSeeValuations ? 'valuations' : 'general') : (tab === 'valuations' && !canSeeValuations) ? 'general' : ['general','timeline','drafting','warranties','finance','delivery','valuations','uklf'].includes(tab) ? tab : 'general'); }, [location.search, isExternalPM, isSupplier, canSeeValuations]);
   const [legalDocs, setLegalDocs] = useState([]);
   const [dmas, setDmas] = useState([]);
   const [jcts, setJcts] = useState([]);
@@ -49,7 +49,6 @@ export default function ProjectDetail() {
         const proj = isExternalPM ? (await base44.functions.invoke('manageValuation', { action: 'project', projectId }).catch(() => ({ data: { project: null } }))).data.project : isSupplier ? (await Promise.all([base44.functions.invoke('supplierProjectAccess', { action: 'project', projectId }).then(res => res.data.project).catch(() => null), base44.functions.invoke('manageValuation', { action: 'project', projectId }).then(res => res.data.project).catch(() => null)]).then(([linked, manager]) => (linked || manager) ? { ...(linked || manager), can_submit_valuation: !!manager } : null)) : await base44.entities.Project.get(projectId).catch(() => null);
         if (!proj || proj.status === 'inactive') { setProject(null); return; }
         setProject(proj);
-        if (isExternalPM) return;
         const dvId = proj.dataverse_id;
 
         const [docs, dmasData, jctsData, warrs, accounts, orders] = await Promise.all([
@@ -120,7 +119,7 @@ export default function ProjectDetail() {
       <TabsList className="h-auto flex-wrap justify-start">
         <TabsTrigger value="general"><LayoutDashboard className="mr-1.5 h-4 w-4" /> {isSupplier || isExternalPM ? 'Project details' : 'General'}</TabsTrigger>
         <TabsTrigger value="timeline"><Calendar className="mr-1.5 h-4 w-4" /> Timeline</TabsTrigger>
-        {!isExternalPM && <TabsTrigger value="drafting"><FileText className="mr-1.5 h-4 w-4" /> Documents</TabsTrigger>}
+        <TabsTrigger value="drafting"><FileText className="mr-1.5 h-4 w-4" /> Documents</TabsTrigger>
         <TabsTrigger value="warranties"><ShieldCheck className="mr-1.5 h-4 w-4" /> Warranties</TabsTrigger>
         {isSupplier && <TabsTrigger value="purchase-orders"><Receipt className="mr-1.5 h-4 w-4" /> Purchase orders</TabsTrigger>}
         {!isExternalPM && !isSupplier && <TabsTrigger value="finance"><Receipt className="mr-1.5 h-4 w-4" /> Finance</TabsTrigger>}
@@ -132,14 +131,14 @@ export default function ProjectDetail() {
           <ProjectGeneralTab project={project} accountMap={accountMap} onProjectUpdated={updated => setProject(current => ({ ...current, ...updated }))} />
         </TabsContent>
         <TabsContent value="timeline" className="mt-6 space-y-6">
-          {!isExternalPM && <ProjectTimelineTab project={project} legalDocs={isSupplier ? legalDocs.filter(d => supplierAccountId && d.account_id === supplierAccountId) : legalDocs} dmas={isSupplier ? [] : dmas} jcts={isSupplier ? jcts.filter(d => supplierAccountId && (d.account_id === supplierAccountId || d.contractor_id === supplierAccountId)) : jcts} warranties={isSupplier ? warranties.filter(d => supplierAccountId && (d.account_id === supplierAccountId || d.supplier_id === supplierAccountId)) : warranties} accountMap={accountMap} supplierOnly={isSupplier} supplierOrders={supplierOrders} supplierCompanyNumber={supplierAccountId ? accountMap[supplierAccountId]?.company_number : null} />}
+          <ProjectTimelineTab project={project} legalDocs={isSupplier ? legalDocs.filter(d => supplierAccountId && d.account_id === supplierAccountId) : legalDocs} dmas={isSupplier ? [] : dmas} jcts={isSupplier ? jcts.filter(d => supplierAccountId && (d.account_id === supplierAccountId || d.contractor_id === supplierAccountId)) : jcts} warranties={isSupplier ? warranties.filter(d => supplierAccountId && (d.account_id === supplierAccountId || d.supplier_id === supplierAccountId)) : warranties} accountMap={accountMap} supplierOnly={isSupplier} supplierOrders={supplierOrders} supplierCompanyNumber={supplierAccountId ? accountMap[supplierAccountId]?.company_number : null} />
           {canSeeProjectOverview && <ProjectManagerOverview projectId={project.id} mode="timeline" supplier={isSupplier} />}
         </TabsContent>
-        {!isExternalPM && <TabsContent value="drafting" className="mt-6">
-          {isSupplier ? <SupplierProjectDocuments project={project} legalDocs={legalDocs} jcts={jcts} accountMap={accountMap} /> : <ProjectDraftingTab project={project} legalDocs={legalDocs} dmas={dmas} jcts={jcts} accountMap={accountMap} />}
-        </TabsContent>}
+        <TabsContent value="drafting" className="mt-6">
+          {isSupplier ? <SupplierProjectDocuments project={project} legalDocs={legalDocs} jcts={jcts} accountMap={accountMap} /> : isExternalPM ? <ProjectDraftingTab project={project} legalDocs={legalDocs.filter(d => ['access_agreement','pcsa'].includes(d.document_type))} dmas={dmas} jcts={jcts} accountMap={accountMap} pmView /> : <ProjectDraftingTab project={project} legalDocs={legalDocs} dmas={dmas} jcts={jcts} accountMap={accountMap} />}
+        </TabsContent>
         <TabsContent value="warranties" className="mt-6 space-y-6">
-          {!isExternalPM && <ProjectWarrantiesTab project={project} warranties={warranties} accountMap={accountMap} hideCommentsAndLinks={isSupplier} />}
+          <ProjectWarrantiesTab project={project} warranties={warranties} accountMap={accountMap} hideCommentsAndLinks={isSupplier} />
           {canSeeProjectOverview && <ProjectManagerOverview projectId={project.id} mode="warranties" supplier={isSupplier} />}
         </TabsContent>
         {isSupplier && <TabsContent value="purchase-orders" className="mt-6"><SupplierPurchaseOrders project={project} orders={supplierOrders} /></TabsContent>}

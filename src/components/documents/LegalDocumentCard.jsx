@@ -5,7 +5,7 @@ import { DocTypeBadge, ExecutedBadge } from "@/components/StatusBadge";
 import { ProgressTracker, getLegalDocSteps } from "@/components/documents/ProgressTracker";
 import { ChevronDown, ChevronRight, Download, ExternalLink, FileText, AlertCircle } from "lucide-react";
 
-export function LegalDocumentCard({ doc, projectName, accountName, psoOutstanding, hideCommentsAndLinks = false }) {
+export function LegalDocumentCard({ doc, projectName, accountName, psoOutstanding, hideCommentsAndLinks = false, hideFinancials = false }) {
   const [open, setOpen] = useState(false);
   const steps = getLegalDocSteps(doc);
   const typeCfg = DOCUMENT_TYPE[doc.document_type] || { label: doc.document_type };
@@ -60,7 +60,7 @@ export function LegalDocumentCard({ doc, projectName, accountName, psoOutstandin
               <div className="space-y-1">
                 {doc.link_to_file && <LinkRow href={doc.link_to_file} label="File" />}
                 {doc.link_to_client_proposal && <LinkRow href={doc.link_to_client_proposal} label="Client Proposal" />}
-                {doc.link_to_fee_proposal && <LinkRow href={doc.link_to_fee_proposal} label="Fee Proposal" />}
+                {doc.link_to_fee_proposal && !hideFinancials && <LinkRow href={doc.link_to_fee_proposal} label="Fee Proposal" />}
               </div>
             </DetailColumn>}
           </div>

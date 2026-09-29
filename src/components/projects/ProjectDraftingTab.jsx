@@ -20,6 +20,13 @@ const STAGES = [
   { key: "additional", label: "Additional Works & Other", icon: FilePlus, kind: "legal", docTypes: ["additional_works", "other"] },
 ];
 
+const PM_STAGES = [
+  { key: "aa", label: "Access Agreement", icon: FileCheck, kind: "legal", docTypes: ["access_agreement"] },
+  { key: "pcsa", label: "Pre-Construction Services Agreement", icon: UserCheck, kind: "legal", docTypes: ["pcsa"] },
+  { key: "dma", label: "Development Management Agreement", icon: FileCheck, kind: "dma" },
+  { key: "jct", label: "Construction Contract (JCT)", icon: Gavel, kind: "jct" },
+];
+
 const STATUS_CFG = {
   complete: { label: "Complete", marker: "border-emerald-500 bg-emerald-500 text-white", line: "bg-emerald-300", badge: "bg-emerald-50 text-emerald-700 border-emerald-200" },
   in_progress: { label: "In Progress", marker: "border-amber-500 bg-amber-500 text-white", line: "bg-amber-300", badge: "bg-amber-50 text-amber-700 border-amber-200" },
@@ -69,7 +76,8 @@ function PqCard({ project, psoOutstanding }) {
   );
 }
 
-export function ProjectDraftingTab({ project, legalDocs, dmas, jcts, accountMap }) {
+export function ProjectDraftingTab({ project, legalDocs, dmas, jcts, accountMap, pmView = false }) {
+  const stages = pmView ? PM_STAGES : STAGES;
   const [psoStatus, setPsoStatus] = useState({ pq: false, aa: false, aa_variations: false, dma: false });
 
   useEffect(() => {
@@ -93,7 +101,7 @@ export function ProjectDraftingTab({ project, legalDocs, dmas, jcts, accountMap 
     docByType[d.document_type].push(d);
   });
 
-  const totalDocs = legalDocs.length + dmas.length + jcts.length + (project.link_to_project_questionnaire ? 1 : 0);
+  const totalDocs = legalDocs.length + dmas.length + jcts.length + (pmView ? 0 : project.link_to_project_questionnaire ? 1 : 0);
 
   if (totalDocs === 0) {
     return (
@@ -106,7 +114,7 @@ export function ProjectDraftingTab({ project, legalDocs, dmas, jcts, accountMap 
 
   return (
     <div className="space-y-0">
-      {STAGES.map((stage, i) => {
+      {stages.map((stage, i) => {
         let docs = [];
         if (stage.kind === "legal") {
           (stage.docTypes || []).forEach((t) => {
@@ -120,7 +128,7 @@ export function ProjectDraftingTab({ project, legalDocs, dmas, jcts, accountMap 
 
         const status = stage.kind === "pq" ? pqStatus(project) : docStatus(docs);
         const cfg = STATUS_CFG[status];
-        const isLast = i === STAGES.length - 1;
+        const isLast = i === stages.length - 1;
         const Icon = stage.icon;
 
         return (
@@ -163,7 +171,7 @@ export function ProjectDraftingTab({ project, legalDocs, dmas, jcts, accountMap 
                         (doc.document_type === "access_agreement" && !psoStatus.aa) ||
                         (doc.document_type === "additional_works" && !psoStatus.aa_variations)
                       );
-                      return <LegalDocumentCard key={doc.id} doc={doc} projectName={project.name} accountName={accountMap[doc.account_id]?.name} psoOutstanding={psoOutstanding} />;
+                      return <LegalDocumentCard key={doc.id} doc={doc} projectName={project.name} accountName={accountMap[doc.account_id]?.name} psoOutstanding={psoOutstanding} hideFinancials={pmView} />;
                     })}
                   {stage.kind === "dma" && docs.map((doc) => <DMACard key={doc.id} doc={doc} projectName={project.name} psoOutstanding={!!doc.drafted_date && !psoStatus.dma} />)}
                   {stage.kind === "jct" &&
