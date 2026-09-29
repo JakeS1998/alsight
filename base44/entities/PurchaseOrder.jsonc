@@ -8,7 +8,11 @@
     },
     "project_ref": {
       "type": "string",
-      "description": "PROJ reference, links to Project.project_number"
+      "description": "Original PO-system project reference"
+    },
+    "legal_project_id": {
+      "type": "string",
+      "description": "Base44 Project id matched from the PO-system project name, without changing the original PO reference"
     },
     "supplier_company_number": {
       "type": "string",

@@ -11,6 +11,7 @@ const legacyName = project => normalize((project.name || '').replace(/\s*\([^)]*
 
 export const matchesProjectPO = (po, project) => {
   if (isLegacyProject(project)) {
+    if (po.legal_project_id) return po.legal_project_id === project.id;
     const name = legacyName(project);
     const detail = (po.notes || '').split(/\bDetail\s*:/i).pop();
     return name.length >= 8 && normalize(detail).includes(` ${name} `);
@@ -26,7 +27,10 @@ export const findProjectForPO = (po, projects) => {
 export async function loadProjectPOs(project, supplierCompanyNumber) {
   if (!project.project_number) return [];
   const query = isLegacyProject(project)
-    ? { notes: { $regex: legacyName(project).split(' ')[0], $options: 'i' } }
+    ? { $or: [
+      { legal_project_id: project.id },
+      { notes: { $regex: legacyName(project).split(' ')[0], $options: 'i' } },
+    ] }
     : { project_ref: project.project_number };
   if (supplierCompanyNumber) query.supplier_company_number = supplierCompanyNumber;
   const orders = await filterAll(base44.entities.PurchaseOrder, query);
