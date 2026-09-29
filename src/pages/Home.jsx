@@ -14,7 +14,9 @@ import usePortfolioExtras from "@/components/dashboard/usePortfolioExtras";
 import { buildPortfolio } from "@/components/dashboard/portfolioMetrics";
 import useConfirmedInvoices from "@/components/dashboard/useConfirmedInvoices";
 import PortfolioSummary from "@/components/dashboard/PortfolioSummary";
-import ProjectRiskTracker from "@/components/dashboard/ProjectRiskTracker";
+import PipelineTimeline from "@/components/dashboard/PipelineTimeline";
+import DashboardAttention from "@/components/dashboard/DashboardAttention";
+import { projectStage } from "@/components/dashboard/pipelineStage";
 import OpportunityPipelineSummary from "@/components/dashboard/OpportunityPipelineSummary";
 
 export default function Home() {
@@ -24,22 +26,26 @@ export default function Home() {
   const { data: extras, loading: extrasLoading, error: extrasError } = usePortfolioExtras(internal);
   const [projects, setProjects] = useState([]);
   const [accounts, setAccounts] = useState([]);
+  const [staffAadId, setStaffAadId] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [riskExpanded, setRiskExpanded] = useState(false);
 
   useEffect(() => {
     (async () => {
       try {
-        const [p, a] = await Promise.all([
+        const [p, a, contact] = await Promise.all([
           filterAll(base44.entities.Project, { status: { $ne: "inactive" } }, "-created_date"),
           listAll(base44.entities.Account, "-name").catch(() => []),
+          ['bdm', 'bsm'].includes(role) && user?.email ? base44.entities.Contact.filter({ email: { $regex: `^${user.email.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}$`, $options: 'i' } }, { limit: 1, fields: ['aad_id'] }).then(page => page.items[0]).catch(() => null) : null,
         ]);
         setProjects(p);
         setAccounts(a);
+        setStaffAadId(contact?.aad_id || null);
       } finally {
         setLoading(false);
       }
     })();
-  }, []);
+  }, [role, user?.email]);
 
   const accountMap = useMemo(() => {
     const map = {};
@@ -48,24 +54,22 @@ export default function Home() {
   }, [accounts]);
 
   const { filteredProjects, filterLabel } = useMemo(() => {
-    if (role === "bdm") {
+    if (role === "bdm" || role === "bsm") {
+      const assignedIds = [user?.id, staffAadId, user?.data?.delegate_of || user?.delegate_of].filter(Boolean);
       return {
-        filteredProjects: projects.filter((p) => p.bdm_aad_id === user.id || p.bsm_aad_id === user.id),
-        filterLabel: "Showing projects where you are the assigned BDM or BSM",
+        filteredProjects: projects.filter((p) => assignedIds.includes(p.bdm_aad_id) || assignedIds.includes(p.bsm_aad_id)),
+        filterLabel: "Showing your assigned projects",
       };
     }
     if (role === "regional_director") {
-      const userRegion = regionName(user?.data?.region);
-      if (userRegion) {
-        return {
-          filteredProjects: projects.filter((p) => regionName(p.department_id) === userRegion),
-          filterLabel: `Showing projects in your region: ${userRegion}`,
-        };
-      }
-      return { filteredProjects: projects, filterLabel: null };
+      const region = user?.data?.region || user?.region;
+      return {
+        filteredProjects: region ? projects.filter((p) => p.department_id === region) : [],
+        filterLabel: region ? `Showing projects in your region: ${regionName(region)}` : "No region assigned to your profile",
+      };
     }
     return { filteredProjects: projects, filterLabel: null };
-  }, [projects, accountMap, role, user]);
+  }, [projects, accountMap, role, user, staffAadId]);
 
   const portfolio = useMemo(() => buildPortfolio(filteredProjects, extras), [filteredProjects, extras]);
   const { amounts: confirmedAmounts, loading: invoicesLoading, error: invoicesError } = useConfirmedInvoices(filteredProjects, role !== 'supplier' && role !== 'project_manager');
@@ -106,9 +110,9 @@ export default function Home() {
 
       {extrasError && internal && <p className="rounded-lg border border-rose-200 bg-rose-50 p-3 text-sm text-rose-700">{extrasError}</p>}
       {internal && extrasLoading && <p className="text-sm text-slate-500">Loading portfolio data…</p>}
-      {internal && !extrasError && !extrasLoading ? <PortfolioSummary metrics={portfolio.metrics} /> : <DashboardKPIs projects={filteredProjects} hideValues={role === 'supplier'} />}
+      {internal && !extrasError && !extrasLoading ? <PortfolioSummary metrics={portfolio.metrics} onRiskClick={() => { setRiskExpanded(true); document.getElementById('dashboard-attention')?.scrollIntoView(); }} /> : <DashboardKPIs projects={filteredProjects} hideValues={role === 'supplier'} />}
 
-      {internal && !extrasError && !extrasLoading && <ProjectRiskTracker atRisk={portfolio.atRisk} />}
+      {internal && !extrasError && !extrasLoading && <><PipelineTimeline projects={portfolio.pipeline} accountMap={accountMap} /><DashboardAttention portfolio={portfolio} riskExpanded={riskExpanded} onRiskExpandedChange={setRiskExpanded} /></>}
 
       {internal && <OpportunityPipelineSummary />}
 
@@ -139,9 +143,9 @@ export default function Home() {
               <Link key={p.id} to={`/projects/${p.id}`} className="flex items-center justify-between px-5 py-3.5 hover:bg-slate-50">
                 <div className="min-w-0">
                   <p className="truncate text-sm font-medium text-slate-900">{p.name}</p>
-                  <p className="truncate text-xs text-slate-500">{p.project_number || "—"}</p>
-                </div>
-                {role !== 'supplier' && <span className="text-sm text-slate-600">{formatCurrency(p.estimated_value)}</span>}
+                  <p className="truncate text-xs text-slate-500">{[p.project_number, projectStage(p), regionName(p.department_id)].filter(Boolean).join(' · ') || '—'}</p>
+                  </div>
+                  <div className="shrink-0 text-right"><p className="text-xs text-slate-500">{portfolio.atRisk.some(row => row.project.id === p.id) ? 'At risk' : p.live_project ? 'Live' : 'On hold'}</p>{role !== 'supplier' && <p className="text-sm text-slate-600">{formatCurrency(p.estimated_value)}</p>}</div>
               </Link>
             ))
           )}

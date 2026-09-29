@@ -23,8 +23,8 @@ export function RegionBreakdown({ projects, confirmedAmounts = {}, invoicesLoadi
   return (
     <div className="rounded-2xl border border-slate-200 bg-white p-5">
       <div className="mb-4">
-        <h3 className="text-sm font-semibold text-slate-900">Projects by Department</h3>
-        <p className="text-xs text-slate-500">Paid invoices versus total project value by department</p>
+        <h3 className="text-sm font-semibold text-slate-900">Project Value by Region</h3>
+        <p className="text-xs text-slate-500">Paid invoices versus total project value by operating region</p>
         <IncomeProjectionKey />
       </div>
       {invoicesLoading ? <div className="flex h-[260px] items-center justify-center text-sm text-slate-500">Loading invoice totals…</div> : invoicesError ? <p role="alert" className="py-10 text-sm text-destructive">{invoicesError}</p> : data.length === 0 ? (

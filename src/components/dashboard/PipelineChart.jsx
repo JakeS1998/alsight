@@ -1,26 +1,14 @@
 import React, { useMemo } from "react";
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid } from "recharts";
 import IncomeProjectionKey, { IncomeProjectionTooltip } from "@/components/dashboard/IncomeProjectionKey";
-
-const STAGES = ["RIBA 1", "RIBA 2", "RIBA 3", "RIBA 4", "Construction"];
-
-function getProjectStage(p) {
-  const now = new Date();
-  if (p.status === "inactive" || ["complete", "completed"].includes(String(p.approval_status || "").trim().toLowerCase())) return null;
-  if (p.practical_completion_date && new Date(p.practical_completion_date) < now) return null;
-  if (p.riba4_end && new Date(p.riba4_end) < now) return "Construction";
-  if (p.riba3_end && new Date(p.riba3_end) < now) return "RIBA 4";
-  if (p.riba2_end && new Date(p.riba2_end) < now) return "RIBA 3";
-  if (p.riba1_end && new Date(p.riba1_end) < now) return "RIBA 2";
-  return "RIBA 1";
-}
+import { projectStage, STAGES } from "@/components/dashboard/pipelineStage";
 
 export function PipelineChart({ projects, confirmedAmounts = {}, invoicesLoading = false, invoicesError = '' }) {
   const data = useMemo(() => {
     const map = {};
     STAGES.forEach((s) => { map[s] = { stage: s, value: 0, confirmed: 0, remaining: 0, count: 0 }; });
     projects.forEach((p) => {
-      const stage = getProjectStage(p);
+      const stage = projectStage(p);
       if (!stage) return;
       const value = Number(p.estimated_value) || 0;
       const paid = Number(confirmedAmounts[p.id]) || 0;
