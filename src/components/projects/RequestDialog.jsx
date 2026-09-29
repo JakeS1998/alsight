@@ -117,8 +117,8 @@ export function RequestDialog({ open, onOpenChange, accounts, users, user, onCre
               </FormField>
               <FormField label="Procurement Route">
                 <select value={form.procurement_route} onChange={(e) => setForm({ ...form, procurement_route: e.target.value === "true" })} className={formInputClass}>
-                  <option value="true">UK Leisure Framework</option>
-                  <option value="false">Other</option>
+                  <option value="true">Framework</option>
+                  <option value="false">Direct</option>
                 </select>
               </FormField>
             </FormGrid>
