@@ -5,8 +5,16 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Mail, Lock, Loader2, Eye, EyeOff, ArrowRight, Building2 } from "lucide-react";
-import AuthLayout from "@/components/AuthLayout";
+import LoginLayout from "@/components/auth/LoginLayout";
 import { safeReturnTo } from "@/lib/authReturnTo";
+
+function signInError(err) {
+  const message = String(err?.message || "").toLowerCase();
+  if (/invit.*expir/.test(message)) return "Your invitation has expired. Request a new invitation.";
+  if (/inactive|disabled|not active|suspend/.test(message)) return "Your account is not currently active. Please contact an ALS Live administrator.";
+  if (/invalid|incorrect|wrong|credential|password|unauthorized/.test(message)) return "Incorrect email address or password.";
+  return "Sign-in is temporarily unavailable. Please try again.";
+}
 
 export default function Login() {
   const [email, setEmail] = useState("");
@@ -27,7 +35,7 @@ export default function Login() {
       await base44.auth.loginViaEmailPassword(email, password);
       window.location.href = returnTo;
     } catch (err) {
-      setError(err.message || "Invalid email or password");
+      setError(signInError(err));
     } finally {
       setLoading(false);
     }
@@ -39,20 +47,15 @@ export default function Login() {
     try {
       await base44.auth.loginWithProvider("microsoft", returnTo);
     } catch (err) {
-      setError(err.message || "Unable to sign in with your ALS account");
+      setError("Sign-in with your Alliance account is temporarily unavailable. Please try again.");
       setLoading(false);
     }
   };
 
   return (
-    <AuthLayout
-      overlay
-      title="Welcome"
-      subtitle="Sign in to access ALS Live"
-      footer="Need access? Contact your ALS Live administrator."
-    >
+    <LoginLayout>
       {error && (
-        <div className="mb-2 p-3 rounded-lg bg-destructive/10 text-destructive text-sm">{error}</div>
+        <div role="alert" className="mb-5 rounded-lg bg-destructive/10 p-3 text-sm font-medium text-destructive">{error}</div>
       )}
 
       <form onSubmit={handleSubmit} className="space-y-4">
@@ -90,7 +93,7 @@ export default function Login() {
             <button
               type="button"
               onClick={() => setShowPassword((s) => !s)}
-              className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-slate-700"
+              className="absolute right-1 top-1/2 flex h-10 w-10 -translate-y-1/2 items-center justify-center rounded-md text-muted-foreground hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
               aria-label={showPassword ? "Hide password" : "Show password"}
             >
               {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
@@ -107,7 +110,7 @@ export default function Login() {
             />
             Keep me signed in
           </label>
-          <Link to="/forgot-password" className="text-sm font-medium text-primary hover:underline">
+          <Link to="/forgot-password" className="text-sm font-medium text-primary hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring">
             Forgot password?
           </Link>
         </div>
@@ -128,15 +131,15 @@ export default function Login() {
         <div className="flex items-center gap-3 text-xs text-muted-foreground"><span className="h-px flex-1 bg-border" />or<span className="h-px flex-1 bg-border" /></div>
         <Button type="button" variant="outline" className="w-full h-12" onClick={handleALSLogin} disabled={loading}>
           {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : <Building2 className="w-4 h-4" />}
-          Login with ALS account
+          Sign in with your Alliance account
         </Button>
       </div>
-      <p className="mt-5 text-center text-sm text-muted-foreground">
-        Accepted an invitation?{" "}
-        <Link to={"/register" + (returnTo !== "/" ? "?returnTo=" + encodeURIComponent(returnTo) : "")} className="font-medium text-primary hover:underline">
-          Set up your account
+      <p className="mt-6 text-center text-sm text-muted-foreground">
+        Received an ALS Live invitation?{" "}
+        <Link to={"/register" + (returnTo !== "/" ? "?returnTo=" + encodeURIComponent(returnTo) : "")} className="font-medium text-primary hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring">
+          Activate your account
         </Link>
       </p>
-    </AuthLayout>
+    </LoginLayout>
   );
 }
