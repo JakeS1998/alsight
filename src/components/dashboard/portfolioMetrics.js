@@ -1,11 +1,15 @@
+import { findProjectForPO } from '@/components/projects/poLinking';
+
 export const isPipelineProject = (p) => p.status !== "inactive" && !["complete", "completed"].includes(String(p.approval_status || "").trim().toLowerCase()) && !(p.practical_completion_date && new Date(p.practical_completion_date) < new Date());
 const sum = (list, field) => list.reduce((total, row) => total + (Number(row[field]) || 0), 0);
 
 export function buildPortfolio(projects, { orders = [], proposals = [], deliveries = [], risks = [], actions = [] }) {
   const pipeline = projects.filter(isPipelineProject);
   const ids = new Set(pipeline.map((p) => p.id));
-  const refs = new Set(pipeline.map((p) => p.project_number).filter(Boolean));
-  const relevantOrders = orders.filter((o) => o.project_ref && refs.has(o.project_ref) && o.status !== "inactive");
+  const relevantOrders = orders.filter(o => o.status !== 'inactive').map(o => {
+    const project = findProjectForPO(o, pipeline);
+    return project ? { ...o, linked_project_id: project.id } : null;
+  }).filter(Boolean);
   const relevantRisks = risks.filter((r) => ids.has(r.project_id) && r.status !== "closed");
   const relevantActions = actions.filter((a) => ids.has(a.project_id) && a.status !== "done");
   const currentFees = new Map();

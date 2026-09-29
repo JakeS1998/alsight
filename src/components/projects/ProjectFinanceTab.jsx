@@ -1,6 +1,7 @@
 import React, { useEffect, useState, useMemo } from "react";
 import { base44 } from "@/api/base44Client";
-import { listAll, filterAll } from "@/components/data/loadAll";
+import { listAll } from "@/components/data/loadAll";
+import { loadProjectPOs, isLegacyProject } from '@/components/projects/poLinking';
 import { formatCurrency, formatDate } from "@/lib/portal";
 import ProjectCashFlow, { useProjectCashFlow } from '@/components/projects/ProjectCashFlow';
 import InvoiceReceipts from '@/components/projects/InvoiceReceipts';
@@ -45,9 +46,8 @@ export function ProjectFinanceTab({ project }) {
   useEffect(() => {
     (async () => {
       try {
-        const ref = project.project_number;
         const [poData, liData, glData, custData, accData] = await Promise.all([
-          ref ? filterAll(base44.entities.PurchaseOrder, { project_ref: ref }).catch(() => []) : [],
+          loadProjectPOs(project).catch(() => []),
           listAll(base44.entities.PurchaseOrderLineItem).catch(() => []),
           listAll(base44.entities.GLCode, "-name").catch(() => []),
           listAll(base44.entities.Customer, "-name").catch(() => []),
@@ -126,7 +126,7 @@ export function ProjectFinanceTab({ project }) {
       <InvoiceReceipts invoices={cashFlow.invoices} loading={cashFlow.loading} error={cashFlow.error} />
       <div className="rounded-2xl border border-dashed border-slate-300 bg-white py-12 text-center">
         <Receipt className="mx-auto h-8 w-8 text-slate-300" />
-        <p className="mt-3 text-sm text-slate-500">This project has no PROJ reference, so purchase orders can't be linked.</p>
+        <p className="mt-3 text-sm text-slate-500">This project has no legal project reference, so purchase orders can't be linked.</p>
       </div>
     </div>;
   }
@@ -138,7 +138,7 @@ export function ProjectFinanceTab({ project }) {
       <InvoiceReceipts invoices={cashFlow.invoices} loading={cashFlow.loading} error={cashFlow.error} />
       <div className="rounded-2xl border border-dashed border-slate-300 bg-white py-12 text-center">
         <Receipt className="mx-auto h-8 w-8 text-slate-300" />
-        <p className="mt-3 text-sm text-slate-500">No purchase orders linked to {project.project_number}.</p>
+        <p className="mt-3 text-sm text-slate-500">No purchase orders linked to {project.name} ({project.project_number}){isLegacyProject(project) ? ' by project name' : ''}.</p>
       </div>
     </div>;
   }
@@ -200,6 +200,7 @@ export function ProjectFinanceTab({ project }) {
                         {po.supplier_company_number ? (supplierMap[po.supplier_company_number] || po.supplier_company_number) : "—"}
                         {po.sent_date ? ` · sent ${formatDate(po.sent_date)}` : ""}
                       </p>
+                      {isLegacyProject(project) && <p className="text-xs text-slate-500">Legal: {project.project_number} · PO: {po.project_ref || 'not recorded'}</p>}
                     </div>
                   </div>
                   <div className="text-right">

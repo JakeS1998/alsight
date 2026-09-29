@@ -5,17 +5,17 @@ import { formatCurrency, regionName } from "@/lib/portal";
 export default function FinancialBreakdown({ portfolio }) {
   const data = useMemo(() => {
     const byRegion = new Map();
-    const regionByRef = new Map();
+    const regionByProject = new Map();
     portfolio.pipeline.forEach((p) => {
       const region = regionName(p.department_id) || "Unassigned";
       if (region === "Business Support Services") return;
-      if (p.project_number) regionByRef.set(p.project_number, region);
+      regionByProject.set(p.id, region);
       const row = byRegion.get(region) || { region, value: 0, poNet: 0 };
       row.value += Number(p.estimated_value) || 0;
       byRegion.set(region, row);
     });
     portfolio.orders.forEach((o) => {
-      const row = byRegion.get(regionByRef.get(o.project_ref));
+      const row = byRegion.get(regionByProject.get(o.linked_project_id));
       if (row) row.poNet += Number(o.total_net_value) || 0;
     });
     return [...byRegion.values()].sort((a, b) => b.value - a.value);

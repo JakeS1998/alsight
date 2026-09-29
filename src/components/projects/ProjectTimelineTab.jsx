@@ -1,6 +1,5 @@
 import React, { useEffect, useState, useMemo } from "react";
-import { base44 } from "@/api/base44Client";
-import { filterAll } from "@/components/data/loadAll";
+import { loadProjectPOs, isLegacyProject } from '@/components/projects/poLinking';
 import { legalDocumentName, dmaName, jctName, warrantyName } from "@/components/documents/documentNames";
 import {
   Building2, FileText, FileCheck, Gavel, ShieldCheck, Receipt, FileX, Calendar,
@@ -72,8 +71,9 @@ function buildEvents(project, legalDocs, dmas, jcts, warranties, pos, accountMap
 
   pos.forEach((p) => {
     const id = p.po_number || "PO";
-    add(p.approval_date, `${id} approved`, "po", p.supplier_company_number);
-    add(p.sent_date, `${id} sent`, "po", p.supplier_company_number);
+    const refs = isLegacyProject(project) ? ` · Legal: ${project.project_number} · PO: ${p.project_ref || 'not recorded'}` : '';
+    add(p.approval_date, `${id} approved`, "po", `${p.supplier_company_number || ''}${refs}`);
+    add(p.sent_date, `${id} sent`, "po", `${p.supplier_company_number || ''}${refs}`);
   });
 
   return ev.sort((a, b) => b.ts - a.ts); // newest first
@@ -104,8 +104,7 @@ export function ProjectTimelineTab({ project, legalDocs, dmas, jcts, warranties,
     (async () => {
       try {
         if (!project.project_number || (supplierOnly && !supplierCompanyNumber)) return;
-        const query = { project_ref: project.project_number, ...(supplierOnly ? { supplier_company_number: supplierCompanyNumber } : {}) };
-        const data = await filterAll(base44.entities.PurchaseOrder, query)
+        const data = await loadProjectPOs(project, supplierOnly ? supplierCompanyNumber : undefined)
           .catch(() => []);
         setPos(data);
       } finally {
