@@ -1,43 +1,46 @@
+import { lazy, Suspense } from 'react';
 import { Toaster } from "@/components/ui/toaster"
 import { QueryClientProvider } from '@tanstack/react-query'
 import { queryClientInstance } from '@/lib/query-client'
-import { BrowserRouter as Router, Route, Routes, Navigate } from 'react-router-dom';
+import { BrowserRouter as Router, Route, Routes, Navigate, useLocation } from 'react-router-dom';
 import PageNotFound from './lib/PageNotFound';
 import { AuthProvider, useAuth } from '@/lib/AuthContext';
 import UserNotRegisteredError from '@/components/UserNotRegisteredError';
 import ScrollToTop from './components/ScrollToTop';
 import ProtectedRoute from '@/components/ProtectedRoute';
 import PortalLayout from '@/components/PortalLayout';
-import Login from '@/pages/Login';
-import Register from '@/pages/Register';
-import ForgotPassword from '@/pages/ForgotPassword';
-import ResetPassword from '@/pages/ResetPassword';
-import Home from '@/pages/Home';
-import Projects from '@/pages/Projects';
-import FrameworkReports from '@/pages/FrameworkReports';
-import ProjectDetail from '@/pages/ProjectDetail';
-import LegalDocuments from '@/pages/LegalDocuments';
-import Warranties from '@/pages/Warranties';
-import Accounts from '@/pages/Accounts';
-import Contacts from '@/pages/Contacts';
-import Admin from '@/pages/Admin';
-import ContactDetail from '@/pages/ContactDetail';
 import AdminContactsRoute from '@/components/contacts/AdminContactsRoute';
-import AccountProfile from '@/pages/AccountProfile';
-import AccountDetail from '@/pages/AccountDetail';
-import OpportunityDetail from '@/pages/OpportunityDetail';
 import CRMRoute from '@/components/crm/CRMRoute';
-import CRMHome from '@/pages/CRMHome';
-import CRMOpportunities from '@/pages/CRMOpportunities';
-import CRMPipeline from '@/pages/CRMPipeline';
-import CRMTasks from '@/pages/CRMTasks';
-import CRMActivities from '@/pages/CRMActivities';
-import CRMClients from '@/pages/CRMClients';
-import Delegation from '@/pages/Delegation';
-import AccountSettings from '@/pages/AccountSettings';
+import PageLoadBoundary from '@/components/PageLoadBoundary';
+const Login = lazy(() => import('@/pages/Login'));
+const Register = lazy(() => import('@/pages/Register'));
+const ForgotPassword = lazy(() => import('@/pages/ForgotPassword'));
+const ResetPassword = lazy(() => import('@/pages/ResetPassword'));
+const Home = lazy(() => import('@/pages/Home'));
+const Projects = lazy(() => import('@/pages/Projects'));
+const FrameworkReports = lazy(() => import('@/pages/FrameworkReports'));
+const ProjectDetail = lazy(() => import('@/pages/ProjectDetail'));
+const LegalDocuments = lazy(() => import('@/pages/LegalDocuments'));
+const Warranties = lazy(() => import('@/pages/Warranties'));
+const Accounts = lazy(() => import('@/pages/Accounts'));
+const Contacts = lazy(() => import('@/pages/Contacts'));
+const Admin = lazy(() => import('@/pages/Admin'));
+const ContactDetail = lazy(() => import('@/pages/ContactDetail'));
+const AccountProfile = lazy(() => import('@/pages/AccountProfile'));
+const AccountDetail = lazy(() => import('@/pages/AccountDetail'));
+const OpportunityDetail = lazy(() => import('@/pages/OpportunityDetail'));
+const CRMHome = lazy(() => import('@/pages/CRMHome'));
+const CRMOpportunities = lazy(() => import('@/pages/CRMOpportunities'));
+const CRMPipeline = lazy(() => import('@/pages/CRMPipeline'));
+const CRMTasks = lazy(() => import('@/pages/CRMTasks'));
+const CRMActivities = lazy(() => import('@/pages/CRMActivities'));
+const CRMClients = lazy(() => import('@/pages/CRMClients'));
+const Delegation = lazy(() => import('@/pages/Delegation'));
+const AccountSettings = lazy(() => import('@/pages/AccountSettings'));
 
 const AuthenticatedApp = () => {
   const { isLoadingAuth, isLoadingPublicSettings, authError } = useAuth();
+  const location = useLocation();
 
   if (isLoadingPublicSettings || isLoadingAuth) {
     return (
@@ -54,6 +57,8 @@ const AuthenticatedApp = () => {
   }
 
   return (
+    <PageLoadBoundary route={location.pathname}>
+      <Suspense fallback={<div className="flex min-h-[40vh] items-center justify-center" role="status">Loading page…</div>}>
     <Routes>
       <Route path="/login" element={<Login />} />
       <Route path="/register" element={<Register />} />
@@ -92,6 +97,8 @@ const AuthenticatedApp = () => {
       </Route>
       <Route path="*" element={<PageNotFound />} />
     </Routes>
+      </Suspense>
+    </PageLoadBoundary>
   );
 };
 
