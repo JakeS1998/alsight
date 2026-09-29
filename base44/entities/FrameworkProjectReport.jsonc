@@ -56,6 +56,11 @@
     "zero_riddor": {
       "type": "string"
     },
+    "riddor_incidents": {
+      "type": "integer",
+      "minimum": 0,
+      "default": 0
+    },
     "local_spend": {
       "type": "number"
     },

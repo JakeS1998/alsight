@@ -11,7 +11,7 @@ export default function FrameworkReportRows({ rows, internal }) {
       <td className="px-4 py-4 align-top">{r.pq_status || '—'}<span className="block text-xs text-slate-500">{formatDate(r.pq_date)}</span></td>
       <td className="px-4 py-4 align-top">{formatDate(r.aa_signed)}</td>
       <td className="px-4 py-4 align-top">{formatDate(r.calloff_date)}{internal && <span className="block text-xs text-slate-500">{formatCurrency(r.calloff_value)}</span>}</td>
-      <td className="px-4 py-4 align-top text-xs">On time: {r.completed_on_time || '—'}<br />To budget: {r.completed_to_budget || '—'}<br />Zero RIDDOR: {r.zero_riddor || '—'}</td>
+      <td className="px-4 py-4 align-top text-xs">On time: {r.completed_on_time || '—'}<br />To budget: {r.completed_to_budget || '—'}<br />RIDDOR incidents: {r.riddor_incidents ?? '—'}</td>
       {internal && <td className="px-4 py-4 text-right align-top">{formatCurrency(r.completion_value)}</td>}
     </tr>)}</tbody>
   </table></div>;

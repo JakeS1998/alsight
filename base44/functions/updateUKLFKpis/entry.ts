@@ -2,7 +2,7 @@ import { createClientFromRequest } from 'npm:@base44/sdk@0.8.52';
 
 const INTERNAL = ['admin', 'director', 'regional_director', 'bsm', 'finance', 'bdm'];
 const OUTCOMES = ['Y', 'N', ''];
-const FIELDS = ['completed_on_time', 'completed_to_budget', 'zero_riddor'];
+const FIELDS = ['completed_on_time', 'completed_to_budget'];
 
 export default async function(req: Request): Promise<Response> {
   try {
@@ -15,6 +15,8 @@ export default async function(req: Request): Promise<Response> {
       return Response.json({ error: 'Invalid KPI submission' }, { status: 400 });
     if (FIELDS.some(field => !OUTCOMES.includes(kpis[field])))
       return Response.json({ error: 'Choose Yes, No or Not recorded for each outcome' }, { status: 400 });
+    if (!Number.isInteger(kpis.riddor_incidents) || kpis.riddor_incidents < 0 || kpis.riddor_incidents > 100000)
+      return Response.json({ error: 'RIDDOR incidents must be a non-negative whole number' }, { status: 400 });
     if (kpis.local_spend !== null && (typeof kpis.local_spend !== 'number' || !Number.isFinite(kpis.local_spend) || kpis.local_spend < 0 || kpis.local_spend > 1e12))
       return Response.json({ error: 'Local spend must be a valid non-negative amount' }, { status: 400 });
     if (kpis.apprenticeships !== null && (!Number.isInteger(kpis.apprenticeships) || kpis.apprenticeships < 0 || kpis.apprenticeships > 100000))
@@ -25,7 +27,8 @@ export default async function(req: Request): Promise<Response> {
     const changes = {
       completed_on_time: kpis.completed_on_time,
       completed_to_budget: kpis.completed_to_budget,
-      zero_riddor: kpis.zero_riddor,
+      zero_riddor: kpis.riddor_incidents === 0 ? 'Y' : 'N',
+      riddor_incidents: kpis.riddor_incidents,
       local_spend: kpis.local_spend,
       apprenticeships: kpis.apprenticeships,
     };
