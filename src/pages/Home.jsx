@@ -108,7 +108,7 @@ export default function Home() {
       {internal && extrasLoading && <p className="text-sm text-slate-500">Loading portfolio data…</p>}
       {internal && !extrasError && !extrasLoading ? <PortfolioSummary metrics={portfolio.metrics} /> : <DashboardKPIs projects={filteredProjects} hideValues={role === 'supplier'} />}
 
-      {internal && !extrasError && !extrasLoading && <ProjectRiskTracker atRisk={portfolio.atRisk} compact />}
+      {internal && !extrasError && !extrasLoading && <ProjectRiskTracker atRisk={portfolio.atRisk} />}
 
       {internal && <OpportunityPipelineSummary />}
 
