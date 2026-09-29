@@ -20,7 +20,7 @@ const ResetPassword = lazy(() => import('@/pages/ResetPassword'));
 const Home = lazy(() => import('@/pages/Home'));
 const Projects = lazy(() => import('@/pages/Projects'));
 const FrameworkReports = lazy(() => import('@/pages/FrameworkReports'));
-const StakeholderFrameworkReports = lazy(() => import('@/pages/StakeholderFrameworkReports'));
+const FrameworkProjectDetail = lazy(() => import('@/pages/FrameworkProjectDetail'));
 const ProjectDetail = lazy(() => import('@/pages/ProjectDetail'));
 const LegalDocuments = lazy(() => import('@/pages/LegalDocuments'));
 const Warranties = lazy(() => import('@/pages/Warranties'));
@@ -69,12 +69,13 @@ const AuthenticatedApp = () => {
       <Route path="/reset-password" element={<ResetPassword />} />
       <Route element={<ProtectedRoute unauthenticatedElement={<Navigate to="/login" replace />} />}>
         <Route element={<PortalLayout />}>
-          <Route path="/framework-reports" element={useStakeholderView ? <StakeholderFrameworkReports /> : <FrameworkReports />} />
+          <Route path="/framework-reports" element={<FrameworkReports />} />
+          <Route path="/framework-reports/:reportId" element={<FrameworkProjectDetail />} />
+          <Route path="/projects/:projectId" element={useStakeholderView ? <FrameworkProjectDetail /> : <ProjectDetail />} />
           <Route path="/account-settings" element={<AccountSettings />} />
           <Route element={<StakeholderRoute />}>
           <Route path="/" element={<Home />} />
           <Route path="/projects" element={<Projects />} />
-          <Route path="/projects/:projectId" element={<ProjectDetail />} />
           <Route path="/documents" element={<LegalDocuments />} />
           <Route path="/warranties" element={<Warranties />} />
           <Route path="/account" element={<AccountProfile />} />
