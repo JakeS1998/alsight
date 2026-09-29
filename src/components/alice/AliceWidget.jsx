@@ -1,7 +1,8 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { base44 } from '@/api/base44Client';
-import { MessageCircle, Send, X } from 'lucide-react';
+import { Bot, MessageCircle, Send, X } from 'lucide-react';
 import AliceMessages from '@/components/alice/AliceMessages';
+import AliceWelcome from '@/components/alice/AliceWelcome';
 import AliceGuidedChat from '@/components/alice/AliceGuidedChat';
 import useAliceGuide from '@/components/alice/useAliceGuide';
 import { GUIDES } from '@/components/alice/aliceGuides';
@@ -96,14 +97,16 @@ export default function AliceWidget() {
     el.focus(); setDraftMode(false); setOpen(false);
   };
   return <div data-alice-widget className="fixed bottom-4 right-4 z-50 sm:bottom-6 sm:right-6">
-    {open && <section role="dialog" aria-label="Chat with ALICE" className="mb-3 flex h-[min(650px,calc(100dvh-110px))] w-[min(420px,calc(100vw-32px))] flex-col overflow-hidden rounded-2xl border border-border bg-card shadow-2xl">
-      <header className="flex items-center justify-between gap-3 bg-als-navy px-4 py-3 text-white"><div className="min-w-0"><strong className="text-base">ALICE</strong><p className="text-[11px] leading-tight text-white/75">Alliance Leisure Intelligence &amp; Construction Expert</p></div><button type="button" aria-label="Close ALICE" onClick={() => setOpen(false)} className="shrink-0 rounded-lg p-1 hover:bg-white/10"><X className="h-5 w-5" /></button></header>
+    {open && <section role="dialog" aria-label="Chat with ALICE" className="mb-3 flex h-[min(710px,calc(100dvh-110px))] w-[min(500px,calc(100vw-32px))] flex-col overflow-hidden rounded-3xl border border-border bg-card text-foreground shadow-2xl">
+      <header className="flex items-center gap-3 border-b border-border bg-card px-5 py-4"><span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-assistant text-white"><Bot className="h-6 w-6" /></span><div className="min-w-0 flex-1"><strong className="font-heading text-base font-semibold">ALICE</strong><p className="text-xs leading-tight text-muted-foreground">Alliance Leisure Intelligence &amp; Construction Expert</p></div><button type="button" aria-label="Close ALICE" onClick={() => setOpen(false)} className="shrink-0 rounded-lg p-1 text-muted-foreground hover:bg-muted hover:text-foreground"><X className="h-5 w-5" /></button></header>
       {guide ? <AliceGuidedChat guide={guide} onNext={next} onBack={back} onConfirm={confirm} onCancel={cancel} /> : <>
-        {!!messages.length && <button type="button" onClick={() => setShowTasks(v => !v)} aria-expanded={showTasks} className="block w-full border-b border-border px-4 py-2 text-left text-xs font-semibold text-primary hover:bg-muted">{showTasks ? 'Hide tasks' : 'Start a task'}</button>}
-        {(!messages.length || showTasks) && <div className="space-y-3 border-b border-border px-4 py-4"><p className="text-sm font-medium">What would you like to do?</p><div className="grid gap-2">{Object.entries(GUIDES).filter(([, item]) => item.roles.includes(user?.role)).map(([type, item]) => <button type="button" key={type} onClick={() => { start(type); setShowTasks(false); }} disabled={busy || restoring} className="rounded-lg border border-border bg-background px-3 py-2 text-left text-sm hover:border-primary hover:bg-primary/5 disabled:opacity-50">{item.label}</button>)}</div><p className="text-xs text-muted-foreground">Or ask ALICE a question below.</p></div>}
-        <AliceMessages messages={messages} busy={busy} draftMode={draftMode} onApply={apply} />
-        {error && <p role="alert" className="px-4 text-xs text-destructive">{error}</p>}
-        <div className="border-t border-border p-3"><form onSubmit={e => { e.preventDefault(); send(text); }} className="flex gap-2"><input aria-label="Message ALICE" value={text} onChange={e => setText(e.target.value)} placeholder="Ask ALICE anything…" className="min-w-0 flex-1 rounded-lg border border-input bg-background px-3 py-2 text-sm" /><button aria-label="Send message" type="submit" disabled={busy || restoring || !text.trim()} className="rounded-lg bg-primary px-3 text-primary-foreground disabled:opacity-50"><Send className="h-4 w-4" /></button></form><button type="button" onClick={draft} disabled={busy || restoring} className="mt-2 text-xs font-medium text-primary hover:underline">Help fill selected text field</button></div>
+        {!messages.length ? <AliceWelcome role={user?.role} disabled={busy || restoring} onStart={start} /> : <>
+          <button type="button" onClick={() => setShowTasks(v => !v)} aria-expanded={showTasks} className="block w-full border-b border-border px-5 py-2 text-left text-xs font-semibold text-assistant hover:bg-muted">{showTasks ? 'Hide tasks' : 'Start a task'}</button>
+          {showTasks && <div className="grid gap-2 border-b border-border px-5 py-3">{Object.entries(GUIDES).filter(([, item]) => item.roles.includes(user?.role)).map(([type, item]) => <button type="button" key={type} onClick={() => { start(type); setShowTasks(false); }} disabled={busy || restoring} className="rounded-xl border border-border bg-muted/60 px-3 py-2 text-left text-sm hover:border-assistant disabled:opacity-50">{item.label}</button>)}</div>}
+          <AliceMessages messages={messages} busy={busy} draftMode={draftMode} onApply={apply} />
+        </>}
+        {error && <p role="alert" className="px-5 text-xs text-destructive">{error}</p>}
+        <div className="border-t border-border px-4 pb-3 pt-4"><form onSubmit={e => { e.preventDefault(); send(text); }} className="flex gap-2"><input aria-label="Message ALICE" value={text} onChange={e => setText(e.target.value)} placeholder="Ask about a project, risk, opportunity…" className="min-w-0 flex-1 rounded-xl border border-input bg-background px-4 py-3 text-sm" /><button aria-label="Send message" type="submit" disabled={busy || restoring || !text.trim()} className="rounded-xl bg-assistant px-4 text-white disabled:opacity-50"><Send className="h-4 w-4" /></button></form><button type="button" onClick={draft} disabled={busy || restoring} className="mt-2 text-xs text-muted-foreground hover:text-foreground">Help fill selected text field</button></div>
       </>}
     </section>}
     <button type="button" onClick={() => setOpen(v => !v)} aria-expanded={open} aria-label="Open ALICE assistant" className="ml-auto flex items-center gap-2 rounded-full bg-als-navy px-4 py-3 text-sm font-semibold text-white shadow-lg"><MessageCircle className="h-5 w-5" /> ALICE</button>

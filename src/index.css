@@ -54,6 +54,7 @@
     --font-mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
     --als-navy: 241 53% 17%;
     --als-navy-light: 238 51% 38%;
+    --assistant-accent: 0 72% 47%;
     --sidebar-background: 241 53% 17%;
     --sidebar-foreground: 0 0% 100%;
     --sidebar-primary: 33 93% 54%;
@@ -91,6 +92,7 @@
     --chart-5: 34 86% 67%;
     --als-navy: 241 53% 17%;
     --als-navy-light: 238 51% 38%;
+    --assistant-accent: 0 78% 58%;
     --sidebar-background: 241 53% 17%;
     --sidebar-foreground: 0 0% 100%;
     --sidebar-primary: 33 93% 54%;

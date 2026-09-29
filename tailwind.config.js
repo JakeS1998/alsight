@@ -48,6 +48,7 @@ module.exports = {
   				navy: 'hsl(var(--als-navy))',
   			'navy-light': 'hsl(var(--als-navy-light))'
   			},
+  			assistant: 'hsl(var(--assistant-accent))',
   			chart: {
   				'1': 'hsl(var(--chart-1))',
   				'2': 'hsl(var(--chart-2))',
