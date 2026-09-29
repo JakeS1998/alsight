@@ -1,5 +1,6 @@
 import React from "react";
 import Logo from "@/components/Logo";
+import LoopingHeroVideo from "@/components/auth/LoopingHeroVideo";
 
 const HERO_IMAGE = "https://allianceleisure.co.uk/wp-content/uploads/2025/10/Wilsons-Cath-Thom-Open-Day-101025-31.jpg";
 
@@ -7,9 +8,7 @@ export default function LoginLayout({ children }) {
   return (
     <main className="relative min-h-screen overflow-hidden bg-als-navy font-body">
       <div className="absolute inset-0 bg-cover bg-center" style={{ backgroundImage: `url(${HERO_IMAGE})` }} aria-hidden="true" />
-      <video className="pointer-events-none absolute inset-0 h-full w-full object-cover motion-reduce:hidden" autoPlay muted loop playsInline preload="metadata" poster={HERO_IMAGE} aria-hidden="true">
-        <source src="https://allianceleisure.co.uk/wp-content/uploads/2026/02/whitchurch-drone.mp4" type="video/mp4" />
-      </video>
+      <LoopingHeroVideo poster={HERO_IMAGE} />
       <div className="absolute inset-0 bg-gradient-to-r from-als-navy/95 via-als-navy/30 to-als-navy/65" aria-hidden="true" />
       <div className="absolute inset-0 bg-als-navy/25 lg:hidden" aria-hidden="true" />
       <div className="relative z-10 flex min-h-screen flex-col gap-10 px-6 py-8 sm:px-10 lg:grid lg:grid-cols-[minmax(0,1fr)_minmax(380px,460px)] lg:items-center lg:gap-12 lg:py-12 lg:pl-[8vw] lg:pr-[7vw] 2xl:pr-[16vw]">
