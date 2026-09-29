@@ -32,7 +32,6 @@ import CRMPipeline from '@/pages/CRMPipeline';
 import CRMTasks from '@/pages/CRMTasks';
 import CRMActivities from '@/pages/CRMActivities';
 import CRMClients from '@/pages/CRMClients';
-import Analytics from '@/pages/Analytics';
 import Delegation from '@/pages/Delegation';
 import AccountSettings from '@/pages/AccountSettings';
 
@@ -85,7 +84,6 @@ const AuthenticatedApp = () => {
             <Route path="/contacts/:contactId" element={<ContactDetail />} />
           </Route>
           <Route path="/accounts/:accountId/contacts/:contactId" element={<ContactDetail />} />
-          <Route path="/analytics" element={<Analytics />} />
           <Route path="/delegation" element={<Delegation />} />
           <Route path="/account-settings" element={<AccountSettings />} />
         </Route>
