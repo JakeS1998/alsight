@@ -94,7 +94,7 @@ export default function Home() {
       <div>
         <p className="text-sm text-slate-500">{greeting()},</p>
         <h1 className="font-heading text-2xl font-semibold tracking-tight text-slate-900">
-          {user?.full_name || user?.email}
+          {user?.full_name?.trim().split(/\s+/)[0] || user?.email}
         </h1>
         <p className="mt-1 text-sm text-slate-500">
           You're signed in as <span className="font-medium text-slate-700">{ROLE_LABELS[role]}</span>.
