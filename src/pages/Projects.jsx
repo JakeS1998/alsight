@@ -5,9 +5,10 @@ import { base44 } from "@/api/base44Client";
 import { listAll, filterAll } from "@/components/data/loadAll";
 import { formatCurrency, formatDate, regionName } from "@/lib/portal";
 import { RequestDialog } from "@/components/projects/RequestDialog";
+import { projectStaffName } from "@/components/projects/projectStaffName";
 import { FilterSelect } from "@/components/FilterSelect";
 import { Button } from "@/components/ui/button";
-import { Plus, Building2, PoundSterling, Calendar, MapPin, ArrowRight, FolderKanban, Search, X } from "lucide-react";
+import { Plus, Building2, PoundSterling, Calendar, Users, ArrowRight, FolderKanban, Search, X } from "lucide-react";
 
 const SORT_OPTIONS = [
   { value: "name_asc", label: "Name A–Z" },
@@ -83,12 +84,12 @@ export default function Projects() {
 
   const bdmOptions = useMemo(() => {
     const ids = [...new Set(projects.map((p) => p.bdm_aad_id).filter(Boolean))];
-    return ids.map((id) => ({ value: id, label: staffMap[id] || "Unknown" }));
+    return ids.map((id) => ({ value: id, label: projectStaffName(id, staffMap) || "Unknown" }));
   }, [projects, staffMap]);
 
   const bsmOptions = useMemo(() => {
     const ids = [...new Set(projects.map((p) => p.bsm_aad_id).filter(Boolean))];
-    return ids.map((id) => ({ value: id, label: staffMap[id] || "Unknown" }));
+    return ids.map((id) => ({ value: id, label: projectStaffName(id, staffMap) || "Unknown" }));
   }, [projects, staffMap]);
 
   const regionOptions = useMemo(() => {
@@ -219,7 +220,7 @@ export default function Projects() {
                 <dl className="mt-3 flex-1 space-y-1.5 text-xs text-slate-500">
                   <div className="flex items-center gap-1.5"><Building2 className="h-3.5 w-3.5" /> {client?.name || p.client_name || "—"}</div>
                   {role !== 'supplier' && <div className="flex items-center gap-1.5"><PoundSterling className="h-3.5 w-3.5" /> {formatCurrency(p.estimated_value)}</div>}
-                  <div className="flex items-center gap-1.5"><MapPin className="h-3.5 w-3.5" /> {p.site_postcode || "—"}</div>
+                  <div className="flex items-start gap-1.5"><Users className="mt-0.5 h-3.5 w-3.5 shrink-0" /><span>BDM: {projectStaffName(p.bdm_aad_id, staffMap) || '—'}<br />BSM: {projectStaffName(p.bsm_aad_id, staffMap) || '—'}</span></div>
                   <div className="flex items-center gap-1.5"><Calendar className="h-3.5 w-3.5" /> {formatDate(p.practical_completion_date)}</div>
                 </dl>
               </Link>

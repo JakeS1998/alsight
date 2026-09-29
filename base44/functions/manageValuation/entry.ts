@@ -17,7 +17,7 @@ export default async function(req: Request): Promise<Response> {
     const { action, projectId, valuationId } = input;
     const contactId = user.contact_dataverse_id || user.data?.contact_dataverse_id;
     const external = user.role === 'project_manager' && !!contactId;
-    const publicProject = p => ({ id: p.id, name: p.name, project_number: p.project_number, project_manager_id: p.project_manager_id, client_name: p.client_name, site_postcode: p.site_postcode, live_project: p.live_project });
+    const publicProject = p => ({ id: p.id, name: p.name, project_number: p.project_number, project_manager_id: p.project_manager_id, client_name: p.client_name, site_postcode: p.site_postcode, bdm_aad_id: p.bdm_aad_id, bsm_aad_id: p.bsm_aad_id, live_project: p.live_project });
     if (action === 'projects') {
       if (!external) return response('Project manager access required', 403);
       const projects = await base44.asServiceRole.entities.Project.filter({ project_manager_id: contactId }, '-created_date', 500);

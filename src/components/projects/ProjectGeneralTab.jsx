@@ -5,9 +5,10 @@ import { base44 } from "@/api/base44Client";
 import { listAll } from "@/components/data/loadAll";
 import ValuationSnapshot from '@/components/valuations/ValuationSnapshot';
 import ProjectPOReferences from '@/components/projects/ProjectPOReferences';
+import { projectStaffName } from '@/components/projects/projectStaffName';
 import { formatDate, formatCurrency, regionName, INTERNAL_ROLES } from "@/lib/portal";
 import { Button } from "@/components/ui/button";
-import { Building2, MapPin, PoundSterling, Calendar, ExternalLink, UserCircle, Save, Loader2, Check } from "lucide-react";
+import { Building2, Users, PoundSterling, Calendar, ExternalLink, UserCircle, Save, Loader2, Check } from "lucide-react";
 
 function toDateInput(d) {
   if (!d) return "";
@@ -117,7 +118,7 @@ export function ProjectGeneralTab({ project, accountMap }) {
           <InfoCard icon={Building2} label="Client" value="—" />
         )}
         <InfoCard icon={PoundSterling} label="Estimated Value" value={formatCurrency(project.estimated_value)} />
-        <InfoCard icon={MapPin} label="Site Postcode" value={project.site_postcode || "—"} />
+        <InfoCard icon={Users} label="Project team" value={<><span className="block truncate">BDM: {projectStaffName(project.bdm_aad_id, staff.byAad) || '—'}</span><span className="block truncate">BSM: {projectStaffName(project.bsm_aad_id, staff.byAad) || '—'}</span></>} />
         <InfoCard icon={Calendar} label="Practical Completion" value={formatDate(project.practical_completion_date)} />
       </div>
 
@@ -125,8 +126,8 @@ export function ProjectGeneralTab({ project, accountMap }) {
       <div className="rounded-xl border border-slate-200 bg-white p-5">
         <h3 className="mb-4 text-sm font-semibold text-slate-900">Team Assignments</h3>
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-          <Assignment label="BDM" name={staff.byAad[project.bdm_aad_id]} sub={<RegionSub region={bdmRegion} rd={bdmRd} />} />
-          <Assignment label="BSM" name={staff.byAad[project.bsm_aad_id] || (project.bsm_aad_id ? "Assigned BSM not identified" : null)} sub={<RegionSub region={bsmRegion} rd={bsmRd} />} />
+          <Assignment label="BDM" name={projectStaffName(project.bdm_aad_id, staff.byAad)} sub={<RegionSub region={bdmRegion} rd={bdmRd} />} />
+          <Assignment label="BSM" name={projectStaffName(project.bsm_aad_id, staff.byAad) || (project.bsm_aad_id ? "Assigned BSM not identified" : null)} sub={<RegionSub region={bsmRegion} rd={bsmRd} />} />
           <Assignment label="Director" name={staff.byAad[project.director_aad_id]} />
           <Assignment label="Strategic Account Manager" name={staff.byAad[project.strategic_account_manager_aad_id]} />
           <Assignment label="Project Manager" name={staff.byDv[project.project_manager_id]} />
