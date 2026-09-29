@@ -245,11 +245,6 @@
                   "user_condition": {
                     "role": "client"
                   }
-                },
-                {
-                  "user_condition": {
-                    "role": "supplier"
-                  }
                 }
               ]
             },
@@ -260,18 +255,6 @@
                 },
                 {
                   "data.account_id": "{{user.data.account_id}}"
-                },
-                {
-                  "$and": [
-                    {
-                      "user_condition": {
-                        "role": "supplier"
-                      }
-                    },
-                    {
-                      "data.related_supplier_account_ids": "{{user.data.account_id}}"
-                    }
-                  ]
                 },
                 {
                   "data.bdm_aad_id": "{{user.id}}"
