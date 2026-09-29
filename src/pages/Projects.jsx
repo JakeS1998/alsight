@@ -46,7 +46,7 @@ export default function Projects() {
         setProjects((response.data.projects || []).filter((p) => p.status !== 'inactive'));
         return;
       }
-      const [p, a, u, staffContacts, supplierManagerProjects] = await Promise.all([
+      const [p, a, u, staffContacts, supplierLinkedProjects] = await Promise.all([
         filterAll(base44.entities.Project, { status: { $ne: 'inactive' } }),
         listAll(base44.entities.Account, "-name").catch(() => []),
         listAll(base44.entities.User).catch(() => []),
@@ -57,10 +57,10 @@ export default function Projects() {
           ]);
           return [...bdmC, ...bsmC];
         })(),
-        role === 'supplier' && (user?.account_id || user?.data?.account_id) ? base44.functions.invoke('manageValuation', { action: 'projects' }).then(res => res.data.projects || []) : [],
+        role === 'supplier' && (user?.account_id || user?.data?.account_id) ? base44.functions.invoke('supplierProjectAccess', { action: 'projects' }).then(res => res.data.projects || []) : [],
       ]);
       const visible = new Map(p.map(project => [project.id, project]));
-      supplierManagerProjects.forEach(project => visible.set(project.id, { ...visible.get(project.id), ...project }));
+      supplierLinkedProjects.forEach(project => visible.set(project.id, { ...visible.get(project.id), ...project }));
       setProjects(role === 'supplier' ? [...visible.values()] : p);
       setAccounts(a);
       setUsers(u);

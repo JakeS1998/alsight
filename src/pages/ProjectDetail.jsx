@@ -12,6 +12,8 @@ import { listAll, filterAll } from "@/components/data/loadAll";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { ProjectGeneralTab } from "@/components/projects/ProjectGeneralTab";
 import ProjectPOReferences from '@/components/projects/ProjectPOReferences';
+import SupplierProjectDocuments from '@/components/projects/SupplierProjectDocuments';
+import SupplierPurchaseOrders from '@/components/projects/SupplierPurchaseOrders';
 import { ProjectDraftingTab } from "@/components/projects/ProjectDraftingTab";
 import { ProjectWarrantiesTab } from "@/components/projects/ProjectWarrantiesTab";
 import { ProjectFinanceTab } from "@/components/projects/ProjectFinanceTab";
@@ -30,35 +32,38 @@ export default function ProjectDetail() {
   const canSeeValuations = isExternalPM || INTERNAL_ROLES.includes(user?.role) || (isSupplier && !!project?.can_submit_valuation);
   const [activeTab, setActiveTab] = useState('general');
   const [editUKLFKpis, setEditUKLFKpis] = useState(false);
-  useEffect(() => { const tab = new URLSearchParams(location.search).get('tab'); setActiveTab(isExternalPM ? 'valuations' : isSupplier ? (tab === 'valuations' && canSeeValuations ? 'valuations' : 'timeline') : (tab === 'valuations' && !canSeeValuations) ? 'general' : ['general','timeline','drafting','warranties','finance','delivery','valuations','uklf'].includes(tab) ? tab : 'general'); }, [location.search, isExternalPM, isSupplier, canSeeValuations]);
+  useEffect(() => { const tab = new URLSearchParams(location.search).get('tab'); setActiveTab(isExternalPM ? 'valuations' : isSupplier ? (['timeline','drafting','warranties','purchase-orders'].includes(tab) ? tab : tab === 'valuations' && canSeeValuations ? 'valuations' : 'timeline') : (tab === 'valuations' && !canSeeValuations) ? 'general' : ['general','timeline','drafting','warranties','finance','delivery','valuations','uklf'].includes(tab) ? tab : 'general'); }, [location.search, isExternalPM, isSupplier, canSeeValuations]);
   const [legalDocs, setLegalDocs] = useState([]);
   const [dmas, setDmas] = useState([]);
   const [jcts, setJcts] = useState([]);
   const [warranties, setWarranties] = useState([]);
+  const [supplierOrders, setSupplierOrders] = useState([]);
   const [accountMap, setAccountMap] = useState({});
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     (async () => {
       try {
-        const proj = isExternalPM ? (await base44.functions.invoke('manageValuation', { action: 'project', projectId }).catch(() => ({ data: { project: null } }))).data.project : isSupplier ? (await Promise.all([base44.entities.Project.get(projectId).catch(() => null), base44.functions.invoke('manageValuation', { action: 'project', projectId }).then(res => res.data.project).catch(() => null)]).then(([full, allowed]) => allowed ? { ...(full || allowed), can_submit_valuation: true } : full)) : await base44.entities.Project.get(projectId).catch(() => null);
+        const proj = isExternalPM ? (await base44.functions.invoke('manageValuation', { action: 'project', projectId }).catch(() => ({ data: { project: null } }))).data.project : isSupplier ? (await Promise.all([base44.entities.Project.get(projectId).catch(() => null), base44.functions.invoke('supplierProjectAccess', { action: 'project', projectId }).then(res => res.data.project).catch(() => null), base44.functions.invoke('manageValuation', { action: 'project', projectId }).then(res => res.data.project).catch(() => null)]).then(([full, linked, manager]) => (full || linked || manager) ? { ...(full || linked || manager), can_submit_valuation: !!manager } : null)) : await base44.entities.Project.get(projectId).catch(() => null);
         if (!proj || proj.status === 'inactive') { setProject(null); return; }
         setProject(proj);
         if (isExternalPM) return;
         const dvId = proj.dataverse_id;
 
-        const [docs, dmasData, jctsData, warrs, accounts] = await Promise.all([
+        const [docs, dmasData, jctsData, warrs, accounts, orders] = await Promise.all([
           !isSupplier || supplierAccountId ? filterAll(base44.entities.LegalDocument, { project_id: dvId, ...(isSupplier ? { account_id: supplierAccountId } : {}) }).catch(() => []) : [],
           isSupplier ? [] : filterAll(base44.entities.DMA, { project_id: dvId }).catch(() => []),
           !isSupplier || supplierAccountId ? filterAll(base44.entities.JCT, { project_id: dvId, ...(isSupplier ? { $or: [{ account_id: supplierAccountId }, { contractor_id: supplierAccountId }] } : {}) }).catch(() => []) : [],
           !isSupplier || supplierAccountId ? filterAll(base44.entities.Warranty, { project_id: dvId, ...(isSupplier ? { $or: [{ account_id: supplierAccountId }, { supplier_id: supplierAccountId }] } : {}) }).catch(() => []) : [],
           listAll(base44.entities.Account, "-name").catch(() => []),
+          isSupplier ? base44.functions.invoke('supplierProjectAccess', { action: 'orders', projectId }).then(res => res.data.orders || []).catch(() => []) : [],
         ]);
 
         setLegalDocs(docs);
         setDmas(dmasData);
         setJcts(jctsData);
         setWarranties(warrs);
+        setSupplierOrders(orders);
 
         const map = {};
         accounts.forEach((a) => { if (a.dataverse_id) map[a.dataverse_id] = a; });
@@ -113,8 +118,9 @@ export default function ProjectDetail() {
       <TabsList className="h-auto flex-wrap justify-start">
         {!isExternalPM && !isSupplier && <TabsTrigger value="general"><LayoutDashboard className="mr-1.5 h-4 w-4" /> General</TabsTrigger>}
         {!isExternalPM && <TabsTrigger value="timeline"><Calendar className="mr-1.5 h-4 w-4" /> Timeline</TabsTrigger>}
-        {!isExternalPM && !isSupplier && <TabsTrigger value="drafting"><FileText className="mr-1.5 h-4 w-4" /> Documents</TabsTrigger>}
-        {!isExternalPM && !isSupplier && <TabsTrigger value="warranties"><ShieldCheck className="mr-1.5 h-4 w-4" /> Warranties</TabsTrigger>}
+        {!isExternalPM && <TabsTrigger value="drafting"><FileText className="mr-1.5 h-4 w-4" /> Documents</TabsTrigger>}
+        {!isExternalPM && <TabsTrigger value="warranties"><ShieldCheck className="mr-1.5 h-4 w-4" /> Warranties</TabsTrigger>}
+        {isSupplier && <TabsTrigger value="purchase-orders"><Receipt className="mr-1.5 h-4 w-4" /> Purchase orders</TabsTrigger>}
         {!isExternalPM && !isSupplier && <TabsTrigger value="finance"><Receipt className="mr-1.5 h-4 w-4" /> Finance</TabsTrigger>}
         {!isExternalPM && !isSupplier && <TabsTrigger value="delivery"><ClipboardList className="mr-1.5 h-4 w-4" /> Delivery</TabsTrigger>}
         {canSeeValuations && <TabsTrigger value="valuations"><ListChecks className="mr-1.5 h-4 w-4" /> Valuations</TabsTrigger>}
@@ -124,14 +130,15 @@ export default function ProjectDetail() {
           <ProjectGeneralTab project={project} accountMap={accountMap} />
         </TabsContent>}
         {!isExternalPM && <TabsContent value="timeline" className="mt-6">
-          <ProjectTimelineTab project={project} legalDocs={isSupplier ? legalDocs.filter(d => supplierAccountId && d.account_id === supplierAccountId) : legalDocs} dmas={isSupplier ? [] : dmas} jcts={isSupplier ? jcts.filter(d => supplierAccountId && (d.account_id === supplierAccountId || d.contractor_id === supplierAccountId)) : jcts} warranties={isSupplier ? warranties.filter(d => supplierAccountId && (d.account_id === supplierAccountId || d.supplier_id === supplierAccountId)) : warranties} accountMap={accountMap} supplierOnly={isSupplier} supplierCompanyNumber={supplierAccountId ? accountMap[supplierAccountId]?.company_number : null} />
+          <ProjectTimelineTab project={project} legalDocs={isSupplier ? legalDocs.filter(d => supplierAccountId && d.account_id === supplierAccountId) : legalDocs} dmas={isSupplier ? [] : dmas} jcts={isSupplier ? jcts.filter(d => supplierAccountId && (d.account_id === supplierAccountId || d.contractor_id === supplierAccountId)) : jcts} warranties={isSupplier ? warranties.filter(d => supplierAccountId && (d.account_id === supplierAccountId || d.supplier_id === supplierAccountId)) : warranties} accountMap={accountMap} supplierOnly={isSupplier} supplierOrders={supplierOrders} supplierCompanyNumber={supplierAccountId ? accountMap[supplierAccountId]?.company_number : null} />
         </TabsContent>}
-        {!isExternalPM && !isSupplier && <TabsContent value="drafting" className="mt-6">
-          <ProjectDraftingTab project={project} legalDocs={legalDocs} dmas={dmas} jcts={jcts} accountMap={accountMap} />
+        {!isExternalPM && <TabsContent value="drafting" className="mt-6">
+          {isSupplier ? <SupplierProjectDocuments project={project} legalDocs={legalDocs} jcts={jcts} accountMap={accountMap} /> : <ProjectDraftingTab project={project} legalDocs={legalDocs} dmas={dmas} jcts={jcts} accountMap={accountMap} />}
         </TabsContent>}
-        {!isExternalPM && !isSupplier && <TabsContent value="warranties" className="mt-6">
+        {!isExternalPM && <TabsContent value="warranties" className="mt-6">
           <ProjectWarrantiesTab project={project} warranties={warranties} accountMap={accountMap} />
         </TabsContent>}
+        {isSupplier && <TabsContent value="purchase-orders" className="mt-6"><SupplierPurchaseOrders project={project} orders={supplierOrders} /></TabsContent>}
         {!isExternalPM && !isSupplier && <TabsContent value="finance" className="mt-6">
           <ProjectFinanceTab project={project} />
         </TabsContent>}

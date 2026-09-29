@@ -94,7 +94,7 @@ function DateLabel({ date }) {
   );
 }
 
-export function ProjectTimelineTab({ project, legalDocs, dmas, jcts, warranties, accountMap, supplierOnly = false, supplierCompanyNumber }) {
+export function ProjectTimelineTab({ project, legalDocs, dmas, jcts, warranties, accountMap, supplierOnly = false, supplierCompanyNumber, supplierOrders = null }) {
   const categories = supplierOnly ? Object.entries(CATEGORIES).filter(([key]) => ['legal', 'jct', 'warranty', 'po'].includes(key)) : Object.entries(CATEGORIES);
   const [pos, setPos] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -104,15 +104,15 @@ export function ProjectTimelineTab({ project, legalDocs, dmas, jcts, warranties,
   useEffect(() => {
     (async () => {
       try {
-        if (!project.project_number || (supplierOnly && !supplierCompanyNumber)) return;
-        const data = await loadProjectPOs(project, supplierOnly ? supplierCompanyNumber : undefined)
-          .catch(() => []);
+        if (supplierOnly) { setPos(supplierOrders || []); return; }
+        if (!project.project_number) return;
+        const data = await loadProjectPOs(project).catch(() => []);
         setPos(data);
       } finally {
         setLoading(false);
       }
     })();
-  }, [project.id, supplierOnly, supplierCompanyNumber]);
+  }, [project.id, supplierOnly, supplierOrders]);
 
   const allEvents = useMemo(
     () => buildEvents(project, legalDocs, dmas, jcts, warranties, pos, accountMap, supplierOnly),
