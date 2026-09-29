@@ -3,16 +3,18 @@ import { base44 } from '@/api/base44Client';
 import { useAuth } from '@/lib/AuthContext';
 import { INTERNAL_ROLES, formatDate, formatCurrency } from '@/lib/portal';
 import FrameworkPhotoGallery from '@/components/framework/FrameworkPhotoGallery';
+import UKLFKPIEditor from '@/components/framework/UKLFKPIEditor';
 
 export default function UKLFProjectTab({ projectId, reportId }) {
   const { user } = useAuth();
   const internal = INTERNAL_ROLES.includes(user?.role);
   const canEdit = ['admin', 'director', 'bsm', 'bdm'].includes(user?.role);
   const [report, setReport] = useState(null);
+  const [editingKpis, setEditingKpis] = useState(false);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   useEffect(() => {
-    let active = true; setLoading(true); setError('');
+    let active = true; setLoading(true); setError(''); setEditingKpis(false);
     base44.functions.invoke('getStakeholderFrameworkReport', { ...(reportId ? { reportId } : { projectId }) })
       .then(({ data }) => { if (active) setReport(data.report); })
       .catch(() => { if (active) setError('Unable to load UKLF details.'); })
@@ -31,7 +33,7 @@ export default function UKLFProjectTab({ projectId, reportId }) {
   ];
   const commercial = [['Indicative value', report.indicative_value], ['Agreement value', report.aa_value], ['Call-off value', report.calloff_value], ['Completion value', report.completion_value], ['Access fee', report.access_fee], ['Local spend', report.local_spend]];
   return <div className="space-y-6"><div className="rounded-xl border border-slate-200 bg-white p-5"><h2 className="text-lg font-semibold text-als-navy">UKLF · {report.project_number || `FW3 ${report.framework_ref}`}</h2><p className="text-sm text-slate-500">{report.site || 'Site not recorded'} · {report.client || 'Client not recorded'}</p>{report.project_number && report.framework_ref && !report.project_number.toUpperCase().endsWith(report.framework_ref.toUpperCase()) && <p className="mt-1 text-xs text-slate-500">Original workbook FW3 reference: {report.framework_ref}</p>}</div>
-    <section className="rounded-xl border border-slate-200 bg-white p-5"><h3 className="mb-4 font-semibold text-als-navy">Milestones and delivery KPIs</h3><dl className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">{fields.map(([label, value]) => <div key={label}><dt className="text-xs text-slate-500">{label}</dt><dd className="text-sm font-medium text-slate-900">{value === null || value === undefined || value === '' ? '—' : value}</dd></div>)}</dl></section>
+    <section className="rounded-xl border border-slate-200 bg-white p-5"><div className="mb-4 flex flex-wrap items-center justify-between gap-3"><h3 className="font-semibold text-als-navy">Milestones and delivery KPIs</h3>{internal && !editingKpis && <button type="button" onClick={() => setEditingKpis(true)} className="rounded-md border border-input px-3 py-1.5 text-sm font-medium hover:bg-muted">Edit KPIs</button>}</div><dl className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">{fields.map(([label, value]) => <div key={label}><dt className="text-xs text-slate-500">{label}</dt><dd className="text-sm font-medium text-slate-900">{value === null || value === undefined || value === '' ? '—' : value}</dd></div>)}</dl>{internal && editingKpis && <UKLFKPIEditor report={report} onSaved={kpis => { setReport(previous => ({ ...previous, ...kpis })); setEditingKpis(false); }} onCancel={() => setEditingKpis(false)} />}</section>
     {internal && <section className="rounded-xl border border-slate-200 bg-white p-5"><h3 className="mb-4 font-semibold text-als-navy">Commercial figures · internal only</h3><dl className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">{commercial.map(([label, value]) => <div key={label}><dt className="text-xs text-slate-500">{label}</dt><dd className="text-sm font-medium text-slate-900">{formatCurrency(value)}</dd></div>)}</dl></section>}
     <FrameworkPhotoGallery reportId={report.id} canEdit={canEdit} />
   </div>;
