@@ -18,6 +18,6 @@ export default function StageDrawing({ stage, className = 'h-12 w-12', bare = fa
     alt={bare ? '' : drawing[1]}
     aria-hidden={bare || undefined}
     fittingType="fit"
-    className={`shrink-0 ${bare ? '' : 'rounded-md bg-card'} ${className}`}
+    className={`shrink-0 ${bare ? '' : 'mix-blend-multiply brightness-110 contrast-125'} ${className}`}
   />;
 }
