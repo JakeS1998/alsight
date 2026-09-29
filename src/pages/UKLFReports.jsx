@@ -5,7 +5,7 @@ import { INTERNAL_ROLES } from '@/lib/portal';
 import FrameworkVisualSummary from '@/components/framework/FrameworkVisualSummary';
 import FrameworkReportRows from '@/components/framework/FrameworkReportRows';
 
-export default function FrameworkReports() {
+export default function UKLFReports() {
   const { user } = useAuth();
   const internal = INTERNAL_ROLES.includes(user?.role);
   const allowed = internal || user?.role === 'framework_stakeholder';

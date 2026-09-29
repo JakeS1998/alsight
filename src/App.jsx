@@ -19,7 +19,7 @@ const ForgotPassword = lazy(() => import('@/pages/ForgotPassword'));
 const ResetPassword = lazy(() => import('@/pages/ResetPassword'));
 const Home = lazy(() => import('@/pages/Home'));
 const Projects = lazy(() => import('@/pages/Projects'));
-const FrameworkReports = lazy(() => import('@/pages/FrameworkReports'));
+const FrameworkReports = lazy(() => import('@/pages/UKLFReports'));
 const FrameworkProjectDetail = lazy(() => import('@/pages/FrameworkProjectDetail'));
 const ProjectDetail = lazy(() => import('@/pages/ProjectDetail'));
 const LegalDocuments = lazy(() => import('@/pages/LegalDocuments'));
