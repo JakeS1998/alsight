@@ -17,7 +17,6 @@ import PortfolioSummary from "@/components/dashboard/PortfolioSummary";
 import PipelineTimeline from "@/components/dashboard/PipelineTimeline";
 import DashboardAttention from "@/components/dashboard/DashboardAttention";
 import { projectStage } from "@/components/dashboard/pipelineStage";
-import OpportunityPipelineSummary from "@/components/dashboard/OpportunityPipelineSummary";
 
 export default function Home() {
   const { user } = useAuth();
@@ -113,8 +112,6 @@ export default function Home() {
       {internal && !extrasError && !extrasLoading ? <PortfolioSummary metrics={portfolio.metrics} onRiskClick={() => { setRiskExpanded(true); document.getElementById('dashboard-attention')?.scrollIntoView(); }} /> : <DashboardKPIs projects={filteredProjects} hideValues={role === 'supplier'} />}
 
       {internal && !extrasError && !extrasLoading && <><PipelineTimeline projects={portfolio.pipeline} accountMap={accountMap} /><DashboardAttention portfolio={portfolio} riskExpanded={riskExpanded} onRiskExpandedChange={setRiskExpanded} /></>}
-
-      {internal && <OpportunityPipelineSummary />}
 
       {role !== 'supplier' && <div className="grid gap-6 lg:grid-cols-2">
         <PipelineChart projects={filteredProjects} confirmedAmounts={confirmedAmounts} invoicesLoading={invoicesLoading} invoicesError={invoicesError} />
