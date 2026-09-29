@@ -5,6 +5,7 @@ import { INTERNAL_ROLES } from '@/lib/portal';
 import Logo from '@/components/Logo';
 import NotificationCenter from '@/components/NotificationCenter';
 import UserMenu from '@/components/UserMenu';
+import PortalSearch from '@/components/search/PortalSearch';
 import { LayoutDashboard, FolderKanban, Building2, ChartNoAxesCombined, UserCircle, Menu, X, Users, UserCog, BriefcaseBusiness } from 'lucide-react';
 
 const ALL_ROLES = ['admin', 'director', 'regional_director', 'bsm', 'finance', 'bdm', 'client', 'supplier', 'project_manager'];
@@ -35,6 +36,7 @@ export default function PortalHeader() {
     <div className="mx-auto flex min-h-16 max-w-screen-2xl items-center gap-5 px-5 sm:px-8">
       <Link to={role === 'framework_stakeholder' ? '/framework-reports' : '/'} aria-label="ALSight home" onClick={() => setMenuOpen(false)} className="shrink-0"><Logo variant="header" className="h-12 w-52" /></Link>
       <nav aria-label="Main navigation" className="hidden min-w-0 flex-1 items-center gap-1 xl:flex">{nav()}</nav>
+      <PortalSearch />
       {INTERNAL_ROLES.includes(role) && <NotificationCenter user={user} />}
       <div className="hidden shrink-0 xl:block"><UserMenu user={user} onSignOut={signOut} /></div>
       <button type="button" aria-label={menuOpen ? 'Close menu' : 'Open menu'} aria-expanded={menuOpen} onClick={() => setMenuOpen(v => !v)} className="rounded-lg p-2 text-white xl:hidden">{menuOpen ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}</button>
