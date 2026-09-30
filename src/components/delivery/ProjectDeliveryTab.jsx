@@ -10,6 +10,7 @@ import { RegisterList } from "./RegisterList";
 import { DeliveryConstruction } from "./DeliveryConstruction";
 import { DeliveryCloseout } from "./DeliveryCloseout";
 import { DeliveryTeam } from "./DeliveryTeam";
+import ProjectRiskRegister from '@/components/delivery/ProjectRiskRegister';
 
 const DELIVERY_DEFAULT = {
   funding_route: "", scope_summary: "", client_objectives: "", initial_constraints: "",
@@ -49,18 +50,7 @@ const DECISION_COLS = [
 ];
 const DECISION_TABLE = ["decision_title", "requested_by", "required_by", "date_agreed", "status"];
 
-const RISK_COLS = [
-  { key: "title", label: "Risk / Issue", required: true, fullWidth: true, type: "text" },
-  { key: "category", label: "Category", type: "text" },
-  { key: "probability", label: "Probability", type: "select", options: [{ value: "low", label: "Low" }, { value: "medium", label: "Medium" }, { value: "high", label: "High" }] },
-  { key: "impact", label: "Impact", type: "select", options: [{ value: "low", label: "Low" }, { value: "medium", label: "Medium" }, { value: "high", label: "High" }] },
-  { key: "owner", label: "Owner", type: "text" },
-  { key: "mitigation", label: "Mitigation", type: "textarea", fullWidth: true },
-  { key: "target_resolution", label: "Target resolution", type: "date" },
-  { key: "rag", label: "RAG", type: "select", options: [{ value: "red", label: "Red" }, { value: "amber", label: "Amber" }, { value: "green", label: "Green" }] },
-  { key: "status", label: "Status", type: "select", options: [{ value: "open", label: "Open" }, { value: "closed", label: "Closed" }] },
-];
-const RISK_TABLE = ["title", "category", "owner", "target_resolution", "rag", "status"];
+
 
 export function ProjectDeliveryTab({ project, legalDocs, dmas, jcts, warranties, accountMap }) {
   const projectId = project.id;
@@ -131,7 +121,7 @@ export function ProjectDeliveryTab({ project, legalDocs, dmas, jcts, warranties,
       <ProgrammeMilestones project={project} feeProposals={feeProposals} jcts={jcts} />
       <RegisterList title="Action" description="The simple action log BDMs use every day" entityName="ProjectAction" projectId={projectId} project={project} columns={ACTION_COLS} tableColumns={ACTION_TABLE} sortBy="-due_date" addLabel="Add action" />
       <RegisterList title="Decision" description="Lightweight decision & client-approval register" entityName="ProjectDecision" projectId={projectId} project={project} columns={DECISION_COLS} tableColumns={DECISION_TABLE} sortBy="-date_requested" addLabel="Add decision" />
-      <RegisterList title="Risk" description="Risks & issues register" entityName="ProjectRisk" projectId={projectId} project={project} columns={RISK_COLS} tableColumns={RISK_TABLE} sortBy="-created_date" addLabel="Add risk" />
+      <ProjectRiskRegister project={project} delivery={delivery} accountMap={accountMap} />
       <DeliveryConstruction delivery={delivery} setField={setField} onSave={saveDelivery} saving={savingDelivery} />
       <DeliveryCloseout delivery={delivery} setField={setField} onSave={saveDelivery} saving={savingDelivery} />
     </div>

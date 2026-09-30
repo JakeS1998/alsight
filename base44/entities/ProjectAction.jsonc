@@ -20,6 +20,10 @@
     "owner": {
       "type": "string"
     },
+    "owner_id": {
+      "type": "string",
+      "description": "Linked portal user identity for task assignment"
+    },
     "due_date": {
       "type": "string",
       "format": "date"

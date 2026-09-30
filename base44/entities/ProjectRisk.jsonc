@@ -67,6 +67,41 @@
         "closed"
       ],
       "default": "open"
+    },
+    "reference": {
+      "type": "string"
+    },
+    "cause": {
+      "type": "string"
+    },
+    "impact_description": {
+      "type": "string"
+    },
+    "probability_rating": {
+      "type": "integer",
+      "minimum": 1,
+      "maximum": 5
+    },
+    "impact_rating": {
+      "type": "integer",
+      "minimum": 1,
+      "maximum": 5
+    },
+    "risk_index": {
+      "type": "integer",
+      "minimum": 1,
+      "maximum": 25
+    },
+    "anticipated_cost": {
+      "type": "number",
+      "minimum": 0
+    },
+    "weighted_cost": {
+      "type": "number",
+      "minimum": 0
+    },
+    "comments": {
+      "type": "string"
     }
   },
   "required": [
