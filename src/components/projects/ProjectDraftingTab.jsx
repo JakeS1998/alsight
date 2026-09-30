@@ -4,6 +4,7 @@ import { DOCUMENT_TYPE } from "@/lib/portal";
 import { LegalDocumentCard } from "@/components/documents/LegalDocumentCard";
 import { DMACard } from "@/components/documents/DMACard";
 import { JCTCard } from "@/components/documents/JCTCard";
+import RibaReportLink from '@/components/projects/RibaReportLink';
 import {
   FileSearch, FileCheck, UserCheck, Gavel, FilePlus,
   Check, Clock, ExternalLink, AlertCircle,
@@ -15,6 +16,7 @@ const STAGES = [
   { key: "pq", label: "Project Questionnaire", icon: FileSearch, kind: "pq" },
   { key: "aa", label: "Access Agreement", icon: FileCheck, kind: "legal", docTypes: ["access_agreement"] },
   { key: "precon", label: "Pre-Construction", icon: UserCheck, kind: "legal", docTypes: ["appointment_pm", "appointment_pd_cdm", "appointment_architect", "appointment_pd_br", "pcsa", "loi"] },
+  { key: "riba4", label: "RIBA 4 report", icon: FileCheck, kind: "report" },
   { key: "dma", label: "Development Management Agreement", icon: FileCheck, kind: "dma" },
   { key: "jct", label: "Construction Contract (JCT)", icon: Gavel, kind: "jct" },
   { key: "additional", label: "Additional Works & Other", icon: FilePlus, kind: "legal", docTypes: ["additional_works", "other"] },
@@ -23,6 +25,7 @@ const STAGES = [
 const PM_STAGES = [
   { key: "aa", label: "Access Agreement", icon: FileCheck, kind: "legal", docTypes: ["access_agreement"] },
   { key: "pcsa", label: "Pre-Construction Services Agreement", icon: UserCheck, kind: "legal", docTypes: ["pcsa"] },
+  { key: "riba4", label: "RIBA 4 report", icon: FileCheck, kind: "report" },
   { key: "dma", label: "Development Management Agreement", icon: FileCheck, kind: "dma" },
   { key: "jct", label: "Construction Contract (JCT)", icon: Gavel, kind: "jct" },
 ];
@@ -76,7 +79,7 @@ function PqCard({ project, psoOutstanding }) {
   );
 }
 
-export function ProjectDraftingTab({ project, legalDocs, dmas, jcts, accountMap, pmView = false }) {
+export function ProjectDraftingTab({ project, legalDocs, dmas, jcts, accountMap, pmView = false, onProjectUpdated }) {
   const stages = pmView ? PM_STAGES : STAGES;
   const [psoStatus, setPsoStatus] = useState({ pq: false, aa: false, aa_variations: false, dma: false });
 
@@ -104,12 +107,7 @@ export function ProjectDraftingTab({ project, legalDocs, dmas, jcts, accountMap,
   const totalDocs = legalDocs.length + dmas.length + jcts.length + (pmView ? 0 : project.link_to_project_questionnaire ? 1 : 0);
 
   if (totalDocs === 0) {
-    return (
-      <div className="rounded-xl border border-dashed border-slate-300 bg-white py-12 text-center">
-        <FileSearch className="mx-auto h-8 w-8 text-slate-300" />
-        <p className="mt-3 text-sm text-slate-500">No documents for this project yet.</p>
-      </div>
-    );
+    return <section className="space-y-3"><h3 className="text-sm font-semibold text-foreground">RIBA 4 report</h3><RibaReportLink project={project} onProjectUpdated={onProjectUpdated} /></section>;
   }
 
   return (
@@ -126,7 +124,7 @@ export function ProjectDraftingTab({ project, legalDocs, dmas, jcts, accountMap,
           docs = jcts;
         }
 
-        const status = stage.kind === "pq" ? pqStatus(project) : docStatus(docs);
+        const status = stage.kind === "report" ? (project.link_to_riba4_report ? 'in_progress' : 'empty') : stage.kind === "pq" ? pqStatus(project) : docStatus(docs);
         const cfg = STATUS_CFG[status];
         const isLast = i === stages.length - 1;
         const Icon = stage.icon;
@@ -143,15 +141,15 @@ export function ProjectDraftingTab({ project, legalDocs, dmas, jcts, accountMap,
             <div className={`flex-1 pb-8 ${isLast ? "pb-0" : ""}`}>
               <div className="flex flex-wrap items-center gap-2 mb-3">
                 <h3 className="text-sm font-semibold text-slate-900">{stage.label}</h3>
-                {stage.kind !== "pq" && (
+                {stage.kind !== "pq" && stage.kind !== "report" && (
                   <span className="rounded-full bg-slate-100 px-2 py-0.5 text-xs font-medium text-slate-600">{docs.length}</span>
                 )}
                 <span className={`inline-flex items-center rounded-full border px-2 py-0.5 text-[10px] font-medium ${cfg.badge}`}>
-                  {cfg.label}
+                  {stage.kind === 'report' ? (project.link_to_riba4_report ? 'Linked' : 'Not linked') : cfg.label}
                 </span>
               </div>
 
-              {stage.kind === "pq" ? (
+              {stage.kind === 'report' ? <RibaReportLink project={project} onProjectUpdated={onProjectUpdated} /> : stage.kind === "pq" ? (
                 project.link_to_project_questionnaire ? (
                   <PqCard project={project} psoOutstanding={!psoStatus.pq} />
                 ) : (

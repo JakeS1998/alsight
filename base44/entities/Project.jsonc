@@ -139,6 +139,10 @@
     "link_to_project_questionnaire": {
       "type": "string"
     },
+    "link_to_riba4_report": {
+      "type": "string",
+      "description": "SharePoint URL for the RIBA 4 report"
+    },
     "link_to_pso": {
       "type": "string"
     },
