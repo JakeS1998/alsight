@@ -137,9 +137,9 @@ export function RegisterList({ title, description, entityName, projectId, projec
       ) : rows.length === 0 ? (
         <div className="rounded-xl border border-dashed border-slate-300 bg-white py-8 text-center text-sm text-slate-500">No {title.toLowerCase()} yet.</div>
       ) : (
-        <div className="overflow-x-auto rounded-xl border border-slate-200 bg-white">
+        <div className={entityName === 'ProjectRisk' ? 'max-h-[28rem] overflow-auto overscroll-contain rounded-xl border border-border bg-card' : 'overflow-x-auto rounded-xl border border-slate-200 bg-white'}>
           <table className="w-full text-sm">
-            <thead className="bg-slate-50 text-left text-xs font-semibold uppercase tracking-wide text-slate-500">
+            <thead className={entityName === 'ProjectRisk' ? 'sticky top-0 z-10 bg-muted text-left text-xs font-semibold uppercase tracking-wide text-muted-foreground' : 'bg-slate-50 text-left text-xs font-semibold uppercase tracking-wide text-slate-500'}>
               <tr>
                 {shown.map((c) => <th key={c.key} className="px-3 py-2.5 whitespace-nowrap">{c.label}</th>)}
                 <th className="px-3 py-2.5"></th>
