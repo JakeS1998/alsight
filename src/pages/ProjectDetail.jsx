@@ -114,7 +114,7 @@ export default function ProjectDetail() {
       </div>
 
       <Tabs value={activeTab} onValueChange={tab => { setActiveTab(tab); setEditUKLFKpis(false); }}>
-      <TabsList className="h-auto flex-wrap justify-start">
+      <div className="relative"><div className="overflow-x-auto pb-2 [scrollbar-width:thin]" aria-label="Scroll to see all project tabs"><TabsList className="h-auto w-max min-w-full flex-nowrap justify-start gap-1 [&>button]:shrink-0 [&>button]:snap-start">
         <TabsTrigger value="general"><LayoutDashboard className="mr-1.5 h-4 w-4" /> {isSupplier || isExternalPM ? 'Project details' : 'General'}</TabsTrigger>
         <TabsTrigger value="timeline"><Calendar className="mr-1.5 h-4 w-4" /> Timeline</TabsTrigger>
         <TabsTrigger value="drafting"><FileText className="mr-1.5 h-4 w-4" /> Documents</TabsTrigger>
@@ -124,7 +124,7 @@ export default function ProjectDetail() {
         {!isExternalPM && !isSupplier && <TabsTrigger value="delivery"><ClipboardList className="mr-1.5 h-4 w-4" /> Delivery</TabsTrigger>}
         {canSeeValuations && <TabsTrigger value="valuations"><ListChecks className="mr-1.5 h-4 w-4" /> Valuations</TabsTrigger>}
         {INTERNAL_ROLES.includes(user?.role) && <TabsTrigger value="uklf"><UKLFIcon /> UKLF</TabsTrigger>}
-      </TabsList>
+      </TabsList></div><div aria-hidden="true" className="pointer-events-none absolute inset-y-0 right-0 w-3 bg-gradient-to-l from-secondary to-transparent sm:hidden" /></div>
         <TabsContent value="general" className="mt-6">
           <ProjectGeneralTab project={project} accountMap={accountMap} onProjectUpdated={updated => setProject(current => ({ ...current, ...updated }))} />
         </TabsContent>

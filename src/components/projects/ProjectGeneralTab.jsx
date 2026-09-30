@@ -125,7 +125,7 @@ export function ProjectGeneralTab({ project, accountMap, onProjectUpdated }) {
         )}
         {role !== 'supplier' && role !== 'project_manager' && <InfoCard icon={PoundSterling} label="Estimated Value" value={formatCurrency(project.estimated_value)} />}
         <InfoCard icon={MapPin} label="Department" value={regionName(project.department_id) || '—'} />
-        <InfoCard icon={Calendar} label="Practical Completion" value={formatDate(project.practical_completion_date)} />
+        <InfoCard icon={Calendar} label="Construction Actual Completion" value={formatDate(project.practical_completion_date)} />
       </div>
 
       {/* Staff assignments */}
@@ -176,6 +176,8 @@ export function ProjectGeneralTab({ project, accountMap, onProjectUpdated }) {
                     {canEdit ? (
                       <input
                         type="date"
+                        aria-label={`${r.stage} Actual Completion`}
+                        disabled={saving}
                         value={ribaDates[r.key]}
                         onChange={(e) => setRibaDates({ ...ribaDates, [r.key]: e.target.value })}
                         className="h-9 rounded-lg border border-slate-300 bg-white px-2.5 text-sm text-slate-900 focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20"
@@ -195,6 +197,7 @@ export function ProjectGeneralTab({ project, accountMap, onProjectUpdated }) {
                     <input
                       type="date"
                       aria-label="Construction Actual Completion"
+                      disabled={saving}
                       value={ribaDates.practical_completion_date}
                       onChange={(e) => setRibaDates({ ...ribaDates, practical_completion_date: e.target.value })}
                       className="h-9 rounded-lg border border-slate-300 bg-white px-2.5 text-sm text-slate-900 focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20"

@@ -1,6 +1,7 @@
 import React, { useEffect, useState, useMemo } from "react";
 import { loadProjectPOs, isLegacyProject } from '@/components/projects/poLinking';
 import StageDrawing from '@/components/projects/StageDrawing';
+import ProjectEmptyState from '@/components/projects/ProjectEmptyState';
 import { legalDocumentName, dmaName, jctName, warrantyName } from "@/components/documents/documentNames";
 import {
   Building2, FileText, FileCheck, Gavel, ShieldCheck, Receipt, FileX, Calendar,
@@ -28,11 +29,12 @@ function buildEvents(project, legalDocs, dmas, jcts, warranties, pos, accountMap
     add(project.pq_approval_date, "Project Questionnaire approved", "project");
     add(project.aa_executed_date, "Access Agreement executed", "project");
     add(project.ie_commencement_date, "Insights & Engagement commenced", "project");
-    add(project.practical_completion_date, "Practical completion", "project");
-    add(project.riba1_end, "RIBA Stage 1 complete", "project");
-    add(project.riba2_end, "RIBA Stage 2 complete", "project");
-    add(project.riba3_end, "RIBA Stage 3 complete", "project");
-    add(project.riba4_end, "RIBA Stage 4 complete", "project");
+    add(project.practical_completion_date, 'Construction — Actual Completion', 'project');
+    add(project.riba5_system_date, 'Construction — Expected Completion (system)', 'project');
+    [1, 2, 3, 4].forEach(stage => {
+      add(project[`riba${stage}_end`], `RIBA ${stage} — Actual Completion`, 'project');
+      add(project[`riba${stage}_system_date`], `RIBA ${stage} — Expected Completion (system)`, 'project');
+    });
   }
 
   legalDocs.forEach((d) => {
@@ -180,10 +182,7 @@ export function ProjectTimelineTab({ project, legalDocs, dmas, jcts, warranties,
 
       {/* Chronological timeline */}
       {events.length === 0 ? (
-        <div className="rounded-xl border border-dashed border-slate-300 bg-white py-12 text-center">
-          <Calendar className="mx-auto h-8 w-8 text-slate-300" />
-          <p className="mt-3 text-sm text-slate-500">{supplierOnly ? 'No dated events linked to your supplier account yet.' : 'No dated events for this project yet.'}</p>
-        </div>
+        <ProjectEmptyState icon={Calendar} title={allEvents.length ? 'No events match these categories.' : supplierOnly ? 'No dated events linked to your supplier account yet.' : 'No dated events for this project yet.'} description={allEvents.length ? 'Select more categories to see the project history.' : 'Dated milestones and document progress will appear here when recorded.'} {...(allEvents.length ? { onAction: () => setActive(categories.map(([key]) => key)), action: 'Show all categories' } : { to: `/projects/${project.id}?tab=general`, action: 'View project details' })} />
       ) : (
         <div className="rounded-2xl border border-slate-200 bg-white p-6">
           <div className="flex items-center gap-2 border-b border-slate-100 pb-3 mb-4">
@@ -226,7 +225,7 @@ export function ProjectTimelineTab({ project, legalDocs, dmas, jcts, warranties,
                   <div className="flex-1 min-w-0 pt-1.5">
                     <div className="rounded-lg border border-slate-200 bg-slate-50/50 px-4 py-2.5">
                       <div className="flex flex-wrap items-center justify-between gap-2">
-                        <span className="inline-flex items-center gap-2">{(/^RIBA Stage [1-4] complete$/.test(e.label) || e.label === 'Practical completion') && <StageDrawing stage={e.label === 'Practical completion' ? 'RIBA 5–7' : `RIBA ${e.label.match(/[1-4]/)[0]}`} className="h-10 w-10" />}<span className="text-sm font-semibold text-slate-900">{e.label}</span></span>
+                        <span className="inline-flex items-center gap-2">{(/^(RIBA [1-4]|Construction) — /.test(e.label)) && <StageDrawing stage={e.label.startsWith('Construction') ? 'RIBA 5–7' : `RIBA ${e.label.match(/[1-4]/)[0]}`} className="h-10 w-10" />}<span className="text-sm font-semibold text-slate-900">{e.label}</span></span>
                         <span className={`inline-flex items-center rounded-full border px-2 py-0.5 text-[10px] font-medium ${cat.chip}`}>
                           {cat.label}
                         </span>

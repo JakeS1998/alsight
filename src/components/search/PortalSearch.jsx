@@ -21,7 +21,7 @@ export default function PortalSearch() {
     return () => document.removeEventListener('keydown', onKeyDown);
   }, [open]);
   return <div className="shrink-0">
-    <button type="button" onClick={() => setOpen(true)} aria-label="Search portal" aria-expanded={open} className="flex h-9 items-center gap-2 rounded-lg border border-white/20 px-2.5 text-sm text-white/80 hover:bg-white/10 sm:min-w-32"><Search className="h-4 w-4" /><span className="hidden sm:inline">Search</span></button>
+    <button type="button" onClick={() => setOpen(true)} aria-label="Search portal" aria-expanded={open} className="flex h-9 items-center gap-2 rounded-lg border border-white/20 px-2.5 text-sm text-white/80 hover:bg-white/10 sm:min-w-32"><Search className="h-4 w-4" /><span>Search</span></button>
     {open && <>
       <button type="button" aria-label="Close search" onClick={close} className="fixed inset-0 z-40 cursor-default bg-als-navy/40" />
       <div role="dialog" aria-label="Search portal records" className="fixed left-3 right-3 top-20 z-50 overflow-hidden rounded-xl border border-border bg-card shadow-xl sm:left-auto sm:right-8 sm:w-[min(540px,calc(100vw-2rem))]">

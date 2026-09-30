@@ -5,6 +5,7 @@ import { LegalDocumentCard } from "@/components/documents/LegalDocumentCard";
 import { DMACard } from "@/components/documents/DMACard";
 import { JCTCard } from "@/components/documents/JCTCard";
 import RibaReportLink from '@/components/projects/RibaReportLink';
+import ProjectEmptyState from '@/components/projects/ProjectEmptyState';
 import {
   FileSearch, FileCheck, UserCheck, Gavel, FilePlus,
   Check, Clock, ExternalLink, AlertCircle,
@@ -107,7 +108,7 @@ export function ProjectDraftingTab({ project, legalDocs, dmas, jcts, accountMap,
   const totalDocs = legalDocs.length + dmas.length + jcts.length + (pmView ? 0 : project.link_to_project_questionnaire ? 1 : 0);
 
   if (totalDocs === 0) {
-    return <section className="space-y-3"><h3 className="text-sm font-semibold text-foreground">RIBA 4 report</h3><RibaReportLink project={project} onProjectUpdated={onProjectUpdated} /></section>;
+    return <section className="space-y-4"><ProjectEmptyState icon={FileSearch} title="No project documents available yet." description="Ask the project's BSM to confirm the questionnaire and document programme; internal documents continue to use SharePoint links." to={`/projects/${project.id}?tab=general`} action="View project team" /><h3 className="text-sm font-semibold text-foreground">RIBA 4 report</h3><RibaReportLink project={project} onProjectUpdated={onProjectUpdated} /></section>;
   }
 
   return (
@@ -154,12 +155,12 @@ export function ProjectDraftingTab({ project, legalDocs, dmas, jcts, accountMap,
                   <PqCard project={project} psoOutstanding={!psoStatus.pq} />
                 ) : (
                   <div className="rounded-xl border border-dashed border-slate-200 bg-slate-50/50 px-4 py-3">
-                    <p className="text-xs text-slate-400">No project questionnaire linked yet.</p>
+                    <p className="text-xs text-muted-foreground">No project questionnaire linked yet. Ask the project's BSM to add the SharePoint reference.</p>
                   </div>
                 )
               ) : docs.length === 0 ? (
                 <div className="rounded-xl border border-dashed border-slate-200 bg-slate-50/50 px-4 py-3">
-                  <p className="text-xs text-slate-400">No documents at this stage.</p>
+                  <p className="text-xs text-muted-foreground">No documents at this stage. Ask the project's BSM to confirm the next document milestone.</p>
                 </div>
               ) : (
                 <div className="space-y-2">

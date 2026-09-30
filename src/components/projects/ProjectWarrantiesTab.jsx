@@ -1,14 +1,12 @@
 import React from "react";
 import { WarrantyCard } from "@/components/documents/WarrantyCard";
 import { ShieldCheck } from "lucide-react";
+import ProjectEmptyState from '@/components/projects/ProjectEmptyState';
 
 export function ProjectWarrantiesTab({ project, warranties, accountMap, hideCommentsAndLinks = false }) {
   if (warranties.length === 0) {
     return (
-      <div className="rounded-xl border border-dashed border-slate-300 bg-white py-12 text-center">
-        <ShieldCheck className="mx-auto h-8 w-8 text-slate-300" />
-        <p className="mt-3 text-sm text-slate-500">No warranties for this project yet.</p>
-      </div>
+      <ProjectEmptyState icon={ShieldCheck} title="No warranties for this project yet." description="Ask the project's BSM to confirm which warranties are required and when they will be available." to={`/projects/${project.id}?tab=general`} action="View project team" />
     );
   }
 

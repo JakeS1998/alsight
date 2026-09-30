@@ -33,8 +33,8 @@ export default function PortalHeader() {
     return <Link key={item.path} to={item.path} onClick={() => setMenuOpen(false)} aria-current={active ? 'page' : undefined} className={`flex items-center gap-2 rounded-lg px-3 py-2 text-sm font-medium ${active ? 'bg-primary text-primary-foreground' : 'text-white/75 hover:bg-white/10 hover:text-white'} ${compact ? 'w-full' : 'whitespace-nowrap'}`}><Icon className="h-4 w-4 shrink-0" />{item.label}</Link>;
   });
   return <header className="sticky top-0 z-40 bg-als-navy text-white shadow-sm">
-    <div className="mx-auto flex min-h-16 max-w-screen-2xl items-center gap-5 px-5 sm:px-8">
-      <Link to={role === 'framework_stakeholder' ? '/framework-reports' : '/'} aria-label="ALSight home" onClick={() => setMenuOpen(false)} className="shrink-0"><Logo variant="header" className="h-12 w-52" /></Link>
+    <div className="mx-auto flex min-h-16 max-w-screen-2xl items-center gap-2 px-3 sm:gap-5 sm:px-8">
+      <Link to={role === 'framework_stakeholder' ? '/framework-reports' : '/'} aria-label="ALSight home" onClick={() => setMenuOpen(false)} className="shrink-0"><Logo variant="header" className="h-10 w-32 sm:h-12 sm:w-52" /></Link>
       <nav aria-label="Main navigation" className="hidden min-w-0 flex-1 items-center gap-1 xl:flex">{nav()}</nav>
       <PortalSearch />
       {INTERNAL_ROLES.includes(role) && <NotificationCenter user={user} />}
