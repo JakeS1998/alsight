@@ -17,12 +17,13 @@ import PipelineTimeline from "@/components/dashboard/PipelineTimeline";
 import DashboardAttention from "@/components/dashboard/DashboardAttention";
 import { projectStage } from "@/components/dashboard/pipelineStage";
 import projectScope from '@/components/projects/projectScope';
+import DashboardSkeleton from '@/components/dashboard/DashboardSkeleton';
 
 export default function Home() {
   const { user } = useAuth();
   const role = user?.role || "client";
   const internal = INTERNAL_ROLES.includes(role);
-  const { data: extras, loading: extrasLoading, error: extrasError } = usePortfolioExtras(!!user && internal);
+  const scopeKey = JSON.stringify([user?.id, role, user?.staff_aad_id || user?.data?.staff_aad_id, user?.region || user?.data?.region, user?.delegate_of || user?.data?.delegate_of, user?.delegate_region || user?.data?.delegate_region]);
   const [projects, setProjects] = useState([]);
   const [accounts, setAccounts] = useState([]);
   const [staffAadId, setStaffAadId] = useState(null);
@@ -31,6 +32,7 @@ export default function Home() {
   const [loadError, setLoadError] = useState('');
   const [retry, setRetry] = useState(0);
   const [riskExpanded, setRiskExpanded] = useState(false);
+  const { data: extras, loading: extrasLoading, error: extrasError } = usePortfolioExtras(!!user && internal, `${scopeKey}:${retry}`);
 
   useEffect(() => {
     if (!user?.id) return;
@@ -44,13 +46,13 @@ export default function Home() {
           role === 'supplier' ? base44.functions.invoke('supplierProjectAccess', { action: 'projects' }).then(res => res.data.projects || []) : filterAll(base44.entities.Project, { $and: [{ status: { $ne: 'inactive' } }, projectScope(user, contact?.aad_id)] }, '-created_date'),
           listAll(base44.entities.Account, '-name').catch(() => []),
         ]);
-        if (active) { setProjects(p); setAccounts(a); setStaffAadId(contact?.aad_id || null); setLoadedFor(`${user.id}:${role}`); }
+        if (active) { setProjects(p); setAccounts(a); setStaffAadId(contact?.aad_id || null); setLoadedFor(scopeKey); }
       } catch (error) {
         if (active) setLoadError('The dashboard could not load. Please try again.');
       } finally { if (active) setLoading(false); }
     })();
     return () => { active = false; };
-  }, [role, user?.id, user?.email, user?.staff_aad_id, user?.region, user?.delegate_of, user?.data?.staff_aad_id, user?.data?.region, user?.data?.delegate_of, retry]);
+  }, [scopeKey, user?.email, retry]);
 
   const accountMap = useMemo(() => {
     const map = {};
@@ -77,7 +79,7 @@ export default function Home() {
   }, [projects, accountMap, role, user, staffAadId]);
 
   const portfolio = useMemo(() => buildPortfolio(filteredProjects, extras), [filteredProjects, extras]);
-  const { amounts: confirmedAmounts, loading: invoicesLoading, error: invoicesError } = useConfirmedInvoices(filteredProjects, role !== 'supplier' && role !== 'project_manager');
+  const { amounts: confirmedAmounts, loading: invoicesLoading, error: invoicesError } = useConfirmedInvoices(filteredProjects, internal && loadedFor === scopeKey && !loading, `${scopeKey}:${retry}`);
 
   const greeting = () => {
     const h = new Date().getHours();
@@ -89,12 +91,8 @@ export default function Home() {
   if (role === 'project_manager') return <Navigate to="/projects" replace />;
 
   if (loadError) return <div role="alert" className="rounded-xl border border-border bg-card p-6 text-center"><p className="text-sm text-destructive">{loadError}</p><button type="button" onClick={() => setRetry(value => value + 1)} className="mt-3 text-sm text-foreground underline">Try again</button></div>;
-  if (!user || loadedFor !== `${user.id}:${role}` || loading || (internal && (extrasLoading || invoicesLoading))) {
-    return (
-      <div className="flex items-center justify-center py-20">
-        <div className="h-8 w-8 animate-spin rounded-full border-4 border-slate-200 border-t-slate-800" />
-      </div>
-    );
+  if (!user || loadedFor !== scopeKey || loading || (internal && (extrasLoading || invoicesLoading))) {
+    return <DashboardSkeleton internal={internal} />;
   }
 
   return (

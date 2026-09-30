@@ -1,3 +1,4 @@
+import { resolveStaffReportingLine, staffEmailQuery } from './staffReportingIdentity.ts';
 const regions = {
   'c180b661-4600-f111-8407-000d3a7ed0c8': 'South East & London', '9d15738c-4600-f111-8407-000d3a7ed0c8': 'West Midlands & North Wales',
   '0cde51a5-4600-f111-8407-000d3a7ed0c8': 'East', 'a69051ab-4600-f111-8407-000d3a7ed0c8': 'North',
@@ -10,22 +11,26 @@ const directorRoles = ['director', 'regional_director'];
 
 export async function bdmRequestDefaults(base44, bdmId) {
   const service = base44.asServiceRole.entities;
+  const line = await resolveStaffReportingLine(service, bdmId);
   const [people, contactPage] = await Promise.all([
     service.User.filter({ role: 'bdm', $or: [{ id: bdmId }, { staff_aad_id: bdmId }] }),
     service.Contact.filter({ portal_role: 'bdm', aad_id: bdmId }, { limit: 1 }),
   ]);
   const person = people[0];
   let contact = contactPage.items[0];
-  if (!contact && person?.email) contact = (await service.Contact.filter({ portal_role: 'bdm', email: person.email }, { limit: 1 })).items[0];
+  if (!contact && person?.email) contact = (await service.Contact.filter({ portal_role: 'bdm', email: staffEmailQuery(person.email) }, { limit: 1 })).items[0];
+  if (!contact && line?.contact_id) {
+    const linked = await service.Contact.get(line.contact_id);
+    if (linked?.portal_role === 'bdm') contact = linked;
+  }
   if (!person && !contact) throw new Error('BDM not found. Please select a listed BDM.');
   const staffIds = [...new Set([bdmId, person?.id, person?.staff_aad_id, contact?.aad_id].filter(Boolean))];
-  const line = (await service.StaffReportingLine.filter({ staff_aad_id: { $in: staffIds }, source_matched: true }, { sort: '-created_date', limit: 1 })).items[0];
   const managerIds = [...new Set([person?.line_manager_id, line?.manager_aad_id].filter(Boolean))];
   let director = null;
   if (managerIds.length) {
     const [managers, managerContacts] = await Promise.all([
-      service.User.filter({ role: { $in: directorRoles }, $or: [{ id: { $in: managerIds } }, { staff_aad_id: { $in: managerIds } }] }),
-      service.Contact.filter({ aad_id: { $in: managerIds }, portal_role: { $in: ['admin', 'director', 'regional_director', 'bdm', 'bsm', 'finance'] } }, { limit: 2 }),
+      service.User.filter({ role: { $in: directorRoles }, $or: [{ id: { $in: managerIds } }, { staff_aad_id: { $in: managerIds } }, ...(line?.manager_email ? [{ email: staffEmailQuery(line.manager_email) }] : [])] }),
+      service.Contact.filter({ $or: [{ aad_id: { $in: managerIds } }, ...(line?.manager_email ? [{ email: staffEmailQuery(line.manager_email) }] : [])], portal_role: { $in: ['admin', 'director', 'regional_director', 'bdm', 'bsm', 'finance'] } }, { limit: 2 }),
     ]);
     const manager = managers.find(item => item.id === person?.line_manager_id) || managers[0];
     const managerContact = managerContacts.items[0];
