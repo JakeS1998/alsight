@@ -266,7 +266,7 @@
     },
     "handover_items": {
       "type": "array",
-      "maxItems": 9,
+      "maxItems": 15,
       "items": {
         "type": "object",
         "properties": {
@@ -281,7 +281,13 @@
               "training",
               "assets",
               "defects",
-              "final_account"
+              "final_account",
+              "building_control",
+              "compliance_declarations",
+              "fire_safety",
+              "ventilation",
+              "energy_services",
+              "epc"
             ]
           },
           "review_status": {
@@ -326,6 +332,87 @@
           "register_saved_at": {
             "type": "string",
             "format": "date-time"
+          },
+          "compliance_details": {
+            "type": "object",
+            "properties": {
+              "provided": {
+                "type": "string",
+                "enum": [
+                  "",
+                  "No",
+                  "Yes"
+                ]
+              },
+              "recipient_id": {
+                "type": "string",
+                "maxLength": 1000
+              },
+              "recipient_name": {
+                "type": "string",
+                "maxLength": 1000
+              },
+              "date_issued": {
+                "type": "string",
+                "maxLength": 1000
+              },
+              "document_reference": {
+                "type": "string",
+                "maxLength": 1000
+              },
+              "acknowledgement": {
+                "type": "string",
+                "maxLength": 1000
+              },
+              "authority_notified": {
+                "type": "string",
+                "enum": [
+                  "",
+                  "No",
+                  "Yes"
+                ]
+              },
+              "notification_date": {
+                "type": "string",
+                "maxLength": 1000
+              },
+              "issuer": {
+                "type": "string",
+                "maxLength": 1000
+              },
+              "client_declaration": {
+                "type": "string",
+                "enum": [
+                  "",
+                  "No",
+                  "Yes"
+                ]
+              },
+              "designer_declaration": {
+                "type": "string",
+                "enum": [
+                  "",
+                  "No",
+                  "Yes"
+                ]
+              },
+              "contractor_declaration": {
+                "type": "string",
+                "enum": [
+                  "",
+                  "No",
+                  "Yes"
+                ]
+              },
+              "submitted": {
+                "type": "string",
+                "enum": [
+                  "",
+                  "No",
+                  "Yes"
+                ]
+              }
+            }
           },
           "documents": {
             "type": "array",

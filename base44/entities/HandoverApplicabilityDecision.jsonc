@@ -1,0 +1,123 @@
+{
+  "name": "HandoverApplicabilityDecision",
+  "type": "object",
+  "properties": {
+    "project_id": {
+      "type": "string"
+    },
+    "item_key": {
+      "type": "string",
+      "enum": [
+        "om",
+        "hs",
+        "as_builts",
+        "training",
+        "assets",
+        "building_control",
+        "compliance_declarations",
+        "fire_safety",
+        "ventilation",
+        "energy_services",
+        "epc",
+        "golden_thread"
+      ]
+    },
+    "value": {
+      "type": "string",
+      "enum": [
+        "not_assessed",
+        "applies",
+        "does_not_apply"
+      ]
+    },
+    "reason": {
+      "type": "string",
+      "minLength": 10,
+      "maxLength": 2000
+    },
+    "decided_by": {
+      "type": "string"
+    },
+    "decided_at": {
+      "type": "string",
+      "format": "date-time"
+    }
+  },
+  "required": [
+    "project_id",
+    "item_key",
+    "value",
+    "reason",
+    "decided_by",
+    "decided_at"
+  ],
+  "rls": {
+    "read": {
+      "$or": [
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        },
+        {
+          "user_condition": {
+            "role": "director"
+          }
+        },
+        {
+          "user_condition": {
+            "role": "regional_director"
+          }
+        },
+        {
+          "user_condition": {
+            "role": "bsm"
+          }
+        },
+        {
+          "user_condition": {
+            "role": "bdm"
+          }
+        },
+        {
+          "user_condition": {
+            "role": "finance"
+          }
+        }
+      ]
+    },
+    "create": {
+      "$or": [
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        },
+        {
+          "user_condition": {
+            "role": "director"
+          }
+        }
+      ]
+    },
+    "update": {
+      "$or": [
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        },
+        {
+          "user_condition": {
+            "role": "director"
+          }
+        }
+      ]
+    },
+    "delete": {
+      "user_condition": {
+        "role": "admin"
+      }
+    }
+  }
+}

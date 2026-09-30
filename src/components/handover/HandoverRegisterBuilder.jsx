@@ -6,7 +6,7 @@ import useHandoverRegister from '@/components/handover/useHandoverRegister';
 const buildable = ['om','hs','warranties','training','assets','defects','final_account'];
 export default function HandoverRegisterBuilder({ projectId, item, editable, busy, onAction, expanded }) {
   const { config, draft, setDraft, loading, error, save, download } = useHandoverRegister(projectId, item.key, expanded && buildable.includes(item.key), onAction);
-  if (!buildable.includes(item.key)) return <p className="text-xs text-muted-foreground">{item.key === 'pc' ? 'Upload the certificate issued by the certifier; this portal does not issue PC certificates.' : 'Upload the issued as-built drawings; this portal is not a drawing-authoring tool.'}</p>;
+  if (!buildable.includes(item.key)) return <p className="text-xs text-muted-foreground">{item.key === 'pc' ? 'Upload the certificate issued by the certifier; this portal does not issue PC certificates.' : item.key === 'as_builts' ? 'Upload the issued as-built drawings; this portal is not a drawing-authoring tool.' : 'Upload or securely reference the actual issued information / certificate. This portal does not issue statutory certificates.'}</p>;
   const disabled = loading || busy;
   return <div className="space-y-3 rounded-lg border border-border bg-muted/30 p-3">
     <div><h3 className="text-sm font-semibold">{config?.label || `${item.label} register`}</h3>{item.register_version > 0 && <p className="mt-1 text-xs text-muted-foreground">Version {item.register_version} · {item.register_count} entries · {item.register_saved_by} · {new Date(item.register_saved_at).toLocaleString('en-GB')}</p>}</div>

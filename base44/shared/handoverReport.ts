@@ -14,11 +14,16 @@ export function createHandoverReport(pack) {
   text(`Started: ${pack.startedAt} by ${pack.startedBy}`);
   text(`Checked: ${pack.checkedAt} | Source updated: ${pack.sourceUpdatedAt || 'Not recorded'}`);
   text(`Dataset completeness: ${pack.percentage}% (${pack.completed}/${pack.required})`, 13, true);
+  text(`Gateway: ${pack.ready ? 'Ready - recorded evidence only' : 'Not ready'} | Statutory/applicability outstanding: ${pack.statutoryOutstanding} | Contractual outstanding: ${pack.contractualOutstanding} | Project outstanding: ${pack.projectOutstanding}`);
   text(`Golden-thread applicability: ${pack.applicability.replace(/_/g, ' ')}`);
+  if (pack.goldenThreadDecision) text(`Assessment: ${pack.goldenThreadDecision.reason} | ${pack.goldenThreadDecision.decided_by} | ${pack.goldenThreadDecision.decided_at}`, 9);
   text(pack.disclaimer, 9); text(pack.guidance, 8); y += 4;
   for (const item of pack.items) {
     text(`${item.label}: ${item.status.toUpperCase()}`, 11, true);
-    text(`Source status: ${item.sourceStatus} | Review: ${item.review_status}`, 9);
+    text(`Classification: ${item.classification.replace(/_/g, ' ')} | Source status: ${item.sourceStatus} | Review: ${item.review_status}`, 9);
+    text(item.guidance, 9); if (item.source) text(item.source, 8);
+    if (item.decision) text(`Applicability: ${item.decision.value} | ${item.decision.reason} | ${item.decision.decided_by} | ${item.decision.decided_at}`, 9);
+    for (const field of item.complianceFields || []) text(`${field.label}: ${field.type === 'contact' ? item.compliance_details.recipient_name || 'Not recorded' : item.compliance_details[field.key] || 'Not recorded'}`, 9);
     if (item.gap) text(`Missing / action: ${item.gap}`, 9);
     if (item.notes) text(item.notes, 9);
     if (item.registerData) {

@@ -7,6 +7,7 @@ import { withPortalUserNames } from '../../shared/portalUserNames.ts';
 import { handoverRegisters } from '../../shared/handoverRegisters.ts';
 import { readHandoverRegister, saveHandoverRegister, hydrateHandoverRegisters } from '../../shared/handoverRegisterStorage.ts';
 import { createHandoverRegisterPdf } from '../../shared/handoverRegisterPdf.ts';
+import { cleanComplianceDetails } from '../../shared/handoverRequirements.ts';
 
 const internal = ['admin', 'director', 'regional_director', 'bsm', 'bdm', 'finance'];
 const editors = ['admin', 'director', 'bsm', 'bdm'];
@@ -16,7 +17,7 @@ export default async function(req: Request): Promise<Response> {
     const base44 = createClientFromRequest(req), user = await base44.auth.me();
     if (!user || !internal.includes(user.role)) return failure('Internal project-team access required.', 403);
     const input = await req.json();
-    if (typeof input.projectId !== 'string' || !/^[a-zA-Z0-9_-]{1,100}$/.test(input.projectId) || !['read','start','review','attach','supersede','applicability','export','register','save_register','export_register'].includes(input.action)) return failure('Choose a project and handover action.');
+    if (typeof input.projectId !== 'string' || !/^[a-zA-Z0-9_-]{1,100}$/.test(input.projectId) || !['read','start','review','attach','supersede','applicability','compliance','export','register','save_register','export_register'].includes(input.action)) return failure('Choose a project and handover action.');
     const project = await base44.entities.Project.get(input.projectId);
     if (!project || project.status === 'inactive') return failure('Project not accessible.', 403);
     const page = await base44.entities.ProjectDelivery.filter({ project_id: project.id }, { sort: '-created_date', limit: 1 });
@@ -52,9 +53,13 @@ export default async function(req: Request): Promise<Response> {
     } else {
       if (!delivery.handover_started_at) return failure('Start handover first.');
       if (input.action === 'applicability') {
-        if (!['not_assessed','applies','does_not_apply'].includes(input.value)) return failure('Choose golden-thread applicability.');
-        changes.handover_applicability = input.value;
-        audit.push({ at: now, actor, action: 'Applicability updated', detail: `${delivery.handover_applicability || 'not_assessed'} -> ${input.value}` });
+        if (!['admin','director'].includes(user.role)) return failure('Only an administrator or director can record statutory applicability decisions.', 403);
+        const key = input.key || 'golden_thread';
+        if (key !== 'golden_thread' && !handoverDefinitions.some(row => row.key === key && row.statutory)) return failure('Choose a statutory requirement.');
+        if (!['not_assessed','applies','does_not_apply'].includes(input.value) || typeof input.reason !== 'string' || input.reason.trim().length < 10 || input.reason.length > 2000) return failure('Record applicability and an evidenced scope / legal reason (10–2000 characters).');
+        await base44.entities.HandoverApplicabilityDecision.upsert([{ project_id: project.id, item_key: key, value: input.value, reason: input.reason.trim(), decided_by: actor, decided_at: now }], { key: ['project_id','item_key'] });
+        if (key === 'golden_thread') changes.handover_applicability = input.value;
+        audit.push({ at: now, actor, action: 'Authorised applicability assessment', key, detail: `${input.value}: ${input.reason.trim()}` });
       } else {
         if (!handoverDefinitions.some(item => item.key === input.key)) return failure('Unknown handover item.');
         const items = [...(delivery.handover_items || [])];
@@ -66,6 +71,18 @@ export default async function(req: Request): Promise<Response> {
           if (input.link.trim().startsWith('mp/private/') && !input.link.trim().startsWith(`mp/private/${secrets.get('BASE44_APP_ID')}/`)) return failure('The document must belong to this app.');
           audit.push({ at: now, actor, action: 'Item reviewed', key: input.key, detail: JSON.stringify({ before: { status: item.review_status, notes: item.notes, link: item.link }, after: { status: input.status, notes: input.notes.trim(), link: input.link.trim() } }).slice(0, 6500) });
           Object.assign(item, { review_status: input.status, notes: input.notes.trim(), link: input.link.trim(), reviewed_at: now, reviewed_by: actor });
+        } else if (input.action === 'compliance') {
+          let details;
+          try { details = cleanComplianceDetails(input.key, input.details); }
+          catch (error) { return failure(error.message); }
+          if (details.recipient_id) {
+            const contact = await base44.entities.Contact.get(details.recipient_id);
+            if (!contact || contact.status === 'inactive') return failure('Choose an accessible active recipient contact.');
+            details.recipient_name = contact.full_name || [contact.first_name, contact.last_name].filter(Boolean).join(' ');
+          }
+          item.compliance_details = details;
+          item.review_status = 'partial'; item.reviewed_at = now; item.reviewed_by = actor;
+          audit.push({ at: now, actor, action: 'Statutory issue / receipt record saved', key: input.key, detail: JSON.stringify(details).slice(0, 6500) });
         } else if (input.action === 'save_register') {
           const previous = item.register_file_uri || '';
           await saveHandoverRegister(base44, item, input.register, actor, now);
