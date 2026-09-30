@@ -8,8 +8,20 @@ export default async function(req: Request): Promise<Response> {
     const user = await base44.auth.me();
     if (!user || user.role !== 'admin') return Response.json({ error: 'Administrator access required.' }, { status: 403 });
     const body = await req.json();
-    if (!['preview', 'scheduled'].includes(body.action)) return Response.json({ error: 'Invalid digest operation.' }, { status: 400 });
+    if (!['preview', 'scheduled', 'test'].includes(body.action)) return Response.json({ error: 'Invalid digest operation.' }, { status: 400 });
     const db = base44.entities, now = new Date();
+    if (body.action === 'test') {
+      if (!user.email) return Response.json({ error: 'Your account has no email address.' }, { status: 400 });
+      const summary = await uklfPortfolioSummary(db.FrameworkProjectReport);
+      const message = uklfDigestMessage(summary, now);
+      await base44.asServiceRole.integrations.Core.SendEmail({
+        to: user.email,
+        from_name: 'ALSight · UK Leisure Framework',
+        ...message,
+        subject: `[TEST] ${message.subject}`,
+      });
+      return Response.json({ sent: true, recipient: user.email });
+    }
     const settings = await readDigestSettings(db);
     if (!settings.enabled && body.action === 'scheduled') return Response.json({ skipped: 'Monthly emails are paused.' });
     const parts = Object.fromEntries(new Intl.DateTimeFormat('en-GB', { timeZone: 'Europe/London', year: 'numeric', month: '2-digit', day: '2-digit', hour: '2-digit', hourCycle: 'h23' }).formatToParts(now).map(part => [part.type, part.value]));

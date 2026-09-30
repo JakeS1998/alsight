@@ -16,7 +16,11 @@ export default function UKLFDigestSettings() {
       <UKLFDigestRecipients users={digest.users} selected={settings.selected_user_ids || []} onChange={ids => setSettings(previous => ({ ...previous, selected_user_ids: ids }))} disabled={!!busy} more={digest.more} onMore={digest.loadMore} />
       {digest.notice && <p role="status" className="text-sm text-muted-foreground">{digest.notice}</p>}
       {settings.last_run_at && <p className="text-xs text-muted-foreground">Last run: {new Date(settings.last_run_at).toLocaleString('en-GB', { timeZone: 'Europe/London' })} UK · {settings.last_result}</p>}
-      <Button type="submit" disabled={!!busy}>{busy === 'saving' ? 'Saving…' : 'Save digest settings'}</Button>
+      <div className="flex flex-wrap gap-2">
+        <Button type="submit" disabled={!!busy}>{busy === 'saving' ? 'Saving…' : 'Save digest settings'}</Button>
+        <Button type="button" variant="outline" disabled={!!busy} onClick={digest.sendTest}>{busy === 'sending' ? 'Sending…' : 'Send digest now'}</Button>
+      </div>
+      <p className="text-xs text-muted-foreground">Send digest now sends a test only to your signed-in email address, without changing the monthly schedule.</p>
     </form>}
   </section>;
 }

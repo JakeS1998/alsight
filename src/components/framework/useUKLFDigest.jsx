@@ -21,5 +21,14 @@ export default function useUKLFDigest() {
     } catch (failure) { setError(failure.response?.data?.error || 'Unable to save digest settings.'); }
     finally { setBusy(''); }
   };
-  return { settings, setSettings, users, more, busy, error, notice, save, reload: () => load(), loadMore: () => load(users.length) };
+  const sendTest = async () => {
+    if (busy) return;
+    setBusy('sending'); setError(''); setNotice('');
+    try {
+      const { data } = await base44.functions.invoke('sendUKLFMonthlyDigest', { action: 'test' });
+      setNotice(`Test digest sent to ${data.recipient}. The monthly schedule is unchanged.`);
+    } catch (failure) { setError(failure.response?.data?.error || 'Unable to send the test digest. Please try again.'); }
+    finally { setBusy(''); }
+  };
+  return { settings, setSettings, users, more, busy, error, notice, save, sendTest, reload: () => load(), loadMore: () => load(users.length) };
 }
