@@ -10,6 +10,7 @@ import { formatCurrency, formatDate } from "@/lib/portal";
 import { exportFeeProposalPdf } from "./exportFeeProposalPdf";
 import { feeProposalTotals } from "./feeProposalTotals";
 import SupplierFeeTable from '@/components/delivery/SupplierFeeTable';
+import FeeProposalLines from '@/components/delivery/FeeProposalLines';
 
 const BASIS = [
   { value: "fixed", label: "Fixed" },
@@ -38,8 +39,8 @@ const EMPTY_HEADER = {
   consultants_required: "", status: "draft", date_issued: "", client_approval_date: "",
   link_to_file: "", is_current: true,
 };
-const ALS_LINE = { riba_stage: "", description: "ALS Delivery fee", internal_fee: 0 };
-const normalizeFeeItems = (lines) => lines.map(line => ({ ...line, internal_fee: line.internal_fee === '' || line.internal_fee == null ? 0 : line.internal_fee }));
+const ALS_LINE = { riba_stage: "", description: "ALS Delivery fee", internal_fee: 0, include_on_client: true };
+const normalizeFeeItems = (lines) => lines.map(line => ({ ...line, include_on_client: line.include_on_client !== false, internal_fee: line.internal_fee === '' || line.internal_fee == null ? 0 : line.internal_fee }));
 const parseItems = (s) => { try { return normalizeFeeItems(JSON.parse(s) || []); } catch { return []; } };
 
 export function FeeProposalSection({ projectId, project, onChanged, deliveryTeam, suppliers }) {
@@ -123,7 +124,7 @@ export function FeeProposalSection({ projectId, project, onChanged, deliveryTeam
   }, [supplierLines, poBySupplier, suppliers]);
 
   const updateItem = (idx, field, value) => setItems((prev) => prev.map((it, i) => (i === idx ? { ...it, [field]: value } : it)));
-  const addItem = () => setItems((prev) => [...prev, { riba_stage: "", description: "", internal_fee: 0 }]);
+  const addItem = () => setItems((prev) => [...prev, { riba_stage: "", description: "", internal_fee: 0, include_on_client: true }]);
   const removeItem = (idx) => setItems((prev) => prev.filter((_, i) => i !== idx));
 
   const saveBuilder = async () => {
@@ -265,39 +266,7 @@ export function FeeProposalSection({ projectId, project, onChanged, deliveryTeam
             {/* Supplier fees (from delivery team) */}
             <SupplierFeeTable lines={supplierLines} getSupplierName={supplierName} />
 
-            {/* ALS / internal lines */}
-            <div>
-              <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-slate-500">ALS fee &amp; internal lines</p>
-              <p className="mb-2 text-xs text-slate-500">Only the ALS Delivery fee appears on the client PDF; other lines appear on the internal page only.</p>
-              <div className="overflow-x-auto">
-                <table className="w-full text-sm">
-                  <thead className="text-left text-xs text-slate-500">
-                    <tr><th className="py-1 pr-2">RIBA Stage</th><th className="py-1 pr-2">Description</th><th className="py-1 pr-2 text-right">Fee £</th><th></th></tr>
-                  </thead>
-                  <tbody className="divide-y divide-slate-100">
-                    {items.map((it, idx) => (
-                      <tr key={idx}>
-                        <td className="py-1.5 pr-2">
-                          <div className="min-w-[150px]"><LookupCombobox value={it.riba_stage} onChange={(value) => updateItem(idx, "riba_stage", value)} options={RIBA_STAGES.map((stage) => ({ value: stage, label: stage }))} placeholder="—" searchPlaceholder="Search stages..." /></div>
-                        </td>
-                        <td className="py-1.5 pr-2">
-                          <input value={it.description} onChange={(e) => updateItem(idx, "description", e.target.value)} placeholder="e.g. ALS Delivery fee" className="h-9 w-full min-w-[180px] rounded-lg border border-slate-300 bg-white px-2 text-sm focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20" />
-                        </td>
-                        <td className="py-1.5 pr-2 text-right">
-                          <input type="number" value={it.internal_fee} onChange={(e) => updateItem(idx, "internal_fee", e.target.value)} onBlur={() => { if (it.internal_fee === '' || it.internal_fee == null) updateItem(idx, 'internal_fee', 0); }} className="h-9 w-24 rounded-lg border border-slate-300 bg-white px-2 text-right text-sm focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20" />
-                        </td>
-                        <td className="py-1.5 text-right">
-                          {it.description === "ALS Delivery fee" ? null : (
-                            <button onClick={() => removeItem(idx)} className="rounded p-1 text-slate-400 hover:bg-rose-50 hover:text-rose-600"><Trash2 className="h-3.5 w-3.5" /></button>
-                          )}
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-              <button onClick={addItem} className="mt-2 inline-flex items-center gap-1 text-sm text-primary hover:underline"><Plus className="h-4 w-4" /> Add optional line</button>
-            </div>
+            <FeeProposalLines items={items} stages={RIBA_STAGES} updateItem={updateItem} addItem={addItem} removeItem={removeItem} />
 
             {supplierComparison.length > 0 && (
               <div className="rounded-lg border border-slate-200 bg-slate-50 p-3">

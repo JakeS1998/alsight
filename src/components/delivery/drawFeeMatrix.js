@@ -1,4 +1,4 @@
-import { isAlsFeeLine } from './feeProposalTotals';
+import { isClientFeeLine } from '@/components/delivery/feeProposalTotals';
 
 const STAGES = ['RIBA 1', 'RIBA 2', 'RIBA 3', 'RIBA 4', 'RIBA 5-7'];
 
@@ -15,7 +15,7 @@ export function drawFeeMatrix(doc, { supplierLines, alsLines, supplierName, mone
     supplierRows.get(key).amounts[stage < 0 ? 5 : stage] += Number(line.supplier_fee) || 0;
   });
   const alsRows = new Map();
-  alsLines.filter(line => mode === 'internal' || isAlsFeeLine(line)).forEach(line => {
+  alsLines.filter(line => mode === 'internal' || isClientFeeLine(line)).forEach(line => {
     const stage = STAGES.indexOf(line.riba_stage);
     const name = `${line.description || 'ALS fee'}${stage < 0 && line.riba_stage ? ` (${line.riba_stage})` : ''}`;
     if (!alsRows.has(name)) alsRows.set(name, { name, role: '', amounts: Array(6).fill(0) });
@@ -60,7 +60,7 @@ export function drawFeeMatrix(doc, { supplierLines, alsLines, supplierName, mone
   };
   if (mode === 'client') {
     section('Proposed supplier fees', [...supplierRows.values()], 'Total supplier fees');
-    section('ALS fee', [...alsRows.values()], 'Total ALS fee');
+    section('ALS & additional fees', [...alsRows.values()], 'Total ALS & additional fees');
   } else {
     section('ALS & internal fee breakdown', [...alsRows.values()], 'Total recorded fees');
   }
