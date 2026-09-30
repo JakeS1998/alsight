@@ -44,7 +44,8 @@ export async function loadHandover(base44, project, delivery) {
     if (definition.documentRequired && !currentDocuments.length && !builtEvidence) { gap = 'Document evidence or a secure document reference is missing.'; if (status === 'complete') status = 'partial'; }
     if (definition.key === 'defects' && !notes.trim() && !hasRegister) { gap = 'Record outstanding defects, owners and actions, or explicitly confirm none.'; if (status === 'complete') status = 'partial'; }
     if (definition.key === 'final_account' && !delivery.final_account_status && !notes.trim() && !hasRegister) { gap = 'Record the final account status.'; if (status === 'complete') status = 'partial'; }
-    const decision = definition.statutory ? decisionFor(definition.key) : null;
+    const parentDecision = definition.applicabilityParentKey ? decisionFor(definition.applicabilityParentKey) : null;
+    const decision = definition.statutory ? parentDecision?.value === 'does_not_apply' ? { ...parentDecision, inherited_from: handoverDefinitions.find(parent => parent.key === definition.applicabilityParentKey).label } : decisionFor(definition.key) : null;
     const assessed = !definition.statutory || decision?.value === 'applies' || decision?.value === 'does_not_apply';
     const excluded = decision?.value === 'does_not_apply';
     const retainsContract = ['om','assets','as_builts','training'].includes(definition.key);
