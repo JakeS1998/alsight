@@ -36,7 +36,7 @@ export function RequestDialog({ open, onOpenChange, accounts, users, user, onCre
   const [choicesReady, setChoicesReady] = useState(false);
   const [submitError, setSubmitError] = useState('');
   const bdmDefaults = useBDMRequestDefaults({ setForm, setDirectorOptions });
-  const brief = useProjectBrief({ form, setForm, onDirectorOption: bdmDefaults.addDirector, choices: {
+  const brief = useProjectBrief({ form, setForm, onDirectorOption: bdmDefaults.addDirector, onComplete: () => setMode('review'), choices: {
     client_account_id: clientAccounts.map(account => ({ value: account.dataverse_id, label: account.name })),
     bdm_aad_id: bdmOptions, director_aad_id: directorOptions, department_id: REGION_OPTIONS,
   } });
@@ -108,10 +108,10 @@ export function RequestDialog({ open, onOpenChange, accounts, users, user, onCre
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="flex max-h-[calc(100dvh-2rem)] w-[calc(100%-2rem)] flex-col overflow-hidden sm:max-w-2xl">
         <DialogHeader className="shrink-0 pr-6">
-          <DialogTitle>Request a new project</DialogTitle>
-          <DialogDescription>Submit a leisure construction project request for director review.</DialogDescription>
+          <DialogTitle>{mode === 'review' ? 'Review your project request' : 'Request a new project'}</DialogTitle>
+          <DialogDescription>{mode === 'review' ? 'ALICE has filled in your draft. Check and change any details below, then confirm to submit your request. Nothing has been submitted yet.' : 'Submit a leisure construction project request for director review.'}</DialogDescription>
         </DialogHeader>
-        {mode === 'alice' ? <ProjectBriefChat brief={brief} ready={choicesReady} onManual={() => setMode('manual')} onReview={() => setMode('manual')} /> : <form onSubmit={submit} className="flex min-h-0 flex-col gap-4 overflow-hidden">
+        {mode === 'alice' ? <ProjectBriefChat brief={brief} ready={choicesReady} onManual={() => setMode('manual')} onReview={() => setMode('review')} /> : <form onSubmit={submit} className="flex min-h-0 flex-col gap-4 overflow-hidden">
           <button type="button" onClick={() => setMode('alice')} className="shrink-0 text-left text-sm font-medium text-foreground underline underline-offset-4">Back to ALICE</button>
           {submitError && <p role="alert" className="text-sm text-destructive">{submitError}</p>}
           <div className="min-h-0 space-y-4 overflow-y-auto overscroll-contain px-1">
@@ -204,7 +204,7 @@ export function RequestDialog({ open, onOpenChange, accounts, users, user, onCre
           <DialogFooter className="shrink-0 border-t border-border pt-4">
             <Button type="button" variant="outline" onClick={() => onOpenChange(false)} disabled={submitting}>Cancel</Button>
             <Button type="submit" disabled={submitting || bdmDefaults.loading} className="bg-primary hover:bg-primary/90">
-              {submitting ? <Loader2 className="mr-1.5 h-4 w-4 animate-spin" /> : null} Submit request
+              {submitting ? <Loader2 className="mr-1.5 h-4 w-4 animate-spin" /> : null} {mode === 'review' ? 'Confirm and submit request' : 'Submit request'}
             </Button>
           </DialogFooter>
         </form>}
