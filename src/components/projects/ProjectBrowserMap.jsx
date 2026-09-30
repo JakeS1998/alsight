@@ -8,7 +8,7 @@ export default function ProjectBrowserMap({ projects, showValues }) {
   const navigate = useNavigate();
   return <div className="relative isolate z-0 overflow-hidden rounded-xl border border-border">
     <MapContainer center={[54.5, -2]} zoom={6} className="h-[450px] w-full sm:h-[600px]" scrollWheelZoom={false}>
-      <TileLayer url="https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png" attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; CARTO' />
+      <TileLayer url="https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png?key=cb1_3xkp_1_d4c84e7c5c7a1eee6ccca93b" attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; CARTO' />
       <ProjectMapBounds projects={projects} />
       {projects.map(project => {
         const color = project.live_project ? 'hsl(var(--chart-2))' : 'hsl(var(--chart-1))';
