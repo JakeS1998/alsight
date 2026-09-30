@@ -199,6 +199,7 @@
             },
             {
               "data.bsm_aad_id": {
+                "$exists": true,
                 "$nin": [
                   null,
                   ""

@@ -79,7 +79,7 @@ export default function Home() {
   }, [projects, accountMap, role, user, staffAadId]);
 
   const portfolio = useMemo(() => buildPortfolio(filteredProjects, extras), [filteredProjects, extras]);
-  const { amounts: confirmedAmounts, loading: invoicesLoading, error: invoicesError } = useConfirmedInvoices(filteredProjects, internal && loadedFor === scopeKey && !loading, `${scopeKey}:${retry}`);
+  const { amounts: confirmedAmounts, loading: invoicesLoading, error: invoicesError } = useConfirmedInvoices(filteredProjects, role !== 'supplier' && role !== 'project_manager' && loadedFor === scopeKey && !loading, `${scopeKey}:${retry}`);
 
   const greeting = () => {
     const h = new Date().getHours();
