@@ -7,9 +7,11 @@ import AliceGuidedChat from '@/components/alice/AliceGuidedChat';
 import useAliceGuide from '@/components/alice/useAliceGuide';
 import { GUIDES } from '@/components/alice/aliceGuides';
 import { useAuth } from '@/lib/AuthContext';
+import aliceAccessKey from '@/components/alice/aliceAccessKey';
 const AGENT = 'alice';
 export default function AliceWidget() {
   const { user } = useAuth();
+  const storageKey = aliceAccessKey(user);
   const { guide, start, cancel, next, back, confirm } = useAliceGuide(user);
   const [open, setOpen] = useState(false);
   const [conversation, setConversation] = useState(null);
@@ -38,15 +40,15 @@ export default function AliceWidget() {
     const restore = async () => {
       setRestoring(true);
       try {
-        const saved = sessionStorage.getItem('alice_conversation_id');
+        const saved = sessionStorage.getItem(storageKey);
         if (!saved) return;
         const existing = await base44.agents.getConversation(saved);
         if (alive) { setConversation(existing); setMessages(existing.messages || []); }
-      } catch { sessionStorage.removeItem('alice_conversation_id'); }
+      } catch { sessionStorage.removeItem(storageKey); }
       finally { if (alive) setRestoring(false); }
     };
     restore(); return () => { alive = false; };
-  }, [open]);
+  }, [open, storageKey]);
   useEffect(() => {
     if (!conversation?.id) return;
     let active = true;
@@ -77,7 +79,7 @@ export default function AliceWidget() {
     try {
       const chat = conversation || await base44.agents.createConversation({ agent_name: AGENT, metadata: { name: 'ALICE conversation' } });
       if (currentSession !== session.current) return;
-      if (!conversation) { setConversation(chat); sessionStorage.setItem('alice_conversation_id', chat.id); }
+      if (!conversation) { setConversation(chat); sessionStorage.setItem(storageKey, chat.id); }
       const activeContact = document.querySelector('[data-alice-contact-id]');
       const pageContext = activeContact ? `\nCurrent contact ID: ${activeContact.dataset.aliceContactId}\nCurrent contact name: ${activeContact.dataset.aliceContactName}` : '';
       const content = `${draft ? 'DRAFT FIELD' : 'QUESTION'} | Current page: ${window.location.pathname}${pageContext}\n${value.trim()}`;
@@ -87,7 +89,7 @@ export default function AliceWidget() {
   };
   const endChat = () => {
     session.current += 1;
-    sessionStorage.removeItem('alice_conversation_id');
+    sessionStorage.removeItem(storageKey);
     setConversation(null);
     setMessages([]);
     setText('');
