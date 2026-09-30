@@ -6,7 +6,6 @@ import { INTERNAL_ROLES } from '@/lib/portal';
 import ProjectValuationsTab from "@/components/valuations/ProjectValuationsTab";
 import UKLFProjectTab from '@/components/framework/UKLFProjectTab';
 import UKLFIcon from '@/components/framework/UKLFIcon';
-import ProjectUKLFKPIAction from '@/components/projects/ProjectUKLFKPIAction';
 import SourceOpportunityLink from '@/components/crm/SourceOpportunityLink';
 import { listAll, filterAll } from "@/components/data/loadAll";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
@@ -109,7 +108,6 @@ export default function ProjectDetail() {
             <span className="rounded-full bg-primary/10 px-2.5 py-0.5 text-xs font-medium text-primary">{project.procurement_route ? 'Framework' : 'Direct'}</span>
           )}
         </div>
-        {INTERNAL_ROLES.includes(user?.role) && <div className="mt-3"><ProjectUKLFKPIAction projectId={project.id} onEdit={() => { setActiveTab('uklf'); setEditUKLFKpis(true); }} /></div>}
         <ProjectPOReferences project={project} />
         {!isSupplier && project.description && <p className="mt-1 text-sm text-slate-500">{project.description}</p>}
         {INTERNAL_ROLES.includes(user?.role) && <SourceOpportunityLink projectId={project.id} />}
