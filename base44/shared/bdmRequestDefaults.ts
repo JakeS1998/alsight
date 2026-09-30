@@ -25,7 +25,7 @@ export async function bdmRequestDefaults(base44, bdmId) {
   if (managerIds.length) {
     const [managers, managerContacts] = await Promise.all([
       service.User.filter({ role: { $in: directorRoles }, $or: [{ id: { $in: managerIds } }, { staff_aad_id: { $in: managerIds } }] }),
-      service.Contact.filter({ portal_role: { $in: directorRoles }, aad_id: { $in: managerIds } }, { limit: 2 }),
+      service.Contact.filter({ aad_id: { $in: managerIds }, portal_role: { $in: ['admin', 'director', 'regional_director', 'bdm', 'bsm', 'finance'] } }, { limit: 2 }),
     ]);
     const manager = managers.find(item => item.id === person?.line_manager_id) || managers[0];
     const managerContact = managerContacts.items[0];
