@@ -1,0 +1,47 @@
+{
+  "description": "Emails a stakeholder-safe UKLF portfolio summary to framework stakeholders and administrator-selected portal users on the first of each month at 9am UK time.",
+  "trigger": {
+    "condition": null,
+    "config": {
+      "trigger_type": "scheduled",
+      "events": [],
+      "schedule_mode": "recurring",
+      "cron_expression": "0 9 1 * *",
+      "one_time_date": null,
+      "timezone": "Europe/London",
+      "interval_value": null,
+      "interval_unit": null,
+      "interval_anchor": null,
+      "ends_type": "never",
+      "ends_on_date": null,
+      "ends_after_count": null
+    }
+  },
+  "name": "Monthly UKLF Portfolio Digest",
+  "definition": {
+    "document": {
+      "dsl": "1.0.0",
+      "name": "monthly_uklf_portfolio_digest",
+      "version": "1.0",
+      "namespace": "base44"
+    },
+    "do": [
+      {
+        "send_summary": {
+          "call": "invoke_backend_function",
+          "with": {
+            "function_name": "sendUKLFMonthlyDigest",
+            "args": {
+              "action": "scheduled"
+            }
+          },
+          "then": "end",
+          "x-base44": {
+            "title": "Email UKLF portfolio summary",
+            "description": "Stakeholders and selected portal users"
+          }
+        }
+      }
+    ]
+  }
+}

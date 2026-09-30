@@ -1,5 +1,6 @@
 import { createClientFromRequest } from 'npm:@base44/sdk@0.8.52';
 import { completionOutcome, reportProject } from '../../shared/uklfCompletion.ts';
+import { uklfPortfolioSummary } from '../../shared/uklfPortfolioSummary.ts';
 
 const INTERNAL = ['admin', 'director', 'regional_director', 'bsm', 'finance', 'bdm'];
 const STAGES = ['pq_date', 'aa_signed', 'calloff_date', 'completed_on_time'];
@@ -85,16 +86,8 @@ export default async function(req: Request): Promise<Response> {
       ...(stage !== 'all' ? { [stage]: { $gt: '' } } : {}),
       ...(term ? { $or: ['framework_ref', 'project_number', 'site', 'client'].map(field => ({ [field]: { $regex: term, $options: 'i' } })) } : {}),
     };
-    const [records, count, total, linked, questionnaire, agreement, calloff, outcomes,
-      onTime, onTimeRecorded, toBudget, budgetRecorded, safe, safetyRecorded, commercial] = await Promise.all([
-      source.filter(query, '-framework_ref', 50, page * 50), source.count(query), source.count({}),
-      source.count({ project_id: { $gt: '' } }), source.count({ pq_date: { $gt: '' } }),
-      source.count({ aa_signed: { $gt: '' } }), source.count({ calloff_date: { $gt: '' } }),
-      source.count({ completed_on_time: { $gt: '' } }),
-      source.count({ completed_on_time: 'Y' }), source.count({ completed_on_time: { $gt: '' } }),
-      source.count({ completed_to_budget: 'Y' }), source.count({ completed_to_budget: { $gt: '' } }),
-      source.count({ $or: [{ riddor_incidents: 0 }, { zero_riddor: 'Y' }, { zero_riddor: { $in: ['', null] } }] }), source.count({}),
-      internal ? source.aggregate({ sum: ['calloff_value', 'completion_value'] }) : Promise.resolve(null),
+    const [records, count, summary] = await Promise.all([
+      source.filter(query, '-framework_ref', 50, page * 50), source.count(query), uklfPortfolioSummary(source, internal),
     ]);
     const numbers = [...new Set(records.map(r => /^\d+$/.test(r.framework_ref || '') ? `PROJ${r.framework_ref}` : r.project_number).filter(Boolean))];
     const projects = numbers.length ? await base44.asServiceRole.entities.Project.filter({ project_number: { $in: numbers } }, '-created_date', 50) : [];
@@ -102,10 +95,7 @@ export default async function(req: Request): Promise<Response> {
     const rows = records.map(r => ({ ...safeRow(r, internal),
       project_id: r.project_id || byNumber.get(`PROJ${r.framework_ref}`.toUpperCase()) || byNumber.get(r.project_number?.toUpperCase()) || null,
     }));
-    return Response.json({ rows, count, total, linked, questionnaire, agreement, calloff, outcomes,
-      onTime, onTimeRecorded, toBudget, budgetRecorded, safe, safetyRecorded,
-      ...(internal ? { commercial: commercial?.rows?.[0] || null } : {}),
-    });
+    return Response.json({ rows, count, ...summary });
   } catch (error) {
     console.error('Framework report unavailable', error);
     return Response.json({ error: 'Unable to load framework report' }, { status: 500 });
