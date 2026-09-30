@@ -3,6 +3,7 @@ import { secrets } from 'base44:runtime';
 import { handoverDefinitions, loadHandover, safeReference } from '../../shared/handoverDataset.ts';
 import { createHandoverReport } from '../../shared/handoverReport.ts';
 import { createHandoverBundle } from '../../shared/handoverBundle.ts';
+import { withPortalUserNames } from '../../shared/portalUserNames.ts';
 
 const internal = ['admin', 'director', 'regional_director', 'bsm', 'bdm', 'finance'];
 const editors = ['admin', 'director', 'bsm', 'bdm'];
@@ -26,7 +27,8 @@ export default async function(req: Request): Promise<Response> {
       return Response.json({ content: btoa(binary), mime: input.format === 'zip' ? 'application/zip' : 'application/pdf', filename: `Handover-${String(project.project_number || project.id).replace(/[^a-zA-Z0-9_-]/g, '-').slice(0, 80)}.${input.format}` });
     }
     if (!editors.includes(user.role)) return failure('Your role can view packs but cannot edit them.', 403);
-    const now = new Date().toISOString(), actor = user.full_name || user.email;
+    const [namedUser] = await withPortalUserNames(base44.entities, [user]);
+    const now = new Date().toISOString(), actor = namedUser.full_name || user.email;
     const audit = [...(delivery.handover_audit || [])];
     if (audit.length >= 500) return failure('Handover change-history limit reached. Contact your administrator.');
     const changes = {};
