@@ -7,10 +7,15 @@ import { formatCurrency, formatDate, regionName } from "@/lib/portal";
 import { RequestDialog } from "@/components/projects/RequestDialog";
 import useProjectPage from '@/components/projects/useProjectPage';
 import FrameworkVersionBadge from '@/components/projects/FrameworkVersionBadge';
+import ProjectViewControls from '@/components/projects/ProjectViewControls';
+import ProjectListView from '@/components/projects/ProjectListView';
+import useProjectView from '@/components/projects/useProjectView';
 import { projectStaffName } from "@/components/projects/projectStaffName";
 import { FilterSelect } from "@/components/FilterSelect";
 import { Button } from "@/components/ui/button";
 import { Plus, Building2, PoundSterling, Calendar, Users, ArrowRight, FolderKanban, Search, X } from "lucide-react";
+
+const ProjectMapView = React.lazy(() => import('@/components/projects/ProjectMapView'));
 
 const SORT_OPTIONS = [
   { value: "name_asc", label: "Name A–Z" },
@@ -32,6 +37,7 @@ export default function Projects() {
   const [contacts, setContacts] = useState([]);
   const [metadataLoading, setLoading] = useState(true);
   const [requestOpen, setRequestOpen] = useState(false);
+  const { view, setView, density, setDensity } = useProjectView();
 
   const [search, setSearch] = useState("");
   const [sortBy, setSortBy] = useState("newest");
@@ -190,13 +196,19 @@ export default function Projects() {
                 <X className="h-3 w-3" /> Clear
               </button>
             )}
+            <ProjectViewControls view={view} onViewChange={setView} density={density} onDensityChange={setDensity} />
           </div>
           <p className="text-xs text-muted-foreground">{serverPaging ? projectPage.counts ? `${projectPage.counts.matching} matching of ${projectPage.counts.total} projects` : 'Loading project totals…' : `${filtered.length} of ${projects.length} projects`}</p>
         </div>
       )}
 
-      {projectPage.error && <p role="alert" className="rounded-lg border border-destructive p-3 text-sm text-destructive">Unable to load projects. <button type="button" className="underline" onClick={() => setRefreshKey(k => k + 1)}>Try again</button></p>}
-      {loading ? (
+      {!serverPaging && (loading || projects.length === 0) && <div className="flex justify-end"><ProjectViewControls view={view} onViewChange={setView} density={density} onDensityChange={setDensity} /></div>}
+      {view !== 'map' && projectPage.error && <p role="alert" className="rounded-lg border border-destructive p-3 text-sm text-destructive">Unable to load projects. <button type="button" className="underline" onClick={() => setRefreshKey(k => k + 1)}>Try again</button></p>}
+      {view === 'map' ? (
+        <React.Suspense fallback={<div role="status" className="flex min-h-[400px] items-center justify-center text-sm text-muted-foreground">Loading map…</div>}>
+          <ProjectMapView user={user} query={projectPage.mapQuery} sort={projectPage.mapSort} ready={projectPage.mapReady} scopeError={projectPage.scopeError} retryScope={projectPage.retryScope} serverPaging={serverPaging} refreshKey={refreshKey} portfolio={filtered} externalLoading={metadataLoading} />
+        </React.Suspense>
+      ) : loading ? (
         <div className="flex justify-center py-20">
           <div className="h-8 w-8 animate-spin rounded-full border-4 border-slate-200 border-t-primary" />
         </div>
@@ -208,6 +220,8 @@ export default function Projects() {
             <button onClick={clearFilters} className="mt-2 text-sm text-primary hover:underline">Clear filters</button>
           )}
         </div>
+      ) : view === 'list' ? (
+        <ProjectListView projects={filtered} accountMap={accountMap} staffMap={staffMap} role={role} density={density} sortBy={sortBy} onSort={setSortBy} />
       ) : (
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
           {filtered.map((p) => {
@@ -245,7 +259,7 @@ export default function Projects() {
         </div>
       )}
 
-      {serverPaging && (previousCursors.length > 0 || projectPage.next) && <div className="flex justify-between gap-3"><Button variant="outline" disabled={!previousCursors.length || loading} onClick={() => { setCursor(previousCursors[previousCursors.length - 1]); setPreviousCursors(values => values.slice(0, -1)); }}>Previous page</Button><Button variant="outline" disabled={!projectPage.next || loading} onClick={() => { setPreviousCursors(values => [...values, cursor]); setCursor(projectPage.next); }}>Next page</Button></div>}
+      {view !== 'map' && serverPaging && (previousCursors.length > 0 || projectPage.next) && <div className="flex justify-between gap-3"><Button variant="outline" disabled={!previousCursors.length || loading} onClick={() => { setCursor(previousCursors[previousCursors.length - 1]); setPreviousCursors(values => values.slice(0, -1)); }}>Previous page</Button><Button variant="outline" disabled={!projectPage.next || loading} onClick={() => { setPreviousCursors(values => [...values, cursor]); setCursor(projectPage.next); }}>Next page</Button></div>}
       <RequestDialog
         open={requestOpen}
         onOpenChange={setRequestOpen}

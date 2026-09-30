@@ -28,5 +28,5 @@ export default function useProjectPage(user, filters, cursor, enabled, refreshKe
     const pages = await Promise.all(['bdm_aad_id', 'bsm_aad_id', 'department_id'].map(distinct => base44.entities.Project.filter(base, { distinct, limit: 1000 })));
     return { bdm: pages[0].items.filter(Boolean), bsm: pages[1].items.filter(Boolean), region: pages[2].items.filter(Boolean) };
   }, staleTime: 300000 });
-  return { items: page.data?.items || [], next: page.data?.has_more ? page.data.next_cursor : null, counts: counts.data, options: options.data, loading: enabled && (staff.isLoading || page.isLoading || counts.isLoading), error: staff.error || page.error || counts.error || options.error };
+  return { items: page.data?.items || [], next: page.data?.has_more ? page.data.next_cursor : null, counts: counts.data, options: options.data, loading: enabled && (staff.isLoading || page.isLoading || counts.isLoading), error: staff.error || page.error || counts.error || options.error, mapQuery: query, mapSort: sorts[filters.sort] || '-created_date', mapReady: ready, scopeError: staff.error, retryScope: staff.refetch };
 }
