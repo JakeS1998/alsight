@@ -6,9 +6,14 @@ export async function qualityLookup(db, input) {
   if (input.lookup === 'bdm' || input.lookup === 'bsm') {
     const query = { role: input.lookup, ...(input.search.trim() ? { full_name: regex } : {}) };
     const users = await db.User.filter(query, 'full_name', 50);
-    const current = input.value ? await db.User.filter({ role: input.lookup, $or: [{ id: input.value }, { staff_aad_id: input.value }] }, 'full_name', 1) : [];
+    const current = input.value ? await db.User.filter({ role: input.lookup, $or: [{ id: input.value }, { staff_aad_id: input.value }, { 'data.staff_aad_id': input.value }] }, 'full_name', 1) : [];
     const named = await withPortalUserNames(db, [...current, ...users.filter(row => !current.some(old => old.id === row.id))]);
-    return { options: named.map(row => ({ value: row.staff_aad_id || row.id, label: row.full_name || row.email })) };
+    const staffQuery = { portal_role: input.lookup, status: { $ne: 'inactive' }, aad_id: { $regex: '\\S' } };
+    const contacts = await db.Contact.filter({ ...staffQuery, ...(input.search.trim() ? { full_name: regex } : {}) }, { sort: 'full_name', limit: 30, fields: ['aad_id','full_name'] });
+    const selected = input.value ? await db.Contact.filter({ ...staffQuery, aad_id: input.value }, { limit: 1, fields: ['aad_id','full_name'] }) : { items: [] };
+    const options = new Map(named.map(row => [row.staff_aad_id || row.data?.staff_aad_id || row.id, { value: row.staff_aad_id || row.data?.staff_aad_id || row.id, label: row.full_name || row.email }]));
+    for (const row of [...selected.items, ...contacts.items]) options.set(row.aad_id, { value: row.aad_id, label: row.full_name });
+    return { options: [...options.values()] };
   }
   const entity = input.lookup === 'client' ? db.Account : db.JCT, label = input.lookup === 'client' ? 'name' : 'document_id';
   const base = { status: { $ne: 'inactive' }, ...(input.lookup === 'client' ? { account_type: 'client' } : {}) };

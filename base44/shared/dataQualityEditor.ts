@@ -62,7 +62,10 @@ export async function saveQualityEdit(db, input) {
   if (input.check === 'duplicates') { if (!payload.full_name) throw new Error('Full name is required.'); if (!payload.email) payload.email = null; }
   if (input.check === 'bdm' || input.check === 'bsm') {
     const key = `${input.check}_aad_id`, value = payload[key];
-    if (value) { const users = await db.User.filter({ role: input.check, $or: [{ id: value },{ staff_aad_id: value }] }, 'full_name', 5); if (!users.length) throw new Error('Choose an eligible portal colleague.'); }
+    if (value) {
+      const contactCount = await db.Contact.count({ portal_role: input.check, aad_id: value, status: { $ne: 'inactive' } });
+      if (!contactCount) { const users = await db.User.filter({ role: input.check, $or: [{ id: value },{ staff_aad_id: value },{ 'data.staff_aad_id': value }] }, 'full_name', 5); if (!users.length) throw new Error('Choose an eligible colleague.'); }
+    }
   }
   if (input.check === 'client' && payload.client_account_id) { const account = await resolveAccount(db, payload.client_account_id); payload.client_account_id = account.dataverse_id || account.id; payload.client_name = payload.client_name || account.name; }
   if (input.check === 'fees') {
