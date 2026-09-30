@@ -37,7 +37,7 @@ export async function loadHandover(base44, project, delivery) {
     if (definition.key === 'pc') { const ref = safeReference(delivery.pc_certificate); if (ref) documents.push({ id: 'pc-closeout', name: 'PC certificate (close-out)', ...(ref.startsWith('mp/private/') ? { file_uri: ref } : { link: ref }), source: 'Project close-out' }); }
     if (definition.key === 'warranties') warranties.forEach(warranty => { const ref = safeReference(warranty.link_to_file); if (ref) documents.push({ id: warranty.id, name: warranty.warranty_id || 'Warranty', ...(ref.startsWith('mp/private/') ? { file_uri: ref } : { link: ref }), source: 'Warranty register' }); });
     const currentDocuments = documents.filter(file => !file.superseded);
-    const notes = saved.notes || (definition.key === 'defects' ? delivery.defects_period_notes : definition.field ? delivery[`${definition.field}_notes`] : '') || '';
+    const notes = saved.notes || (definition.key === 'defects' ? delivery.defects_period_notes : definition.key === 'final_account' ? delivery.final_account_notes : definition.field ? delivery[`${definition.field}_notes`] : '') || '';
     let automatic = definition.key === 'pc' ? (safeReference(delivery.pc_certificate) ? 'complete' : 'outstanding') : delivery[definition.field] || 'outstanding';
     if (definition.key === 'final_account') automatic = ['open', 'agreed', 'closed'].includes(delivery.final_account_status) ? 'complete' : 'outstanding';
     if (definition.key === 'warranties' && warrantyCount && executedCount === warrantyCount && warranties.every(w => safeReference(w.link_to_file))) automatic = 'complete';
