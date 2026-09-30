@@ -10,6 +10,8 @@ import { AccountCombobox } from "@/components/contacts/AccountCombobox";
 import { LookupCombobox } from "@/components/forms/LookupCombobox";
 import { REGION_OPTIONS } from "@/lib/portal";
 import { Loader2 } from "lucide-react";
+import ProjectBriefChat from '@/components/projects/ProjectBriefChat';
+import useProjectBrief from '@/components/projects/useProjectBrief';
 
 const EMPTY = {
   name: "", description: "",
@@ -27,10 +29,19 @@ export function RequestDialog({ open, onOpenChange, accounts, users, user, onCre
   const [directorOptions, setDirectorOptions] = useState([]);
 
   const clientAccounts = accounts.filter((a) => a.account_type === "client");
+  const [mode, setMode] = useState('alice');
+  const [choicesReady, setChoicesReady] = useState(false);
+  const [submitError, setSubmitError] = useState('');
+  const brief = useProjectBrief({ form, setForm, choices: {
+    client_account_id: clientAccounts.map(account => ({ value: account.dataverse_id, label: account.name })),
+    bdm_aad_id: bdmOptions, director_aad_id: directorOptions, department_id: REGION_OPTIONS,
+  } });
+  useEffect(() => { if (open) setMode('alice'); }, [open]);
 
   // Load BDM and Director lookup options (staff contacts + portal users).
   useEffect(() => {
     if (!open) return;
+    setChoicesReady(false);
     let cancelled = false;
     (async () => {
       const [bdmC, dirC] = await Promise.all([
@@ -47,6 +58,7 @@ export function RequestDialog({ open, onOpenChange, accounts, users, user, onCre
       toOpts(dirC).forEach((o) => dirMap.set(o.value, o));
       (users || []).filter((u) => u.role === "director").forEach((u) => dirMap.set(u.id, { value: u.id, label: u.full_name || u.email }));
       setDirectorOptions([...dirMap.values()].sort((a, b) => a.label.localeCompare(b.label)));
+      setChoicesReady(true);
     })();
     return () => { cancelled = true; };
   }, [open, users]);
@@ -55,6 +67,7 @@ export function RequestDialog({ open, onOpenChange, accounts, users, user, onCre
     e.preventDefault();
     if (!form.name.trim()) return;
     setSubmitting(true);
+    setSubmitError('');
     try {
       await base44.entities.Project.create({
         name: form.name.trim(),
@@ -76,8 +89,11 @@ export function RequestDialog({ open, onOpenChange, accounts, users, user, onCre
         status: "active",
       });
       setForm(EMPTY);
+      brief.reset();
       onOpenChange(false);
       onCreated();
+    } catch (error) {
+      setSubmitError(error.message || 'Unable to submit the project request. Please try again.');
     } finally {
       setSubmitting(false);
     }
@@ -90,7 +106,9 @@ export function RequestDialog({ open, onOpenChange, accounts, users, user, onCre
           <DialogTitle>Request a new project</DialogTitle>
           <DialogDescription>Submit a leisure construction project request for director review.</DialogDescription>
         </DialogHeader>
-        <form onSubmit={submit} className="flex min-h-0 flex-col gap-4 overflow-hidden">
+        {mode === 'alice' ? <ProjectBriefChat brief={brief} ready={choicesReady} onManual={() => setMode('manual')} onReview={() => setMode('manual')} /> : <form onSubmit={submit} className="flex min-h-0 flex-col gap-4 overflow-hidden">
+          <button type="button" onClick={() => setMode('alice')} className="shrink-0 text-left text-sm font-medium text-foreground underline underline-offset-4">Back to ALICE</button>
+          {submitError && <p role="alert" className="text-sm text-destructive">{submitError}</p>}
           <div className="min-h-0 space-y-4 overflow-y-auto overscroll-contain px-1">
           <FormSection title="Project Details" description="Describe the leisure construction or refurbishment project">
             <div className="space-y-4">
@@ -192,7 +210,7 @@ export function RequestDialog({ open, onOpenChange, accounts, users, user, onCre
               {submitting ? <Loader2 className="mr-1.5 h-4 w-4 animate-spin" /> : null} Submit request
             </Button>
           </DialogFooter>
-        </form>
+        </form>}
       </DialogContent>
     </Dialog>
   );
