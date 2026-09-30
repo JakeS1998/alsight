@@ -10,8 +10,8 @@ export default function HandoverItem({ projectId, item, authorised, editable, bu
   const [status, setStatus] = useState(item.review_status), [notes, setNotes] = useState(item.notes), [link, setLink] = useState(item.link);
   const [expanded, setExpanded] = useState(false);
   useEffect(() => { setStatus(item.review_status); setNotes(item.notes); setLink(item.link); }, [item.reviewed_at, item.notes, item.link, item.review_status]);
-  return <details className="rounded-lg border border-border bg-card" onToggle={event => setExpanded(event.currentTarget.open)}>
-    <summary className="cursor-pointer p-4"><span className="font-medium">{item.label}</span><HandoverClassification classification={item.classification} /><span className={`ml-3 text-xs uppercase ${['complete','not_applicable'].includes(item.status) ? 'text-foreground' : 'text-destructive'}`}>{item.status.replaceAll('_', ' ')}</span>{item.gap && <span className="mt-1 block text-xs text-muted-foreground">{item.gap}</span>}</summary>
+  return <details className={`rounded-lg border ${['complete', 'not_applicable'].includes(item.status) ? 'border-success/25 bg-success/5' : 'border-border bg-card'}`} onToggle={event => setExpanded(event.currentTarget.open)}>
+    <summary className="cursor-pointer p-4"><span className="font-medium">{item.label}</span><HandoverClassification classification={item.classification} /><span className={`ml-3 text-xs uppercase ${['complete','not_applicable'].includes(item.status) ? 'text-success' : 'text-destructive'}`}>{item.status.replaceAll('_', ' ')}</span>{item.gap && <span className="mt-1 block text-xs text-muted-foreground">{item.gap}</span>}</summary>
     <div className="space-y-3 border-t border-border p-4">
       <p className="text-xs text-muted-foreground">{item.guidance} {item.source && <a href={item.source} target="_blank" rel="noreferrer" className="underline">Legal basis / guidance</a>}</p>
       {item.statutory && <HandoverApplicability itemKey={item.key} decision={item.decision} authorised={authorised} busy={busy} onAction={onAction} />}
