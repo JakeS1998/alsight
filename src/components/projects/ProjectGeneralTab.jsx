@@ -5,7 +5,7 @@ import { base44 } from "@/api/base44Client";
 import { listAll } from "@/components/data/loadAll";
 import ValuationSnapshot from '@/components/valuations/ValuationSnapshot';
 import ProjectPOReferences from '@/components/projects/ProjectPOReferences';
-import StageDrawing from '@/components/projects/StageDrawing';
+import StageDrawing from '@/components/dashboard/PipelineStageArtwork';
 import { projectCompletionDates } from '@/components/projects/projectCompletionDates';
 import ProjectDocumentStatuses from '@/components/projects/ProjectDocumentStatuses';
 import ProjectBriefHistory from '@/components/projects/ProjectBriefHistory';
