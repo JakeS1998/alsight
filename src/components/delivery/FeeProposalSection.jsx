@@ -38,8 +38,9 @@ const EMPTY_HEADER = {
   consultants_required: "", status: "draft", date_issued: "", client_approval_date: "",
   link_to_file: "", is_current: true,
 };
-const ALS_LINE = { riba_stage: "", description: "ALS Delivery fee", internal_fee: "" };
-const parseItems = (s) => { try { return JSON.parse(s) || []; } catch { return []; } };
+const ALS_LINE = { riba_stage: "", description: "ALS Delivery fee", internal_fee: 0 };
+const normalizeFeeItems = (lines) => lines.map(line => ({ ...line, internal_fee: line.internal_fee === '' || line.internal_fee == null ? 0 : line.internal_fee }));
+const parseItems = (s) => { try { return normalizeFeeItems(JSON.parse(s) || []); } catch { return []; } };
 
 export function FeeProposalSection({ projectId, project, onChanged, deliveryTeam, suppliers }) {
   const [rows, setRows] = useState([]);
@@ -60,17 +61,15 @@ export function FeeProposalSection({ projectId, project, onChanged, deliveryTeam
     const out = [];
     (deliveryTeam || []).forEach((m) => {
       STAGE_KEYS.forEach((st) => {
-        const fee = Number(m.fees?.[st]);
-        if (fee > 0) {
-          out.push({
-            riba_stage: STAGE_LABEL[st],
-            role: m.role || "Supplier",
-            description: `${m.role || "Supplier"}${m.supplier_company_number ? " — " + supplierName(m.supplier_company_number) : ""}`,
-            supplier_company_number: m.supplier_company_number || "",
-            supplier_fee: fee,
-            fee_proposal_link: m.fee_proposal_link || "",
-          });
-        }
+        const fee = Number(m.fees?.[st]) || 0;
+        out.push({
+          riba_stage: STAGE_LABEL[st],
+          role: m.role || "Supplier",
+          description: `${m.role || "Supplier"}${m.supplier_company_number ? " — " + supplierName(m.supplier_company_number) : ""}`,
+          supplier_company_number: m.supplier_company_number || "",
+          supplier_fee: fee,
+          fee_proposal_link: m.fee_proposal_link || "",
+        });
       });
     });
     return out;
@@ -124,7 +123,7 @@ export function FeeProposalSection({ projectId, project, onChanged, deliveryTeam
   }, [supplierLines, poBySupplier, suppliers]);
 
   const updateItem = (idx, field, value) => setItems((prev) => prev.map((it, i) => (i === idx ? { ...it, [field]: value } : it)));
-  const addItem = () => setItems((prev) => [...prev, { riba_stage: "", description: "", internal_fee: "" }]);
+  const addItem = () => setItems((prev) => [...prev, { riba_stage: "", description: "", internal_fee: 0 }]);
   const removeItem = (idx) => setItems((prev) => prev.filter((_, i) => i !== idx));
 
   const saveBuilder = async () => {
@@ -132,9 +131,9 @@ export function FeeProposalSection({ projectId, project, onChanged, deliveryTeam
     setSavingBuilder(true);
     try {
       await base44.entities.FeeProposal.update(selectedId, {
-        line_items: JSON.stringify(items),
-        fee_value: totals.alsFee || null,
-        external_cost: totals.supplierFees || null,
+        line_items: JSON.stringify(normalizeFeeItems(items)),
+        fee_value: totals.alsFee,
+        external_cost: totals.supplierFees,
       });
       load();
     } finally { setSavingBuilder(false); }
@@ -285,7 +284,7 @@ export function FeeProposalSection({ projectId, project, onChanged, deliveryTeam
                           <input value={it.description} onChange={(e) => updateItem(idx, "description", e.target.value)} placeholder="e.g. ALS Delivery fee" className="h-9 w-full min-w-[180px] rounded-lg border border-slate-300 bg-white px-2 text-sm focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20" />
                         </td>
                         <td className="py-1.5 pr-2 text-right">
-                          <input type="number" value={it.internal_fee} onChange={(e) => updateItem(idx, "internal_fee", e.target.value)} className="h-9 w-24 rounded-lg border border-slate-300 bg-white px-2 text-right text-sm focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20" />
+                          <input type="number" value={it.internal_fee} onChange={(e) => updateItem(idx, "internal_fee", e.target.value)} onBlur={() => { if (it.internal_fee === '' || it.internal_fee == null) updateItem(idx, 'internal_fee', 0); }} className="h-9 w-24 rounded-lg border border-slate-300 bg-white px-2 text-right text-sm focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20" />
                         </td>
                         <td className="py-1.5 text-right">
                           {it.description === "ALS Delivery fee" ? null : (

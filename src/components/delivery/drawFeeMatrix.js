@@ -43,7 +43,7 @@ export function drawFeeMatrix(doc, { supplierLines, alsLines, supplierName, mone
     const amounts = data.amounts || Array(6).fill(0);
     const total = amounts.reduce((sum, amount) => sum + amount, 0);
     let cursor = x + widths[0];
-    [...amounts, total].forEach((amount, i) => { doc.setTextColor(15, 23, 42); doc.text(amount || isTotal ? money(amount) : '—', cursor + widths[i + 1] - 7, y + 14, { align: 'right' }); cursor += widths[i + 1]; });
+    [...amounts, total].forEach((amount, i) => { doc.setTextColor(15, 23, 42); doc.text(money(amount), cursor + widths[i + 1] - 7, y + 14, { align: 'right' }); cursor += widths[i + 1]; });
     y += rowHeight;
   };
   const section = (title, rows, totalLabel) => {
