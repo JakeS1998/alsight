@@ -22,7 +22,7 @@ export default function PipelineTimeline({ projects, accountMap }) {
     const rows = projects.filter(p => projectStage(p) === stage);
     return { stage, count: rows.length, value: rows.reduce((sum, p) => sum + (Number(p.estimated_value) || 0), 0) };
   }), [projects]);
-  const nodes = [{ stage: 'crm', label: 'CRM PIPELINE TOTAL', count: opportunities?.count, value: opportunities?.value }, ...summary.map(row => ({ ...row, label: row.stage }))];
+  const nodes = [{ stage: 'crm', label: 'CRM PIPELINE', count: opportunities?.count, value: opportunities?.value }, ...summary.map(row => ({ ...row, label: row.stage }))];
   return <section className="overflow-hidden rounded-2xl border border-slate-200 bg-white" aria-label="CRM to RIBA pipeline timeline">
     <div className="px-5 pt-5"><h2 className="font-heading text-base font-semibold text-als-navy">CRM to RIBA project pipeline</h2><p className="mt-1 text-xs text-slate-500">Open CRM opportunities lead into active RIBA projects. Select a stage to explore its records.</p></div>
     <div className="flex flex-col gap-0 px-5 py-5 md:flex-row md:items-stretch md:overflow-x-auto">
