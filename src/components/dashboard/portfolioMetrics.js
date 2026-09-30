@@ -3,14 +3,13 @@ import { findProjectForPO } from '@/components/projects/poLinking';
 export const isPipelineProject = (p) => p.status !== "inactive" && !["complete", "completed"].includes(String(p.approval_status || "").trim().toLowerCase()) && !(p.practical_completion_date && new Date(p.practical_completion_date) < new Date());
 const sum = (list, field) => list.reduce((total, row) => total + (Number(row[field]) || 0), 0);
 
-export function buildPortfolio(projects, { orders = [], proposals = [], deliveries = [], risks = [], actions = [] }) {
+export function buildPortfolio(projects, { orders = [], proposals = [], deliveries = [], actions = [] }) {
   const pipeline = projects.filter(isPipelineProject);
   const ids = new Set(pipeline.map((p) => p.id));
   const relevantOrders = orders.filter(o => o.status !== 'inactive').map(o => {
     const project = findProjectForPO(o, pipeline);
     return project ? { ...o, linked_project_id: project.id } : null;
   }).filter(Boolean);
-  const relevantRisks = risks.filter((r) => ids.has(r.project_id) && r.status !== "closed");
   const relevantActions = actions.filter((a) => ids.has(a.project_id) && a.status !== "done");
   const currentFees = new Map();
   proposals.filter((f) => ids.has(f.project_id)).forEach((f) => {
@@ -30,7 +29,6 @@ export function buildPortfolio(projects, { orders = [], proposals = [], deliveri
     if (!row.reasons.includes(reason)) row.reasons.push(reason);
     if (level === "high" || !row.level) row.level = level;
   };
-  relevantRisks.forEach((r) => flag(r.project_id, `${r.title || "Risk"} (${r.rag || r.impact || "open"})`, r.rag === "red" || (r.probability === "high" && r.impact === "high") ? "high" : "watch"));
   const today = new Date().toISOString().slice(0, 10);
   relevantActions.forEach((a) => { if (a.due_date && a.due_date.slice(0, 10) < today) flag(a.project_id, `Overdue action: ${a.action || "Action"}`, a.priority === "high" ? "high" : "watch"); });
   [...latestDelivery.values()].forEach((d) => {
