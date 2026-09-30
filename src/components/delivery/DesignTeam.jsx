@@ -2,6 +2,8 @@ import React, { useMemo } from "react";
 import { FormSection } from "@/components/forms/PowerForm";
 import { CheckCircle2, XCircle, FileText, PoundSterling, PenLine, Truck } from "lucide-react";
 import { formatCurrency } from "@/lib/portal";
+import ChecklistHover from '@/components/delivery/ChecklistHover';
+import { documentChecklistDetails } from '@/components/delivery/checklistDetails';
 
 const APPT_ROLES = [
   { label: "Project Manager", type: "appointment_pm" },
@@ -17,6 +19,7 @@ export function DesignTeam({ legalDocs, jcts, warranties, accountMap }) {
       const doc = legalDocs.find((d) => d.document_type === role.type);
       out.push({
         label: role.label,
+        details: [...documentChecklistDetails(doc, role.label), ...(doc && !accountMap[doc.account_id]?.name ? ['Missing: linked supplier name.'] : []), ...(doc?.total_fees == null ? ['Fee not recorded.'] : [`Recorded fee: ${formatCurrency(doc.total_fees)}`])],
         appointed: !!doc,
         account: doc ? accountMap[doc.account_id]?.name : null,
         fee: doc?.total_fees,
@@ -31,20 +34,21 @@ export function DesignTeam({ legalDocs, jcts, warranties, accountMap }) {
     const contractorName = jct ? (accountMap[jct.contractor_id]?.name || accountMap[jct.account_id]?.name) : null;
     out.push({
       label: "Contractor",
+      details: jct ? documentChecklistDetails(jct, 'JCT contract') : warranties.some(w => w.category === 'contractor') ? ['Contractor identified from a warranty.', 'Missing: JCT contract record; contract sign-off cannot be confirmed.'] : ['Missing: JCT contract or contractor warranty.'],
       appointed: !!jct || warranties.some((w) => w.category === "contractor"),
       account: contractorName,
       fee: null, signed: jct?.executed === "yes", po: false, link: jct?.link_to_file,
     });
 
     // Roles not yet tracked as dedicated docs
-    ["Cost Consultant", "Structural Engineer", "M&E"].forEach((label) => out.push({ label, appointed: false, untracked: true }));
+    ["Cost Consultant", "Structural Engineer", "M&E"].forEach((label) => out.push({ label, appointed: false, untracked: true, details: ['This role is not tracked by a dedicated appointment type in this matrix.', 'No appointment sign-off is available here; this does not confirm that the role is unappointed.'] }));
     return out;
   }, [legalDocs, jcts, warranties, accountMap]);
 
   return (
     <FormSection title="4 · Design & Consultant Team" description="Reuses your appointment documents — no duplicate data entry">
       <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
-        {cards.map((c) => <TeamCard key={c.label} {...c} />)}
+        {cards.map((c) => <ChecklistHover key={c.label} title={c.label} details={c.details}><div className="h-full"><TeamCard {...c} /></div></ChecklistHover>)}
       </div>
     </FormSection>
   );

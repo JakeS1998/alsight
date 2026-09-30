@@ -3,6 +3,8 @@ import { FormSection, FormField, formInputClass } from "@/components/forms/Power
 import { Button } from "@/components/ui/button";
 import SearchableSelect from '@/components/forms/SearchableSelect';
 import { CheckCircle2, AlertTriangle, XCircle, Loader2 } from "lucide-react";
+import ChecklistHover from '@/components/delivery/ChecklistHover';
+import { readinessChecklistDetails } from '@/components/delivery/checklistDetails';
 
 const APPT_TYPES = ["appointment_pm", "appointment_pd_cdm", "appointment_architect", "appointment_pd_br"];
 
@@ -25,7 +27,8 @@ export function PreConstructionReadiness({ project, legalDocs, dmas, jcts, warra
     const contractor = jcts.length > 0 || warranties.some((w) => w.category === "contractor");
     const riba2 = !!project.riba2_end;
 
-    const mk = (label, done, partial, extra) => ({ label, status: done ? "done" : partial ? "partial" : "pending", extra });
+    const details = readinessChecklistDetails({ project, legalDocs, dmas, jcts, warranties, feeProposals });
+    const mk = (label, done, partial, extra) => ({ label, status: done ? "done" : partial ? "partial" : "pending", extra, details: details[label] });
     return [
       mk("Access Agreement", aa?.executed === "yes", !!aa),
       mk("Fee Proposal", feeAccepted, feeAny),
@@ -107,7 +110,7 @@ export function PreConstructionReadiness({ project, legalDocs, dmas, jcts, warra
   );
 }
 
-function ReadinessItem({ label, status, extra }) {
+function ReadinessItem({ label, status, extra, details }) {
   const map = {
     done: { icon: <CheckCircle2 className="h-4 w-4 text-emerald-600" />, cls: "border-emerald-200 bg-emerald-50" },
     partial: { icon: <AlertTriangle className="h-4 w-4 text-amber-600" />, cls: "border-amber-200 bg-amber-50" },
@@ -115,9 +118,11 @@ function ReadinessItem({ label, status, extra }) {
   };
   const s = map[status];
   return (
-    <div className={`flex items-center justify-between rounded-lg border px-3 py-2 ${s.cls}`}>
-      <div className="flex items-center gap-2 text-sm font-medium text-slate-700">{s.icon}{label}</div>
-      {extra && <span className="text-xs font-semibold text-slate-500">{extra}</span>}
-    </div>
+    <ChecklistHover title={label} details={details}>
+      <div className={`flex items-center justify-between rounded-lg border px-3 py-2 ${s.cls}`}>
+        <div className="flex items-center gap-2 text-sm font-medium text-slate-700">{s.icon}{label}</div>
+        {extra && <span className="text-xs font-semibold text-slate-500">{extra}</span>}
+      </div>
+    </ChecklistHover>
   );
 }
