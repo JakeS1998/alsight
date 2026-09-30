@@ -85,12 +85,13 @@ export function RequestDialog({ open, onOpenChange, accounts, users, user, onCre
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-2xl">
-        <DialogHeader>
+      <DialogContent className="flex max-h-[calc(100dvh-2rem)] w-[calc(100%-2rem)] flex-col overflow-hidden sm:max-w-2xl">
+        <DialogHeader className="shrink-0 pr-6">
           <DialogTitle>Request a new project</DialogTitle>
           <DialogDescription>Submit a leisure construction project request for director review.</DialogDescription>
         </DialogHeader>
-        <form onSubmit={submit} className="space-y-4">
+        <form onSubmit={submit} className="flex min-h-0 flex-col gap-4 overflow-hidden">
+          <div className="min-h-0 space-y-4 overflow-y-auto overscroll-contain px-1">
           <FormSection title="Project Details" description="Describe the leisure construction or refurbishment project">
             <div className="space-y-4">
               <FormField label="Project name" required>
@@ -184,7 +185,8 @@ export function RequestDialog({ open, onOpenChange, accounts, users, user, onCre
             </div>
           </FormSection>
 
-          <DialogFooter>
+          </div>
+          <DialogFooter className="shrink-0 border-t border-border pt-4">
             <Button type="button" variant="outline" onClick={() => onOpenChange(false)} disabled={submitting}>Cancel</Button>
             <Button type="submit" disabled={submitting} className="bg-primary hover:bg-primary/90">
               {submitting ? <Loader2 className="mr-1.5 h-4 w-4 animate-spin" /> : null} Submit request

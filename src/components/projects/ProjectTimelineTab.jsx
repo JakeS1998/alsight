@@ -1,6 +1,7 @@
 import React, { useEffect, useState, useMemo } from "react";
 import { loadProjectPOs, isLegacyProject } from '@/components/projects/poLinking';
 import StageDrawing from '@/components/projects/StageDrawing';
+import { projectCompletionDates } from '@/components/projects/projectCompletionDates';
 import ProjectEmptyState from '@/components/projects/ProjectEmptyState';
 import { legalDocumentName, dmaName, jctName, warrantyName } from "@/components/documents/documentNames";
 import {
@@ -26,14 +27,15 @@ function buildEvents(project, legalDocs, dmas, jcts, warranties, pos, accountMap
   };
 
   if (!supplierOnly) {
+    const expectedDates = projectCompletionDates(project);
     add(project.pq_approval_date, "Project Questionnaire approved", "project");
     add(project.aa_executed_date, "Access Agreement executed", "project");
     add(project.ie_commencement_date, "Insights & Engagement commenced", "project");
     add(project.practical_completion_date, 'Construction — Actual Completion', 'project');
-    add(project.riba5_system_date, 'Construction — Expected Completion (system)', 'project');
+    add(expectedDates.riba5_system_date, 'Construction — Expected Completion (system)', 'project');
     [1, 2, 3, 4].forEach(stage => {
       add(project[`riba${stage}_end`], `RIBA ${stage} — Actual Completion`, 'project');
-      add(project[`riba${stage}_system_date`], `RIBA ${stage} — Expected Completion (system)`, 'project');
+      add(expectedDates[`riba${stage}_system_date`], `RIBA ${stage} — Expected Completion (system)`, 'project');
     });
   }
 

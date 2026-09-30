@@ -6,6 +6,7 @@ import { listAll } from "@/components/data/loadAll";
 import ValuationSnapshot from '@/components/valuations/ValuationSnapshot';
 import ProjectPOReferences from '@/components/projects/ProjectPOReferences';
 import StageDrawing from '@/components/projects/StageDrawing';
+import { projectCompletionDates } from '@/components/projects/projectCompletionDates';
 import ProjectDocumentStatuses from '@/components/projects/ProjectDocumentStatuses';
 import { projectStaffName } from '@/components/projects/projectStaffName';
 import { formatDate, formatCurrency, regionName, INTERNAL_ROLES } from "@/lib/portal";
@@ -96,11 +97,12 @@ export function ProjectGeneralTab({ project, accountMap, onProjectUpdated }) {
 
   const client = accountMap[project.client_account_id];
 
+  const expectedDates = projectCompletionDates(project);
   const ribaRows = [
-    { stage: "RIBA 1", term: project.riba1_term_weeks, key: "riba1_end", expected: project.riba1_system_date },
-    { stage: "RIBA 2", term: project.riba2_term_weeks, key: "riba2_end", expected: project.riba2_system_date },
-    { stage: "RIBA 3", term: project.riba3_term_weeks, key: "riba3_end", expected: project.riba3_system_date },
-    { stage: "RIBA 4", term: project.riba4_term_weeks, key: "riba4_end", expected: project.riba4_system_date },
+    { stage: "RIBA 1", term: project.riba1_term_weeks, key: "riba1_end", expected: expectedDates.riba1_system_date },
+    { stage: "RIBA 2", term: project.riba2_term_weeks, key: "riba2_end", expected: expectedDates.riba2_system_date },
+    { stage: "RIBA 3", term: project.riba3_term_weeks, key: "riba3_end", expected: expectedDates.riba3_system_date },
+    { stage: "RIBA 4", term: project.riba4_term_weeks, key: "riba4_end", expected: expectedDates.riba4_system_date },
   ];
 
   const links = [
@@ -191,7 +193,7 @@ export function ProjectGeneralTab({ project, accountMap, onProjectUpdated }) {
               <tr className="bg-slate-50">
                 <td className="py-2.5 pr-4 font-medium text-slate-900"><span className="inline-flex items-center gap-2"><StageDrawing stage="RIBA 5–7" className="h-10 w-10" />Construction</span></td>
                 <td className="py-2.5 pr-4 text-slate-600">{project.construction_term_weeks || "—"}</td>
-                <td className="py-2.5 pr-4 text-muted-foreground" title="System date — read only">{formatDate(project.riba5_system_date)}</td>
+                <td className="py-2.5 pr-4 text-muted-foreground" title="System date — read only">{formatDate(expectedDates.riba5_system_date)}</td>
                 <td className="py-2.5">
                   {canEdit ? (
                     <input

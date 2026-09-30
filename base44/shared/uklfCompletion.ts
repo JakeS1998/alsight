@@ -1,3 +1,5 @@
+import { projectCompletionDates } from './projectCompletionDates.ts';
+
 const day = value => {
   const text = typeof value === 'string' ? value.slice(0, 10) : '';
   return /^\d{4}-\d{2}-\d{2}$/.test(text) && Number.isFinite(Date.parse(text)) ? text : '';
@@ -5,8 +7,9 @@ const day = value => {
 
 // Preserve the UKLF rule: a delay of two calendar months or more is not on time.
 export function completionOutcome(project) {
+  const expectedDates = projectCompletionDates(project);
   const pairs = [1, 2, 3, 4, 5].map(n => [
-    day(project[`riba${n}_system_date`]),
+    day(expectedDates[`riba${n}_system_date`]),
     day(n === 5 ? project.practical_completion_date : project[`riba${n}_end`]),
   ]).filter(([expected, actual]) => expected && actual);
   if (!pairs.length) return '';
