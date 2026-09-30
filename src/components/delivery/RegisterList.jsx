@@ -117,7 +117,7 @@ export function RegisterList({ title, description, entityName, projectId, projec
   const display = (row, col) => {
     const v = col.type === 'calculated' ? col.calculate(row) : row[col.key];
     if (col.type === "date") return formatDate(v);
-    if (col.type === "select") return col.options.find((o) => o.value === v)?.label || "—";
+    if (col.type === "select") return col.options.find((o) => String(o.value) === String(v))?.label || "—";
     if (col.type === "boolean") return v ? "Yes" : "No";
     return v === '' || v == null ? '—' : v;
   };
