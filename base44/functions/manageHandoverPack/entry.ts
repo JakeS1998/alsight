@@ -48,7 +48,7 @@ export default async function(req: Request): Promise<Response> {
         const item = { ...items[index], documents: [...(items[index].documents || [])] };
         if (input.action === 'review') {
           if (!['automatic','outstanding','partial','complete'].includes(input.status) || typeof input.notes !== 'string' || input.notes.length > 3000 || typeof input.link !== 'string' || input.link.length > 1000 || (input.link.trim() && !safeReference(input.link))) return failure('Use a valid review status, notes and HTTPS document link.');
-          if (input.link.startsWith('mp/private/') && !input.link.startsWith(`mp/private/${secrets.get('BASE44_APP_ID')}/`)) return failure('The document must belong to this app.');
+          if (input.link.trim().startsWith('mp/private/') && !input.link.trim().startsWith(`mp/private/${secrets.get('BASE44_APP_ID')}/`)) return failure('The document must belong to this app.');
           audit.push({ at: now, actor, action: 'Item reviewed', key: input.key, detail: JSON.stringify({ before: { status: item.review_status, notes: item.notes, link: item.link }, after: { status: input.status, notes: input.notes.trim(), link: input.link.trim() } }).slice(0, 6500) });
           Object.assign(item, { review_status: input.status, notes: input.notes.trim(), link: input.link.trim(), reviewed_at: now, reviewed_by: actor });
         } else if (input.action === 'attach') {
