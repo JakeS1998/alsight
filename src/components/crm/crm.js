@@ -34,5 +34,5 @@ export async function createCRMOpportunity(data, user) {
   const stage = data.stage || 'lead';
   const currentUser = await base44.auth.me();
   const probability = STAGES.find(s => s.value === stage)?.probability ?? 10;
-  return base44.entities.Opportunity.create({ ...data, title: data.title.trim(), owner_id: currentUser.id, owner_name: currentUser.full_name || currentUser.email, line_manager_id: currentUser.data?.line_manager_id || currentUser.line_manager_id || '', stage, probability, stage_entered_at: new Date().toISOString(), status: 'open', weighted_value: Math.round((Number(data.budget) || 0) * probability) / 100, weighted_alliance_fee: 0 });
+  return base44.entities.Opportunity.create({ ...data, title: data.title.trim(), owner_id: currentUser.id, owner_name: (user?.id === currentUser.id && user.full_name) || currentUser.full_name || currentUser.email, line_manager_id: currentUser.data?.line_manager_id || currentUser.line_manager_id || '', stage, probability, stage_entered_at: new Date().toISOString(), status: 'open', weighted_value: Math.round((Number(data.budget) || 0) * probability) / 100, weighted_alliance_fee: 0 });
 }

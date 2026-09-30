@@ -1,6 +1,7 @@
 import { createClientFromRequest } from 'npm:@base44/sdk@0.8.52';
 import { assignStaffManager } from '../../shared/pipelineManager.ts';
 import { syncStaffReporting } from '../../shared/syncStaffReporting.ts';
+import { withPortalUserNames } from '../../shared/portalUserNames.ts';
 
 export default async function(req: Request): Promise<Response> {
   try {
@@ -12,7 +13,8 @@ export default async function(req: Request): Promise<Response> {
     const internal = ['admin', 'director', 'regional_director', 'bsm', 'finance', 'bdm'];
     if (payload.action === 'list') {
       const all = await base44.asServiceRole.entities.User.list();
-      return Response.json({ users: all.filter(person => internal.includes(person.role)).map(person => ({ id: person.id, full_name: person.full_name, email: person.email, role: person.role, staff_aad_id: person.staff_aad_id || '', line_manager_id: person.line_manager_id || '' })) });
+      const named = await withPortalUserNames(base44.asServiceRole.entities, all.filter(person => internal.includes(person.role)));
+      return Response.json({ users: named.map(person => ({ id: person.id, full_name: person.full_name, email: person.email, role: person.role, staff_aad_id: person.staff_aad_id || '', line_manager_id: person.line_manager_id || '' })) });
     }
     if (payload.action === 'sync_staff') {
       if (!Array.isArray(payload.lineIds) || !payload.lineIds.length || payload.lineIds.length > 50 || payload.lineIds.some(id => typeof id !== 'string' || !/^[a-zA-Z0-9_-]{1,64}$/.test(id))) return Response.json({ error: 'Choose up to 50 verified reporting lines.' }, { status: 400 });

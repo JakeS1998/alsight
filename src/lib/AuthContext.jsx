@@ -93,7 +93,7 @@ export const AuthProvider = ({ children }) => {
         console.warn('applyPendingPortalAccess skipped:', pendingError);
       }
       const currentUser = accessResult?.applied ? await base44.auth.me() : signedInUser;
-      setUser(currentUser);
+      setUser(accessResult?.displayName ? { ...currentUser, full_name: accessResult.displayName } : currentUser);
       setIsAuthenticated(true);
       setIsLoadingAuth(false);
       setAuthChecked(true);

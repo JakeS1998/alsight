@@ -57,11 +57,11 @@ export function RequestDialog({ open, onOpenChange, accounts, users, user, onCre
       const toOpts = (arr) => arr.map((c) => ({ value: c.aad_id, label: c.full_name })).filter((o) => o.value);
       const bdmMap = new Map();
       toOpts(bdmC).forEach((o) => bdmMap.set(o.value, o));
-      (users || []).filter((u) => u.role === "bdm").forEach((u) => bdmMap.set(u.id, { value: u.id, label: u.full_name || u.email }));
+      (users || []).filter((u) => u.role === "bdm").forEach((u) => { if (!bdmMap.has(u.id)) bdmMap.set(u.id, { value: u.id, label: u.full_name || u.email }); });
       setBdmOptions([...bdmMap.values()].sort((a, b) => a.label.localeCompare(b.label)));
       const dirMap = new Map();
       toOpts(dirC).forEach((o) => dirMap.set(o.value, o));
-      (users || []).filter((u) => u.role === "director").forEach((u) => dirMap.set(u.id, { value: u.id, label: u.full_name || u.email }));
+      (users || []).filter((u) => u.role === "director").forEach((u) => { if (!dirMap.has(u.id)) dirMap.set(u.id, { value: u.id, label: u.full_name || u.email }); });
       setDirectorOptions([...dirMap.values()].sort((a, b) => a.label.localeCompare(b.label)));
       setChoicesReady(true);
     })();
