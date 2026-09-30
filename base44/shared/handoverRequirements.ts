@@ -32,7 +32,8 @@ export const complianceFields = {
   epc: [...transfer('Owner recipient (Contact)'),yes('authority_notified','Relevant authority notified'),f('notification_date','Notification date','date')],
 };
 export function complianceGaps(key, values = {}) {
-  return (complianceFields[key] || []).filter(field => !String(values[field.key] || '').trim() || (field.type === 'select' && values[field.key] !== 'Yes')).map(field => field.label);
+  const details = values ?? {};
+  return (complianceFields[key] || []).filter(field => !String(details[field.key] || '').trim() || (field.type === 'select' && details[field.key] !== 'Yes')).map(field => field.label);
 }
 export function cleanComplianceDetails(key, input) {
   if (!complianceFields[key] || !input || typeof input !== 'object' || Array.isArray(input)) throw new Error('Choose a supported statutory information record.');
