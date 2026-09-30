@@ -6,6 +6,7 @@ import { listAll, filterAll } from "@/components/data/loadAll";
 import { formatCurrency, formatDate, regionName } from "@/lib/portal";
 import { RequestDialog } from "@/components/projects/RequestDialog";
 import useProjectPage from '@/components/projects/useProjectPage';
+import FrameworkVersionBadge from '@/components/projects/FrameworkVersionBadge';
 import { projectStaffName } from "@/components/projects/projectStaffName";
 import { FilterSelect } from "@/components/FilterSelect";
 import { Button } from "@/components/ui/button";
@@ -223,6 +224,7 @@ export default function Projects() {
                       {p.project_number && (
                         <span className="rounded bg-slate-100 px-1.5 py-0.5 text-[10px] font-semibold text-slate-600">{p.project_number}</span>
                       )}
+                      <FrameworkVersionBadge projectNumber={p.project_number} />
                       <span className={p.live_project ? "rounded-full border border-emerald-200 bg-emerald-50 px-2 py-0.5 text-[10px] font-medium text-emerald-700" : "rounded-full border border-orange-200 bg-orange-50 px-2 py-0.5 text-[10px] font-medium text-orange-700"}>
                                                {p.live_project ? "Live" : "On Hold"}
                                              </span>

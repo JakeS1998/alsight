@@ -11,6 +11,7 @@ import { listAll, filterAll } from "@/components/data/loadAll";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { ProjectGeneralTab } from "@/components/projects/ProjectGeneralTab";
 import ProjectPOReferences from '@/components/projects/ProjectPOReferences';
+import FrameworkVersionBadge from '@/components/projects/FrameworkVersionBadge';
 import SupplierProjectDocuments from '@/components/projects/SupplierProjectDocuments';
 import SupplierPurchaseOrders from '@/components/projects/SupplierPurchaseOrders';
 import ProjectManagerOverview from '@/components/projects/ProjectManagerOverview';
@@ -103,6 +104,7 @@ export default function ProjectDetail() {
           {project.project_number && (
             <span className="rounded-lg bg-slate-100 px-2.5 py-1 text-sm font-medium text-slate-600">{project.project_number}</span>
           )}
+          <FrameworkVersionBadge projectNumber={project.project_number} />
           <span className={project.live_project ? "rounded-full border border-emerald-200 bg-emerald-50 px-2.5 py-0.5 text-xs font-medium text-emerald-700" : "rounded-full border border-orange-200 bg-orange-50 px-2.5 py-0.5 text-xs font-medium text-orange-700"}>{project.live_project ? "Live" : "On Hold"}</span>
           {typeof project.procurement_route === 'boolean' && (
             <span className="rounded-full bg-primary/10 px-2.5 py-0.5 text-xs font-medium text-primary">{project.procurement_route ? 'Framework' : 'Direct'}</span>
