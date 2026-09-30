@@ -1,0 +1,9 @@
+import React from 'react';
+import DataQualityLookup from '@/components/admin/DataQualityLookup';
+import DataQualityFeeLines from '@/components/admin/DataQualityFeeLines';
+export default function DataQualityEditorField({ field, value, onChange, disabled }) {
+  const cls = 'mt-1 block w-full rounded border border-input bg-background p-2 text-sm';
+  return <div className={field.type === 'fee_lines' || field.type === 'textarea' ? 'sm:col-span-2' : ''}><label className="text-sm font-medium" htmlFor={`quality-${field.key}`}>{field.label}</label>
+    {field.type === 'lookup' ? <DataQualityLookup lookup={field.lookup} value={value} disabled={disabled} onChange={onChange} /> : field.type === 'fee_lines' ? <DataQualityFeeLines value={value} disabled={disabled} onChange={onChange} /> : field.type === 'select' ? <select id={`quality-${field.key}`} className={cls} value={value ?? ''} disabled={disabled} onChange={e => onChange(e.target.value)}><option value="">Not selected</option>{field.options.map(option => <option key={option} value={option}>{option.replaceAll('_',' ')}</option>)}</select> : field.type === 'textarea' ? <textarea id={`quality-${field.key}`} rows={8} maxLength={50000} className={cls} value={value ?? ''} disabled={disabled} onChange={e => onChange(e.target.value)} /> : <input id={`quality-${field.key}`} type={field.type} step={field.type === 'number' ? 'any' : undefined} className={cls} maxLength={2000} value={value ?? ''} disabled={disabled} onChange={e => onChange(field.type === 'number' && e.target.value !== '' ? Number(e.target.value) : e.target.value)} />}
+  </div>;
+}

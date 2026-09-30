@@ -1,0 +1,10 @@
+import React from 'react';
+import { Button } from '@/components/ui/button';
+export default function DataQualityFeeLines({ value, onChange, disabled }) {
+  const rows = value || [];
+  const update = (index, key, value) => onChange(rows.map((row, i) => i === index ? { ...row, [key]: value } : row));
+  return <div className="mt-2 space-y-2">
+    {rows.map((row, index) => <div key={index} className="grid gap-2 rounded border border-border p-3 sm:grid-cols-3"><label className="text-xs">Description<input required maxLength={1000} value={row.description ?? ''} disabled={disabled} onChange={e => update(index,'description',e.target.value)} className="mt-1 w-full rounded border border-input bg-background p-2 text-sm" /></label><label className="text-xs">RIBA stage<select required value={row.riba_stage ?? ''} disabled={disabled} onChange={e => update(index,'riba_stage',e.target.value)} className="mt-1 w-full rounded border border-input bg-background p-2 text-sm"><option value="">Choose…</option>{['RIBA 1','RIBA 2','RIBA 3','RIBA 4','RIBA 5-7','Pre-construction','Construction','Other', ...(!['RIBA 1','RIBA 2','RIBA 3','RIBA 4','RIBA 5-7','Pre-construction','Construction','Other'].includes(row.riba_stage) && row.riba_stage ? [row.riba_stage] : [])].map(stage => <option key={stage}>{stage}</option>)}</select></label><label className="text-xs">Amount (£)<input required type="number" step="any" value={row.internal_fee ?? ''} disabled={disabled} onChange={e => update(index,'internal_fee',e.target.value === '' ? '' : Number(e.target.value))} className="mt-1 w-full rounded border border-input bg-background p-2 text-sm" /></label><Button type="button" size="sm" variant="ghost" disabled={disabled} onClick={() => onChange(rows.filter((_, i) => i !== index))}>Remove line</Button></div>)}
+    <Button type="button" size="sm" variant="outline" disabled={disabled || rows.length >= 100} onClick={() => onChange([...rows,{ description: '', riba_stage: '', internal_fee: '' }])}>Add fee line</Button>
+  </div>;
+}

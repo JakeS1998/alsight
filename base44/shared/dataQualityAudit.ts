@@ -77,7 +77,7 @@ export async function duplicateContacts(db, offset = 0, includeItems = false) {
   if (includeItems) {
     for (const item of result.items) {
       const page = await db.Contact.filter({ ...active, email: item.email }, { sort: 'full_name', limit: 5, fields: ['full_name'] });
-      item.related = page.items.map(contact => ({ label: contact.full_name || contact.id, href: `/contacts/${contact.id}` }));
+      item.related = page.items.map(contact => ({ id: contact.id, label: contact.full_name || contact.id, href: `/contacts/${contact.id}` }));
       item.moreContacts = page.has_more;
     }
   }

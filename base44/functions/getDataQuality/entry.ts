@@ -1,6 +1,8 @@
 import { createClientFromRequest } from 'npm:@base44/sdk@0.8.52';
 import { checks, directQueries } from '../../shared/dataQualityRules.ts';
 import { auditProjects, directCheck, duplicateContacts } from '../../shared/dataQualityAudit.ts';
+import { qualityEditContext, qualityEditorResponse, saveQualityEdit } from '../../shared/dataQualityEditor.ts';
+import { qualityLookup } from '../../shared/dataQualityLookups.ts';
 
 export default async function(req: Request): Promise<Response> {
   try {
@@ -8,8 +10,18 @@ export default async function(req: Request): Promise<Response> {
     const user = await base44.auth.me();
     if (!user || user.role !== 'admin') return Response.json({ error: 'Administrator access required.' }, { status: 403 });
     const body = await req.json();
-    if (!['summary', 'issues'].includes(body.action)) return Response.json({ error: 'Invalid quality check action.' }, { status: 400 });
+    if (!['summary', 'issues', 'editor', 'save', 'lookup', 'duplicate_records'].includes(body.action)) return Response.json({ error: 'Invalid quality check action.' }, { status: 400 });
     const db = base44.entities;
+    if (['editor','save','lookup','duplicate_records'].includes(body.action)) {
+      try {
+        if (body.action === 'editor') return Response.json(qualityEditorResponse(await qualityEditContext(db, body)));
+        if (body.action === 'save') return Response.json(await saveQualityEdit(db, body));
+        if (body.action === 'lookup') return Response.json(await qualityLookup(db, body));
+        if (typeof body.email !== 'string' || body.email.length > 320 || (body.cursor && (typeof body.cursor !== 'string' || body.cursor.length > 2000))) throw new Error('Choose a valid duplicate contact group.');
+        const page = await db.Contact.filter({ email: body.email, status: { $ne: 'inactive' } }, { sort: 'full_name', limit: 50, fields: ['full_name'], ...(body.cursor ? { cursor: body.cursor } : {}) });
+        return Response.json({ items: page.items, next_cursor: page.next_cursor, has_more: page.has_more });
+      } catch (error) { return Response.json({ error: error.message || 'Unable to edit this record.' }, { status: 400 }); }
+    }
     if (body.action === 'summary') {
       const counts = {};
       const projectResults = await auditProjects(db, null);
