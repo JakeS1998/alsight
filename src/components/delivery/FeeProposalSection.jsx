@@ -9,6 +9,7 @@ import { Plus, Trash2, Loader2, FileDown, TrendingUp, ArrowUpRight, ArrowDownRig
 import { formatCurrency, formatDate } from "@/lib/portal";
 import { exportFeeProposalPdf } from "./exportFeeProposalPdf";
 import { feeProposalTotals } from "./feeProposalTotals";
+import SupplierFeeTable from '@/components/delivery/SupplierFeeTable';
 
 const BASIS = [
   { value: "fixed", label: "Fixed" },
@@ -263,30 +264,7 @@ export function FeeProposalSection({ projectId, project, onChanged, deliveryTeam
             </div>
 
             {/* Supplier fees (from delivery team) */}
-            <div className="rounded-lg border border-slate-200 bg-slate-50 p-3">
-              <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-slate-500">Supplier fees (from Delivery Team)</p>
-              {supplierLines.length === 0 ? (
-                <p className="text-sm text-slate-400">No supplier fees yet. Add suppliers in the Delivery Team section above with fees per RIBA stage.</p>
-              ) : (
-                <div className="overflow-x-auto rounded-lg border border-border bg-card">
-                  <table className="w-full border-collapse text-sm">
-                    <thead className="bg-muted text-left text-xs font-semibold text-muted-foreground">
-                      <tr><th scope="col" className="border-b border-r border-border px-3 py-3 whitespace-nowrap">RIBA Stage</th><th scope="col" className="border-b border-r border-border px-3 py-3">Description</th><th scope="col" className="border-b border-r border-border px-3 py-3 text-right whitespace-nowrap">Supplier £</th><th scope="col" className="border-b border-border px-3 py-3 whitespace-nowrap">Fee proposal</th></tr>
-                    </thead>
-                    <tbody>
-                      {supplierLines.map((l, i) => (
-                        <tr key={i} className="border-b border-border last:border-b-0">
-                          <td className="border-r border-border px-3 py-3 whitespace-nowrap text-foreground">{l.riba_stage}</td>
-                          <td className="border-r border-border px-3 py-3 text-foreground">{l.description}</td>
-                          <td className="border-r border-border px-3 py-3 text-right whitespace-nowrap tabular-nums text-foreground">{formatCurrency(l.supplier_fee)}</td>
-                          <td className="px-3 py-3 whitespace-nowrap">{l.fee_proposal_link ? <a href={l.fee_proposal_link} target="_blank" rel="noreferrer" className="inline-flex items-center gap-1 text-primary hover:underline"><FileCheck className="h-3.5 w-3.5" /> View</a> : <span className="text-muted-foreground">—</span>}</td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                </div>
-              )}
-            </div>
+            <SupplierFeeTable lines={supplierLines} getSupplierName={supplierName} />
 
             {/* ALS / internal lines */}
             <div>
