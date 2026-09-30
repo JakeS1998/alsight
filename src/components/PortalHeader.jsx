@@ -6,13 +6,14 @@ import Logo from '@/components/Logo';
 import NotificationCenter from '@/components/NotificationCenter';
 import UserMenu from '@/components/UserMenu';
 import PortalSearch from '@/components/search/PortalSearch';
-import { LayoutDashboard, FolderKanban, Building2, ChartNoAxesCombined, UserCircle, Menu, X, Users, UserCog, BriefcaseBusiness } from 'lucide-react';
+import UKLFIcon from '@/components/framework/UKLFIcon';
+import { LayoutDashboard, FolderKanban, Building2, UserCircle, Menu, X, Users, UserCog, BriefcaseBusiness } from 'lucide-react';
 
 const ALL_ROLES = ['admin', 'director', 'regional_director', 'bsm', 'finance', 'bdm', 'client', 'supplier', 'project_manager'];
 const NAV_ITEMS = [
   { label: 'Dashboard', path: '/', icon: LayoutDashboard, roles: INTERNAL_ROLES.concat(['client', 'supplier']) },
   { label: 'Projects', path: '/projects', icon: FolderKanban, roles: ALL_ROLES },
-  { label: 'Framework reports', path: '/framework-reports', icon: ChartNoAxesCombined, roles: INTERNAL_ROLES.concat(['framework_stakeholder']) },
+  { label: 'UKLF', path: '/framework-reports', icon: UKLFIcon, roles: INTERNAL_ROLES.concat(['framework_stakeholder']) },
   { label: 'Pipeline', path: '/crm', icon: BriefcaseBusiness, roles: INTERNAL_ROLES },
   { label: 'My Account', path: '/account', icon: UserCircle, roles: ['client'] },
   { label: 'Accounts', path: '/accounts', icon: Building2, roles: ALL_ROLES.filter(role => role !== 'supplier') },
