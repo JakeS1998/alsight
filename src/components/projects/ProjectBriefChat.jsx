@@ -9,7 +9,7 @@ export default function ProjectBriefChat({ brief, onManual, onReview, ready }) {
   useEffect(() => { end.current?.scrollIntoView({ block: 'nearest' }); }, [brief.messages, brief.busy]);
   const submit = async event => { event.preventDefault(); if (await brief.send(text)) setText(''); };
   return <div className="flex min-h-0 flex-col gap-4 overflow-hidden">
-    <div className="flex shrink-0 items-center gap-2 text-sm font-semibold text-foreground"><Bot className="h-5 w-5 text-assistant" /> Brief ALICE <span className="ml-auto text-xs font-normal text-muted-foreground">{brief.confirmed.length} of 14 fields covered</span></div>
+    <div className="flex shrink-0 items-center gap-2 text-sm font-semibold text-foreground"><Bot className="h-5 w-5 text-assistant" /> Brief ALICE <span className="ml-auto text-xs font-normal text-muted-foreground">{brief.confirmed.length} of {brief.totalFields} fields covered</span></div>
     <div className="max-h-[35dvh] min-h-0 space-y-3 overflow-y-auto rounded-lg border border-border bg-card p-3" aria-live="polite" aria-label="Project brief conversation">
       {brief.messages.map((message, index) => <div key={index} className={message.role === 'user' ? 'ml-6 rounded-lg bg-primary/10 p-3 text-sm' : 'mr-6 rounded-lg bg-secondary p-3 text-sm'}>{message.role === 'user' ? <p className="whitespace-pre-wrap">{message.content}</p> : <AliceReply content={message.content} />}</div>)}
       {brief.busy && <p role="status" className="flex items-center gap-2 text-sm text-muted-foreground"><Loader2 className="h-4 w-4 animate-spin" /> ALICE is filling in your draft…</p>}<div ref={end} />

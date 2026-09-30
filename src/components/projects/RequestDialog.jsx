@@ -12,12 +12,15 @@ import { REGION_OPTIONS } from "@/lib/portal";
 import { Loader2 } from "lucide-react";
 import ProjectBriefChat from '@/components/projects/ProjectBriefChat';
 import useProjectBrief from '@/components/projects/useProjectBrief';
+import useBDMRequestDefaults from '@/components/projects/useBDMRequestDefaults';
+import RequestTimescales, { RIBA_TERMS } from '@/components/projects/RequestTimescales';
 
 const EMPTY = {
   name: "", description: "",
   client_account_id: "",
   estimated_value: "", procurement_route: true,
   site_postcode: "", construction_term_weeks: "",
+  ...Object.fromEntries(RIBA_TERMS.map(field => [field.key, ''])),
   bdm_aad_id: "", director_aad_id: "", department_id: "",
   link_to_legals: "", link_to_project_questionnaire: "", link_to_pso: "", link_to_pcs: "",
 };
@@ -32,7 +35,8 @@ export function RequestDialog({ open, onOpenChange, accounts, users, user, onCre
   const [mode, setMode] = useState('alice');
   const [choicesReady, setChoicesReady] = useState(false);
   const [submitError, setSubmitError] = useState('');
-  const brief = useProjectBrief({ form, setForm, choices: {
+  const bdmDefaults = useBDMRequestDefaults({ setForm, setDirectorOptions });
+  const brief = useProjectBrief({ form, setForm, onDirectorOption: bdmDefaults.addDirector, choices: {
     client_account_id: clientAccounts.map(account => ({ value: account.dataverse_id, label: account.name })),
     bdm_aad_id: bdmOptions, director_aad_id: directorOptions, department_id: REGION_OPTIONS,
   } });
@@ -77,7 +81,8 @@ export function RequestDialog({ open, onOpenChange, accounts, users, user, onCre
         estimated_value: form.estimated_value ? Number(form.estimated_value) : null,
         procurement_route: form.procurement_route,
         site_postcode: form.site_postcode.trim() || null,
-        construction_term_weeks: form.construction_term_weeks ? Number(form.construction_term_weeks) : null,
+        construction_term_weeks: form.construction_term_weeks !== '' ? Number(form.construction_term_weeks) : null,
+        ...Object.fromEntries(RIBA_TERMS.map(field => [field.key, form[field.key] !== '' ? Number(form[field.key]) : null])),
         bdm_aad_id: form.bdm_aad_id || null,
         director_aad_id: form.director_aad_id || null,
         department_id: form.department_id || null,
@@ -143,23 +148,14 @@ export function RequestDialog({ open, onOpenChange, accounts, users, user, onCre
             </FormGrid>
           </FormSection>
 
-          <FormSection title="Site & Timescales" description="Where the project is and how long it will run">
-            <FormGrid>
-              <FormField label="Site postcode">
-                <input value={form.site_postcode} onChange={(e) => setForm({ ...form, site_postcode: e.target.value })} className={formInputClass} />
-              </FormField>
-              <FormField label="Construction term (weeks)">
-                <input type="number" min="0" value={form.construction_term_weeks} onChange={(e) => setForm({ ...form, construction_term_weeks: e.target.value })} className={formInputClass} />
-              </FormField>
-            </FormGrid>
-          </FormSection>
+          <RequestTimescales form={form} setForm={setForm} />
 
-          <FormSection title="Team & Region" description="Assign the BDM, Director and region">
+          <FormSection title="Team & Region" description="Select the BDM to populate Director and region automatically">
             <FormGrid>
               <FormField label="BDM">
                 <LookupCombobox
                   value={form.bdm_aad_id}
-                  onChange={(v) => setForm({ ...form, bdm_aad_id: v })}
+                  onChange={bdmDefaults.choose}
                   options={bdmOptions}
                   placeholder="— Select BDM —"
                   searchPlaceholder="Search BDMs..."
@@ -184,6 +180,7 @@ export function RequestDialog({ open, onOpenChange, accounts, users, user, onCre
                 />
               </FormField>
             </FormGrid>
+            {bdmDefaults.loading ? <p role="status" className="mt-3 text-sm text-muted-foreground">Looking up Director and region…</p> : bdmDefaults.notice && <p role="status" className="mt-3 text-sm text-muted-foreground">{bdmDefaults.notice}</p>}
           </FormSection>
 
           <FormSection title="SharePoint Links" description="Paste relevant SharePoint document links">
@@ -206,7 +203,7 @@ export function RequestDialog({ open, onOpenChange, accounts, users, user, onCre
           </div>
           <DialogFooter className="shrink-0 border-t border-border pt-4">
             <Button type="button" variant="outline" onClick={() => onOpenChange(false)} disabled={submitting}>Cancel</Button>
-            <Button type="submit" disabled={submitting} className="bg-primary hover:bg-primary/90">
+            <Button type="submit" disabled={submitting || bdmDefaults.loading} className="bg-primary hover:bg-primary/90">
               {submitting ? <Loader2 className="mr-1.5 h-4 w-4 animate-spin" /> : null} Submit request
             </Button>
           </DialogFooter>
