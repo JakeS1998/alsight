@@ -17,6 +17,6 @@ export async function saveHandoverRegister(base44, item, input, actor, now) {
   Object.assign(item, { register_file_uri: file_uri, register_version: (item.register_version || 0) + 1, register_count: data.rows.length, register_saved_by: actor, register_saved_at: now, review_status: 'partial' });
 }
 export async function hydrateHandoverRegisters(base44, pack, appId) {
-  await Promise.all(pack.items.filter(item => item.register_file_uri && handoverRegisters[item.key]).map(async item => { item.registerData = await readHandoverRegister(base44, item, appId); }));
+  await Promise.all(pack.items.filter(item => item.key !== 'warranties' && item.register_file_uri && handoverRegisters[item.key]).map(async item => { item.registerData = await readHandoverRegister(base44, item, appId); }));
   return pack;
 }

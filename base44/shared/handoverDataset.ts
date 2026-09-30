@@ -1,4 +1,5 @@
 import { handoverDefinitions, complianceFields, complianceGaps } from './handoverRequirements.ts';
+import { loadProjectWarrantySchedule } from './handoverWarranties.ts';
 export { handoverDefinitions } from './handoverRequirements.ts';
 export const goldenThreadGuidance = 'https://www.gov.uk/guidance/keeping-information-about-a-higher-risk-building-the-golden-thread';
 export const handoverDisclaimer = 'England baseline only, not a compliance certificate or an exhaustive legal checklist. A competent project dutyholder must confirm work scope, transitional provisions, information sufficiency and deadlines; specialist plant, fire, water-treatment, electricity-generation and overheating duties may add requirements. Readiness is recorded-evidence readiness, not legal permission to occupy, a PC certificate, proof that defects are resolved or that the final account is settled. Higher-risk-building projects need a separate full BSR/golden-thread assessment; this baseline cannot clear their gateway.';
@@ -12,21 +13,15 @@ export async function loadHandover(base44, project, delivery) {
   const decisionsPage = await base44.entities.HandoverApplicabilityDecision.filter({ project_id: project.id }, { sort: '-decided_at', limit: 50 });
   const decisionFor = key => decisionsPage.items.find(row => row.item_key === key && row.reason?.trim().length >= 10 && row.decided_by && row.decided_at) || null;
   const goldenThreadDecision = decisionFor('golden_thread');
-  const refs = [project.id, project.dataverse_id].filter(Boolean);
-  const query = { project_id: { $in: refs }, status: { $ne: 'inactive' } };
-  const groups = await base44.entities.Warranty.aggregate({ query, groupBy: 'date_of_execution', limit: 1000 });
-  const warrantyCount = groups.rows.reduce((sum, row) => sum + row.count, 0);
-  const executedCount = groups.rows.reduce((sum, row) => sum + (row.date_of_execution ? row.count : 0), 0);
-  if (warrantyCount > 300 || groups.truncated) throw new Error('This project has too many warranties for one handover pack (maximum 300).');
-  const warranties = []; let cursor;
-  do {
-    const page = await base44.entities.Warranty.filter(query, { sort: 'warranty_id', limit: 100, fields: ['warranty_id', 'link_to_file', 'date_of_execution'], ...(cursor ? { cursor } : {}) });
-    warranties.push(...page.items); cursor = page.has_more ? page.next_cursor : null;
-  } while (cursor);
+  const { warranties, warrantyCount, completedWarrantyCount, executedCount } = await loadProjectWarrantySchedule(base44, project);
+  const linkedWarranties = warranties.map(warranty => {
+    const reference = safeReference(warranty.link_to_file);
+    return { id: warranty.id, name: warranty.warranty_id || 'Warranty', services: warranty.services || '', completed: warranty.completed, completionLabel: warranty.completionLabel, ...(reference.startsWith('mp/private/') ? { file_uri: reference } : { link: reference }) };
+  });
   const items = handoverDefinitions.map(definition => {
     const saved = (delivery.handover_items || []).find(item => item.key === definition.key) || {};
-    const documents = (saved.documents || []).map(file => ({ ...file, source: 'Uploaded evidence' }));
-    const reference = safeReference(saved.link);
+    const documents = definition.key === 'warranties' ? [] : (saved.documents || []).map(file => ({ ...file, source: 'Uploaded evidence' }));
+    const reference = definition.key === 'warranties' ? '' : safeReference(saved.link);
     if (reference) documents.push({ id: `${definition.key}-reference`, name: 'Handover document reference', ...(reference.startsWith('mp/private/') ? { file_uri: reference } : { link: reference }), source: 'Handover reference' });
     if (definition.key === 'pc') { const ref = safeReference(delivery.pc_certificate); if (ref) documents.push({ id: 'pc-closeout', name: 'PC certificate (close-out)', ...(ref.startsWith('mp/private/') ? { file_uri: ref } : { link: ref }), source: 'Project close-out' }); }
     if (definition.key === 'warranties') warranties.forEach(warranty => { const ref = safeReference(warranty.link_to_file); if (ref) documents.push({ id: warranty.id, name: warranty.warranty_id || 'Warranty', ...(ref.startsWith('mp/private/') ? { file_uri: ref } : { link: ref }), source: 'Warranty register' }); });
@@ -36,12 +31,13 @@ export async function loadHandover(base44, project, delivery) {
     const notes = saved.notes || (definition.key === 'defects' ? delivery.defects_period_notes : definition.key === 'final_account' ? delivery.final_account_notes : definition.field ? delivery[`${definition.field}_notes`] : '') || '';
     let automatic = definition.key === 'pc' ? (safeReference(delivery.pc_certificate) ? 'complete' : 'outstanding') : delivery[definition.field] || 'outstanding';
     if (definition.key === 'final_account') automatic = ['open', 'agreed', 'closed'].includes(delivery.final_account_status) ? 'complete' : 'outstanding';
-    if (definition.key === 'warranties' && warrantyCount && executedCount === warrantyCount && warranties.every(w => safeReference(w.link_to_file))) automatic = 'complete';
+    if (definition.key === 'warranties') automatic = warrantyCount > 0 && completedWarrantyCount === warrantyCount ? 'complete' : completedWarrantyCount > 0 ? 'partial' : 'outstanding';
     if (!['outstanding', 'partial', 'complete'].includes(automatic)) automatic = 'outstanding';
     const reviewStatus = saved.review_status || 'automatic';
-    let status = reviewStatus === 'automatic' ? automatic : reviewStatus;
+    let status = definition.key === 'warranties' || reviewStatus === 'automatic' ? automatic : reviewStatus;
     let gap = status === 'complete' ? '' : 'Confirm this dataset is complete.';
-    if (definition.documentRequired && !currentDocuments.length && !builtEvidence) { gap = 'Document evidence or a secure document reference is missing.'; if (status === 'complete') status = 'partial'; }
+    if (definition.key === 'warranties' && status !== 'complete') gap = warrantyCount ? 'All linked warranties must be sealed, executed or recorded as a product warranty.' : 'No active warranties are linked to this project.';
+    if (definition.documentRequired && definition.key !== 'warranties' && !currentDocuments.length && !builtEvidence) { gap = 'Document evidence or a secure document reference is missing.'; if (status === 'complete') status = 'partial'; }
     if (definition.key === 'defects' && !notes.trim() && !hasRegister) { gap = 'Record outstanding defects, owners and actions, or explicitly confirm none.'; if (status === 'complete') status = 'partial'; }
     if (definition.key === 'final_account' && !delivery.final_account_status && !notes.trim() && !hasRegister) { gap = 'Record the final account status.'; if (status === 'complete') status = 'partial'; }
     const parentDecision = definition.applicabilityParentKey ? decisionFor(definition.applicabilityParentKey) : null;
@@ -54,7 +50,7 @@ export async function loadHandover(base44, project, delivery) {
     if (gaps.length) { gap = `Missing issue / receipt information: ${gaps.join('; ')}. ` + gap; if (status === 'complete') status = 'partial'; }
     if (excluded && !retainsContract) { status = 'not_applicable'; gap = ''; }
     if (excluded && retainsContract) gap = (status === 'complete' ? '' : gap) + ' Statutory content assessed not applicable; contractual deliverable still required.';
-    return { ...definition, statutoryRequired: definition.statutory && !excluded, decision, compliance_details: saved.compliance_details || {}, complianceFields: excluded ? [] : complianceFields[definition.key] || [], status, review_status: reviewStatus, notes, link: saved.link || '', reviewed_at: saved.reviewed_at || null, reviewed_by: saved.reviewed_by || '', register_file_uri: saved.register_file_uri || '', register_version: saved.register_version || 0, register_count: saved.register_count || 0, register_saved_by: saved.register_saved_by || '', register_saved_at: saved.register_saved_at || '', documents, gap, sourceStatus: hasRegister ? 'Portal register saved; completion review required' : definition.key === 'final_account' ? delivery.final_account_status || 'Not recorded' : automatic };
+    return { ...definition, ...(definition.key === 'warranties' ? { linked_warranties: linkedWarranties, warranty_count: warrantyCount, completed_warranty_count: completedWarrantyCount } : {}), statutoryRequired: definition.statutory && !excluded, decision, compliance_details: saved.compliance_details || {}, complianceFields: excluded ? [] : complianceFields[definition.key] || [], status, review_status: reviewStatus, notes, link: saved.link || '', reviewed_at: saved.reviewed_at || null, reviewed_by: saved.reviewed_by || '', register_file_uri: saved.register_file_uri || '', register_version: saved.register_version || 0, register_count: saved.register_count || 0, register_saved_by: saved.register_saved_by || '', register_saved_at: saved.register_saved_at || '', documents, gap, sourceStatus: hasRegister ? 'Portal register saved; completion review required' : definition.key === 'final_account' ? delivery.final_account_status || 'Not recorded' : automatic };
   });
   const completed = items.filter(item => item.status === 'complete').length;
   const notApplicable = items.filter(item => item.status === 'not_applicable').length;

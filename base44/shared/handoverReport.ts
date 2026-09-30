@@ -24,6 +24,10 @@ export function createHandoverReport(pack) {
     text(item.guidance, 9); if (item.source) text(item.source, 8);
     if (item.decision) text(`Applicability: ${item.decision.value} | ${item.decision.reason} | ${item.decision.decided_by} | ${item.decision.decided_at}`, 9);
     for (const field of item.complianceFields || []) text(`${field.label}: ${field.type === 'contact' ? item.compliance_details.recipient_name || 'Not recorded' : item.compliance_details[field.key] || 'Not recorded'}`, 9);
+    if (item.linked_warranties) {
+      text(`Linked project warranties: ${item.completed_warranty_count}/${item.warranty_count} completed`, 9, true);
+      for (const warranty of item.linked_warranties) text(`${warranty.name} | ${warranty.services || 'Services not recorded'} | ${warranty.completionLabel} | ${warranty.link || (warranty.file_uri ? 'Private document' : 'No document link recorded')}`, 9);
+    }
     if (item.gap) text(`Missing / action: ${item.gap}`, 9);
     if (item.notes) text(item.notes, 9);
     if (item.registerData) {

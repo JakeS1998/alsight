@@ -55,6 +55,9 @@
         "in_review",
         "sent_for_seal",
         "drafted",
+        "sealed",
+        "executed",
+        "product_warranty",
         ""
       ],
       "default": ""
