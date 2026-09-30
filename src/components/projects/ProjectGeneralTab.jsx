@@ -95,10 +95,10 @@ export function ProjectGeneralTab({ project, accountMap, onProjectUpdated }) {
   const client = accountMap[project.client_account_id];
 
   const ribaRows = [
-    { stage: "RIBA 1", term: project.riba1_term_weeks, key: "riba1_end" },
-    { stage: "RIBA 2", term: project.riba2_term_weeks, key: "riba2_end" },
-    { stage: "RIBA 3", term: project.riba3_term_weeks, key: "riba3_end" },
-    { stage: "RIBA 4", term: project.riba4_term_weeks, key: "riba4_end" },
+    { stage: "RIBA 1", term: project.riba1_term_weeks, key: "riba1_end", expected: project.riba1_system_date },
+    { stage: "RIBA 2", term: project.riba2_term_weeks, key: "riba2_end", expected: project.riba2_system_date },
+    { stage: "RIBA 3", term: project.riba3_term_weeks, key: "riba3_end", expected: project.riba3_system_date },
+    { stage: "RIBA 4", term: project.riba4_term_weeks, key: "riba4_end", expected: project.riba4_system_date },
   ];
 
   const links = [
@@ -160,7 +160,8 @@ export function ProjectGeneralTab({ project, accountMap, onProjectUpdated }) {
               <tr className="border-b border-slate-100 text-left text-xs font-medium uppercase tracking-wide text-slate-500">
                 <th className="pb-2 pr-4">Stage</th>
                 <th className="pb-2 pr-4">Term (Weeks)</th>
-                <th className="pb-2">End Date</th>
+                <th className="pb-2 pr-4">Expected Completion</th>
+                <th className="pb-2">Actual Completion</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-50">
@@ -168,6 +169,7 @@ export function ProjectGeneralTab({ project, accountMap, onProjectUpdated }) {
                 <tr key={r.stage}>
                   <td className="py-2.5 pr-4 font-medium text-slate-900"><span className="inline-flex items-center gap-2"><StageDrawing stage={r.stage} className="h-10 w-10" />{r.stage}</span></td>
                   <td className="py-2.5 pr-4 text-slate-600">{r.term || "—"}</td>
+                  <td className="py-2.5 pr-4 text-muted-foreground" title="System date — read only">{formatDate(r.expected)}</td>
                   <td className="py-2.5">
                     {canEdit ? (
                       <input
@@ -185,6 +187,7 @@ export function ProjectGeneralTab({ project, accountMap, onProjectUpdated }) {
               <tr className="bg-slate-50">
                 <td className="py-2.5 pr-4 font-medium text-slate-900"><span className="inline-flex items-center gap-2"><StageDrawing stage="RIBA 5–7" className="h-10 w-10" />Construction</span></td>
                 <td className="py-2.5 pr-4 text-slate-600">{project.construction_term_weeks || "—"}</td>
+                <td className="py-2.5 pr-4 text-muted-foreground" title="System date — read only">{formatDate(project.riba5_system_date)}</td>
                 <td className="py-2.5 text-slate-600">{formatDate(project.practical_completion_date)}</td>
               </tr>
             </tbody>

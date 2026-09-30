@@ -1,4 +1,5 @@
 import { createClientFromRequest } from 'npm:@base44/sdk@0.8.52';
+import { completionOutcome, reportProject } from '../../shared/uklfCompletion.ts';
 
 const INTERNAL = ['admin', 'director', 'regional_director', 'bsm', 'finance', 'bdm'];
 const OUTCOMES = ['Y', 'N', ''];
@@ -24,8 +25,9 @@ export default async function(req: Request): Promise<Response> {
     const source = base44.asServiceRole.entities.FrameworkProjectReport;
     const existing = await source.get(reportId).catch(() => null);
     if (!existing) return Response.json({ error: 'UKLF report not found' }, { status: 404 });
+    const project = await reportProject(base44, existing);
     const changes = {
-      completed_on_time: kpis.completed_on_time,
+      completed_on_time: (project && completionOutcome(project)) || kpis.completed_on_time,
       completed_to_budget: kpis.completed_to_budget,
       zero_riddor: kpis.riddor_incidents === 0 ? 'Y' : 'N',
       riddor_incidents: kpis.riddor_incidents,

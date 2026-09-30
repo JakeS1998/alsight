@@ -1,26 +1,14 @@
 import { createClientFromRequest } from 'npm:@base44/sdk@0.8.52';
+import { completionOutcome, reportProject } from '../../shared/uklfCompletion.ts';
 
 const INTERNAL = ['admin', 'director', 'regional_director', 'bsm', 'finance', 'bdm'];
 const STAGES = ['pq_date', 'aa_signed', 'calloff_date', 'completed_on_time'];
 const safeId = value => typeof value === 'string' && /^[a-zA-Z0-9_-]{1,64}$/.test(value);
 const normalize = value => ` ${String(value || '').toLowerCase().replace(/&/g, ' and ').replace(/[^a-z0-9]+/g, ' ').trim().replace(/\s+/g, ' ')} `;
 const legacyName = project => normalize((project.name || '').replace(/\s*\([^)]*\)\s*$/, '').replace(/\s+(refurbishment|refurb)\s*$/i, '')).trim();
-const twoMonthsLater = date => {
-  const [year, month, day] = date.slice(0, 10).split('-').map(Number);
-  const lastDay = new Date(Date.UTC(year, month + 2, 0)).getUTCDate();
-  return Date.UTC(year, month + 1, Math.min(day, lastDay));
-};
-async function suggestedKpis(base44, report) {
-  const projects = base44.asServiceRole.entities.Project;
-  const project = report.project_id ? await projects.get(report.project_id).catch(() => null) :
-    report.project_number ? (await projects.filter({ project_number: report.project_number }, '-created_date', 1))[0] : null;
+async function suggestedKpis(base44, project) {
   if (!project) return {};
-  const pairs = [1, 2, 3, 4].filter(n => project[`riba${n}_system_date`] && project[`riba${n}_end`]);
-  const completed_on_time = pairs.length ? (pairs.some(n => {
-    const planned = project[`riba${n}_system_date`];
-    const actual = project[`riba${n}_end`];
-    return /^\d{4}-\d{2}-\d{2}/.test(planned) && /^\d{4}-\d{2}-\d{2}/.test(actual) && Date.parse(actual.slice(0, 10)) >= twoMonthsLater(planned);
-  }) ? 'N' : 'Y') : '';
+  const completed_on_time = completionOutcome(project);
   let completed_to_budget = '';
   if (Number.isFinite(project.estimated_value) && project.estimated_value > 0 && project.project_number) {
     const orders = base44.asServiceRole.entities.PurchaseOrder;
@@ -82,8 +70,11 @@ export default async function(req: Request): Promise<Response> {
           }
         }
       }
-      return Response.json({ report: report ? safeRow(report, internal) : null,
-        ...(internal && report ? { defaults: await suggestedKpis(base44, report) } : {}) });
+      const project = report ? await reportProject(base44, report, body.projectId) : null;
+      const defaults = internal && report ? await suggestedKpis(base44, project) : {};
+      const completion = project ? completionOutcome(project) : '';
+      return Response.json({ report: report ? { ...safeRow(report, internal), ...(completion ? { completed_on_time: completion } : {}) } : null,
+        ...(internal && report ? { defaults: { ...defaults, completed_on_time: completion } } : {}) });
     }
     const page = Number(body?.page ?? 0);
     if (!Number.isInteger(page) || page < 0 || page > 10000) return Response.json({ error: 'Invalid page' }, { status: 400 });
