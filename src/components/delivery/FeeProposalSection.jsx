@@ -268,18 +268,18 @@ export function FeeProposalSection({ projectId, project, onChanged, deliveryTeam
               {supplierLines.length === 0 ? (
                 <p className="text-sm text-slate-400">No supplier fees yet. Add suppliers in the Delivery Team section above with fees per RIBA stage.</p>
               ) : (
-                <div className="overflow-x-auto">
-                  <table className="w-full text-sm">
-                    <thead className="text-left text-xs text-slate-500">
-                      <tr><th className="py-1 pr-2">RIBA Stage</th><th className="py-1 pr-2">Description</th><th className="py-1 pr-2 text-right">Supplier £</th><th className="py-1 pr-2">Fee proposal</th></tr>
+                <div className="overflow-x-auto rounded-lg border border-border bg-card">
+                  <table className="w-full border-collapse text-sm">
+                    <thead className="bg-muted text-left text-xs font-semibold text-muted-foreground">
+                      <tr><th scope="col" className="border-b border-r border-border px-3 py-3 whitespace-nowrap">RIBA Stage</th><th scope="col" className="border-b border-r border-border px-3 py-3">Description</th><th scope="col" className="border-b border-r border-border px-3 py-3 text-right whitespace-nowrap">Supplier £</th><th scope="col" className="border-b border-border px-3 py-3 whitespace-nowrap">Fee proposal</th></tr>
                     </thead>
-                    <tbody className="divide-y divide-slate-100">
+                    <tbody>
                       {supplierLines.map((l, i) => (
-                        <tr key={i}>
-                          <td className="py-1.5 pr-2 text-slate-700">{l.riba_stage}</td>
-                          <td className="py-1.5 pr-2 text-slate-700">{l.description}</td>
-                          <td className="py-1.5 pr-2 text-right text-slate-700">{formatCurrency(l.supplier_fee)}</td>
-                          <td className="py-1.5 pr-2">{l.fee_proposal_link ? <a href={l.fee_proposal_link} target="_blank" rel="noreferrer" className="inline-flex items-center gap-1 text-primary hover:underline"><FileCheck className="h-3.5 w-3.5" /> View</a> : <span className="text-slate-400">—</span>}</td>
+                        <tr key={i} className="border-b border-border last:border-b-0">
+                          <td className="border-r border-border px-3 py-3 whitespace-nowrap text-foreground">{l.riba_stage}</td>
+                          <td className="border-r border-border px-3 py-3 text-foreground">{l.description}</td>
+                          <td className="border-r border-border px-3 py-3 text-right whitespace-nowrap tabular-nums text-foreground">{formatCurrency(l.supplier_fee)}</td>
+                          <td className="px-3 py-3 whitespace-nowrap">{l.fee_proposal_link ? <a href={l.fee_proposal_link} target="_blank" rel="noreferrer" className="inline-flex items-center gap-1 text-primary hover:underline"><FileCheck className="h-3.5 w-3.5" /> View</a> : <span className="text-muted-foreground">—</span>}</td>
                         </tr>
                       ))}
                     </tbody>
