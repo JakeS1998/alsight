@@ -5,7 +5,7 @@ import { ChevronRight } from 'lucide-react';
 import { projectStage, STAGES } from '@/components/dashboard/pipelineStage';
 import PipelineTimelineDetail from '@/components/dashboard/PipelineTimelineDetail';
 import PipelineOpportunityDetail from '@/components/dashboard/PipelineOpportunityDetail';
-import StageDrawing from '@/components/projects/StageDrawing';
+import PipelineStageArtwork from '@/components/dashboard/PipelineStageArtwork';
 
 export default function PipelineTimeline({ projects, accountMap }) {
   const [selected, setSelected] = useState(null);
@@ -29,7 +29,7 @@ export default function PipelineTimeline({ projects, accountMap }) {
       {nodes.map((node, index) => <React.Fragment key={node.stage}>
         {index > 0 && <div aria-hidden="true" className="flex h-7 items-center justify-center text-slate-400 md:h-auto md:w-5 md:shrink-0"><ChevronRight className="h-4 w-4 rotate-90 md:rotate-0" /></div>}
         <button type="button" onClick={() => setSelected(selected === node.stage ? null : node.stage)} aria-expanded={selected === node.stage} aria-controls="pipeline-timeline-detail" className={`relative isolate min-h-36 min-w-0 overflow-hidden rounded-xl border px-3 py-4 text-left transition-colors md:min-w-36 md:flex-1 ${selected === node.stage ? 'border-primary bg-primary/10' : index === 0 ? 'border-als-navy bg-als-navy text-white hover:bg-als-navy-light' : 'border-slate-200 bg-slate-50 hover:border-primary'}`}>
-          <StageDrawing bare stage={index === 0 ? 'PIPELINE' : node.stage} className={`pointer-events-none absolute -bottom-9 -right-9 h-36 w-36 opacity-40 contrast-125 brightness-105 ${index === 0 && selected !== node.stage ? 'invert grayscale mix-blend-screen' : 'mix-blend-multiply'}`} />
+          <PipelineStageArtwork stage={index === 0 ? 'PIPELINE' : node.stage} className={`pointer-events-none absolute -bottom-9 -right-9 h-36 w-36 opacity-40 contrast-125 brightness-105 ${index === 0 && selected !== node.stage ? 'invert grayscale mix-blend-screen' : 'mix-blend-multiply'}`} />
           <span className={`relative z-10 block text-xs font-bold tracking-wide ${selected === node.stage ? 'text-als-navy' : index === 0 ? 'text-white' : 'text-slate-600'}`}>{node.label}</span>
           <strong className="relative z-10 mt-3 block text-xl">{index === 0 && opportunityError ? 'Unavailable' : node.count ?? 'Loading…'} <span className="text-xs font-normal">{index === 0 ? 'opportunities' : 'projects'}</span></strong>
           <span className="relative z-10 mt-1 block text-sm font-medium">{index === 0 && opportunityError ? '—' : node.value == null ? 'Loading…' : formatCurrency(node.value)}</span>
