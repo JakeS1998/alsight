@@ -16,34 +16,41 @@ import PortfolioSummary from "@/components/dashboard/PortfolioSummary";
 import PipelineTimeline from "@/components/dashboard/PipelineTimeline";
 import DashboardAttention from "@/components/dashboard/DashboardAttention";
 import { projectStage } from "@/components/dashboard/pipelineStage";
+import projectScope from '@/components/projects/projectScope';
 
 export default function Home() {
   const { user } = useAuth();
   const role = user?.role || "client";
   const internal = INTERNAL_ROLES.includes(role);
-  const { data: extras, loading: extrasLoading, error: extrasError } = usePortfolioExtras(internal);
+  const { data: extras, loading: extrasLoading, error: extrasError } = usePortfolioExtras(!!user && internal);
   const [projects, setProjects] = useState([]);
   const [accounts, setAccounts] = useState([]);
   const [staffAadId, setStaffAadId] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [loadedFor, setLoadedFor] = useState(null);
+  const [loadError, setLoadError] = useState('');
+  const [retry, setRetry] = useState(0);
   const [riskExpanded, setRiskExpanded] = useState(false);
 
   useEffect(() => {
+    if (!user?.id) return;
+    let active = true;
+    setLoading(true);
+    setLoadError('');
     (async () => {
       try {
-        const [p, a, contact] = await Promise.all([
-          role === 'supplier' ? base44.functions.invoke('supplierProjectAccess', { action: 'projects' }).then(res => res.data.projects || []) : filterAll(base44.entities.Project, { status: { $ne: "inactive" } }, "-created_date"),
-          listAll(base44.entities.Account, "-name").catch(() => []),
-          ['bdm', 'bsm'].includes(role) && user?.email ? base44.entities.Contact.filter({ email: { $regex: `^${user.email.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}$`, $options: 'i' } }, { limit: 1, fields: ['aad_id'] }).then(page => page.items[0]).catch(() => null) : null,
+        const contact = ['bdm', 'bsm'].includes(role) && user.email ? (await base44.entities.Contact.filter({ email: { $regex: `^${user.email.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}$`, $options: 'i' } }, { limit: 1, fields: ['aad_id'] })).items[0] : null;
+        const [p, a] = await Promise.all([
+          role === 'supplier' ? base44.functions.invoke('supplierProjectAccess', { action: 'projects' }).then(res => res.data.projects || []) : filterAll(base44.entities.Project, { $and: [{ status: { $ne: 'inactive' } }, projectScope(user, contact?.aad_id)] }, '-created_date'),
+          listAll(base44.entities.Account, '-name').catch(() => []),
         ]);
-        setProjects(p);
-        setAccounts(a);
-        setStaffAadId(contact?.aad_id || null);
-      } finally {
-        setLoading(false);
-      }
+        if (active) { setProjects(p); setAccounts(a); setStaffAadId(contact?.aad_id || null); setLoadedFor(`${user.id}:${role}`); }
+      } catch (error) {
+        if (active) setLoadError('The dashboard could not load. Please try again.');
+      } finally { if (active) setLoading(false); }
     })();
-  }, [role, user?.email]);
+    return () => { active = false; };
+  }, [role, user?.id, user?.email, user?.staff_aad_id, user?.region, user?.delegate_of, user?.data?.staff_aad_id, user?.data?.region, user?.data?.delegate_of, retry]);
 
   const accountMap = useMemo(() => {
     const map = {};
@@ -81,7 +88,8 @@ export default function Home() {
 
   if (role === 'project_manager') return <Navigate to="/projects" replace />;
 
-  if (loading || (internal && extrasLoading)) {
+  if (loadError) return <div role="alert" className="rounded-xl border border-border bg-card p-6 text-center"><p className="text-sm text-destructive">{loadError}</p><button type="button" onClick={() => setRetry(value => value + 1)} className="mt-3 text-sm text-foreground underline">Try again</button></div>;
+  if (!user || loadedFor !== `${user.id}:${role}` || loading || (internal && (extrasLoading || invoicesLoading))) {
     return (
       <div className="flex items-center justify-center py-20">
         <div className="h-8 w-8 animate-spin rounded-full border-4 border-slate-200 border-t-slate-800" />

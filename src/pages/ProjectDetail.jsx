@@ -114,7 +114,7 @@ export default function ProjectDetail() {
       </div>
 
       <Tabs value={activeTab} onValueChange={tab => { setActiveTab(tab); setEditUKLFKpis(false); }}>
-      <div className="relative"><div className="overflow-x-auto pb-2 [scrollbar-width:thin]" aria-label="Scroll to see all project tabs"><TabsList className="h-auto w-max min-w-full flex-nowrap justify-start gap-1 [&>button]:shrink-0 [&>button]:snap-start">
+      <div className="relative"><div className="snap-x snap-proximity overflow-x-auto pb-2 [scrollbar-width:thin]" aria-label="Scroll to see all project tabs"><TabsList className="h-auto w-max min-w-full flex-nowrap justify-start gap-1 [&>button]:shrink-0 [&>button]:snap-start">
         <TabsTrigger value="general"><LayoutDashboard className="mr-1.5 h-4 w-4" /> {isSupplier || isExternalPM ? 'Project details' : 'General'}</TabsTrigger>
         <TabsTrigger value="timeline"><Calendar className="mr-1.5 h-4 w-4" /> Timeline</TabsTrigger>
         <TabsTrigger value="drafting"><FileText className="mr-1.5 h-4 w-4" /> Documents</TabsTrigger>

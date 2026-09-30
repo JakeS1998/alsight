@@ -5,6 +5,7 @@ import { base44 } from "@/api/base44Client";
 import { listAll, filterAll } from "@/components/data/loadAll";
 import { formatCurrency, formatDate, regionName } from "@/lib/portal";
 import { RequestDialog } from "@/components/projects/RequestDialog";
+import useProjectPage from '@/components/projects/useProjectPage';
 import { projectStaffName } from "@/components/projects/projectStaffName";
 import { FilterSelect } from "@/components/FilterSelect";
 import { Button } from "@/components/ui/button";
@@ -24,11 +25,11 @@ export default function Projects() {
   const role = user?.role || "client";
   const canRequest = ["admin", "director", "bdm"].includes(role);
 
-  const [projects, setProjects] = useState([]);
+  const [externalProjects, setProjects] = useState([]);
   const [accounts, setAccounts] = useState([]);
   const [users, setUsers] = useState([]);
   const [contacts, setContacts] = useState([]);
-  const [loading, setLoading] = useState(true);
+  const [metadataLoading, setLoading] = useState(true);
   const [requestOpen, setRequestOpen] = useState(false);
 
   const [search, setSearch] = useState("");
@@ -37,6 +38,16 @@ export default function Projects() {
   const [bsmFilter, setBsmFilter] = useState("");
   const [regionFilter, setRegionFilter] = useState("");
   const [statusFilter, setStatusFilter] = useState("");
+  const serverPaging = !['supplier', 'project_manager'].includes(role);
+  const [cursor, setCursor] = useState(null);
+  const [previousCursors, setPreviousCursors] = useState([]);
+  const [refreshKey, setRefreshKey] = useState(0);
+  const [searchTerm, setSearchTerm] = useState('');
+  useEffect(() => { const timer = setTimeout(() => setSearchTerm(search), 300); return () => clearTimeout(timer); }, [search]);
+  useEffect(() => { setCursor(null); setPreviousCursors([]); }, [searchTerm, sortBy, bdmFilter, bsmFilter, regionFilter, statusFilter]);
+  const projectPage = useProjectPage(user, { search: searchTerm, sort: sortBy, bdm: bdmFilter, bsm: bsmFilter, region: regionFilter, status: statusFilter }, cursor, serverPaging, refreshKey);
+  const projects = serverPaging ? projectPage.items : externalProjects;
+  const loading = metadataLoading || projectPage.loading;
 
   const load = async () => {
     setLoading(true);
@@ -47,7 +58,7 @@ export default function Projects() {
         return;
       }
       const [p, a, u, staffContacts] = await Promise.all([
-        role === 'supplier' ? base44.functions.invoke('supplierProjectAccess', { action: 'projects' }).then(res => res.data.projects || []) : filterAll(base44.entities.Project, { status: { $ne: 'inactive' } }),
+        role === 'supplier' ? base44.functions.invoke('supplierProjectAccess', { action: 'projects' }).then(res => res.data.projects || []) : [],
         listAll(base44.entities.Account, "-name").catch(() => []),
         listAll(base44.entities.User).catch(() => []),
         (async () => {
@@ -83,23 +94,25 @@ export default function Projects() {
   }, [contacts, users]);
 
   const bdmOptions = useMemo(() => {
-    const ids = [...new Set(projects.map((p) => p.bdm_aad_id).filter(Boolean))];
+    const ids = serverPaging ? projectPage.options?.bdm || [] : [...new Set(projects.map((p) => p.bdm_aad_id).filter(Boolean))];
     return ids.map((id) => ({ value: id, label: projectStaffName(id, staffMap) || "Unknown" }));
-  }, [projects, staffMap]);
+  }, [projects, staffMap, serverPaging, projectPage.options]);
 
   const bsmOptions = useMemo(() => {
-    const ids = [...new Set(projects.map((p) => p.bsm_aad_id).filter(Boolean))];
+    const ids = serverPaging ? projectPage.options?.bsm || [] : [...new Set(projects.map((p) => p.bsm_aad_id).filter(Boolean))];
     return ids.map((id) => ({ value: id, label: projectStaffName(id, staffMap) || "Unknown" }));
-  }, [projects, staffMap]);
+  }, [projects, staffMap, serverPaging, projectPage.options]);
 
   const regionOptions = useMemo(() => {
+    if (serverPaging) return (projectPage.options?.region || []).map(r => ({ value: r, label: regionName(r) })).sort((a, b) => a.label.localeCompare(b.label));
     const regions = [...new Set(
       projects.map((p) => regionName(p.department_id)).filter(Boolean)
     )].sort();
     return regions.map((r) => ({ value: r, label: r }));
-  }, [projects, accountMap]);
+  }, [projects, accountMap, serverPaging, projectPage.options]);
 
   const filtered = useMemo(() => {
+    if (serverPaging) return projects;
     let result = projects;
 
     if (search) {
@@ -127,7 +140,7 @@ export default function Projects() {
         default: return 0;
       }
     });
-  }, [projects, search, bdmFilter, bsmFilter, regionFilter, statusFilter, sortBy, accountMap]);
+  }, [projects, search, bdmFilter, bsmFilter, regionFilter, statusFilter, sortBy, accountMap, serverPaging]);
 
   const hasFilters = search || bdmFilter || bsmFilter || regionFilter || statusFilter;
   const clearFilters = () => {
@@ -150,7 +163,7 @@ export default function Projects() {
         )}
       </div>
 
-      {!loading && projects.length > 0 && (
+      {(serverPaging || (!loading && projects.length > 0)) && (
         <div className="space-y-3">
           <div className="flex flex-wrap items-center gap-2">
             <div className="relative min-w-[200px] flex-1">
@@ -177,10 +190,11 @@ export default function Projects() {
               </button>
             )}
           </div>
-          <p className="text-xs text-slate-400">{filtered.length} of {projects.length} projects</p>
+          <p className="text-xs text-muted-foreground">{serverPaging ? projectPage.counts ? `${projectPage.counts.matching} matching of ${projectPage.counts.total} projects` : 'Loading project totals…' : `${filtered.length} of ${projects.length} projects`}</p>
         </div>
       )}
 
+      {projectPage.error && <p role="alert" className="rounded-lg border border-destructive p-3 text-sm text-destructive">Unable to load projects. <button type="button" className="underline" onClick={() => setRefreshKey(k => k + 1)}>Try again</button></p>}
       {loading ? (
         <div className="flex justify-center py-20">
           <div className="h-8 w-8 animate-spin rounded-full border-4 border-slate-200 border-t-primary" />
@@ -188,8 +202,8 @@ export default function Projects() {
       ) : filtered.length === 0 ? (
         <div className="rounded-2xl border border-dashed border-slate-300 bg-white py-16 text-center">
           <FolderKanban className="mx-auto h-8 w-8 text-slate-300" />
-          <p className="mt-3 text-sm text-slate-500">{projects.length === 0 ? "No projects to show yet." : "No projects match your filters."}</p>
-          {projects.length > 0 && hasFilters && (
+          <p className="mt-3 text-sm text-slate-500">{hasFilters ? "No projects match your filters." : "No projects to show yet."}</p>
+          {hasFilters && (
             <button onClick={clearFilters} className="mt-2 text-sm text-primary hover:underline">Clear filters</button>
           )}
         </div>
@@ -229,13 +243,14 @@ export default function Projects() {
         </div>
       )}
 
+      {serverPaging && (previousCursors.length > 0 || projectPage.next) && <div className="flex justify-between gap-3"><Button variant="outline" disabled={!previousCursors.length || loading} onClick={() => { setCursor(previousCursors[previousCursors.length - 1]); setPreviousCursors(values => values.slice(0, -1)); }}>Previous page</Button><Button variant="outline" disabled={!projectPage.next || loading} onClick={() => { setPreviousCursors(values => [...values, cursor]); setCursor(projectPage.next); }}>Next page</Button></div>}
       <RequestDialog
         open={requestOpen}
         onOpenChange={setRequestOpen}
         accounts={accounts}
         users={users}
         user={user}
-        onCreated={load}
+        onCreated={() => { load(); setCursor(null); setPreviousCursors([]); setRefreshKey(k => k + 1); }}
       />
     </div>
   );
