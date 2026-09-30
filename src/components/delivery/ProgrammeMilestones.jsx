@@ -14,8 +14,11 @@ function daysFromToday(dateStr) {
   return Math.round((d - today) / 86400000);
 }
 
-export function ProgrammeMilestones({ project, feeProposals, jcts }) {
+export function ProgrammeMilestones({ project, feeProposals, jcts, delivery }) {
   const milestones = useMemo(() => {
+    const pcDate = project.practical_completion_date || delivery?.pc_achieved;
+    const pcAchieved = !!pcDate && daysFromToday(pcDate) !== null && daysFromToday(pcDate) <= 0;
+    const handoverComplete = delivery?.client_handover === 'complete';
     const acceptedFee = feeProposals.find((f) => f.status === "accepted");
     const jctExec = jcts.find((j) => j.executed === "yes") || jcts[0];
     return [
@@ -24,18 +27,17 @@ export function ProgrammeMilestones({ project, feeProposals, jcts }) {
       { label: "Agreement", date: project.aa_executed_date, details: project.aa_executed_date ? [`Access Agreement execution recorded: ${formatDate(project.aa_executed_date)}.`] : ['Missing: Access Agreement execution date.'] },
       ...[2, 3, 4].map(stage => ({ label: `RIBA ${stage}`, date: project[`riba${stage}_end`], details: [project[`riba${stage}_end`] ? `Recorded actual completion: ${formatDate(project[`riba${stage}_end`])}.` : `Missing: RIBA ${stage} actual completion date.`, 'The milestone uses the recorded date; separate stage approval is not recorded here.'] })),
       { label: "Contract", date: jctExec?.date_of_execution, details: documentChecklistDetails(jctExec, 'JCT contract') },
-      { label: "Construction", date: project.ie_commencement_date, details: project.ie_commencement_date ? [`Commencement date recorded: ${formatDate(project.ie_commencement_date)}.`, 'This date is not a separate construction sign-off.'] : ['Missing: commencement date.'] },
-      { label: "PC", date: project.practical_completion_date, details: project.practical_completion_date ? [`Practical completion date recorded: ${formatDate(project.practical_completion_date)}.`, 'Certificate sign-off is not confirmed by this date alone.'] : ['Missing: practical completion date.'] },
+      { label: "Construction", date: pcDate, done: pcAchieved, details: pcDate ? [`Practical completion date recorded: ${formatDate(pcDate)}.`, pcAchieved ? 'Construction complete: PC achieved.' : 'PC date is in the future; construction is not yet complete.', 'Certificate sign-off is not confirmed by this date alone.'] : ['Outstanding: practical completion date.', 'Construction turns green when PC is achieved; no commencement date is required.'] },
+      { label: "Handover", date: null, done: handoverComplete, text: handoverComplete ? 'Complete' : 'Outstanding', details: [handoverComplete ? 'Client handover recorded as complete.' : `Client handover: ${delivery?.client_handover || 'outstanding'}.`, 'Uses the client handover status in Practical Completion & Close-out, independently of PC.', 'No handover date is recorded.'] },
     ];
-  }, [project, feeProposals, jcts]);
+  }, [project, feeProposals, jcts, delivery?.pc_achieved, delivery?.client_handover]);
 
   return (
     <FormSection title="5 · Programme" description="High-level milestone programme built from your existing RIBA and contract dates">
       <div className="flex flex-wrap items-stretch gap-2">
         {milestones.map((m, i) => {
-          const done = !!m.date;
+          const done = m.done ?? !!m.date;
           const days = daysFromToday(m.date);
-          const overdue = !done ? null : (m.label === "PC" || m.label === "Construction" ? null : null);
           const upcoming = !done && days !== null && days < 0;
           return (
             <div key={m.label} className="flex items-center">
@@ -45,7 +47,7 @@ export function ProgrammeMilestones({ project, feeProposals, jcts }) {
                   {done ? <CheckCircle2 className="h-4 w-4 text-emerald-600" /> : upcoming ? <AlertTriangle className="h-4 w-4 text-amber-600" /> : <Circle className="h-4 w-4 text-slate-300" />}
                   <span className="text-sm font-semibold text-slate-800">{m.label}</span>
                 </div>
-                <div className="mt-1 text-xs text-slate-600">{m.date ? formatDate(m.date) : "—"}</div>
+                <div className="mt-1 text-xs text-slate-600">{m.text || (m.date ? formatDate(m.date) : "—")}</div>
                 {done && days !== null && (
                   <div className={`mt-0.5 text-[11px] font-medium ${days < 0 ? "text-slate-400" : "text-emerald-700"}`}>
                     {days < 0 ? `${Math.abs(days)}d ago` : `in ${days}d`}

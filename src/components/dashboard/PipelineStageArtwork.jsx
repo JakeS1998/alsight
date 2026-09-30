@@ -13,5 +13,5 @@ const artwork = {
 export default function PipelineStageArtwork({ stage, className }) {
   const image = artwork[stage];
   if (!image) return null;
-  return <Image src={`https://media.base44.com/images/public/6ab62433a194f918c54c8249/${image}_generated_image.png`} alt="" aria-hidden="true" fittingType="fit" className={`shrink-0 ${className || ''}`} />;
+  return <Image src={`https://media.base44.com/images/public/6ab62433a194f918c54c8249/${image}_generated_image.png`} alt="" aria-hidden="true" fittingType="fit" className={`shrink-0 mix-blend-multiply grayscale contrast-125 brightness-110 ${className || ''}`} />;
 }
