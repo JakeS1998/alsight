@@ -14,6 +14,7 @@ import ProjectBriefChat from '@/components/projects/ProjectBriefChat';
 import useProjectBrief from '@/components/projects/useProjectBrief';
 import useBDMRequestDefaults from '@/components/projects/useBDMRequestDefaults';
 import RequestTimescales, { RIBA_TERMS } from '@/components/projects/RequestTimescales';
+import RequestReviewHints from '@/components/projects/RequestReviewHints';
 
 const EMPTY = {
   name: "", description: "",
@@ -73,7 +74,9 @@ export function RequestDialog({ open, onOpenChange, accounts, users, user, onCre
     setSubmitting(true);
     setSubmitError('');
     try {
+      const briefFileUri = await brief.archive(user);
       await base44.entities.Project.create({
+        ...(briefFileUri ? { request_brief_file_uri: briefFileUri } : {}),
         name: form.name.trim(),
         description: form.description.trim(),
         project_number: "",
@@ -105,7 +108,7 @@ export function RequestDialog({ open, onOpenChange, accounts, users, user, onCre
   };
 
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
+    <Dialog open={open} onOpenChange={value => { if (!submitting) onOpenChange(value); }}>
       <DialogContent className="flex max-h-[calc(100dvh-2rem)] w-[calc(100%-2rem)] flex-col overflow-hidden sm:max-w-2xl">
         <DialogHeader className="shrink-0 pr-6">
           <DialogTitle>{mode === 'review' ? 'Review your project request' : 'Request a new project'}</DialogTitle>
@@ -201,6 +204,7 @@ export function RequestDialog({ open, onOpenChange, accounts, users, user, onCre
           </FormSection>
 
           </div>
+          {brief.messages.length > 1 && <RequestReviewHints form={form} confirmed={brief.confirmed} />}
           <DialogFooter className="shrink-0 border-t border-border pt-4">
             <Button type="button" variant="outline" onClick={() => onOpenChange(false)} disabled={submitting}>Cancel</Button>
             <Button type="submit" disabled={submitting || bdmDefaults.loading} className="bg-primary hover:bg-primary/90">

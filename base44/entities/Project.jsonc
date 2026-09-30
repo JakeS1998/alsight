@@ -11,6 +11,10 @@
     "description": {
       "type": "string"
     },
+    "request_brief_file_uri": {
+      "type": "string",
+      "description": "Private JSON archive of the originating ALICE conversation, source document references and submitted request"
+    },
     "client_account_id": {
       "type": "string"
     },

@@ -8,6 +8,7 @@ import ProjectPOReferences from '@/components/projects/ProjectPOReferences';
 import StageDrawing from '@/components/projects/StageDrawing';
 import { projectCompletionDates } from '@/components/projects/projectCompletionDates';
 import ProjectDocumentStatuses from '@/components/projects/ProjectDocumentStatuses';
+import ProjectBriefHistory from '@/components/projects/ProjectBriefHistory';
 import { projectStaffName } from '@/components/projects/projectStaffName';
 import { formatDate, formatCurrency, regionName, INTERNAL_ROLES } from "@/lib/portal";
 import { Button } from "@/components/ui/button";
@@ -115,6 +116,7 @@ export function ProjectGeneralTab({ project, accountMap, onProjectUpdated }) {
   return (
     <div className="space-y-6">
       {INTERNAL_ROLES.includes(role) && <ValuationSnapshot project={project} />}
+      {INTERNAL_ROLES.includes(role) && project.request_brief_file_uri && <ProjectBriefHistory fileUri={project.request_brief_file_uri} />}
       {INTERNAL_ROLES.includes(role) && <><div className="rounded-xl border border-slate-200 bg-white p-5"><h3 className="mb-2 font-semibold text-slate-900">Project references</h3><p className="text-sm text-slate-600">Legal project: {project.project_number || '—'}</p><ProjectPOReferences project={project} compact /></div></>}
       {/* Key info cards */}
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
