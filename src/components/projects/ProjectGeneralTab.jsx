@@ -34,6 +34,7 @@ export function ProjectGeneralTab({ project, accountMap, onProjectUpdated }) {
     riba2_end: toDateInput(project.riba2_end),
     riba3_end: toDateInput(project.riba3_end),
     riba4_end: toDateInput(project.riba4_end),
+    practical_completion_date: toDateInput(project.practical_completion_date),
   });
   const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState(false);
@@ -61,6 +62,7 @@ export function ProjectGeneralTab({ project, accountMap, onProjectUpdated }) {
       riba2_end: toDateInput(project.riba2_end),
       riba3_end: toDateInput(project.riba3_end),
       riba4_end: toDateInput(project.riba4_end),
+    practical_completion_date: toDateInput(project.practical_completion_date),
     });
   }, [project.id]);
 
@@ -188,7 +190,17 @@ export function ProjectGeneralTab({ project, accountMap, onProjectUpdated }) {
                 <td className="py-2.5 pr-4 font-medium text-slate-900"><span className="inline-flex items-center gap-2"><StageDrawing stage="RIBA 5–7" className="h-10 w-10" />Construction</span></td>
                 <td className="py-2.5 pr-4 text-slate-600">{project.construction_term_weeks || "—"}</td>
                 <td className="py-2.5 pr-4 text-muted-foreground" title="System date — read only">{formatDate(project.riba5_system_date)}</td>
-                <td className="py-2.5 text-slate-600">{formatDate(project.practical_completion_date)}</td>
+                <td className="py-2.5">
+                  {canEdit ? (
+                    <input
+                      type="date"
+                      aria-label="Construction Actual Completion"
+                      value={ribaDates.practical_completion_date}
+                      onChange={(e) => setRibaDates({ ...ribaDates, practical_completion_date: e.target.value })}
+                      className="h-9 rounded-lg border border-slate-300 bg-white px-2.5 text-sm text-slate-900 focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20"
+                    />
+                  ) : <span className="text-slate-600">{formatDate(project.practical_completion_date)}</span>}
+                </td>
               </tr>
             </tbody>
           </table>

@@ -63,9 +63,10 @@ export default async function(req: Request): Promise<Response> {
     if (action === 'project') return Response.json({ project: { ...publicProject(project), can_submit_valuation: isManager || isSupplierManager } });
     if (action === 'riba_dates') {
       if (!isManager && !isSupplierManager) return response('Project manager access required', 403);
-      const keys = ['riba1_end', 'riba2_end', 'riba3_end', 'riba4_end'];
+      const keys = ['riba1_end', 'riba2_end', 'riba3_end', 'riba4_end', 'practical_completion_date'];
       const changes = {};
       for (const key of keys) {
+        if (key === 'practical_completion_date' && input[key] === undefined) continue;
         const value = input[key];
         if (value !== null && (typeof value !== 'string' || !/^\d{4}-\d{2}-\d{2}$/.test(value) || !Number.isFinite(Date.parse(value)) || new Date(value).toISOString().slice(0, 10) !== value)) return response('Enter valid RIBA end dates');
         changes[key] = value ? `${value}T00:00:00.000Z` : null;
