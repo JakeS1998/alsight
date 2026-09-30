@@ -37,6 +37,8 @@ export async function loadHandover(base44, project, delivery) {
     if (definition.key === 'pc') { const ref = safeReference(delivery.pc_certificate); if (ref) documents.push({ id: 'pc-closeout', name: 'PC certificate (close-out)', ...(ref.startsWith('mp/private/') ? { file_uri: ref } : { link: ref }), source: 'Project close-out' }); }
     if (definition.key === 'warranties') warranties.forEach(warranty => { const ref = safeReference(warranty.link_to_file); if (ref) documents.push({ id: warranty.id, name: warranty.warranty_id || 'Warranty', ...(ref.startsWith('mp/private/') ? { file_uri: ref } : { link: ref }), source: 'Warranty register' }); });
     const currentDocuments = documents.filter(file => !file.superseded);
+    const hasRegister = !!safeReference(saved.register_file_uri);
+    const builtEvidence = hasRegister && ['om','hs','training','assets'].includes(definition.key);
     const notes = saved.notes || (definition.key === 'defects' ? delivery.defects_period_notes : definition.key === 'final_account' ? delivery.final_account_notes : definition.field ? delivery[`${definition.field}_notes`] : '') || '';
     let automatic = definition.key === 'pc' ? (safeReference(delivery.pc_certificate) ? 'complete' : 'outstanding') : delivery[definition.field] || 'outstanding';
     if (definition.key === 'final_account') automatic = ['open', 'agreed', 'closed'].includes(delivery.final_account_status) ? 'complete' : 'outstanding';
@@ -45,10 +47,10 @@ export async function loadHandover(base44, project, delivery) {
     const reviewStatus = saved.review_status || 'automatic';
     let status = reviewStatus === 'automatic' ? automatic : reviewStatus;
     let gap = status === 'complete' ? '' : 'Confirm this dataset is complete.';
-    if (definition.documentRequired && !currentDocuments.length) { gap = 'Document evidence or a secure document reference is missing.'; if (status === 'complete') status = 'partial'; }
-    if (definition.key === 'defects' && !notes.trim()) { gap = 'Record outstanding defects, owners and actions, or explicitly confirm none.'; if (status === 'complete') status = 'partial'; }
-    if (definition.key === 'final_account' && !delivery.final_account_status && !notes.trim()) { gap = 'Record the final account status.'; if (status === 'complete') status = 'partial'; }
-    return { ...definition, status, review_status: reviewStatus, notes, link: saved.link || '', reviewed_at: saved.reviewed_at || null, reviewed_by: saved.reviewed_by || '', documents, gap, sourceStatus: definition.key === 'final_account' ? delivery.final_account_status || 'Not recorded' : automatic };
+    if (definition.documentRequired && !currentDocuments.length && !builtEvidence) { gap = 'Document evidence or a secure document reference is missing.'; if (status === 'complete') status = 'partial'; }
+    if (definition.key === 'defects' && !notes.trim() && !hasRegister) { gap = 'Record outstanding defects, owners and actions, or explicitly confirm none.'; if (status === 'complete') status = 'partial'; }
+    if (definition.key === 'final_account' && !delivery.final_account_status && !notes.trim() && !hasRegister) { gap = 'Record the final account status.'; if (status === 'complete') status = 'partial'; }
+    return { ...definition, status, review_status: reviewStatus, notes, link: saved.link || '', reviewed_at: saved.reviewed_at || null, reviewed_by: saved.reviewed_by || '', register_file_uri: saved.register_file_uri || '', register_version: saved.register_version || 0, register_count: saved.register_count || 0, register_saved_by: saved.register_saved_by || '', register_saved_at: saved.register_saved_at || '', documents, gap, sourceStatus: hasRegister ? 'Portal register saved; completion review required' : definition.key === 'final_account' ? delivery.final_account_status || 'Not recorded' : automatic };
   });
   const completed = items.filter(item => item.status === 'complete').length;
   return { started: !!delivery.handover_started_at, startedAt: delivery.handover_started_at || null, startedBy: delivery.handover_started_by || '', applicability: delivery.handover_applicability || 'not_assessed', project: { id: project.id, name: project.name, number: project.project_number || '', client: project.client_name || '', pcDate: delivery.pc_achieved || project.practical_completion_date || '' }, checkedAt: new Date().toISOString(), sourceUpdatedAt: delivery.updated_date || null, items, completed, required: items.length, percentage: Math.round(completed / items.length * 100), warrantyCount, executedCount, audit: delivery.handover_audit || [], disclaimer: handoverDisclaimer, guidance: goldenThreadGuidance };

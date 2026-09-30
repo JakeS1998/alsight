@@ -1,0 +1,7 @@
+import React from 'react';
+export default function HandoverRegisterFields({ fields, values, onChange, disabled = false }) {
+  const cls = 'mt-1 block w-full rounded border border-input bg-background p-2 text-sm';
+  return <div className="grid gap-3 sm:grid-cols-2">{fields.map(field => <label key={field.key} className={field.type === 'textarea' ? 'text-xs sm:col-span-2' : 'text-xs'}>{field.label}{field.required ? ' *' : ''}
+    {field.type === 'select' ? <select className={cls} disabled={disabled} required={field.required} value={values[field.key] ?? ''} onChange={e => onChange(field.key, e.target.value)}><option value="">Choose…</option>{field.options.map(option => <option key={option}>{option}</option>)}</select> : field.type === 'textarea' ? <textarea className={cls} rows={3} maxLength={1500} disabled={disabled} required={field.required} value={values[field.key] ?? ''} onChange={e => onChange(field.key, e.target.value)} /> : <input className={cls} type={field.type} step={field.type === 'number' ? '0.01' : undefined} maxLength={500} disabled={disabled} required={field.required} value={values[field.key] ?? ''} onChange={e => onChange(field.key, field.type === 'number' && e.target.value !== '' ? Number(e.target.value) : e.target.value)} />}
+  </label>)}</div>;
+}

@@ -1,4 +1,5 @@
 import { jsPDF } from 'npm:jspdf@4.2.1';
+import { handoverRegisterLines } from './handoverRegisters.ts';
 
 export function createHandoverReport(pack) {
   const doc = new jsPDF(); let y = 20;
@@ -20,6 +21,10 @@ export function createHandoverReport(pack) {
     text(`Source status: ${item.sourceStatus} | Review: ${item.review_status}`, 9);
     if (item.gap) text(`Missing / action: ${item.gap}`, 9);
     if (item.notes) text(item.notes, 9);
+    if (item.registerData) {
+      text(`Portal register version ${item.register_version} | ${item.register_saved_by} | ${item.register_saved_at}`, 9, true);
+      for (const line of handoverRegisterLines(item.key, item.registerData)) text(line, 9);
+    }
     if (item.reviewed_at) text(`Reviewed by ${item.reviewed_by} at ${item.reviewed_at}`, 8);
     for (const file of item.documents) text(`${file.superseded ? '[SUPERSEDED] ' : ''}${file.name}${file.version ? ` | Version ${file.version}` : ''} | ${file.link || 'Private evidence'}${file.actor ? ` | ${file.actor} | ${file.at}` : ''}`, 8);
     y += 3;

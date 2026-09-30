@@ -308,6 +308,25 @@
             "type": "string",
             "format": "date-time"
           },
+          "register_file_uri": {
+            "type": "string"
+          },
+          "register_version": {
+            "type": "integer",
+            "minimum": 1
+          },
+          "register_count": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 50
+          },
+          "register_saved_by": {
+            "type": "string"
+          },
+          "register_saved_at": {
+            "type": "string",
+            "format": "date-time"
+          },
           "documents": {
             "type": "array",
             "maxItems": 20,

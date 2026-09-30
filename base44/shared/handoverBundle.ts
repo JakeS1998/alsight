@@ -1,5 +1,6 @@
 import { createHandoverZip } from './handoverZip.ts';
 import { createHandoverReport } from './handoverReport.ts';
+import { createHandoverRegisterPdf } from './handoverRegisterPdf.ts';
 
 const maxBytes = 20 * 1024 * 1024;
 export async function createHandoverBundle(base44, pack, appId) {
@@ -7,6 +8,14 @@ export async function createHandoverBundle(base44, pack, appId) {
   let total = files[0].bytes.length;
   const seen = new Map();
   for (const item of pack.items) {
+    if (item.registerData) {
+      const bytes = createHandoverRegisterPdf(pack.project, item);
+      total += bytes.length;
+      if (total > maxBytes) throw new Error('Bundle exceeds 20 MB. Download registers individually.');
+      const path = `${item.key}/Portal-register-v${item.register_version}.pdf`;
+      files.push({ name: path, bytes });
+      manifest.push({ category: item.key, name: 'Portal register', version: String(item.register_version), included: true, path, bytes: bytes.length });
+    }
     for (const file of item.documents.filter(doc => !doc.superseded)) {
       if (!file.file_uri) { manifest.push({ category: item.key, name: file.name, link: file.link, included: false, reason: 'External secure reference; not downloaded' }); continue; }
       if (!file.file_uri.startsWith(`mp/private/${appId}/`)) throw new Error('A referenced private document is not stored in this app.');

@@ -4,6 +4,9 @@ import { handoverDefinitions, loadHandover, safeReference } from '../../shared/h
 import { createHandoverReport } from '../../shared/handoverReport.ts';
 import { createHandoverBundle } from '../../shared/handoverBundle.ts';
 import { withPortalUserNames } from '../../shared/portalUserNames.ts';
+import { handoverRegisters } from '../../shared/handoverRegisters.ts';
+import { readHandoverRegister, saveHandoverRegister, hydrateHandoverRegisters } from '../../shared/handoverRegisterStorage.ts';
+import { createHandoverRegisterPdf } from '../../shared/handoverRegisterPdf.ts';
 
 const internal = ['admin', 'director', 'regional_director', 'bsm', 'bdm', 'finance'];
 const editors = ['admin', 'director', 'bsm', 'bdm'];
@@ -13,15 +16,25 @@ export default async function(req: Request): Promise<Response> {
     const base44 = createClientFromRequest(req), user = await base44.auth.me();
     if (!user || !internal.includes(user.role)) return failure('Internal project-team access required.', 403);
     const input = await req.json();
-    if (typeof input.projectId !== 'string' || !/^[a-zA-Z0-9_-]{1,100}$/.test(input.projectId) || !['read','start','review','attach','supersede','applicability','export'].includes(input.action)) return failure('Choose a project and handover action.');
+    if (typeof input.projectId !== 'string' || !/^[a-zA-Z0-9_-]{1,100}$/.test(input.projectId) || !['read','start','review','attach','supersede','applicability','export','register','save_register','export_register'].includes(input.action)) return failure('Choose a project and handover action.');
     const project = await base44.entities.Project.get(input.projectId);
     if (!project || project.status === 'inactive') return failure('Project not accessible.', 403);
     const page = await base44.entities.ProjectDelivery.filter({ project_id: project.id }, { sort: '-created_date', limit: 1 });
     let delivery = page.items[0] || { project_id: project.id };
     if (input.action === 'read') return Response.json({ pack: delivery.handover_started_at ? await loadHandover(base44, project, delivery) : { started: false } });
+    if (input.action === 'register' || input.action === 'export_register') {
+      if (!delivery.handover_started_at || !Object.hasOwn(handoverRegisters, input.key)) return failure('Start handover and choose a supported register.');
+      const item = (delivery.handover_items || []).find(row => row.key === input.key) || { key: input.key };
+      const register = await readHandoverRegister(base44, item, secrets.get('BASE44_APP_ID'));
+      if (input.action === 'register') return Response.json({ config: handoverRegisters[input.key], register });
+      if (!item.register_file_uri) return failure('Save the register before downloading.');
+      const bytes = createHandoverRegisterPdf(project, { ...item, registerData: register });
+      let binary = ''; for (let i = 0; i < bytes.length; i += 8192) binary += String.fromCharCode(...bytes.subarray(i, i + 8192));
+      return Response.json({ content: btoa(binary), mime: 'application/pdf', filename: `Handover-${input.key}-v${item.register_version}.pdf` });
+    }
     if (input.action === 'export') {
       if (!delivery.handover_started_at || !['pdf','zip'].includes(input.format)) return failure('Start handover and choose PDF or ZIP.');
-      const pack = await loadHandover(base44, project, delivery);
+      const pack = await hydrateHandoverRegisters(base44, await loadHandover(base44, project, delivery), secrets.get('BASE44_APP_ID'));
       const bytes = input.format === 'zip' ? await createHandoverBundle(base44, pack, secrets.get('BASE44_APP_ID')) : createHandoverReport(pack);
       let binary = ''; for (let i = 0; i < bytes.length; i += 8192) binary += String.fromCharCode(...bytes.subarray(i, i + 8192));
       return Response.json({ content: btoa(binary), mime: input.format === 'zip' ? 'application/zip' : 'application/pdf', filename: `Handover-${String(project.project_number || project.id).replace(/[^a-zA-Z0-9_-]/g, '-').slice(0, 80)}.${input.format}` });
@@ -53,6 +66,10 @@ export default async function(req: Request): Promise<Response> {
           if (input.link.trim().startsWith('mp/private/') && !input.link.trim().startsWith(`mp/private/${secrets.get('BASE44_APP_ID')}/`)) return failure('The document must belong to this app.');
           audit.push({ at: now, actor, action: 'Item reviewed', key: input.key, detail: JSON.stringify({ before: { status: item.review_status, notes: item.notes, link: item.link }, after: { status: input.status, notes: input.notes.trim(), link: input.link.trim() } }).slice(0, 6500) });
           Object.assign(item, { review_status: input.status, notes: input.notes.trim(), link: input.link.trim(), reviewed_at: now, reviewed_by: actor });
+        } else if (input.action === 'save_register') {
+          const previous = item.register_file_uri || '';
+          await saveHandoverRegister(base44, item, input.register, actor, now);
+          audit.push({ at: now, actor, action: 'Portal register saved', key: input.key, detail: `Version ${item.register_version} | ${item.register_count} entries | Previous archive: ${previous || 'None'}` });
         } else if (input.action === 'attach') {
           if (typeof input.file_uri !== 'string' || !input.file_uri.startsWith(`mp/private/${secrets.get('BASE44_APP_ID')}/`) || input.file_uri.length > 500 || typeof input.name !== 'string' || !input.name.trim() || input.name.length > 160 || !/\.(pdf|docx|xlsx|csv|txt|png|jpe?g|dwg|dxf)$/i.test(input.name) || !Number.isFinite(input.size) || input.size <= 0 || input.size > 10 * 1024 * 1024 || typeof input.version !== 'string' || !input.version.trim() || input.version.length > 40) return failure('Upload a supported document (up to 10 MB) and record its version.');
           if (item.documents.length >= 20) return failure('Maximum 20 document versions per handover category.');
