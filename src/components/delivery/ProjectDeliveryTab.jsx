@@ -11,6 +11,7 @@ import { DeliveryConstruction } from "./DeliveryConstruction";
 import { DeliveryCloseout } from "./DeliveryCloseout";
 import { DeliveryTeam } from "./DeliveryTeam";
 import ProjectRiskRegister from '@/components/delivery/ProjectRiskRegister';
+import ProjectHandoverPack from '@/components/handover/ProjectHandoverPack';
 
 const DELIVERY_DEFAULT = {
   funding_route: "", scope_summary: "", client_objectives: "", initial_constraints: "",
@@ -95,6 +96,8 @@ export function ProjectDeliveryTab({ project, legalDocs, dmas, jcts, warranties,
     setSavingDelivery(true);
     try {
       const payload = { ...delivery, project_id: projectId, client_account_id: project.client_account_id || null, bdm_aad_id: project.bdm_aad_id || null };
+      // Handover updates are saved separately; do not overwrite them from this form.
+      Object.keys(payload).filter(key => key.startsWith('handover_')).forEach(key => delete payload[key]);
       // coerce numeric fields
       ["probability", "contract_sum", "pct_programme", "pct_cost", "current_valuation"].forEach((k) => {
         payload[k] = payload[k] === "" ? null : Number(payload[k]);
@@ -124,6 +127,7 @@ export function ProjectDeliveryTab({ project, legalDocs, dmas, jcts, warranties,
       <ProjectRiskRegister project={project} delivery={delivery} accountMap={accountMap} />
       <DeliveryConstruction delivery={delivery} setField={setField} onSave={saveDelivery} saving={savingDelivery} />
       <DeliveryCloseout delivery={delivery} setField={setField} onSave={saveDelivery} saving={savingDelivery} />
+      <ProjectHandoverPack project={project} savingDelivery={savingDelivery} onStarted={loadDelivery} />
     </div>
   );
 }

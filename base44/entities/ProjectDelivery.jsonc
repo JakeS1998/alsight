@@ -248,6 +248,137 @@
     },
     "lessons_learned": {
       "type": "string"
+    },
+    "handover_started_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "handover_started_by": {
+      "type": "string"
+    },
+    "handover_applicability": {
+      "type": "string",
+      "enum": [
+        "not_assessed",
+        "applies",
+        "does_not_apply"
+      ]
+    },
+    "handover_items": {
+      "type": "array",
+      "maxItems": 9,
+      "items": {
+        "type": "object",
+        "properties": {
+          "key": {
+            "type": "string",
+            "enum": [
+              "pc",
+              "om",
+              "hs",
+              "as_builts",
+              "warranties",
+              "training",
+              "assets",
+              "defects",
+              "final_account"
+            ]
+          },
+          "review_status": {
+            "type": "string",
+            "enum": [
+              "automatic",
+              "outstanding",
+              "partial",
+              "complete"
+            ]
+          },
+          "notes": {
+            "type": "string",
+            "maxLength": 3000
+          },
+          "link": {
+            "type": "string",
+            "maxLength": 1000
+          },
+          "reviewed_by": {
+            "type": "string"
+          },
+          "reviewed_at": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "documents": {
+            "type": "array",
+            "maxItems": 20,
+            "items": {
+              "type": "object",
+              "properties": {
+                "id": {
+                  "type": "string"
+                },
+                "file_uri": {
+                  "type": "string"
+                },
+                "name": {
+                  "type": "string"
+                },
+                "size": {
+                  "type": "number"
+                },
+                "version": {
+                  "type": "string"
+                },
+                "actor": {
+                  "type": "string"
+                },
+                "at": {
+                  "type": "string",
+                  "format": "date-time"
+                },
+                "superseded": {
+                  "type": "boolean"
+                }
+              },
+              "required": [
+                "id",
+                "file_uri",
+                "name",
+                "version"
+              ]
+            }
+          }
+        },
+        "required": [
+          "key"
+        ]
+      }
+    },
+    "handover_audit": {
+      "type": "array",
+      "maxItems": 500,
+      "items": {
+        "type": "object",
+        "properties": {
+          "at": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "actor": {
+            "type": "string"
+          },
+          "action": {
+            "type": "string"
+          },
+          "key": {
+            "type": "string"
+          },
+          "detail": {
+            "type": "string",
+            "maxLength": 6500
+          }
+        }
+      }
     }
   },
   "required": [
