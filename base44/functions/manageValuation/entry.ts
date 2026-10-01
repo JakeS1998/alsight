@@ -168,9 +168,27 @@ export default async function(req: Request): Promise<Response> {
     const event = (kind, previous = '', next = '') => ({ kind, actor, actor_id: user.id, organisation: isManager || isSupplierManager ? 'External Project Manager' : 'Alliance Leisure', at: now, previous, next });
     if (action === 'create') {
       if (!isManager && !isSupplierManager && user.role !== 'admin') return response('Only the assigned project manager can create a valuation', 403);
-      const existing = await db.filter({ project_id: projectId }, '-number', 500);
+      const entities = base44.asServiceRole.entities;
+      const [existing, deliveryPage] = await Promise.all([
+        db.filter({ project_id: projectId }, '-number', 500),
+        entities.ProjectDelivery.filter({ project_id: projectId }, { sort: '-created_date', limit: 1, fields: ['contract_sum', 'contract_start'] }),
+      ]);
+      const delivery = deliveryPage.items[0];
       const number = Math.max(0, ...existing.map(v => Number(v.number) || 0)) + 1;
-      const record = await db.create({ project_id: projectId, project_manager_contact_id: project.project_manager_id || '', bdm_aad_id: project.bdm_aad_id || '', bsm_aad_id: project.bsm_aad_id || '', department_id: project.department_id || '', number, status: 'draft', draft_owner_id: user.id, items: [], deductions: [], attachments: [], comments: [], audit: [event('Created', '', `Valuation ${number}`)], retention_percent: 0, payment_status: 'awaiting_invoice' });
+      const prior = existing.filter(v => (v.items || []).length).sort((a, b) => b.number - a.number)[0];
+      const todayStr = new Date().toISOString().slice(0, 10);
+      const addDays = (s, n) => { if (!s) return ''; const d = new Date(s.length === 10 ? s + 'T00:00:00.000Z' : s); d.setUTCDate(d.getUTCDate() + n); return d.toISOString().slice(0, 10); };
+      const contractStart = delivery?.contract_start || '';
+      const priorEnd = prior?.period_end || '';
+      const periodStart = priorEnd && priorEnd < todayStr ? addDays(priorEnd, 1) : (contractStart && contractStart < todayStr ? contractStart : '');
+      const periodEnd = periodStart ? todayStr : '';
+      let items = [];
+      if (prior && (prior.items || []).length) {
+        items = prior.items.map(it => ({ number: it.number || 0, description: it.description || '', contract_value: money(it.contract_value), variations: money(it.variations), previous: money(it.previous) + money(it.completed) + money(it.materials), completed: 0, materials: 0, retention_category: ['full','half','none'].includes(it.retention_category) ? it.retention_category : 'full' }));
+      } else if (delivery?.contract_sum != null && money(delivery.contract_sum) > 0) {
+        items = [{ number: 1, description: 'Main Contract', contract_value: money(delivery.contract_sum), variations: 0, previous: 0, completed: 0, materials: 0, retention_category: 'full' }];
+      }
+      const record = await db.create({ project_id: projectId, project_manager_contact_id: project.project_manager_id || '', bdm_aad_id: project.bdm_aad_id || '', bsm_aad_id: project.bsm_aad_id || '', department_id: project.department_id || '', number, status: 'draft', draft_owner_id: user.id, items, deductions: [], attachments: [], comments: [], audit: [event('Created', '', `Valuation ${number}`)], retention_percent: prior ? Number(prior.retention_percent || 0) : 5, payment_status: 'awaiting_invoice', ...(periodStart ? { period_start: periodStart } : {}), ...(periodEnd ? { period_end: periodEnd } : {}), valuation_date: todayStr, payment_due_date: addDays(todayStr, 14) });
       return Response.json({ valuation: record });
     }
     if (!valuationId || typeof valuationId !== 'string') return response('Valuation required');

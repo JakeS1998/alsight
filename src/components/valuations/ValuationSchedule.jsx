@@ -9,7 +9,7 @@ export default function ValuationSchedule({ value, onChange, editable, previousC
   const totals = valuationTotals(value, previousCertified);
   const inputClass = 'w-full min-w-20 rounded-md border border-border bg-card px-2 py-1.5 text-sm';
   return <section className="rounded-2xl border border-border bg-card p-5"><h3 className="font-heading font-semibold text-als-navy">Valuation schedule</h3>
-    <p className="mt-2 text-xs text-muted-foreground">Allocate the original contract value and agreed variations across work items. Previous Valuation is cumulative gross work already valued; Work This Period and Materials on Site add to it. These amounts calculate the claim, not the project contract sum. Record contract changes in Delivery → Section 7, Decision Register.</p>
+    <p className="mt-2 text-xs text-muted-foreground">Items, contract values and previous amounts are carried forward from the last valuation — just enter this period's <strong>Work This Period</strong> and <strong>Materials on Site</strong> amounts. Previous Valuation is cumulative gross work already valued. Record contract changes in Delivery → Section 7, Decision Register.</p>
     <div className="mt-4 overflow-x-auto"><table className="w-full min-w-[1320px] text-left text-xs"><thead><tr className="border-b border-border text-muted-foreground">{['#',...columns.map(c => c[1]),'Retention','Revised Value','Completed to Date','Complete','Remaining',''].map(h => <th key={h} className="px-2 py-2">{h}</th>)}</tr></thead><tbody>{items.map((item,index) => {
       const revised = Number(item.contract_value || 0) + Number(item.variations || 0);
       const completed = Number(item.previous || 0) + Number(item.completed || 0) + Number(item.materials || 0);
