@@ -23,6 +23,7 @@ import { ProjectFinanceTab } from "@/components/projects/ProjectFinanceTab";
 import { ProjectTimelineTab } from "@/components/projects/ProjectTimelineTab";
 import { ProjectDeliveryTab } from "@/components/delivery/ProjectDeliveryTab";
 import ProjectPathwayAbout from '@/components/delivery/ProjectPathwayAbout';
+import PMProjectPathway from '@/components/delivery/PMProjectPathway';
 import { ArrowLeft, FileText, ShieldCheck, LayoutDashboard, Receipt, Calendar, ClipboardList, ListChecks } from "lucide-react";
 
 export default function ProjectDetail() {
@@ -40,7 +41,7 @@ export default function ProjectDetail() {
   useEffect(() => {
     if (project?.procurement_route === false && activeTab === 'uklf') setActiveTab('general');
   }, [project?.procurement_route, activeTab]);
-  useEffect(() => { const tab = new URLSearchParams(location.search).get('tab'); setActiveTab(isExternalPM ? (['valuations','timeline','drafting','warranties'].includes(tab) ? tab : 'general') : isSupplier ? (['general','timeline','drafting','warranties','purchase-orders'].includes(tab) ? tab : tab === 'valuations' && canSeeValuations ? 'valuations' : 'general') : (tab === 'valuations' && !canSeeValuations) ? 'general' : ['general','timeline','drafting','warranties','finance','delivery','valuations','uklf'].includes(tab) ? tab : 'general'); }, [location.search, isExternalPM, isSupplier, canSeeValuations]);
+  useEffect(() => { const tab = new URLSearchParams(location.search).get('tab'); setActiveTab(isExternalPM ? (['valuations','timeline','drafting','warranties','delivery'].includes(tab) ? tab : 'general') : isSupplier ? (['general','timeline','drafting','warranties','purchase-orders'].includes(tab) ? tab : tab === 'valuations' && canSeeValuations ? 'valuations' : 'general') : (tab === 'valuations' && !canSeeValuations) ? 'general' : ['general','timeline','drafting','warranties','finance','delivery','valuations','uklf'].includes(tab) ? tab : 'general'); }, [location.search, isExternalPM, isSupplier, canSeeValuations]);
   const [legalDocs, setLegalDocs] = useState([]);
   const [dmas, setDmas] = useState([]);
   const [jcts, setJcts] = useState([]);
@@ -124,7 +125,7 @@ export default function ProjectDetail() {
             <TabsTrigger value="warranties"><ShieldCheck className="mr-1.5 h-4 w-4" /> Warranties</TabsTrigger>
             {isSupplier && <TabsTrigger value="purchase-orders"><Receipt className="mr-1.5 h-4 w-4" /> Purchase orders</TabsTrigger>}
             {!isExternalPM && !isSupplier && <TabsTrigger value="finance"><Receipt className="mr-1.5 h-4 w-4" /> Finance</TabsTrigger>}
-            {!isExternalPM && !isSupplier && <TabsTrigger value="delivery"><ClipboardList className="mr-1.5 h-4 w-4" /> Pathway</TabsTrigger>}
+            {!isSupplier && <TabsTrigger value="delivery"><ClipboardList className="mr-1.5 h-4 w-4" /> Pathway</TabsTrigger>}
             {canSeeValuations && <TabsTrigger value="valuations"><ListChecks className="mr-1.5 h-4 w-4" /> Valuations</TabsTrigger>}
             {INTERNAL_ROLES.includes(user?.role) && project.procurement_route !== false && <TabsTrigger value="uklf"><UKLFIcon /> UKLF</TabsTrigger>}
           </TabsList></div><div aria-hidden="true" className="pointer-events-none absolute inset-y-0 right-0 w-3 bg-gradient-to-l from-secondary to-transparent sm:hidden" /></div>
@@ -147,8 +148,8 @@ export default function ProjectDetail() {
         {!isExternalPM && !isSupplier && <TabsContent value="finance" className="mt-6">
           <ProjectFinanceTab project={project} />
         </TabsContent>}
-        {!isExternalPM && !isSupplier && <TabsContent value="delivery" className="mt-6">
-          <ProjectDeliveryTab project={project} legalDocs={legalDocs} dmas={dmas} jcts={jcts} warranties={warranties} accountMap={accountMap} />
+        {!isSupplier && <TabsContent value="delivery" className="mt-6">
+          {isExternalPM ? <PMProjectPathway project={project} /> : <ProjectDeliveryTab project={project} legalDocs={legalDocs} dmas={dmas} jcts={jcts} warranties={warranties} accountMap={accountMap} />}
           <ProjectPathwayAbout />
         </TabsContent>}
         {canSeeValuations && <TabsContent value="valuations" className="mt-6"><ProjectValuationsTab project={project} /></TabsContent>}

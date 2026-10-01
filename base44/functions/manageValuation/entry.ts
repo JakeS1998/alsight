@@ -1,4 +1,5 @@
 import { createClientFromRequest } from 'npm:@base44/sdk@0.8.52';
+import { pmPathway, pmPathwayRegister } from '../../shared/pmPathway.ts';
 
 const response = (message, status = 400) => Response.json({ error: message }, { status });
 const money = (n) => Math.round((Number(n) || 0) * 100) / 100;
@@ -61,6 +62,12 @@ export default async function(req: Request): Promise<Response> {
     if (!project || (external && !isManager)) return response('Project not available', 403);
     if (!isManager && !isSupplierManager && !internal.includes(user.role)) return response('Not authorised for valuations', 403);
     if (action === 'project') return Response.json({ project: { ...publicProject(project), can_submit_valuation: isManager || isSupplierManager } });
+    if (action === 'pathway' || action === 'pathway_register') {
+      if (!isManager || project.status === 'inactive') return response('Assigned project manager access required', 403);
+      const entities = base44.asServiceRole.entities;
+      if (action === 'pathway_register') return Response.json({ page: await pmPathwayRegister(entities, projectId, input.kind, input.cursor) });
+      return Response.json({ pathway: await pmPathway(entities, project) });
+    }
     if (action === 'riba_dates') {
       if (!isManager && !isSupplierManager) return response('Project manager access required', 403);
       const keys = ['riba1_end', 'riba2_end', 'riba3_end', 'riba4_end', 'practical_completion_date'];
