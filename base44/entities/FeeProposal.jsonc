@@ -48,6 +48,16 @@
     "margin_pct": {
       "type": "number"
     },
+    "ohp_surveys_pct": {
+      "type": "number",
+      "description": "Contractor OHP % applied to surveys (RIBA 1-4)",
+      "default": 0
+    },
+    "ohp_riba57_pct": {
+      "type": "number",
+      "description": "Contractor OHP % applied to RIBA 5-7 authorised activities",
+      "default": 0
+    },
     "line_items": {
       "type": "string",
       "description": "JSON array of fee proposal line items"

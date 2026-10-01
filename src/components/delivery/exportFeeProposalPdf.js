@@ -6,7 +6,7 @@ import { feeProposalTotals } from "./feeProposalTotals";
 const parseItems = (s) => { try { return JSON.parse(s) || []; } catch { return []; } };
 const money = (n) => (n == null || n === "" ? "—" : `£${Number(n).toLocaleString("en-GB", { minimumFractionDigits: 0, maximumFractionDigits: 0 })}`);
 
-export function exportFeeProposalPdf({ project, proposal, suppliers, poBySupplier, supplierLines, includeInternal = false }) {
+export function exportFeeProposalPdf({ project, proposal, suppliers, poBySupplier, supplierLines, contractorBuild, includeInternal = false }) {
   const doc = new jsPDF({ unit: "pt", format: "a4", orientation: "landscape" });
   const W = doc.internal.pageSize.getWidth();
   const H = doc.internal.pageSize.getHeight();
@@ -33,11 +33,21 @@ export function exportFeeProposalPdf({ project, proposal, suppliers, poBySupplie
 
   const supplierName = (cn) => suppliers.find((s) => s.company_number === cn)?.name || cn || "—";
   const alsLines = parseItems(proposal.line_items);
-  const totals = feeProposalTotals(supplierLines, alsLines);
+  const totals = feeProposalTotals(supplierLines, alsLines, contractorBuild);
 
   const x0 = M;
   const matrix = drawFeeMatrix(doc, { supplierLines, alsLines, supplierName, money, x: x0, startY: y, width: W - 2 * M, height: H });
   y = matrix.y;
+  if (contractorBuild && contractorBuild.hasContractor && (contractorBuild.ohpTotal || contractorBuild.total)) {
+    if (y + 70 > H - 55) { doc.addPage(); y = 60; }
+    doc.setFont("helvetica", "bold"); doc.setFontSize(10); doc.setTextColor(15, 23, 42);
+    doc.text("Contractor build-up", x0, y); y += 14;
+    doc.setFont("helvetica", "normal"); doc.setFontSize(9); doc.setTextColor(51, 65, 85);
+    doc.text(`Surveys (RIBA 1-4): ${money(contractorBuild.surveysBase)} + OHP ${contractorBuild.ohpSurveysPct}% = ${money(contractorBuild.surveysTotal)}`, x0, y); y += 13;
+    doc.text(`RIBA 5-7 authorised activities: ${money(contractorBuild.riba57Base)} + OHP ${contractorBuild.ohpRiba57Pct}% = ${money(contractorBuild.riba57Total)}`, x0, y); y += 13;
+    doc.setFont("helvetica", "bold"); doc.setTextColor(15, 23, 42);
+    doc.text(`Contractor total (with OHP): ${money(contractorBuild.total)}`, x0, y); y += 20;
+  }
   if (y + 28 > H - 55) { doc.addPage(); y = 60; }
   doc.setFont("helvetica", "bold"); doc.setFontSize(10); doc.setTextColor(15, 23, 42);
   doc.text(`Total proposed fees: ${money(totals.proposedFees)}`, x0, y);

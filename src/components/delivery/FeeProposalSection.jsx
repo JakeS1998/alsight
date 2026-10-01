@@ -11,6 +11,8 @@ import { exportFeeProposalPdf } from "./exportFeeProposalPdf";
 import { feeProposalTotals } from "./feeProposalTotals";
 import SupplierFeeTable from '@/components/delivery/SupplierFeeTable';
 import FeeProposalLines from '@/components/delivery/FeeProposalLines';
+import ContractorBuildUp from '@/components/delivery/ContractorBuildUp';
+import { contractorBuildUp as computeContractorBuildUp } from '@/components/delivery/contractorBuildUp';
 
 const BASIS = [
   { value: "fixed", label: "Fixed" },
@@ -48,6 +50,8 @@ export function FeeProposalSection({ projectId, project, onChanged, deliveryTeam
   const [pos, setPos] = useState([]);
   const [selectedId, setSelectedId] = useState(null);
   const [items, setItems] = useState([ALS_LINE]);
+  const [ohpSurveysPct, setOhpSurveysPct] = useState(0);
+  const [ohpRiba57Pct, setOhpRiba57Pct] = useState(0);
   const [loading, setLoading] = useState(true);
   const [savingBuilder, setSavingBuilder] = useState(false);
 
@@ -91,7 +95,9 @@ export function FeeProposalSection({ projectId, project, onChanged, deliveryTeam
         setSelectedId(cur.id);
         const parsed = parseItems(cur.line_items);
         setItems(parsed.length ? parsed : [ALS_LINE]);
-      } else { setSelectedId(null); setItems([ALS_LINE]); }
+        setOhpSurveysPct(Number(cur.ohp_surveys_pct) || 0);
+        setOhpRiba57Pct(Number(cur.ohp_riba57_pct) || 0);
+      } else { setSelectedId(null); setItems([ALS_LINE]); setOhpSurveysPct(0); setOhpRiba57Pct(0); }
       onChanged?.(p);
     } finally { setLoading(false); }
   }, [projectId, project.project_number, onChanged]);
@@ -104,6 +110,8 @@ export function FeeProposalSection({ projectId, project, onChanged, deliveryTeam
     const r = rows.find((x) => x.id === id);
     const parsed = parseItems(r?.line_items);
     setItems(parsed.length ? parsed : [ALS_LINE]);
+    setOhpSurveysPct(Number(r?.ohp_surveys_pct) || 0);
+    setOhpRiba57Pct(Number(r?.ohp_riba57_pct) || 0);
   };
 
   const poBySupplier = useMemo(() => {
@@ -112,7 +120,8 @@ export function FeeProposalSection({ projectId, project, onChanged, deliveryTeam
     return m;
   }, [pos]);
 
-  const totals = useMemo(() => feeProposalTotals(supplierLines, items), [supplierLines, items]);
+  const contractorBuild = useMemo(() => computeContractorBuildUp(deliveryTeam, ohpSurveysPct, ohpRiba57Pct), [deliveryTeam, ohpSurveysPct, ohpRiba57Pct]);
+  const totals = useMemo(() => feeProposalTotals(supplierLines, items, contractorBuild), [supplierLines, items, contractorBuild]);
 
   const supplierComparison = useMemo(() => {
     const bySup = {};
@@ -135,6 +144,8 @@ export function FeeProposalSection({ projectId, project, onChanged, deliveryTeam
         line_items: JSON.stringify(normalizeFeeItems(items)),
         fee_value: totals.alsFee,
         external_cost: totals.supplierFees,
+        ohp_surveys_pct: Number(ohpSurveysPct) || 0,
+        ohp_riba57_pct: Number(ohpRiba57Pct) || 0,
       });
       load();
     } finally { setSavingBuilder(false); }
@@ -195,6 +206,7 @@ export function FeeProposalSection({ projectId, project, onChanged, deliveryTeam
       suppliers,
       poBySupplier,
       supplierLines,
+      contractorBuild,
       includeInternal,
     });
   };
@@ -265,6 +277,8 @@ export function FeeProposalSection({ projectId, project, onChanged, deliveryTeam
 
             {/* Supplier fees (from delivery team) */}
             <SupplierFeeTable lines={supplierLines} getSupplierName={supplierName} />
+
+            <ContractorBuildUp deliveryTeam={deliveryTeam} ohpSurveysPct={ohpSurveysPct} ohpRiba57Pct={ohpRiba57Pct} onOhpChange={(group, value) => group === 'surveys' ? setOhpSurveysPct(value) : setOhpRiba57Pct(value)} />
 
             <FeeProposalLines items={items} stages={RIBA_STAGES} updateItem={updateItem} addItem={addItem} removeItem={removeItem} />
 
