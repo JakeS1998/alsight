@@ -19,7 +19,7 @@ export default function DeliveryJourney({ project, delivery, feeProposals, legal
   const onSelect = id => { setSelected(id); setVisited(previous => new Set([...previous, id])); localStorage.setItem(key, String(id)); };
   const panels = React.Children.toArray(children);
   return <DeliveryCollapseContext.Provider value={null}><div className="space-y-4">
-    <DeliveryJourneySummary stages={stages} selected={selected} onSelect={onSelect} riba={riba} project={project} delivery={delivery || {}} feeProposals={feeProposals} jcts={jcts} />
+    <DeliveryJourneySummary riba={riba} project={project} delivery={delivery || {}} feeProposals={feeProposals} jcts={jcts} />
     <div className="grid min-w-0 gap-4 lg:grid-cols-[15rem_minmax(0,1fr)]">
       <aside className="min-w-0 rounded-xl border border-border bg-card p-2"><p className="hidden px-3 py-2 text-[10px] font-bold uppercase tracking-wider text-muted-foreground lg:block">Delivery stages</p><nav aria-label="Select delivery stage" className="flex gap-1 overflow-x-auto lg:flex-col lg:overflow-visible">{stages.map(stage => <JourneyStageButton key={stage.id} stage={stage} active={selected === stage.id} onSelect={onSelect} />)}</nav><p className="px-3 py-2 text-[10px] text-muted-foreground">{loading ? 'Checking registers…' : error ? 'Register progress unavailable.' : 'Progress uses recorded completion indicators.'}</p></aside>
       <main aria-label={`${stages[selected - 1].label} details`} className="min-w-0 lg:max-h-[calc(100dvh-20rem)] lg:overflow-y-auto lg:overscroll-contain lg:pr-1">{panels.map((panel, index) => visited.has(index + 1) && <div key={index} hidden={selected !== index + 1}>{panel}</div>)}</main>
