@@ -32,7 +32,6 @@
     },
     "reason": {
       "type": "string",
-      "minLength": 10,
       "maxLength": 2000
     },
     "decided_by": {
@@ -47,7 +46,6 @@
     "project_id",
     "item_key",
     "value",
-    "reason",
     "decided_by",
     "decided_at"
   ],

@@ -11,7 +11,7 @@ export function safeReference(value) {
 }
 export async function loadHandover(base44, project, delivery) {
   const decisionsPage = await base44.entities.HandoverApplicabilityDecision.filter({ project_id: project.id }, { sort: '-decided_at', limit: 50 });
-  const decisionFor = key => decisionsPage.items.find(row => row.item_key === key && row.reason?.trim().length >= 10 && row.decided_by && row.decided_at) || null;
+  const decisionFor = key => decisionsPage.items.find(row => row.item_key === key && (row.value !== 'does_not_apply' || row.reason?.trim().length >= 10) && row.decided_by && row.decided_at) || null;
   const goldenThreadDecision = decisionFor('golden_thread');
   const { warranties, warrantyCount, completedWarrantyCount, executedCount } = await loadProjectWarrantySchedule(base44, project);
   const linkedWarranties = warranties.map(warranty => {

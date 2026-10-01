@@ -56,7 +56,7 @@ export default async function(req: Request): Promise<Response> {
         if (!['admin','director'].includes(user.role)) return failure('Only an administrator or director can record statutory applicability decisions.', 403);
         const key = input.key || 'golden_thread';
         if (key !== 'golden_thread' && !handoverDefinitions.some(row => row.key === key && row.statutory)) return failure('Choose a statutory requirement.');
-        if (!['not_assessed','applies','does_not_apply'].includes(input.value) || typeof input.reason !== 'string' || input.reason.trim().length < 10 || input.reason.length > 2000) return failure('Record applicability and an evidenced scope / legal reason (10–2000 characters).');
+        if (!['not_assessed','applies','does_not_apply'].includes(input.value) || typeof input.reason !== 'string' || input.reason.length > 2000 || (input.value === 'does_not_apply' && input.reason.trim().length < 10)) return failure('Choose applicability. Justification (10–2000 characters) is required only for Does not apply; optional notes must not exceed 2000 characters.');
         await base44.entities.HandoverApplicabilityDecision.upsert([{ project_id: project.id, item_key: key, value: input.value, reason: input.reason.trim(), decided_by: actor, decided_at: now }], { key: ['project_id','item_key'] });
         if (key === 'golden_thread') changes.handover_applicability = input.value;
         audit.push({ at: now, actor, action: 'Authorised applicability assessment', key, detail: `${input.value}: ${input.reason.trim()}` });
