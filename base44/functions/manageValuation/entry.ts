@@ -1,25 +1,13 @@
 import { createClientFromRequest } from 'npm:@base44/sdk@0.8.52';
 import { pmPathway, pmPathwayRegister } from '../../shared/pmPathway.ts';
+import { supplierCanManage, supplierAccountId, internalRoles } from '../../shared/valuationAccess.ts';
 
 const response = (message, status = 400) => Response.json({ error: message }, { status });
 const money = (n) => Math.round((Number(n) || 0) * 100) / 100;
 const date = (s) => typeof s === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(s) ? s : '';
 const str = (s, max = 2000) => typeof s === 'string' ? s.trim().slice(0, max) : '';
-const internal = ['admin', 'director', 'regional_director', 'bsm', 'bdm', 'finance'];
 const reviewers = ['admin', 'director', 'bsm', 'bdm'];
 const paymentStates = ['awaiting_invoice', 'invoice_received', 'approved_for_payment', 'scheduled', 'paid', 'on_hold'];
-const managerServices = 'project manager|project management|(^|[^a-z])pm([^a-z]|$)';
-const supplierAccount = user => user.account_id || user.data?.account_id;
-const supplierWarrantyQuery = accountId => ({ $or: [{ account_id: accountId }, { supplier_id: accountId }] });
-
-async function supplierCanManage(base44, accountId, projectDvId) {
-  if (!accountId || !projectDvId) return false;
-  const [appointments, warranties] = await Promise.all([
-    base44.asServiceRole.entities.LegalDocument.filter({ project_id: projectDvId, account_id: accountId, document_type: 'appointment_pm', status: 'active' }, '-created_date', 1),
-    base44.asServiceRole.entities.Warranty.filter({ project_id: projectDvId, status: 'active', services: { $regex: managerServices, $options: 'i' }, ...supplierWarrantyQuery(accountId) }, '-created_date', 1),
-  ]);
-  return appointments.length > 0 || warranties.length > 0;
-}
 
 async function allMatches(entity, query) {
   const rows = [];
@@ -45,8 +33,8 @@ export default async function(req: Request): Promise<Response> {
         const projects = await base44.asServiceRole.entities.Project.filter({ project_manager_id: contactId }, '-created_date', 500);
         return Response.json({ projects: projects.map(publicProject) });
       }
-      if (user.role !== 'supplier' || !supplierAccount(user)) return response('Project manager access required', 403);
-      const accountId = supplierAccount(user);
+      if (user.role !== 'supplier' || !supplierAccountId(user)) return response('Project manager access required', 403);
+      const accountId = supplierAccountId(user);
       const [appointments, warranties] = await Promise.all([
         allMatches(base44.asServiceRole.entities.LegalDocument, { account_id: accountId, document_type: 'appointment_pm', status: 'active' }),
         allMatches(base44.asServiceRole.entities.Warranty, { status: 'active', services: { $regex: managerServices, $options: 'i' }, ...supplierWarrantyQuery(accountId) }),
@@ -60,7 +48,7 @@ export default async function(req: Request): Promise<Response> {
     const isManager = external && project?.project_manager_id === contactId;
     const isSupplierManager = user.role === 'supplier' && project?.status !== 'inactive' && await supplierCanManage(base44, supplierAccount(user), project?.dataverse_id);
     if (!project || (external && !isManager)) return response('Project not available', 403);
-    if (!isManager && !isSupplierManager && !internal.includes(user.role)) return response('Not authorised for valuations', 403);
+    if (!isManager && !isSupplierManager && !internalRoles.includes(user.role)) return response('Not authorised for valuations', 403);
     if (action === 'project') return Response.json({ project: { ...publicProject(project), can_submit_valuation: isManager || isSupplierManager } });
     if (action === 'pathway' || action === 'pathway_register') {
       if (!isManager || project.status === 'inactive') return response('Assigned project manager access required', 403);
@@ -106,7 +94,7 @@ export default async function(req: Request): Promise<Response> {
         aa: aa ? status(aa) : project.aa_executed_date ? 'Executed' : 'Not recorded',
         dma: status(dmas[0]), jct: status(jcts[0]),
       };
-      const accountId = supplierAccount(user);
+      const accountId = supplierAccountId(user);
       const own = record => !!accountId && [record.account_id, record.supplier_id, record.contractor_id].includes(accountId);
       const timeline = [];
       const add = (date, label, cat) => {

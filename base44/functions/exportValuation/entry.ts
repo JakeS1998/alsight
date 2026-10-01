@@ -46,7 +46,7 @@ export default async function(req: Request): Promise<Response> {
     const gross = money(items.reduce((s: number, i: any) => s + i.gross, 0));
     const retention = money(items.reduce((s: number, i: any) => s + i.retentionAmount, 0));
     const deductionsTotal = money((valuation.deductions || []).reduce((s: number, d: any) => s + money(d.amount), 0));
-    const previousCertified = Math.max(0, ...previous.filter((v: any) => v.id !== valuationId && v.number < valuation.number && ['approved', 'paid'].includes(v.status)).map((v: any) => money(v.approved_gross)));
+    const previousCertified = Math.max(0, ...previous.items.filter((v: any) => v.id !== valuationId && v.number < valuation.number && ['approved', 'paid'].includes(v.status)).map((v: any) => money(v.approved_gross)));
     const net = money(gross - retention);
     const due = money(Math.max(0, gross - retention - deductionsTotal - previousCertified));
     const contractSum = delivery?.contract_sum == null ? 0 : money(delivery.contract_sum + (adjustments.rows[0]?.sum_financial_adjustment || 0));
