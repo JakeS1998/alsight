@@ -1,5 +1,7 @@
-import React from "react";
+import React, { useContext } from "react";
 import { cn } from "@/lib/utils";
+import { DeliveryCollapseContext } from '@/components/delivery/DeliveryCollapseContext';
+import DeliveryStage from '@/components/delivery/DeliveryStage';
 
 /**
  * Power Apps-style form primitives: sectioned cards with labeled fields,
@@ -7,6 +9,8 @@ import { cn } from "@/lib/utils";
  */
 
 export function FormSection({ title, description, children, className }) {
+  const collapsible = useContext(DeliveryCollapseContext);
+  if (collapsible) return <DeliveryStage title={title} description={description} className={className}>{children}</DeliveryStage>;
   return (
     <section className={cn("overflow-hidden rounded-xl border border-slate-200 bg-white", className)}>
       <header className="flex items-center gap-2 border-b border-slate-200 bg-slate-50 px-4 py-3">
