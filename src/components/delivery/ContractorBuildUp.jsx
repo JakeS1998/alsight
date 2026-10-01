@@ -1,14 +1,18 @@
 import React from 'react';
 import { formatCurrency } from '@/lib/portal';
-import { contractorBuildUp } from './contractorBuildUp';
+import { contractorBuildUp, contractorMembers } from './contractorBuildUp';
+import ContractorStageSummary from '@/components/delivery/ContractorStageSummary';
 
 export default function ContractorBuildUp({ deliveryTeam, ohpSurveysPct, ohpRiba57Pct, ohpSurveysType = 'percentage', ohpSurveysFixed = 0, onOhpTypeChange, onOhpFixedChange, onOhpChange }) {
-  const build = contractorBuildUp(deliveryTeam, ohpSurveysPct, ohpRiba57Pct, ohpSurveysType, ohpSurveysFixed);
-  if (!build.hasContractor) {
+  const combined = contractorBuildUp(deliveryTeam, ohpSurveysPct, ohpRiba57Pct, ohpSurveysType, ohpSurveysFixed);
+  const build = combined.hasStageOhp ? contractorBuildUp(contractorMembers(deliveryTeam).filter(member => member.contractor_ohp == null), ohpSurveysPct, ohpRiba57Pct, ohpSurveysType, ohpSurveysFixed) : combined;
+  if (combined.hasStageOhp && !combined.hasLegacyOhp) return <ContractorStageSummary build={combined} />;
+  if (!combined.hasContractor) {
     return <div className="rounded-lg border border-dashed border-slate-300 bg-slate-50 p-3 text-sm text-slate-500">No contractor in the Delivery Team. Add a contractor with fees per RIBA stage to build up their fee.</div>;
   }
-  return <div className="rounded-lg border border-slate-200 bg-slate-50 p-3">
-    <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-slate-500">Contractor build-up (auto-calculated)</p>
+  return <div className="space-y-3 rounded-lg border border-slate-200 bg-slate-50 p-3">
+    {combined.hasStageOhp && <ContractorStageSummary build={combined} />}
+    <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-slate-500">{combined.hasStageOhp ? 'Proposal-level OHP — contractors without per-stage rates only' : 'Contractor build-up (auto-calculated)'}</p>
     <div className="overflow-x-auto"><table className="w-full text-sm">
       <thead className="text-left text-xs text-slate-500"><tr>
         <th className="py-1.5 pr-2">Stage group</th>

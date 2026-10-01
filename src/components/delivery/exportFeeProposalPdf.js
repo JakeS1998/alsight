@@ -39,12 +39,18 @@ export function exportFeeProposalPdf({ project, proposal, suppliers, poBySupplie
   const matrix = drawFeeMatrix(doc, { supplierLines, alsLines, supplierName, money, x: x0, startY: y, width: W - 2 * M, height: H });
   y = matrix.y;
   if (contractorBuild && contractorBuild.hasContractor && (contractorBuild.ohpTotal || contractorBuild.total)) {
-    if (y + 70 > H - 55) { doc.addPage(); y = 60; }
+    if (y + (contractorBuild.hasStageOhp ? 110 : 70) > H - 55) { doc.addPage(); y = 60; }
     doc.setFont("helvetica", "bold"); doc.setFontSize(10); doc.setTextColor(15, 23, 42);
     doc.text("Contractor build-up", x0, y); y += 14;
     doc.setFont("helvetica", "normal"); doc.setFontSize(9); doc.setTextColor(51, 65, 85);
-    doc.text(`Surveys & consultants (RIBA 1-4): ${money(contractorBuild.surveysBase)} + OHP ${contractorBuild.ohpSurveysType === 'fixed' ? money(contractorBuild.surveysOhp) + ' fixed fee' : contractorBuild.ohpSurveysPct + '%'} = ${money(contractorBuild.surveysTotal)}`, x0, y); y += 13;
-    doc.text(`RIBA 5-7 authorised activities: ${money(contractorBuild.riba57Base)} + OHP ${contractorBuild.ohpRiba57Pct}% = ${money(contractorBuild.riba57Total)}`, x0, y); y += 13;
+    if (contractorBuild.hasStageOhp) {
+      contractorBuild.stageRows.forEach(row => {
+        doc.text(`${row.label}: base ${money(row.base)} + OHP ${money(row.ohp)} = ${money(row.total)}`, x0, y); y += 13;
+      });
+    } else {
+      doc.text(`Surveys & consultants (RIBA 1-4): ${money(contractorBuild.surveysBase)} + OHP ${contractorBuild.ohpSurveysType === 'fixed' ? money(contractorBuild.surveysOhp) + ' fixed fee' : contractorBuild.ohpSurveysPct + '%'} = ${money(contractorBuild.surveysTotal)}`, x0, y); y += 13;
+      doc.text(`RIBA 5-7 authorised activities: ${money(contractorBuild.riba57Base)} + OHP ${contractorBuild.ohpRiba57Pct}% = ${money(contractorBuild.riba57Total)}`, x0, y); y += 13;
+    }
     doc.setFont("helvetica", "bold"); doc.setTextColor(15, 23, 42);
     doc.text(`Contractor total (with OHP): ${money(contractorBuild.total)}`, x0, y); y += 20;
   }

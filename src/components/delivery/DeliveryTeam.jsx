@@ -5,6 +5,7 @@ import SearchableSelect from '@/components/forms/SearchableSelect';
 import { base44 } from "@/api/base44Client";
 import { Plus, Trash2, Loader2, Upload, FileCheck } from "lucide-react";
 import ContractorFeeBuilder from '@/components/delivery/ContractorFeeBuilder';
+import ContractorStageOhp from '@/components/delivery/ContractorStageOhp';
 
 const ROLES = ["Contractor", "Project Manager", "Principal Designer (CDM)", "Principal Designer (BR)", "Architect", "Structural Engineer", "M&E Engineer", "Cost Consultant", "Other"];
 const STAGES = ["riba_1", "riba_2", "riba_3", "riba_4", "riba_5_7"];
@@ -110,6 +111,7 @@ export function DeliveryTeam({ project, delivery, setField, onSave, saving, supp
               <div>
                 <p className="mb-1.5 text-xs font-semibold uppercase tracking-wide text-slate-400">Contractor fee build-up (£)</p>
                 <ContractorFeeBuilder projectId={project.id} fees={m.contractor_fees} onChange={(fees) => setContractorFees(idx, fees)} />
+                <div className="mt-3"><ContractorStageOhp member={m} onChange={value => setMember(idx, 'contractor_ohp', value)} /></div>
               </div>
             ) : (
               <div>

@@ -1,5 +1,5 @@
-// Contractor fee build-up: surveys (RIBA 1-4) + OHP, and RIBA 5-7 authorised activities + OHP.
-const SURVEY_STAGES = ['riba_1', 'riba_2', 'riba_3', 'riba_4'];
+import { CONTRACTOR_STAGES, CONTRACTOR_LABELS, contractorStageBases, calculateStageOhp } from '@/components/delivery/contractorFeeRows';
+const SURVEY_STAGES = CONTRACTOR_STAGES.slice(0, 4);
 
 export const isContractorMember = (m) => String(m?.role || '').trim().toLowerCase() === 'contractor';
 
@@ -9,28 +9,39 @@ export function contractorMembers(deliveryTeam) {
 
 export function contractorBuildUp(deliveryTeam, ohpSurveysPct, ohpRiba57Pct, ohpSurveysType = 'percentage', ohpSurveysFixed = 0) {
   const contractors = contractorMembers(deliveryTeam);
-  let surveysBase = 0;
-  let riba57Base = 0;
-  contractors.forEach((m) => {
-    if (Array.isArray(m.contractor_fees) && m.contractor_fees.length) {
-      m.contractor_fees.forEach((f) => {
-        const amt = Number(f.amount) || 0;
-        if (f.type === 'authorised_activity' || f.stage === 'riba_5_7') riba57Base += amt;
-        else surveysBase += amt;
-      });
-    } else {
-      surveysBase += SURVEY_STAGES.reduce((s, st) => s + (Number(m.fees?.[st]) || 0), 0);
-      riba57Base += Number(m.fees?.riba_5_7) || 0;
-    }
+  const stageRows = CONTRACTOR_STAGES.map(stage => ({ stage, label: CONTRACTOR_LABELS[stage], base: 0, ohp: 0 }));
+  const legacyBases = Object.fromEntries(CONTRACTOR_STAGES.map(stage => [stage, 0]));
+  const hasStageOhp = contractors.some(member => member.contractor_ohp != null);
+  const hasLegacyOhp = contractors.some(member => member.contractor_ohp == null);
+  contractors.forEach(member => {
+    const bases = contractorStageBases(member);
+    stageRows.forEach(row => {
+      row.base += bases[row.stage];
+      if (member.contractor_ohp != null) row.ohp += calculateStageOhp(bases[row.stage], member.contractor_ohp[row.stage]);
+      else legacyBases[row.stage] += bases[row.stage];
+    });
   });
-  const ohpS = Number(ohpSurveysPct) || 0;
-  const ohpR = Number(ohpRiba57Pct) || 0;
-  const surveysOhp = ohpSurveysType === 'fixed' ? Math.round((Number(ohpSurveysFixed) || 0) * 100) / 100 : Math.round(surveysBase * ohpS) / 100;
-  const riba57Ohp = Math.round(riba57Base * ohpR) / 100;
+  const ohpS = Number(ohpSurveysPct) || 0, ohpR = Number(ohpRiba57Pct) || 0;
+  const legacySurveysBase = SURVEY_STAGES.reduce((sum, stage) => sum + legacyBases[stage], 0);
+  const legacySurveysOhp = !hasLegacyOhp ? 0 : ohpSurveysType === 'fixed'
+    ? Math.round((Number(ohpSurveysFixed) || 0) * 100) / 100 : Math.round(legacySurveysBase * ohpS) / 100;
+  let allocated = 0;
+  const lastStage = [...SURVEY_STAGES].reverse().find(stage => legacyBases[stage]) || 'riba_1';
+  stageRows.forEach(row => {
+    let legacyOhp = 0;
+    if (row.stage === 'riba_5_7') legacyOhp = Math.round(legacyBases[row.stage] * ohpR) / 100;
+    else if (row.stage !== lastStage) { legacyOhp = legacySurveysBase ? Math.round(legacySurveysOhp * legacyBases[row.stage] / legacySurveysBase * 100) / 100 : 0; allocated += legacyOhp; }
+    row.ohp += legacyOhp;
+  });
+  stageRows.find(row => row.stage === lastStage).ohp += legacySurveysOhp - allocated;
+  stageRows.forEach(row => { row.ohp = Math.round(row.ohp * 100) / 100; row.total = row.base + row.ohp; });
+  const surveysBase = stageRows.slice(0, 4).reduce((sum, row) => sum + row.base, 0);
+  const surveysOhp = stageRows.slice(0, 4).reduce((sum, row) => sum + row.ohp, 0);
+  const { base: riba57Base, ohp: riba57Ohp, total: riba57Total } = stageRows[4];
   const surveysTotal = surveysBase + surveysOhp;
-  const riba57Total = riba57Base + riba57Ohp;
   return {
     hasContractor: contractors.length > 0,
+    hasStageOhp, hasLegacyOhp, stageRows,
     surveysBase,
     surveysOhp,
     surveysTotal,
