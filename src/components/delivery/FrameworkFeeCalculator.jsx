@@ -2,7 +2,7 @@ import React, { useMemo } from 'react';
 import { formatCurrency } from '@/lib/portal';
 import { frameworkFeePct, frameworkFeeAmount } from '@/lib/frameworkFees';
 import { additionalFeeTotal } from '@/components/delivery/additionalFeeStages';
-import { isAlsFeeLine } from '@/components/delivery/feeProposalTotals';
+
 
 const CONTINGENCY_RE = /contingency/i;
 const UKLF_RE = /uklf/i;
@@ -18,8 +18,8 @@ export function isContingencyLine(line, contingencyLabel) {
 }
 
 export function contractValueExclUklfAndContingency(supplierFees, feeLines, uklfLabel, contingencyLabel) {
-  const excludedFees = feeLines.filter(line => isUklfLine(line, uklfLabel) || isContingencyLine(line, contingencyLabel)).reduce((sum, line) => sum + additionalFeeTotal(line), 0);
-  return Math.max(0, supplierFees - excludedFees);
+  const eligibleFees = feeLines.filter(line => !isUklfLine(line, uklfLabel) && !isContingencyLine(line, contingencyLabel)).reduce((sum, line) => sum + additionalFeeTotal(line), 0);
+  return Math.max(0, (Number(supplierFees) || 0) + eligibleFees);
 }
 
 export default function FrameworkFeeCalculator({ supplierFees, feeLines, settings, onApply }) {
@@ -33,7 +33,7 @@ export default function FrameworkFeeCalculator({ supplierFees, feeLines, setting
     <div className="flex flex-wrap items-center justify-between gap-2">
       <div>
         <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">UKLF framework fee (auto-calculated)</p>
-        <p className="mt-0.5 text-sm text-muted-foreground">Applied to the contract value excluding UKLF fee and contingency.</p>
+        <p className="mt-0.5 text-sm text-muted-foreground">Applied to all supplier, contractor and additional fees across every RIBA stage, excluding UKLF fee and contingency.</p>
       </div>
       <div className="text-right">
         <p className="text-lg font-semibold text-primary">{formatCurrency(feeAmount)}</p>
