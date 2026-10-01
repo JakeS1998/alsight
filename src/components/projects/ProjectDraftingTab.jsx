@@ -135,7 +135,7 @@ export function ProjectDraftingTab({ project, legalDocs, dmas, jcts, accountMap,
           docs = jcts;
         }
 
-        const status = stage.kind === "report" ? (project.link_to_riba4_report ? 'in_progress' : 'empty') : stage.kind === "pq" ? pqStatus(project) : docStatus(docs);
+        const status = stage.kind === "report" ? (project.link_to_riba4_report ? 'complete' : 'empty') : stage.kind === "pq" ? pqStatus(project) : docStatus(docs);
         const cfg = STATUS_CFG[status];
         const isLast = i === stages.length - 1;
         const Icon = stage.icon;
@@ -156,7 +156,7 @@ export function ProjectDraftingTab({ project, legalDocs, dmas, jcts, accountMap,
                   <span className="rounded-full bg-slate-100 px-2 py-0.5 text-xs font-medium text-slate-600">{docs.length}</span>
                 )}
                 <span className={`inline-flex items-center rounded-full border px-2 py-0.5 text-[10px] font-medium ${cfg.badge}`}>
-                  {stage.kind === 'report' ? (project.link_to_riba4_report ? 'Linked' : 'Not linked') : cfg.label}
+                  {stage.kind === 'report' && !project.link_to_riba4_report ? 'Not linked' : cfg.label}
                 </span>
               </div>
 

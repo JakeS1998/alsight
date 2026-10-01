@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { base44 } from '@/api/base44Client';
 import { useAuth } from '@/lib/AuthContext';
 import { Button } from '@/components/ui/button';
-import { ExternalLink } from 'lucide-react';
+import { ExternalLink, FileCheck } from 'lucide-react';
 
 export default function RibaReportLink({ project, onProjectUpdated }) {
   const { user } = useAuth();
@@ -26,12 +26,16 @@ export default function RibaReportLink({ project, onProjectUpdated }) {
     } catch { setMessage('Unable to save the link. Please try again.'); }
     finally { setSaving(false); }
   };
+  if (project.link_to_riba4_report) return <a href={project.link_to_riba4_report} target="_blank" rel="noopener noreferrer" className="flex items-center justify-between gap-3 rounded-xl border border-border bg-card p-4 transition-colors hover:bg-muted">
+    <div className="flex min-w-0 items-center gap-3"><FileCheck className="h-4 w-4 shrink-0 text-primary" /><div className="min-w-0"><p className="text-sm font-semibold text-foreground">RIBA 4 report</p><p className="text-xs text-muted-foreground">Open document in SharePoint</p></div></div>
+    <ExternalLink className="h-4 w-4 shrink-0 text-muted-foreground" />
+  </a>;
   return <div className="rounded-xl border border-border bg-card p-4 space-y-3">
     {canEdit && <form onSubmit={save} className="space-y-2">
       <label htmlFor={`riba4-link-${project.id}`} className="block text-xs text-muted-foreground">SharePoint link</label>
       <div className="flex flex-wrap gap-2"><input id={`riba4-link-${project.id}`} type="url" value={link} onChange={e => { setLink(e.target.value); setMessage(''); }} disabled={saving} placeholder="https://yourorganisation.sharepoint.com/..." className="min-w-0 flex-1 rounded-md border border-input bg-background px-3 py-2 text-sm" /><Button type="submit" size="sm" disabled={saving}>{saving ? 'Saving…' : 'Save Link'}</Button></div>
       {message && <p role="status" className="text-xs text-muted-foreground">{message}</p>}
     </form>}
-    {project.link_to_riba4_report ? <a href={project.link_to_riba4_report} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-2 text-sm text-foreground hover:underline">Open RIBA 4 report in SharePoint<ExternalLink className="h-4 w-4" /></a> : !canEdit && <p className="text-xs text-muted-foreground">No RIBA 4 report linked yet.</p>}
+    {!canEdit && <p className="text-xs text-muted-foreground">No RIBA 4 report linked yet.</p>}
   </div>;
 }
