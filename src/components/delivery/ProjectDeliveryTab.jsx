@@ -12,9 +12,8 @@ import { DeliveryCloseout } from "./DeliveryCloseout";
 import { DeliveryTeam } from "./DeliveryTeam";
 import ProjectRiskRegister from '@/components/delivery/ProjectRiskRegister';
 import ProjectHandoverPack from '@/components/handover/ProjectHandoverPack';
-import DeliveryCollapseProvider from '@/components/delivery/DeliveryCollapseContext';
-import DeliveryStage from '@/components/delivery/DeliveryStage';
-import deliveryStageCompletion from '@/components/delivery/deliveryStageCompletion';
+import DeliveryJourney from '@/components/delivery/DeliveryJourney';
+import { FormSection } from '@/components/forms/PowerForm';
 
 const DELIVERY_DEFAULT = {
   funding_route: "", scope_summary: "", client_objectives: "", initial_constraints: "",
@@ -122,7 +121,7 @@ export function ProjectDeliveryTab({ project, legalDocs, dmas, jcts, warranties,
   };
 
   return (
-    <DeliveryCollapseProvider key={projectId} projectId={projectId} completion={deliveryStageCompletion(project, savedDelivery)}><div className="space-y-6">
+    <DeliveryJourney key={projectId} project={project} delivery={savedDelivery} feeProposals={feeProposals} legalDocs={legalDocs} dmas={dmas} jcts={jcts} warranties={warranties}>
       <DeliveryScoping project={project} accountMap={accountMap} bdmName={bdmName} delivery={delivery} setField={setField} onSave={saveDelivery} saving={savingDelivery} />
       <FeeProposalSection projectId={projectId} project={project} onChanged={setFeeProposals} deliveryTeam={deliveryTeam} suppliers={suppliers}>
         <DeliveryTeam embedded project={project} delivery={delivery} setField={setField} onSave={saveDelivery} saving={savingDelivery} suppliers={suppliers} />
@@ -130,13 +129,13 @@ export function ProjectDeliveryTab({ project, legalDocs, dmas, jcts, warranties,
       <PreConstructionReadiness project={project} legalDocs={legalDocs} dmas={dmas} jcts={jcts} warranties={warranties} feeProposals={feeProposals} delivery={delivery} setField={setField} onSave={saveDelivery} saving={savingDelivery} />
       <DesignTeam legalDocs={legalDocs} jcts={jcts} warranties={warranties} accountMap={accountMap} deliveryTeam={deliveryTeam} suppliers={suppliers} />
       <ProgrammeMilestones project={project} feeProposals={feeProposals} jcts={jcts} delivery={delivery} />
-      <DeliveryStage title="6 · Action Register"><RegisterList title="Action" description="The simple action log BDMs use every day" entityName="ProjectAction" projectId={projectId} project={project} columns={ACTION_COLS} tableColumns={ACTION_TABLE} sortBy="-due_date" addLabel="Add action" /></DeliveryStage>
-      <DeliveryStage title="7 · Decision Register"><RegisterList title="Decision" description="Lightweight decision & client-approval register" entityName="ProjectDecision" projectId={projectId} project={project} columns={DECISION_COLS} tableColumns={DECISION_TABLE} sortBy="-date_requested" addLabel="Add decision" /></DeliveryStage>
+      <FormSection title="6 · Action Register"><RegisterList title="Action" description="The simple action log BDMs use every day" entityName="ProjectAction" projectId={projectId} project={project} columns={ACTION_COLS} tableColumns={ACTION_TABLE} sortBy="-due_date" addLabel="Add action" /></FormSection>
+      <FormSection title="7 · Decision Register"><RegisterList title="Decision" description="Lightweight decision & client-approval register" entityName="ProjectDecision" projectId={projectId} project={project} columns={DECISION_COLS} tableColumns={DECISION_TABLE} sortBy="-date_requested" addLabel="Add decision" /></FormSection>
       <ProjectRiskRegister project={project} delivery={delivery} accountMap={accountMap} />
       <DeliveryConstruction delivery={delivery} setField={setField} onSave={saveDelivery} saving={savingDelivery} />
       <DeliveryCloseout delivery={delivery} setField={setField} onSave={saveDelivery} saving={savingDelivery}>
         <ProjectHandoverPack embedded project={project} savingDelivery={savingDelivery} onStarted={loadDelivery} />
       </DeliveryCloseout>
-    </div></DeliveryCollapseProvider>
+    </DeliveryJourney>
   );
 }
