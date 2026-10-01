@@ -1,7 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { Button } from '@/components/ui/button';
-import HandoverDocuments from '@/components/handover/HandoverDocuments';
-import HandoverRegisterBuilder from '@/components/handover/HandoverRegisterBuilder';
+import HandoverEvidence from '@/components/handover/HandoverEvidence';
 import HandoverClassification from '@/components/handover/HandoverClassification';
 import HandoverApplicability from '@/components/handover/HandoverApplicability';
 import HandoverComplianceFields from '@/components/handover/HandoverComplianceFields';
@@ -24,10 +23,8 @@ export default function HandoverItem({ projectId, item, authorised, editable, bu
 
       </> : <p className="whitespace-pre-wrap text-sm">{item.notes || 'No review notes recorded.'}</p>}
       {item.reviewed_at && <p className="text-xs text-muted-foreground">Reviewed by {item.reviewed_by} · {new Date(item.reviewed_at).toLocaleString('en-GB')}</p>}
-      {item.key === 'warranties' ? <HandoverWarrantyList item={item} /> : <HandoverRegisterBuilder projectId={projectId} item={item} editable={editable} busy={busy} onAction={onAction} expanded={expanded} />}
+      {item.key === 'warranties' ? <HandoverWarrantyList item={item} /> : <HandoverEvidence projectId={projectId} item={item} editable={editable} busy={busy} onAction={onAction} expanded={expanded} />}
       <div className="space-y-3">
-        {item.key !== 'warranties' && <><p className="text-sm font-medium">Supporting document (optional)</p>
-        <HandoverDocuments item={item} editable={editable} busy={busy} onAction={onAction} /></>}
         {editable && <>
           <label className={item.key === 'warranties' ? 'hidden' : 'block text-xs'}>Secure document link (optional)<input type="url" placeholder="https://…" value={link} maxLength={1000} onChange={event => setLink(event.target.value)} className="mt-1 block w-full rounded border border-input bg-background p-2 text-sm" /></label>
           <Button size="sm" variant="outline" disabled={busy} onClick={() => onAction('review', { key: item.key, status, notes, link }).catch(() => {})}>Save review</Button>
