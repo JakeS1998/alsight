@@ -8,6 +8,8 @@ import ValuationSnapshot from '@/components/valuations/ValuationSnapshot';
 import StageDrawing from '@/components/dashboard/PipelineStageArtwork';
 import { projectCompletionDates } from '@/components/projects/projectCompletionDates';
 import ProjectDocumentStatuses from '@/components/projects/ProjectDocumentStatuses';
+import Project360Strip from '@/components/projects/Project360Strip';
+import CompletionVariance from '@/components/projects/CompletionVariance';
 import ProjectBriefHistory from '@/components/projects/ProjectBriefHistory';
 import { projectStaffName } from '@/components/projects/projectStaffName';
 import { formatDate, formatCurrency, regionName, INTERNAL_ROLES } from "@/lib/portal";
@@ -116,6 +118,7 @@ export function ProjectGeneralTab({ project, accountMap, onProjectUpdated, singl
 
   return (
     <div className="space-y-6">
+      {INTERNAL_ROLES.includes(role) && <Project360Strip project={project} singleTask={singleTask} />}
       {INTERNAL_ROLES.includes(role) && <ValuationSnapshot project={project} />}
       {INTERNAL_ROLES.includes(role) && project.request_brief_file_uri && <ProjectBriefHistory fileUri={project.request_brief_file_uri} />}
       {/* Key info cards */}
@@ -167,7 +170,8 @@ export function ProjectGeneralTab({ project, accountMap, onProjectUpdated, singl
                 <th className="pb-2 pr-4">{singleTask ? 'Task' : 'Stage'}</th>
                 {!singleTask && <th className="pb-2 pr-4">Term (Weeks)</th>}
                 {!singleTask && <th className="pb-2 pr-4">Expected Completion</th>}
-                <th className="pb-2">Actual Completion</th>
+                <th className="pb-2 pr-4">Actual Completion</th>
+                {!singleTask && <th className="pb-2">Variance</th>}
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-50">
@@ -190,6 +194,7 @@ export function ProjectGeneralTab({ project, accountMap, onProjectUpdated, singl
                       <span className="text-slate-600">{formatDate(project[r.key])}</span>
                     )}
                   </td>
+                  <td className="py-2.5"><CompletionVariance expected={r.expected} actual={canEdit ? ribaDates[r.key] : project[r.key]} /></td>
                 </tr>
               ))}
               <tr className="bg-slate-50">
@@ -208,6 +213,7 @@ export function ProjectGeneralTab({ project, accountMap, onProjectUpdated, singl
                     />
                   ) : <span className="text-slate-600">{formatDate(project.practical_completion_date)}</span>}
                 </td>
+                {!singleTask && <td className="py-2.5"><CompletionVariance expected={expectedDates.riba5_system_date} actual={canEdit ? ribaDates.practical_completion_date : project.practical_completion_date} /></td>}
               </tr>
             </tbody>
           </table>
