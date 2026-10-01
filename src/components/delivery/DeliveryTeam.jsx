@@ -46,8 +46,9 @@ export function DeliveryTeam({ project, delivery, setField, onSave, saving, supp
     const next = team.map((m, i) => {
       if (i !== idx) return m;
       const updated = { ...m, [field]: value };
-      if (field === "role" && isContractor(updated) && !Array.isArray(updated.contractor_fees)) {
-        updated.contractor_fees = migrateContractor(updated).contractor_fees;
+      if (field === "role" && isContractor(updated)) {
+        if (!Array.isArray(updated.contractor_fees)) updated.contractor_fees = migrateContractor(updated).contractor_fees;
+        if (updated.contractor_ohp === undefined) updated.contractor_ohp = {};
       }
       return updated;
     });

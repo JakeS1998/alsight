@@ -11,13 +11,13 @@ export function contractorBuildUp(deliveryTeam, ohpSurveysPct, ohpRiba57Pct, ohp
   const contractors = contractorMembers(deliveryTeam);
   const stageRows = CONTRACTOR_STAGES.map(stage => ({ stage, label: CONTRACTOR_LABELS[stage], base: 0, ohp: 0 }));
   const legacyBases = Object.fromEntries(CONTRACTOR_STAGES.map(stage => [stage, 0]));
-  const hasStageOhp = contractors.some(member => member.contractor_ohp != null);
-  const hasLegacyOhp = contractors.some(member => member.contractor_ohp == null);
+  const hasStageOhp = contractors.some(member => member.contractor_ohp !== null);
+  const hasLegacyOhp = contractors.some(member => member.contractor_ohp === null);
   contractors.forEach(member => {
     const bases = contractorStageBases(member);
     stageRows.forEach(row => {
       row.base += bases[row.stage];
-      if (member.contractor_ohp != null) row.ohp += calculateStageOhp(bases[row.stage], member.contractor_ohp[row.stage]);
+      if (member.contractor_ohp !== null) row.ohp += calculateStageOhp(bases[row.stage], member.contractor_ohp?.[row.stage]);
       else legacyBases[row.stage] += bases[row.stage];
     });
   });

@@ -1,5 +1,6 @@
 import React from 'react';
 import { Trash2 } from 'lucide-react';
+import { formatCurrency } from '@/lib/portal';
 import { CONTRACTOR_STAGES, CONTRACTOR_LABELS } from '@/components/delivery/contractorFeeRows';
 const inputClass = 'h-8 w-full rounded border border-input bg-background px-2 text-xs focus:outline-none focus:ring-2 focus:ring-primary/20';
 export default function ContractorFeeTable({ title, rows, activity, update, remove }) {
@@ -18,6 +19,10 @@ export default function ContractorFeeTable({ title, rows, activity, update, remo
         {stages.map(stage => <td key={stage} className="p-1.5"><input aria-label={`${row.description || title} ${CONTRACTOR_LABELS[stage]} fee`} type="number" min="0" step="0.01" value={row.amounts[stage] ?? ''} placeholder="—" onChange={e => update(row.id, stage, e.target.value)} className={`${inputClass} text-right`} /></td>)}
         <td className="p-1.5"><button type="button" aria-label={`Remove ${row.description || title}`} onClick={() => remove(row.id)} className="rounded p-1 text-muted-foreground hover:text-destructive"><Trash2 className="h-4 w-4" /></button></td>
       </tr>)}</tbody>
-    </table></div>
+      <tfoot className="border-t border-border bg-muted font-semibold"><tr>
+       <td colSpan={2} className="p-2">{title} total</td>
+       {stages.map(stage => <td key={stage} className="p-2 text-right">{formatCurrency(rows.reduce((sum, row) => sum + (Number(row.amounts[stage]) || 0), 0))}</td>)}<td />
+      </tr></tfoot>
+      </table></div>
   </section>;
 }

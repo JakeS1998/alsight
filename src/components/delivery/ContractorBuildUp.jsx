@@ -5,7 +5,7 @@ import ContractorStageSummary from '@/components/delivery/ContractorStageSummary
 
 export default function ContractorBuildUp({ deliveryTeam, ohpSurveysPct, ohpRiba57Pct, ohpSurveysType = 'percentage', ohpSurveysFixed = 0, onOhpTypeChange, onOhpFixedChange, onOhpChange }) {
   const combined = contractorBuildUp(deliveryTeam, ohpSurveysPct, ohpRiba57Pct, ohpSurveysType, ohpSurveysFixed);
-  const build = combined.hasStageOhp ? contractorBuildUp(contractorMembers(deliveryTeam).filter(member => member.contractor_ohp == null), ohpSurveysPct, ohpRiba57Pct, ohpSurveysType, ohpSurveysFixed) : combined;
+  const build = combined.hasStageOhp ? contractorBuildUp(contractorMembers(deliveryTeam).filter(member => member.contractor_ohp === null), ohpSurveysPct, ohpRiba57Pct, ohpSurveysType, ohpSurveysFixed) : combined;
   if (combined.hasStageOhp && !combined.hasLegacyOhp) return <ContractorStageSummary build={combined} />;
   if (!combined.hasContractor) {
     return <div className="rounded-lg border border-dashed border-slate-300 bg-slate-50 p-3 text-sm text-slate-500">No contractor in the Delivery Team. Add a contractor with fees per RIBA stage to build up their fee.</div>;
