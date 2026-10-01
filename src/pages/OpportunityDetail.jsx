@@ -79,7 +79,7 @@ export default function OpportunityDetail() {
     {saved && <p role="status" className="text-sm text-emerald-700">Planning saved.</p>}
     <Tabs defaultValue="overview" className="space-y-4">
       <TabsList className="flex h-auto flex-wrap justify-start gap-1">
-        <TabsTrigger value="overview">Overview</TabsTrigger><TabsTrigger value="activity">Activity</TabsTrigger><TabsTrigger value="brief">Project Brief</TabsTrigger><TabsTrigger value="team">Design Team</TabsTrigger><TabsTrigger value="fees">Fee Proposal</TabsTrigger><TabsTrigger value="handover">Handover</TabsTrigger>
+        <TabsTrigger value="overview">Overview</TabsTrigger><TabsTrigger value="activity">Activity</TabsTrigger><TabsTrigger value="brief">Opportunity &amp; Scoping</TabsTrigger><TabsTrigger value="team">Design Team</TabsTrigger><TabsTrigger value="fees">Fee Proposal</TabsTrigger><TabsTrigger value="handover">Handover</TabsTrigger>
       </TabsList>
       <TabsContent value="overview"><OpportunityOverview item={item} account={account} contacts={contacts} user={user} canEdit={canEdit} /></TabsContent>
       <TabsContent value="activity"><CRMActivityTimeline item={item} user={user} canEdit={canEdit} /></TabsContent>
