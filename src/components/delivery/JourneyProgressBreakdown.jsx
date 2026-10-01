@@ -1,6 +1,7 @@
 import React from 'react';
 import { CheckCircle2, Circle, ChevronDown } from 'lucide-react';
 export default function JourneyProgressBreakdown({ stage }) {
+  if (stage.showProgress === false) return null;
   return <details key={stage.id} className="mb-4 rounded-xl border border-border bg-card p-4">
     <summary className="flex cursor-pointer list-none items-center justify-between gap-3 text-sm font-semibold text-foreground">
       <span>Why this percentage? <span className="font-normal text-muted-foreground">{stage.percent == null ? 'Checking…' : `${stage.percent}%`}</span></span><ChevronDown className="h-4 w-4 shrink-0 text-muted-foreground" />
