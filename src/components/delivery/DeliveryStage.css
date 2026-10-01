@@ -1,0 +1,69 @@
+.delivery-stage {
+  display: inline-block;
+  width: 100%;
+  box-sizing: border-box;
+  overflow: hidden;
+  border: 1px solid hsl(var(--als-navy));
+  border-radius: 10px;
+  background: hsl(var(--card));
+  box-shadow: 0 5px 14px hsl(var(--als-navy) / .18);
+  vertical-align: top;
+}
+.delivery-stage__header {
+  background: hsl(var(--als-navy));
+  color: hsl(var(--sidebar-foreground));
+}
+.delivery-stage__toggle {
+  position: relative;
+  display: flex;
+  width: 100%;
+  box-sizing: border-box;
+  align-items: center;
+  gap: 12px;
+  padding: 9px 13px;
+  border: 0;
+  background: transparent;
+  color: inherit;
+  text-align: left;
+  cursor: pointer;
+  transition: background-color .18s ease, box-shadow .18s ease;
+}
+.delivery-stage__toggle:hover { background: hsl(var(--als-navy-light)); }
+.delivery-stage__toggle:active { background: hsl(var(--als-navy)); }
+.delivery-stage__toggle:focus-visible { outline: 2px solid hsl(var(--primary)); outline-offset: -3px; }
+.delivery-stage__chevron {
+  display: grid;
+  flex: 0 0 30px;
+  width: 30px;
+  height: 30px;
+  place-items: center;
+  border: 1px solid hsl(var(--primary) / .58);
+  border-radius: 6px;
+  background: hsl(var(--als-navy-light) / .32);
+  color: hsl(var(--primary));
+  transition: background-color .18s ease, transform .18s ease;
+}
+.delivery-stage__toggle:hover .delivery-stage__chevron { background: hsl(var(--als-navy-light) / .62); }
+.delivery-stage__toggle:active .delivery-stage__chevron { transform: translateX(2px); }
+.delivery-stage__title {
+  min-width: 0;
+  font-family: var(--font-mono);
+  font-size: 13px;
+  font-weight: 800;
+  line-height: 1.25;
+  letter-spacing: .035em;
+  text-transform: uppercase;
+}
+.delivery-stage__description { color: hsl(var(--sidebar-foreground) / .75); }
+.delivery-stage__corner {
+  position: absolute;
+  top: 0;
+  right: 0;
+  width: 13px;
+  height: 13px;
+  border-top: 2px solid hsl(var(--primary));
+  border-right: 2px solid hsl(var(--primary));
+  border-radius: 0 7px 0 0;
+  animation: deliveryStageCornerPulse 3.6s ease-in-out infinite;
+}
+@keyframes deliveryStageCornerPulse { 0%, 100% { opacity: .38; } 50% { opacity: 1; } }
