@@ -29,10 +29,12 @@ export default function FrameworkFeeCalculator({ supplierFees, feeLines, setting
   const feeAmount = useMemo(() => frameworkFeeAmount(bands, contractValue), [bands, contractValue]);
   const hasUklfLine = useMemo(() => feeLines.some(line => isUklfLine(line, uklf)), [feeLines, uklf]);
 
+  if (!bands.length) return <div className="rounded-lg border border-border bg-muted/50 p-3 text-sm text-muted-foreground">{settings.version ? `${settings.version} fee bands have not been configured. Add them in Admin settings before calculating the UKLF fee.` : 'A recognised project number is required to determine the framework fee bands.'} Existing fee lines are unchanged.</div>;
+
   return <div className="rounded-lg border border-primary/30 bg-primary/5 p-3">
     <div className="flex flex-wrap items-center justify-between gap-2">
       <div>
-        <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">UKLF framework fee (auto-calculated)</p>
+        <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">UKLF {settings.version} framework fee (auto-calculated)</p>
         <p className="mt-0.5 text-sm text-muted-foreground">Applied to all supplier, contractor and additional fees across every RIBA stage, excluding UKLF fee and contingency.</p>
       </div>
       <div className="text-right">

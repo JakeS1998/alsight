@@ -15,7 +15,8 @@ const bandLabel = (band, index, total) => {
 };
 
 export default function FrameworkFeeSettings() {
-  const { settings, loading, error, reload } = useFrameworkFees();
+  const [version, setVersion] = useState('FW3');
+  const { settings, loading, error, reload } = useFrameworkFees(version);
   const { user } = useAuth();
   const [bands, setBands] = useState([]);
   const [contingency, setContingency] = useState('');
@@ -48,9 +49,8 @@ export default function FrameworkFeeSettings() {
         }))
         .filter(b => !Number.isNaN(b.min))
         .sort((a, b) => a.min - b.min);
-      if (!cleaned.length) throw new Error('Add at least one fee band.');
       const payload = {
-        key: 'uklf-fee-bands',
+        key: settings.key,
         bands: cleaned,
         contingency_label: contingency.trim() || 'Contingency',
         uklf_label: uklf.trim() || 'UKLF Fee',
@@ -75,6 +75,13 @@ export default function FrameworkFeeSettings() {
   return <section className="rounded-xl border border-border bg-card p-5" aria-labelledby="framework-fee-heading">
     <h2 id="framework-fee-heading" className="text-lg font-semibold">UKLF framework fee bands</h2>
     <p className="mt-1 text-sm text-muted-foreground">The framework fee is a percentage of the total contract value, excluding the UKLF fee and contingency. Bands are matched to the contract value and applied automatically in the fee proposal builder.</p>
+    <div className="mt-4 flex items-center gap-3">
+      <label htmlFor="fee-framework-version" className="text-sm font-semibold">Framework</label>
+      <select id="fee-framework-version" value={version} disabled={saving} onChange={e => { setVersion(e.target.value); setSaved(false); setSaveError(''); }} className="h-9 rounded-lg border border-input bg-background px-3 text-sm">
+        <option value="FW3">FW3</option><option value="FW4">FW4</option>
+      </select>
+      <span className="text-xs text-muted-foreground">Each framework has its own fee bands.</span>
+    </div>
     <form onSubmit={save} className="mt-4 space-y-5">
       <div className="grid gap-3 sm:grid-cols-2">
         <div>
@@ -99,6 +106,7 @@ export default function FrameworkFeeSettings() {
             </tr>
           </thead>
           <tbody className="divide-y divide-border">
+            {!bands.length && <tr><td colSpan={6} className="px-3 py-6 text-center text-muted-foreground">No {version} fee bands configured. Add a band to set this framework’s rates.</td></tr>}
             {bands.map((band, index) => {
               const example = Math.round((Number(band.min) || 0) * (Number(band.pct) || 0) / 100);
               return <tr key={index}>
@@ -117,7 +125,7 @@ export default function FrameworkFeeSettings() {
       {saveError && <p role="alert" className="text-sm text-destructive">{saveError}</p>}
       {saved && <p role="status" className="text-sm text-success">Framework fee bands saved. New fee proposals will use the updated rates.</p>}
       <div className="flex gap-2">
-        <Button type="submit" disabled={saving}>{saving && <Loader2 className="mr-1.5 h-4 w-4 animate-spin" />} Save fee bands</Button>
+        <Button type="submit" disabled={saving || !settings || !!error}>{saving && <Loader2 className="mr-1.5 h-4 w-4 animate-spin" />} Save fee bands</Button>
       </div>
       <p className="text-xs text-muted-foreground">Leave the top band's Max at 0 to indicate an open-ended range (£value+). Bands are sorted by minimum value when saved.</p>
     </form>
