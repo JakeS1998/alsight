@@ -11,7 +11,7 @@ export default function ContractorFeeBuilder({ projectId, fees, onChange }) {
   const update = (id, field, value) => commit(rows.map(row => row.id !== id ? row : CONTRACTOR_STAGES.includes(field)
     ? { ...row, amounts: { ...row.amounts, [field]: value } } : { ...row, [field]: value }));
   return <div className="space-y-3">
-    <ContractorFeeImport projectId={projectId} onImport={imported => commit(groupContractorFees([...list, ...imported]))} />
+    {projectId && <ContractorFeeImport projectId={projectId} onImport={imported => commit(groupContractorFees([...list, ...imported]))} />}
     {!rows.length && <p className="text-xs text-muted-foreground">Add surveys and consultants with fees across RIBA 1–4, or authorised activities with one RIBA 5–7 fee.</p>}
     <ContractorFeeTable title="Surveys & investigations" rows={rows.filter(row => row.type === 'survey')} update={update} remove={remove} addLabel="Add survey" onAdd={() => add('survey')} />
     <ContractorFeeTable title="Consultants" rows={rows.filter(row => row.type === 'consultant')} update={update} remove={remove} addLabel="Add consultant" onAdd={() => add('consultant')} />

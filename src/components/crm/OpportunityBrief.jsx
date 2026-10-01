@@ -1,19 +1,16 @@
 import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
+import ScopingFields, { SCOPING_KEYS } from '@/components/delivery/ScopingFields';
+import { FormField, formInputClass } from '@/components/forms/PowerForm';
+import { chance } from '@/components/crm/crm';
 
-const FIELDS = [
-  ['site_postcode', 'Site postcode'], ['funding_route', 'Funding route'],
-  ['target_programme', 'Target programme'], ['key_stakeholders', 'Key stakeholders'],
-  ['scope_summary', 'Scope of works'], ['client_objectives', 'Client objectives'],
-  ['initial_constraints', 'Site / project constraints'],
-];
 export default function OpportunityBrief({ item, onSave, canEdit, saving }) {
-  const [draft, setDraft] = useState(Object.fromEntries(FIELDS.map(([key]) => [key, item[key] || ''])));
+  const [draft, setDraft] = useState(() => ({ ...Object.fromEntries(SCOPING_KEYS.map(key => [key, item[key] ?? ''])), site_postcode: item.site_postcode || '', probability: chance(item), site_visit_completed: !!item.site_visit_completed }));
   return <section className="space-y-4 rounded-xl border border-border bg-card p-5">
-    <div><h2 className="font-semibold">Project design brief</h2><p className="text-sm text-muted-foreground">Capture the early scope before delivery begins.</p></div>
-    {canEdit && item.status === 'open' ? <form onSubmit={e => { e.preventDefault(); onSave(draft); }} className="space-y-4">
-      <div className="grid gap-4 sm:grid-cols-2">{FIELDS.map(([key, label]) => <label key={key} className={`block space-y-1 text-sm ${['scope_summary','client_objectives','initial_constraints'].includes(key) ? 'sm:col-span-2' : ''}`}><span>{label}</span>{['scope_summary','client_objectives','initial_constraints'].includes(key) ? <textarea rows={3} maxLength={5000} value={draft[key]} onChange={e => setDraft({ ...draft, [key]: e.target.value })} className="w-full rounded-lg border border-input p-2" /> : <input maxLength={500} value={draft[key]} onChange={e => setDraft({ ...draft, [key]: e.target.value })} className="w-full rounded-lg border border-input p-2" />}</label>)}</div>
-      <Button disabled={saving}>{saving ? 'Saving…' : 'Save design brief'}</Button>
-    </form> : <dl className="grid gap-4 sm:grid-cols-2">{FIELDS.map(([key, label]) => <div key={key}><dt className="text-xs text-muted-foreground">{label}</dt><dd className="whitespace-pre-wrap text-sm">{item[key] || '—'}</dd></div>)}</dl>}
+    <div><h2 className="font-semibold">Opportunity &amp; Scoping</h2><p className="text-sm text-muted-foreground">The same scoping fields used in project management, carried across automatically on handover.</p></div>
+    <ScopingFields value={draft} setField={(key, value) => setDraft(previous => ({ ...previous, [key]: value }))} readOnly={!canEdit || item.status !== 'open'}>
+      <FormField label="Site postcode"><input value={draft.site_postcode} onChange={event => setDraft(previous => ({ ...previous, site_postcode: event.target.value }))} className={formInputClass} /></FormField>
+    </ScopingFields>
+    {canEdit && item.status === 'open' && <Button disabled={saving} onClick={() => onSave(draft)}>{saving ? 'Saving…' : 'Save scoping'}</Button>}
   </section>;
 }

@@ -126,6 +126,28 @@
     "funding_route": {
       "type": "string"
     },
+    "funding_route_notes": {
+      "type": "string"
+    },
+    "feasibility_status": {
+      "type": "string",
+      "enum": [
+        "not_started",
+        "in_progress",
+        "complete",
+        ""
+      ]
+    },
+    "feasibility_notes": {
+      "type": "string"
+    },
+    "site_visit_completed": {
+      "type": "boolean",
+      "default": false
+    },
+    "next_action": {
+      "type": "string"
+    },
     "design_team": {
       "type": "array",
       "items": {

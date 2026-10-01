@@ -4,8 +4,8 @@ import { formatCurrency } from '@/lib/portal';
 import { additionalFeeStages, additionalFeeTotal } from '@/components/delivery/additionalFeeStages';
 import { isUklfLine } from '@/components/delivery/FrameworkFeeCalculator';
 
-export default function FeeProposalLines({ items, stages, updateItem, addItem, removeItem, singleTask = false, automaticUklfLabel }) {
-  return <div>
+export default function FeeProposalLines({ items, stages, updateItem, addItem, removeItem, singleTask = false, automaticUklfLabel, readOnly = false }) {
+  return <fieldset disabled={readOnly}>
     <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-muted-foreground">ALS fee &amp; additional lines</p>
     <p className="mb-2 text-xs text-muted-foreground">Lines are included in the client proposal by default. Untick to exclude a line from the client PDF and client total; it remains in the internal proposal. Save builder to retain your choices.</p>
     <div className="overflow-x-auto"><table className={singleTask ? 'w-full text-xs' : 'w-full min-w-[950px] text-xs'}>
@@ -26,6 +26,6 @@ export default function FeeProposalLines({ items, stages, updateItem, addItem, r
         </tr>;
       })}</tbody>
     </table></div>
-    <button type="button" onClick={addItem} className="mt-2 inline-flex items-center gap-1 text-sm text-primary hover:underline"><Plus className="h-4 w-4" /> Add optional line</button>
-  </div>;
+    {!readOnly && <button type="button" onClick={addItem} className="mt-2 inline-flex items-center gap-1 text-sm text-primary hover:underline"><Plus className="h-4 w-4" /> Add optional line</button>}
+  </fieldset>;
 }

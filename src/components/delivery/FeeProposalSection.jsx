@@ -23,8 +23,9 @@ import useFrameworkFees from '@/components/delivery/useFrameworkFees';
 import frameworkVersion from '@/components/projects/frameworkVersion';
 import frameworkAgreementRoute from '@/components/delivery/frameworkAgreementRoute';
 import ContractorBuildUp from '@/components/delivery/ContractorBuildUp';
-import { contractorBuildUp as computeContractorBuildUp, isContractorMember } from '@/components/delivery/contractorBuildUp';
-import { contractorFsfKey, contractorFsfRows } from '@/components/delivery/contractorFsf';
+import { contractorBuildUp as computeContractorBuildUp } from '@/components/delivery/contractorBuildUp';
+import { contractorFsfRows } from '@/components/delivery/contractorFsf';
+import proposalSupplierLines from '@/components/delivery/proposalSupplierLines';
 import singleTaskFees from '@/components/delivery/singleTaskFees';
 import taskProposalTotal from '@/components/delivery/taskProposalTotal';
 
@@ -47,8 +48,7 @@ const STATUS_STYLE = {
   accepted: "bg-emerald-50 text-emerald-700", lost: "bg-rose-50 text-rose-700",
 };
 const RIBA_STAGES = ["RIBA 1", "RIBA 2", "RIBA 3", "RIBA 4", "RIBA 5-7"];
-const STAGE_LABEL = { riba_1: "RIBA 1", riba_2: "RIBA 2", riba_3: "RIBA 3", riba_4: "RIBA 4", riba_5_7: "RIBA 5-7" };
-const STAGE_KEYS = ["riba_1", "riba_2", "riba_3", "riba_4", "riba_5_7"];
+
 
 const EMPTY_HEADER = {
   revision_number: "", fee_basis: "", services_included: "", services_excluded: "",
@@ -88,42 +88,7 @@ export function FeeProposalSection({ projectId, project, onChanged, deliveryTeam
   const supplierName = (cn) => suppliers.find((s) => s.company_number === cn)?.name || cn || "";
 
   const taskFees = useMemo(() => singleTask ? singleTaskFees(deliveryTeam, supplierName, { surveysPct: ohpSurveysPct, riba57Pct: ohpRiba57Pct, surveysType: ohpSurveysType, surveysFixed: ohpSurveysFixed }) : null, [singleTask, deliveryTeam, suppliers, ohpSurveysPct, ohpRiba57Pct, ohpSurveysType, ohpSurveysFixed]);
-  const supplierLines = useMemo(() => {
-    if (singleTask) return taskFees.lines;
-    const out = [];
-    (deliveryTeam || []).forEach((m) => {
-      if (String(m.role || "").toLowerCase() === "contractor" && Array.isArray(m.contractor_fees)) {
-        m.contractor_fees.forEach((f) => {
-          const supName = f.supplier ? supplierName(f.supplier) || f.supplier : "";
-          out.push({
-            riba_stage: STAGE_LABEL[f.stage] || (f.type === "authorised_activity" ? "RIBA 5-7" : "Survey"),
-            role: m.role || "Supplier",
-            description: `${m.role || "Supplier"}${m.supplier_company_number ? " — " + supplierName(m.supplier_company_number) : ""}${supName ? " · " + supName : ""}${f.description ? " — " + f.description : ""}`,
-            supplier_company_number: f.supplier || m.supplier_company_number || "",
-            fsf_supplier_key: !f.supplier || f.supplier === m.supplier_company_number ? contractorFsfKey(m) : undefined,
-            fee_category: f.type,
-            item_description: f.description || "",
-            supplier_fee: Number(f.amount) || 0,
-            fee_proposal_link: m.fee_proposal_link || "",
-          });
-        });
-      } else {
-        STAGE_KEYS.forEach((st) => {
-          const fee = Number(m.fees?.[st]) || 0;
-          out.push({
-            riba_stage: STAGE_LABEL[st],
-            role: m.role || "Supplier",
-            description: `${m.role || "Supplier"}${m.supplier_company_number ? " — " + supplierName(m.supplier_company_number) : ""}`,
-            supplier_company_number: m.supplier_company_number || "",
-            fsf_supplier_key: isContractorMember(m) ? contractorFsfKey(m) : undefined,
-            supplier_fee: fee,
-            fee_proposal_link: m.fee_proposal_link || "",
-          });
-        });
-      }
-    });
-    return out;
-  }, [deliveryTeam, suppliers, singleTask, taskFees]);
+  const supplierLines = useMemo(() => singleTask ? taskFees.lines : proposalSupplierLines(deliveryTeam, supplierName), [deliveryTeam, suppliers, singleTask, taskFees]);
 
   const load = useCallback(async () => {
     setLoading(true);

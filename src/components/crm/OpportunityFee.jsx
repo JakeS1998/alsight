@@ -1,26 +1,40 @@
 import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { formatCurrency } from '@/lib/portal';
-import OpportunityTeamFees from '@/components/crm/OpportunityTeamFees';
-
-const STAGES = ['RIBA 1', 'RIBA 2', 'RIBA 3', 'RIBA 4', 'RIBA 5-7', 'Pre-construction', 'Construction', 'Other'];
-const FIELDS = [['fee_services_included', 'Services included'], ['fee_services_excluded', 'Services excluded'], ['fee_consultants_required', 'Consultants required']];
-export default function OpportunityFee({ item, onSave, canEdit, saving }) {
-  const [draft, setDraft] = useState({ alliance_fee: item.alliance_fee ?? '', fee_basis: item.fee_basis || '', fee_status: item.fee_status || 'draft', fee_issued_date: item.fee_issued_date || '', fee_client_approval_date: item.fee_client_approval_date || '', fee_link_to_file: item.fee_link_to_file || '', fee_lines: item.fee_lines || [], ...Object.fromEntries(FIELDS.map(([key]) => [key, item[key] || ''])) });
+import { additionalFeeTotal } from '@/components/delivery/additionalFeeStages';
+import FeeProposalLines from '@/components/delivery/FeeProposalLines';
+import SupplierFeeTable from '@/components/delivery/SupplierFeeTable';
+import ContractorBuildUp from '@/components/delivery/ContractorBuildUp';
+import OpportunityFeeFields, { FEE_FIELDS } from '@/components/crm/OpportunityFeeFields';
+import { opportunityFeeLines, opportunityFeeData } from '@/components/crm/opportunityFeeData';
+import { exportFeeProposalPdf } from '@/components/delivery/exportFeeProposalPdf';
+import FeePdfOptionsDialog from '@/components/delivery/FeePdfOptionsDialog';
+const STAGES = ['RIBA 1', 'RIBA 2', 'RIBA 3', 'RIBA 4', 'RIBA 5-7'];
+export default function OpportunityFee({ item, account, onSave, canEdit, saving }) {
+  const [draft, setDraft] = useState(() => ({ ...Object.fromEntries(FEE_FIELDS.map(key => [key, item[key] || ''])), fee_status: item.fee_status || 'draft', fee_lines: opportunityFeeLines(item) }));
+  const [exportKind, setExportKind] = useState(null);
+  const [exporting, setExporting] = useState(false);
+  const [error, setError] = useState('');
   const editable = canEdit && item.status === 'open';
-  const set = (key, value) => setDraft({ ...draft, [key]: value });
-  const line = (index, patch) => set('fee_lines', draft.fee_lines.map((row, i) => i === index ? { ...row, ...patch } : row));
-  const total = draft.fee_lines.reduce((sum, row) => sum + (Number(row.internal_fee) || 0), 0);
+  const set = (key, value) => setDraft(previous => ({ ...previous, [key]: value }));
+  const { supplierLines, build, totals, supplierName } = opportunityFeeData(item, draft.fee_lines);
+  const updateLine = (index, field, value) => set('fee_lines', draft.fee_lines.map((row, i) => i === index ? { ...row, [field]: value, ...(field === 'stage_fees' ? { internal_fee: additionalFeeTotal({ ...row, stage_fees: value }) } : {}) } : row));
+  const download = async includeRiba57 => {
+    const includeInternal = exportKind === 'internal'; setExportKind(null); setExporting(true); setError('');
+    try { await exportFeeProposalPdf({ project: { name: item.title, client_name: account?.name }, proposal: { revision_number: 1, status: draft.fee_status, fee_basis: draft.fee_basis, date_issued: draft.fee_issued_date, line_items: JSON.stringify(draft.fee_lines) }, supplierLines, contractorBuild: build, suppliers: (item.design_team || []).map(member => ({ company_number: member.supplier_company_number, name: member.supplier_name })), poBySupplier: {}, includeInternal, includeRiba57 }); }
+    catch (failure) { setError(failure.message || 'Unable to export fee proposal.'); }
+    finally { setExporting(false); }
+  };
   return <section className="space-y-4 rounded-xl border border-border bg-card p-5">
-    <div><h2 className="font-semibold">Fee proposal</h2><p className="text-sm text-muted-foreground">Build an indicative proposal that follows the opportunity into the project.</p></div>
-    <label className="block text-sm font-medium">Alliance fee (£)<input disabled={!editable} type="number" min="0" step="0.01" value={draft.alliance_fee} onChange={e => set('alliance_fee', e.target.value)} className="mt-1 w-full rounded-lg border border-input p-2 font-normal" /></label>
-    <OpportunityTeamFees team={item.design_team} />
-    <div className="grid min-w-0 gap-3 sm:grid-cols-2"><label className="text-sm">Fee basis<select disabled={!editable} value={draft.fee_basis} onChange={e => set('fee_basis', e.target.value)} className="mt-1 w-full rounded-lg border border-input p-2"><option value="">Select basis</option><option value="fixed">Fixed</option><option value="percentage">% of works</option><option value="day_rate">Day rate</option></select></label><label className="text-sm">Proposal status<select disabled={!editable} value={draft.fee_status} onChange={e => set('fee_status', e.target.value)} className="mt-1 w-full rounded-lg border border-input p-2">{['draft','internal_review','sent','negotiation','accepted','lost'].map(v => <option key={v} value={v}>{v.replace('_', ' ')}</option>)}</select></label>
-      <label className="text-sm">Date issued<input disabled={!editable} type="date" value={draft.fee_issued_date} onChange={e => set('fee_issued_date', e.target.value)} className="mt-1 w-full rounded-lg border border-input p-2" /></label><label className="text-sm">Client approval date<input disabled={!editable} type="date" value={draft.fee_client_approval_date} onChange={e => set('fee_client_approval_date', e.target.value)} className="mt-1 w-full rounded-lg border border-input p-2" /></label></div>
-    {FIELDS.map(([key, label]) => <label key={key} className="block text-sm">{label}<textarea disabled={!editable} rows={2} maxLength={5000} value={draft[key]} onChange={e => set(key, e.target.value)} className="mt-1 w-full rounded-lg border border-input p-2" /></label>)}
-    <label className="block text-sm">Proposal document link<input disabled={!editable} type="url" value={draft.fee_link_to_file} onChange={e => set('fee_link_to_file', e.target.value)} className="mt-1 w-full rounded-lg border border-input p-2" /></label>
-    <div className="space-y-2"><h3 className="text-sm font-semibold">ALS &amp; internal fee lines</h3>{draft.fee_lines.map((row, index) => <div key={index} className="flex flex-wrap items-end gap-2"><label className="min-w-0 basis-36 flex-1 text-xs">RIBA stage<select disabled={!editable} value={row.riba_stage || ''} onChange={e => line(index, { riba_stage: e.target.value })} className="mt-1 w-full rounded-lg border border-input p-2 text-sm"><option value="">Select stage</option>{STAGES.map(stage => <option key={stage}>{stage}</option>)}</select></label><label className="min-w-0 basis-44 flex-[2] text-xs">Description<input disabled={!editable} maxLength={200} value={row.description || ''} onChange={e => line(index, { description: e.target.value })} className="mt-1 w-full rounded-lg border border-input p-2 text-sm" /></label><label className="w-28 text-xs">Fee (£)<input disabled={!editable} type="number" min="0" step="0.01" value={row.internal_fee ?? ''} onChange={e => line(index, { internal_fee: e.target.value })} className="mt-1 w-full rounded-lg border border-input p-2 text-sm" /></label>{editable && <button type="button" onClick={() => set('fee_lines', draft.fee_lines.filter((_, i) => i !== index))} className="pb-2 text-xs text-destructive">Remove</button>}</div>)}</div>
-    <p className="text-sm font-semibold">Total internal fee lines: {formatCurrency(total)}</p>
-    {editable && <div className="flex flex-wrap gap-2"><Button type="button" variant="outline" onClick={() => set('fee_lines', [...draft.fee_lines, { riba_stage: '', description: '', internal_fee: '' }])}>Add fee line</Button><Button type="button" disabled={saving || draft.fee_lines.some(row => !row.description)} onClick={() => onSave({ ...draft, alliance_fee: draft.alliance_fee === '' ? 0 : Number(draft.alliance_fee) })}>{saving ? 'Saving…' : 'Save fee proposal'}</Button></div>}
+    <div><h2 className="font-semibold">Fee Proposal Builder</h2><p className="text-sm text-muted-foreground">The same RIBA-stage fee lines, supplier fees and contractor build-up used in project management. Saved details transfer automatically on handover.</p></div>
+    <OpportunityFeeFields draft={draft} set={set} readOnly={!editable} />
+    <div className="grid gap-3 rounded-lg bg-primary/5 p-3 sm:grid-cols-4">{[['ALS fee (recorded profit)', formatCurrency(totals.alsFee)], ['Supplier fees', formatCurrency(totals.supplierFees)], ['Proposed client fees', formatCurrency(totals.proposedFees)], ['ALS fee as % of proposal', totals.alsFeePct == null ? '—' : `${totals.alsFeePct}%`]].map(([label, value]) => <div key={label}><p className="text-xs text-muted-foreground">{label}</p><p className="font-semibold">{value}</p></div>)}</div>
+    <SupplierFeeTable lines={supplierLines} getSupplierName={supplierName} />
+    <ContractorBuildUp deliveryTeam={item.design_team || []} ohpSurveysPct={0} ohpRiba57Pct={0} />
+    <FeeProposalLines items={draft.fee_lines} stages={STAGES} updateItem={updateLine} addItem={() => set('fee_lines', [...draft.fee_lines, { description: '', stage_fees: {}, internal_fee: 0, include_on_client: true }])} removeItem={index => set('fee_lines', draft.fee_lines.filter((_, i) => i !== index))} readOnly={!editable} />
+    <p className="text-xs text-muted-foreground">UKLF fees are calculated automatically in project management once the project number and agreement route are available.</p>
+    {error && <p role="alert" className="text-sm text-destructive">{error}</p>}
+    <div className="flex flex-wrap gap-2"><Button variant="outline" disabled={exporting} onClick={() => setExportKind('client')}>{exporting ? 'Exporting…' : 'Client PDF'}</Button><Button variant="outline" disabled={exporting} onClick={() => setExportKind('internal')}>Internal PDF</Button>{editable && <Button disabled={saving || draft.fee_lines.some(row => !row.description)} onClick={() => onSave({ ...draft, alliance_fee: totals.alsFee, fee_lines: draft.fee_lines.map(row => ({ ...row, internal_fee: additionalFeeTotal(row) })) })}>{saving ? 'Saving…' : 'Save builder'}</Button>}</div>
+    <FeePdfOptionsDialog kind={exportKind} onClose={() => setExportKind(null)} onDownload={download} />
   </section>;
 }

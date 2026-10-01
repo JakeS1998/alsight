@@ -1,4 +1,7 @@
 import { base44 } from '@/api/base44Client';
+import { SCOPING_KEYS } from '@/components/delivery/ScopingFields';
+import { chance } from '@/components/crm/crm';
+import { opportunityFeeData } from '@/components/crm/opportunityFeeData';
 
 export async function convertOpportunity(item, account) {
   if (item.status !== 'won') throw new Error('Mark the opportunity Won before creating a project.');
@@ -13,16 +16,16 @@ export async function convertOpportunity(item, account) {
   });
   // Store the link before the other writes so retrying a partial conversion cannot create another project.
   if (!item.project_id) await base44.entities.Opportunity.update(item.id, { project_id: project.id });
-  const scope = { scope_summary: item.scope_summary || '', client_objectives: item.client_objectives || '', initial_constraints: item.initial_constraints || '', target_programme: item.target_programme || '', key_stakeholders: item.key_stakeholders || '', funding_route: item.funding_route || '', contract_start: item.expected_project_start || undefined, delivery_team: JSON.stringify((item.design_team || []).filter(m => !m.status || m.status === 'confirmed')) };
+  const scope = { ...Object.fromEntries(SCOPING_KEYS.map(key => [key, item[key] ?? ''])), scope_summary: item.scope_summary || item.project_details || '', probability: chance(item), site_visit_completed: !!item.site_visit_completed, contract_start: item.expected_project_start || undefined, delivery_team: JSON.stringify(item.design_team || []) };
   if (Object.values(scope).some(value => value && value !== '[]')) {
     const existing = await base44.entities.ProjectDelivery.filter({ project_id: project.id }, { limit: 1 });
     if (existing.items.length) await base44.entities.ProjectDelivery.update(existing.items[0].id, scope);
     else await base44.entities.ProjectDelivery.create({ project_id: project.id, client_account_id: account.dataverse_id || account.id, bdm_aad_id: item.owner_id || undefined, ...scope });
   }
-  if (item.fee_basis || item.fee_lines?.length || item.fee_services_included || item.fee_services_excluded || item.fee_consultants_required) {
+  if (item.fee_basis || item.fee_lines?.length || item.design_team?.length || item.alliance_fee != null || item.confirmed_alliance_fee != null || item.fee_services_included || item.fee_services_excluded || item.fee_consultants_required) {
     const existing = await base44.entities.FeeProposal.filter({ project_id: project.id }, { limit: 1 });
-    const lines = item.fee_lines || [];
-    const data = { fee_basis: item.fee_basis || '', status: item.fee_status || 'draft', services_included: item.fee_services_included || '', services_excluded: item.fee_services_excluded || '', consultants_required: item.fee_consultants_required || '', line_items: JSON.stringify(lines), fee_value: item.confirmed_alliance_fee ?? lines.reduce((n, row) => n + (Number(row.internal_fee) || 0), 0), date_issued: item.fee_issued_date || undefined, client_approval_date: item.fee_client_approval_date || undefined, link_to_file: item.fee_link_to_file || '', is_current: true, revision_number: 1 };
+    const { lines, totals } = opportunityFeeData(item);
+    const data = { fee_basis: item.fee_basis || '', status: item.fee_status || 'draft', services_included: item.fee_services_included || '', services_excluded: item.fee_services_excluded || '', consultants_required: item.fee_consultants_required || '', line_items: JSON.stringify(lines), fee_value: totals.alsFee, external_cost: totals.supplierFees, date_issued: item.fee_issued_date || undefined, client_approval_date: item.fee_client_approval_date || undefined, link_to_file: item.fee_link_to_file || '', is_current: true, revision_number: 1 };
     if (existing.items.length) await base44.entities.FeeProposal.update(existing.items[0].id, data);
     else await base44.entities.FeeProposal.create({ project_id: project.id, client_account_id: account.dataverse_id || account.id, bdm_aad_id: item.owner_id || undefined, ...data });
   }
