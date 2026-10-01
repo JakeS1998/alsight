@@ -2,6 +2,7 @@ import React, { useEffect, useState, useMemo } from "react";
 import { loadProjectPOs, isLegacyProject } from '@/components/projects/poLinking';
 import StageDrawing from '@/components/projects/StageDrawing';
 import agreementNames from '@/components/projects/agreementNames';
+import frameworkAgreementRoute from '@/components/delivery/frameworkAgreementRoute';
 import { projectCompletionDates } from '@/components/projects/projectCompletionDates';
 import ProjectEmptyState from '@/components/projects/ProjectEmptyState';
 import { legalDocumentName, dmaName, jctName, warrantyName } from "@/components/documents/documentNames";
@@ -27,7 +28,9 @@ function buildEvents(project, legalDocs, dmas, jcts, warranties, pos, accountMap
     ev.push({ ts: d.getTime(), date, label, cat, detail });
   };
 
-  if (!supplierOnly) {
+  const singleTask = frameworkAgreementRoute(legalDocs, dmas, project.project_number).route === 'single_task';
+  if (!supplierOnly && singleTask) add(project.practical_completion_date, 'Task completed', 'project');
+  if (!supplierOnly && !singleTask) {
     const expectedDates = projectCompletionDates(project);
     add(project.pq_approval_date, "Project Questionnaire approved", "project");
     add(project.aa_executed_date, `${agreementNames(project.project_number).access} executed`, "project");

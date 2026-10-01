@@ -9,11 +9,12 @@ import { base44 } from '@/api/base44Client';
 import { isAlsStaff } from '@/components/delivery/supplierFsf';
 import drawSupplierFsf from '@/components/delivery/drawSupplierFsf';
 import { scopeContractorFsf } from '@/components/delivery/contractorFsf';
+import drawSingleTaskFees from '@/components/delivery/drawSingleTaskFees';
 
 const parseItems = (s) => { try { return JSON.parse(s) || []; } catch { return []; } };
 const money = (n) => (n == null || n === "" ? "—" : `£${Number(n).toLocaleString("en-GB", { minimumFractionDigits: 0, maximumFractionDigits: 0 })}`);
 
-export async function exportFeeProposalPdf({ project, proposal, suppliers, poBySupplier, supplierLines, contractorBuild, includeInternal = false, includeRiba57 = true, fsfRates, fsfContractors }) {
+export async function exportFeeProposalPdf({ project, proposal, suppliers, poBySupplier, supplierLines, contractorBuild, includeInternal = false, includeRiba57 = true, fsfRates, fsfContractors, singleTask = false }) {
   if (includeInternal && !isAlsStaff(await base44.auth.me())) throw new Error('Internal PDFs are available to ALS staff only.');
   const logo = await loadFeeProposalLogo();
   const doc = new jsPDF({ unit: "pt", format: "a4", orientation: "landscape" });
@@ -34,6 +35,7 @@ export async function exportFeeProposalPdf({ project, proposal, suppliers, poByS
   y += 22;
 
   const supplierName = (cn) => suppliers.find((s) => s.company_number === cn)?.name || cn || "—";
+  if (singleTask) includeRiba57 = true;
   const scope = feePdfScope(supplierLines, parseItems(proposal.line_items), contractorBuild, includeRiba57);
   supplierLines = scope.supplierLines;
   contractorBuild = scope.contractorBuild;
@@ -41,12 +43,15 @@ export async function exportFeeProposalPdf({ project, proposal, suppliers, poByS
   const totals = feeProposalTotals(supplierLines, alsLines, contractorBuild);
 
   const x0 = M;
+  if (singleTask) y = drawSingleTaskFees(doc, { supplierLines, alsLines, supplierName, money, x: x0, startY: y, width: W - 2 * M, height: H }).y;
+  else {
   drawFeeProposalSummary(doc, { supplierLines, alsLines, supplierName, contractorBuild, totals, money, x: x0, startY: y, width: W - 2 * M, brand: FEE_BRAND, includeRiba57 });
   doc.addPage(); y = 94;
   doc.setFont('helvetica', 'bold'); doc.setFontSize(16); doc.setTextColor(...FEE_BRAND.navy);
   doc.text('Detailed fee breakdown.', x0, y); y += 25;
   const matrix = drawFeeMatrix(doc, { supplierLines, alsLines, supplierName, money, x: x0, startY: y, width: W - 2 * M, height: H, includeRiba57 });
   y = matrix.y;
+  }
   if (contractorBuild && contractorBuild.hasContractor && (contractorBuild.ohpTotal || contractorBuild.total)) {
     if (y + (contractorBuild.hasStageOhp ? 110 : 70) > H - 55) { doc.addPage(); y = 84; }
     doc.setFont("helvetica", "bold"); doc.setFontSize(10); doc.setTextColor(...FEE_BRAND.navy);
@@ -66,7 +71,7 @@ export async function exportFeeProposalPdf({ project, proposal, suppliers, poByS
   if (y + 28 > H - 55) { doc.addPage(); y = 84; }
   doc.setFont("helvetica", "bold"); doc.setFontSize(10); doc.setTextColor(...FEE_BRAND.navy);
   doc.setFillColor(...BRAND); doc.rect(x0, y - 14, W - 2 * M, 24, 'F');
-  doc.text(`PROJECT FEE TOTAL: ${money(totals.proposedFees)}`, x0 + 7, y);
+  doc.text(`${singleTask ? 'TASK TOTAL' : 'PROJECT FEE TOTAL'}: ${money(totals.proposedFees)}`, x0 + 7, y);
   const clientPageCount = doc.getNumberOfPages();
 
   if (includeInternal) {
@@ -74,7 +79,7 @@ export async function exportFeeProposalPdf({ project, proposal, suppliers, poByS
     doc.setFont('helvetica', 'bold'); doc.setFontSize(13); doc.setTextColor(...FEE_BRAND.navy);
     doc.text("INTERNAL COMMERCIAL — NOT FOR CLIENT DISTRIBUTION", x0, y); y += 22;
     doc.setFontSize(10); doc.text(`${project.name || "Project"} · R${proposal.revision_number || 1}`, x0, y); y += 24;
-    y = drawFeeMatrix(doc, { supplierLines, alsLines, supplierName, money, x: x0, startY: y, width: W - 2 * M, height: H, mode: 'internal', includeRiba57 }).y;
+    y = singleTask ? drawSingleTaskFees(doc, { supplierLines, alsLines, supplierName, money, x: x0, startY: y, width: W - 2 * M, height: H, mode: 'internal' }).y : drawFeeMatrix(doc, { supplierLines, alsLines, supplierName, money, x: x0, startY: y, width: W - 2 * M, height: H, mode: 'internal', includeRiba57 }).y;
     if (y + 66 > H - 55) { doc.addPage(); y = 84; }
     doc.setFont("helvetica", "bold"); doc.setFontSize(9); doc.setTextColor(...FEE_BRAND.navy);
     doc.text(`ALS fee (recorded profit): ${money(totals.alsFee)}`, x0, y); y += 16;

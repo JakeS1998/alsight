@@ -26,7 +26,7 @@ function fromDateInput(d) {
   return new Date(d + "T00:00:00").toISOString();
 }
 
-export function ProjectGeneralTab({ project, accountMap, onProjectUpdated }) {
+export function ProjectGeneralTab({ project, accountMap, onProjectUpdated, singleTask = false }) {
   const { user } = useAuth();
   const role = user?.role || "client";
   const canEdit = ["admin", "director", "bdm", "project_manager"].includes(role) || (role === 'supplier' && !!project.can_submit_valuation);
@@ -82,10 +82,11 @@ export function ProjectGeneralTab({ project, accountMap, onProjectUpdated }) {
     setSaved(false);
     setSaveError('');
     try {
-      const dates = Object.fromEntries(Object.entries(ribaDates).map(([key, value]) => [key, value || null]));
+      const dateEntries = Object.entries(ribaDates).filter(([key]) => !singleTask || key === 'practical_completion_date');
+      const dates = Object.fromEntries(dateEntries.map(([key, value]) => [key, value || null]));
       const updated = role === 'project_manager' || role === 'supplier'
         ? (await base44.functions.invoke('manageValuation', { action: 'riba_dates', projectId: project.id, ...dates })).data.project
-        : await base44.entities.Project.update(project.id, Object.fromEntries(Object.entries(ribaDates).map(([key, value]) => [key, fromDateInput(value)])));
+        : await base44.entities.Project.update(project.id, Object.fromEntries(dateEntries.map(([key, value]) => [key, fromDateInput(value)])));
       onProjectUpdated?.(updated);
       setSaved(true);
       setTimeout(() => setSaved(false), 2500);
@@ -99,7 +100,7 @@ export function ProjectGeneralTab({ project, accountMap, onProjectUpdated }) {
   const client = accountMap[project.client_account_id];
 
   const expectedDates = projectCompletionDates(project);
-  const ribaRows = [
+  const ribaRows = singleTask ? [] : [
     { stage: "RIBA 1", term: project.riba1_term_weeks, key: "riba1_end", expected: expectedDates.riba1_system_date },
     { stage: "RIBA 2", term: project.riba2_term_weeks, key: "riba2_end", expected: expectedDates.riba2_system_date },
     { stage: "RIBA 3", term: project.riba3_term_weeks, key: "riba3_end", expected: expectedDates.riba3_system_date },
@@ -128,7 +129,7 @@ export function ProjectGeneralTab({ project, accountMap, onProjectUpdated }) {
         )}
         {role !== 'supplier' && role !== 'project_manager' && <InfoCard icon={PoundSterling} label="Estimated Value" value={formatCurrency(project.estimated_value)} />}
         <InfoCard icon={MapPin} label="Department" value={regionName(project.department_id) || '—'} />
-        <InfoCard icon={Calendar} label="Construction Actual Completion" value={formatDate(project.practical_completion_date)} />
+        <InfoCard icon={Calendar} label={singleTask ? 'Task completion' : 'Construction Actual Completion'} value={formatDate(project.practical_completion_date)} />
       </div>
 
       {/* Staff assignments */}
@@ -147,7 +148,7 @@ export function ProjectGeneralTab({ project, accountMap, onProjectUpdated }) {
       {/* RIBA timeframe grid */}
       <div className="rounded-xl border border-slate-200 bg-white p-5">
         <div className="mb-4 flex items-center justify-between">
-          <h3 className="text-sm font-semibold text-slate-900">RIBA Timeframes</h3>
+          <h3 className="text-sm font-semibold text-slate-900">{singleTask ? 'Task completion' : 'RIBA Timeframes'}</h3>
           {canEdit && (
             <div className="flex items-center gap-3">
               {saveError && <span role="alert" className="text-xs text-destructive">{saveError}</span>}
@@ -163,9 +164,9 @@ export function ProjectGeneralTab({ project, accountMap, onProjectUpdated }) {
           <table className="w-full text-sm">
             <thead>
               <tr className="border-b border-slate-100 text-left text-xs font-medium uppercase tracking-wide text-slate-500">
-                <th className="pb-2 pr-4">Stage</th>
-                <th className="pb-2 pr-4">Term (Weeks)</th>
-                <th className="pb-2 pr-4">Expected Completion</th>
+                <th className="pb-2 pr-4">{singleTask ? 'Task' : 'Stage'}</th>
+                {!singleTask && <th className="pb-2 pr-4">Term (Weeks)</th>}
+                {!singleTask && <th className="pb-2 pr-4">Expected Completion</th>}
                 <th className="pb-2">Actual Completion</th>
               </tr>
             </thead>
@@ -192,14 +193,14 @@ export function ProjectGeneralTab({ project, accountMap, onProjectUpdated }) {
                 </tr>
               ))}
               <tr className="bg-slate-50">
-                <td className="py-2.5 pr-4 font-medium text-slate-900"><span className="inline-flex items-center gap-2"><StageDrawing stage="RIBA 5–7" className="h-10 w-10" />Construction</span></td>
-                <td className="py-2.5 pr-4 text-slate-600">{project.construction_term_weeks || "—"}</td>
-                <td className="py-2.5 pr-4 text-muted-foreground" title="System date — read only">{formatDate(expectedDates.riba5_system_date)}</td>
+                <td className="py-2.5 pr-4 font-medium text-slate-900">{singleTask ? 'Single task' : <span className="inline-flex items-center gap-2"><StageDrawing stage="RIBA 5–7" className="h-10 w-10" />Construction</span>}</td>
+                {!singleTask && <td className="py-2.5 pr-4 text-slate-600">{project.construction_term_weeks || "—"}</td>}
+                {!singleTask && <td className="py-2.5 pr-4 text-muted-foreground" title="System date — read only">{formatDate(expectedDates.riba5_system_date)}</td>}
                 <td className="py-2.5">
                   {canEdit ? (
                     <input
                       type="date"
-                      aria-label="Construction Actual Completion"
+                      aria-label={singleTask ? 'Task completion' : 'Construction Actual Completion'}
                       disabled={saving}
                       value={ribaDates.practical_completion_date}
                       onChange={(e) => setRibaDates({ ...ribaDates, practical_completion_date: e.target.value })}

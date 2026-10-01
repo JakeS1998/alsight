@@ -14,6 +14,8 @@ import ProjectRiskRegister from '@/components/delivery/ProjectRiskRegister';
 import ProjectHandoverPack from '@/components/handover/ProjectHandoverPack';
 import DeliveryJourney from '@/components/delivery/DeliveryJourney';
 import { FormSection } from '@/components/forms/PowerForm';
+import frameworkAgreementRoute from '@/components/delivery/frameworkAgreementRoute';
+import SingleTaskDelivery from '@/components/delivery/SingleTaskDelivery';
 
 const DELIVERY_DEFAULT = {
   funding_route: "", scope_summary: "", client_objectives: "", initial_constraints: "",
@@ -120,6 +122,11 @@ export function ProjectDeliveryTab({ project, legalDocs, dmas, jcts, warranties,
       setSavingDelivery(false);
     }
   };
+
+  if (frameworkAgreementRoute(legalDocs, dmas, project.project_number).route === 'single_task') return <SingleTaskDelivery key={projectId} project={project} legalDocs={legalDocs} delivery={delivery} savedDelivery={savedDelivery} feeProposals={feeProposals} setField={setField} onSave={saveDelivery} saving={savingDelivery}
+    fees={<FeeProposalSection projectId={projectId} project={project} onChanged={setFeeProposals} deliveryTeam={deliveryTeam} suppliers={suppliers} legalDocs={legalDocs} dmas={dmas}><DeliveryTeam embedded singleTask project={project} delivery={delivery} setField={setField} onSave={saveDelivery} saving={savingDelivery} suppliers={suppliers} /></FeeProposalSection>}
+    registers={<><FormSection title="Action Register"><RegisterList title="Action" entityName="ProjectAction" projectId={projectId} project={project} columns={ACTION_COLS} tableColumns={ACTION_TABLE} sortBy="-due_date" addLabel="Add action" /></FormSection><FormSection title="Decision Register"><RegisterList title="Decision" entityName="ProjectDecision" projectId={projectId} project={project} columns={DECISION_COLS} tableColumns={DECISION_TABLE} sortBy="-date_requested" addLabel="Add decision" /></FormSection><ProjectRiskRegister project={project} delivery={delivery} accountMap={accountMap} /></>}
+    handover={<ProjectHandoverPack embedded project={project} savingDelivery={savingDelivery} onStarted={loadDelivery} />} />;
 
   return (
     <DeliveryJourney key={projectId} project={project} delivery={savedDelivery} feeProposals={feeProposals} legalDocs={legalDocs} dmas={dmas} jcts={jcts} warranties={warranties} suppliers={suppliers} accountMap={accountMap}>

@@ -24,6 +24,8 @@ import frameworkAgreementRoute from '@/components/delivery/frameworkAgreementRou
 import ContractorBuildUp from '@/components/delivery/ContractorBuildUp';
 import { contractorBuildUp as computeContractorBuildUp, isContractorMember } from '@/components/delivery/contractorBuildUp';
 import { contractorFsfKey, contractorFsfRows } from '@/components/delivery/contractorFsf';
+import singleTaskFees from '@/components/delivery/singleTaskFees';
+import taskProposalTotal from '@/components/delivery/taskProposalTotal';
 
 const BASIS = [
   { value: "fixed", label: "Fixed" },
@@ -74,6 +76,7 @@ export function FeeProposalSection({ projectId, project, onChanged, deliveryTeam
   const { user } = useAuth();
   const fsf = useSupplierFsf(user, selectedId, projectId);
   const agreement = frameworkAgreementRoute(legalDocs, dmas, project.project_number);
+  const singleTask = agreement.route === 'single_task';
   const frameworkFees = useFrameworkFees(frameworkVersion(project.project_number), agreement.route);
 
   const [headerOpen, setHeaderOpen] = useState(false);
@@ -83,7 +86,9 @@ export function FeeProposalSection({ projectId, project, onChanged, deliveryTeam
 
   const supplierName = (cn) => suppliers.find((s) => s.company_number === cn)?.name || cn || "";
 
+  const taskFees = useMemo(() => singleTask ? singleTaskFees(deliveryTeam, supplierName, { surveysPct: ohpSurveysPct, riba57Pct: ohpRiba57Pct, surveysType: ohpSurveysType, surveysFixed: ohpSurveysFixed }) : null, [singleTask, deliveryTeam, suppliers, ohpSurveysPct, ohpRiba57Pct, ohpSurveysType, ohpSurveysFixed]);
   const supplierLines = useMemo(() => {
+    if (singleTask) return taskFees.lines;
     const out = [];
     (deliveryTeam || []).forEach((m) => {
       if (String(m.role || "").toLowerCase() === "contractor" && Array.isArray(m.contractor_fees)) {
@@ -117,7 +122,7 @@ export function FeeProposalSection({ projectId, project, onChanged, deliveryTeam
       }
     });
     return out;
-  }, [deliveryTeam, suppliers]);
+  }, [deliveryTeam, suppliers, singleTask, taskFees]);
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -163,9 +168,9 @@ export function FeeProposalSection({ projectId, project, onChanged, deliveryTeam
     return m;
   }, [pos]);
 
-  const contractorBuild = useMemo(() => computeContractorBuildUp(deliveryTeam, ohpSurveysPct, ohpRiba57Pct, ohpSurveysType, ohpSurveysFixed), [deliveryTeam, ohpSurveysPct, ohpRiba57Pct, ohpSurveysType, ohpSurveysFixed]);
+  const contractorBuild = useMemo(() => singleTask ? null : computeContractorBuildUp(deliveryTeam, ohpSurveysPct, ohpRiba57Pct, ohpSurveysType, ohpSurveysFixed), [singleTask, deliveryTeam, ohpSurveysPct, ohpRiba57Pct, ohpSurveysType, ohpSurveysFixed]);
   const totals = useMemo(() => feeProposalTotals(supplierLines, items, contractorBuild), [supplierLines, items, contractorBuild]);
-  const fsfContractors = useMemo(() => contractorFsfRows(deliveryTeam, contractorBuild), [deliveryTeam, contractorBuild]);
+  const fsfContractors = useMemo(() => singleTask ? taskFees.contractors : contractorFsfRows(deliveryTeam, contractorBuild), [singleTask, taskFees, deliveryTeam, contractorBuild]);
   const fsfTotals = fsf.allowed ? supplierFsfTotals(supplierLines, fsf.rates, fsfContractors) : null;
 
   const supplierComparison = useMemo(() => {
@@ -269,7 +274,7 @@ export function FeeProposalSection({ projectId, project, onChanged, deliveryTeam
       await exportFeeProposalPdf({
         project,
         proposal: { ...selected, line_items: JSON.stringify(items), fee_value: totals.alsFee, external_cost: totals.supplierFees },
-        suppliers, poBySupplier, supplierLines, contractorBuild, includeInternal, includeRiba57,
+        suppliers, poBySupplier, supplierLines, contractorBuild, includeInternal, includeRiba57, singleTask,
         fsfRates: includeInternal && fsf.allowed ? fsf.rates : undefined,
         fsfContractors: includeInternal && fsf.allowed ? fsfContractors : undefined,
       });
@@ -278,7 +283,7 @@ export function FeeProposalSection({ projectId, project, onChanged, deliveryTeam
   };
 
   return (
-    <FormSection title="2 · Fee Proposal" completed={(rows.find(row => row.is_current) || rows[0])?.status === 'accepted'} description="Supplier fees are pulled from the Delivery Team; add the ALS Delivery fee and any other optional lines">
+    <FormSection title={singleTask ? 'Single-task fee proposal' : '2 · Fee Proposal'} completed={(rows.find(row => row.is_current) || rows[0])?.status === 'accepted'} description="Supplier fees are pulled from the Delivery Team; add the ALS Delivery fee and any other optional lines">
       <div className="space-y-5">
         {React.Children.map(children, child => React.isValidElement(child) ? React.cloneElement(child, { legacyContractorOhp: { surveysPct: ohpSurveysPct, riba57Pct: ohpRiba57Pct, surveysType: ohpSurveysType, surveysFixed: ohpSurveysFixed } }) : child)}
         <div className="flex items-center justify-between">
@@ -299,7 +304,7 @@ export function FeeProposalSection({ projectId, project, onChanged, deliveryTeam
                   <th className="px-3 py-2.5">Rev</th>
                   <th className="px-3 py-2.5">Status</th>
                   <th className="px-3 py-2.5">Issued</th>
-                  <th className="px-3 py-2.5">Fee</th>
+                  <th className="px-3 py-2.5">{singleTask ? 'Task total' : 'Fee'}</th>
                   <th className="px-3 py-2.5"></th>
                 </tr>
               </thead>
@@ -310,7 +315,7 @@ export function FeeProposalSection({ projectId, project, onChanged, deliveryTeam
                     <td className="px-3 py-2.5 font-medium text-slate-700">R{r.revision_number || 1}</td>
                     <td className="px-3 py-2.5"><span className={`rounded-full px-2 py-0.5 text-xs font-medium ${STATUS_STYLE[r.status] || "bg-slate-100 text-slate-600"}`}>{STATUS.find((s) => s.value === r.status)?.label || r.status}</span></td>
                     <td className="px-3 py-2.5">{formatDate(r.date_issued)}</td>
-                    <td className="px-3 py-2.5">{formatCurrency(r.fee_value)}</td>
+                    <td className="px-3 py-2.5">{formatCurrency(singleTask ? taskProposalTotal(r) : r.fee_value)}</td>
                     <td className="px-3 py-2.5 text-right whitespace-nowrap">
                       <button onClick={() => openEdit(r)} className="rounded p-1 text-slate-400 hover:bg-slate-100 hover:text-slate-700 text-xs">Edit</button>
                       <button onClick={() => removeProposal(r.id)} className="rounded p-1 text-slate-400 hover:bg-rose-50 hover:text-rose-600"><Trash2 className="h-3.5 w-3.5" /></button>
@@ -327,8 +332,8 @@ export function FeeProposalSection({ projectId, project, onChanged, deliveryTeam
             <div className="flex flex-wrap items-center justify-between gap-2">
               <h4 className="text-sm font-semibold text-slate-900">Fee Proposal Builder · R{selected.revision_number || 1}</h4>
               <div className="flex items-center gap-2">
-                <Button type="button" variant="outline" size="sm" disabled={!!exporting} onClick={() => setExportKind('client')}>{exporting === 'client' ? <Loader2 className="h-4 w-4 animate-spin" /> : <FileDown className="mr-1.5 h-4 w-4" />} Client PDF</Button>
-                {fsf.allowed && <Button type="button" variant="outline" size="sm" disabled={!!exporting || fsf.loading || !!fsf.error} onClick={() => setExportKind('internal')}>{exporting === 'internal' ? <Loader2 className="h-4 w-4 animate-spin" /> : <FileDown className="mr-1.5 h-4 w-4" />} Internal PDF</Button>}
+                <Button type="button" variant="outline" size="sm" disabled={!!exporting} onClick={() => singleTask ? doExport(false) : setExportKind('client')}>{exporting === 'client' ? <Loader2 className="h-4 w-4 animate-spin" /> : <FileDown className="mr-1.5 h-4 w-4" />} Client PDF</Button>
+                {fsf.allowed && <Button type="button" variant="outline" size="sm" disabled={!!exporting || fsf.loading || !!fsf.error} onClick={() => singleTask ? doExport(true) : setExportKind('internal')}>{exporting === 'internal' ? <Loader2 className="h-4 w-4 animate-spin" /> : <FileDown className="mr-1.5 h-4 w-4" />} Internal PDF</Button>}
                 <Button type="button" size="sm" onClick={saveBuilder} disabled={savingBuilder || fsf.loading || !!fsf.error} className="bg-primary hover:bg-primary/90">
                   {savingBuilder && <Loader2 className="mr-1.5 h-4 w-4 animate-spin" />} Save builder
                 </Button>
@@ -340,7 +345,7 @@ export function FeeProposalSection({ projectId, project, onChanged, deliveryTeam
             <div className="grid gap-3 rounded-lg bg-primary/5 p-3 sm:grid-cols-4">
               <Stat label="ALS fee (recorded profit)" value={formatCurrency(totals.alsFee)} />
               <Stat label="Supplier fees" value={formatCurrency(totals.supplierFees)} />
-              <Stat label="Proposed client fees" value={formatCurrency(totals.proposedFees)} />
+              <Stat label={singleTask ? 'Task total' : 'Proposed client fees'} value={formatCurrency(totals.proposedFees)} />
               <Stat label="ALS fee as % of proposal" value={totals.alsFeePct == null ? "—" : `${totals.alsFeePct}%`} accent />
             </div>
 
@@ -350,12 +355,12 @@ export function FeeProposalSection({ projectId, project, onChanged, deliveryTeam
             {agreement.route && frameworkFees.settings && !frameworkFees.loading && !frameworkFees.error && <FrameworkFeeCalculator supplierFees={totals.supplierFees} feeLines={items} settings={frameworkFees.settings} onApply={applyUklfFee} />}
 
             {/* Supplier fees (from delivery team) */}
-            <SupplierFeeTable lines={supplierLines} getSupplierName={supplierName} fsf={fsf.allowed ? fsf : undefined} contractors={fsf.allowed ? fsfContractors : undefined} />
+            <SupplierFeeTable singleTask={singleTask} lines={supplierLines} getSupplierName={supplierName} fsf={fsf.allowed ? fsf : undefined} contractors={fsf.allowed ? fsfContractors : undefined} />
             {fsf.allowed && <SupplierFsfSummary alsFee={totals.alsFee} fsfTotal={fsfTotals.total} loading={fsf.loading} error={fsf.error} onSave={fsf.save} />}
 
-            <ContractorBuildUp deliveryTeam={deliveryTeam} ohpSurveysPct={ohpSurveysPct} ohpRiba57Pct={ohpRiba57Pct} ohpSurveysType={ohpSurveysType} ohpSurveysFixed={ohpSurveysFixed}  />
+            {!singleTask && <ContractorBuildUp deliveryTeam={deliveryTeam} ohpSurveysPct={ohpSurveysPct} ohpRiba57Pct={ohpRiba57Pct} ohpSurveysType={ohpSurveysType} ohpSurveysFixed={ohpSurveysFixed}  />}
 
-            <FeeProposalLines items={items} stages={RIBA_STAGES} updateItem={updateItem} addItem={addItem} removeItem={removeItem} />
+            <FeeProposalLines singleTask={singleTask} items={items} stages={singleTask ? ['Task'] : RIBA_STAGES} updateItem={updateItem} addItem={addItem} removeItem={removeItem} />
 
             {supplierComparison.length > 0 && (
               <div className="rounded-lg border border-slate-200 bg-slate-50 p-3">

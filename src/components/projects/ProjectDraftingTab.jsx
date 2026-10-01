@@ -6,6 +6,7 @@ import { DMACard } from "@/components/documents/DMACard";
 import { JCTCard } from "@/components/documents/JCTCard";
 import RibaReportLink from '@/components/projects/RibaReportLink';
 import agreementNames from '@/components/projects/agreementNames';
+import frameworkAgreementRoute from '@/components/delivery/frameworkAgreementRoute';
 import ProjectEmptyState from '@/components/projects/ProjectEmptyState';
 import {
   FileSearch, FileCheck, UserCheck, Gavel, FilePlus,
@@ -87,7 +88,9 @@ function PqCard({ project, psoOutstanding }) {
 
 export function ProjectDraftingTab({ project, legalDocs, dmas, jcts, accountMap, pmView = false, onProjectUpdated }) {
   const loiDocs = legalDocs.filter(isLetterOfIntent);
-  const stages = (pmView ? PM_STAGES : STAGES).filter(stage => {
+  const singleTask = frameworkAgreementRoute(legalDocs, dmas, project.project_number).route === 'single_task';
+  const taskStages = [STAGES.find(stage => stage.key === 'single_task'), ...STAGES.filter(stage => stage.key !== 'single_task' && ((stage.kind === 'legal' && legalDocs.some(doc => stage.docTypes.includes(doc.document_type))) || (stage.kind === 'dma' && dmas.length) || (stage.kind === 'jct' && jcts.length)))].map(stage => stage.key === 'precon' ? { ...stage, label: 'Task supplier documents' } : stage);
+  const stages = (singleTask ? taskStages : pmView ? PM_STAGES : STAGES).filter(stage => {
     if (stage.key === 'loi') return loiDocs.length > 0;
     if (['equipment', 'single_task'].includes(stage.key)) return legalDocs.some(doc => stage.docTypes.includes(doc.document_type));
     return true;

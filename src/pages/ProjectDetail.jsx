@@ -18,6 +18,7 @@ import SupplierPurchaseOrders from '@/components/projects/SupplierPurchaseOrders
 import ProjectManagerOverview from '@/components/projects/ProjectManagerOverview';
 import { ProjectDraftingTab } from "@/components/projects/ProjectDraftingTab";
 import AlternativeAgreementEditor from '@/components/projects/AlternativeAgreementEditor';
+import frameworkAgreementRoute from '@/components/delivery/frameworkAgreementRoute';
 import { ProjectWarrantiesTab } from "@/components/projects/ProjectWarrantiesTab";
 import { ProjectFinanceTab } from "@/components/projects/ProjectFinanceTab";
 import { ProjectTimelineTab } from "@/components/projects/ProjectTimelineTab";
@@ -126,7 +127,7 @@ export default function ProjectDetail() {
           </TabsList></div><div aria-hidden="true" className="pointer-events-none absolute inset-y-0 right-0 w-3 bg-gradient-to-l from-secondary to-transparent sm:hidden" /></div>
         </ProjectStickyHeader>
         <TabsContent value="general" className="mt-6">
-          <ProjectGeneralTab project={project} accountMap={accountMap} onProjectUpdated={updated => setProject(current => ({ ...current, ...updated }))} />
+          <ProjectGeneralTab project={project} singleTask={frameworkAgreementRoute(legalDocs, dmas, project.project_number).route === 'single_task'} accountMap={accountMap} onProjectUpdated={updated => setProject(current => ({ ...current, ...updated }))} />
         </TabsContent>
         <TabsContent value="timeline" className="mt-6 space-y-6">
           <ProjectTimelineTab project={project} legalDocs={isSupplier ? legalDocs.filter(d => supplierAccountId && d.account_id === supplierAccountId) : legalDocs} dmas={isSupplier ? [] : dmas} jcts={isSupplier ? jcts.filter(d => supplierAccountId && (d.account_id === supplierAccountId || d.contractor_id === supplierAccountId)) : jcts} warranties={isSupplier ? warranties.filter(d => supplierAccountId && (d.account_id === supplierAccountId || d.supplier_id === supplierAccountId)) : warranties} accountMap={accountMap} supplierOnly={isSupplier} supplierOrders={supplierOrders} supplierCompanyNumber={supplierAccountId ? accountMap[supplierAccountId]?.company_number : null} />

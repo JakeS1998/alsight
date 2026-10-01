@@ -7,6 +7,7 @@ import { Plus, Trash2, Loader2, Upload, FileCheck } from "lucide-react";
 import ContractorFeeBuilder from '@/components/delivery/ContractorFeeBuilder';
 import ContractorStageOhp from '@/components/delivery/ContractorStageOhp';
 import normalizeContractorOhp from '@/components/delivery/normalizeContractorOhp';
+import TaskMemberFee from '@/components/delivery/TaskMemberFee';
 
 const ROLES = ["Contractor", "Project Manager", "Principal Designer (CDM)", "Principal Designer (BR)", "Architect", "Structural Engineer", "M&E Engineer", "Cost Consultant", "Other"];
 const STAGES = ["riba_1", "riba_2", "riba_3", "riba_4", "riba_5_7"];
@@ -29,7 +30,7 @@ const migrateContractor = (m) => {
   return { ...m, contractor_fees: arr };
 };
 
-export function DeliveryTeam({ project, delivery, setField, onSave, saving, suppliers, embedded = false, legacyContractorOhp = {} }) {
+export function DeliveryTeam({ project, delivery, setField, onSave, saving, suppliers, embedded = false, singleTask = false, legacyContractorOhp = {} }) {
   const { surveysPct, riba57Pct, surveysType, surveysFixed } = legacyContractorOhp;
   const [team, setTeam] = useState([]);
   const [uploading, setUploading] = useState(null);
@@ -69,7 +70,7 @@ export function DeliveryTeam({ project, delivery, setField, onSave, saving, supp
   };
 
   return (
-    <FormSection title={embedded ? 'Delivery Team' : '1b · Delivery Team'} collapsible={!embedded} description="Add each supplier, upload their fee proposal and enter their fees per RIBA stage — these feed the Fee Proposal">
+    <FormSection title={embedded ? 'Delivery Team' : '1b · Delivery Team'} collapsible={!embedded} description={singleTask ? 'Enter one task fee total for each supplier — these feed the single-task proposal.' : 'Add each supplier, upload their fee proposal and enter their fees per RIBA stage — these feed the Fee Proposal'}>
       <div className="space-y-3">
         {team.length === 0 && (
           <div className="rounded-xl border border-dashed border-slate-300 bg-white py-8 text-center text-sm text-slate-500">No team members yet. Add the contractor, PM, PD and other suppliers.</div>
@@ -110,7 +111,7 @@ export function DeliveryTeam({ project, delivery, setField, onSave, saving, supp
               </div>
               <button onClick={() => removeMember(idx)} className="mt-1 rounded p-1 text-slate-400 hover:bg-rose-50 hover:text-rose-600"><Trash2 className="h-4 w-4" /></button>
             </div>
-            {isContractor(m) ? (
+            {singleTask ? <TaskMemberFee member={m} onChange={patch => commit(team.map((member, index) => index === idx ? { ...member, ...patch } : member))} /> : isContractor(m) ? (
               <div>
                 <p className="mb-1.5 text-xs font-semibold uppercase tracking-wide text-slate-400">Contractor fee build-up (£)</p>
                 <ContractorFeeBuilder projectId={project.id} fees={m.contractor_fees} onChange={(fees) => setContractorFees(idx, fees)} />
