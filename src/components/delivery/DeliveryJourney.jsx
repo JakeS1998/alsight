@@ -6,10 +6,10 @@ import deliveryJourneyProgress from '@/components/delivery/deliveryJourneyProgre
 import useJourneyRegisters from '@/components/delivery/useJourneyRegisters';
 import JourneyStageButton from '@/components/delivery/JourneyStageButton';
 import DeliveryJourneySummary from '@/components/delivery/DeliveryJourneySummary';
-export default function DeliveryJourney({ project, delivery, feeProposals, legalDocs, dmas, jcts, warranties, children }) {
+export default function DeliveryJourney({ project, delivery, feeProposals, legalDocs, dmas, jcts, warranties, suppliers, accountMap, children }) {
   const { user } = useAuth();
   const { registers, error, loading } = useJourneyRegisters(project.id);
-  const stages = deliveryJourneyProgress({ project, delivery: delivery || {}, feeProposals, legalDocs, dmas, jcts, warranties, registers });
+  const stages = deliveryJourneyProgress({ project, delivery: delivery || {}, feeProposals, legalDocs, dmas, jcts, warranties, registers, suppliers, accountMap });
   const riba = projectStage(project);
   const key = `als-delivery-selection:v1:${user?.id}:${project.id}`;
   const saved = Number(localStorage.getItem(key));

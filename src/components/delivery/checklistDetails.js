@@ -1,4 +1,4 @@
-import { formatDate } from '@/lib/portal';
+import { formatDate, DOCUMENT_TYPE } from '@/lib/portal';
 
 export function documentChecklistDetails(record, label) {
   if (!record) return [`Missing: ${label} record.`, 'Sign-off cannot be confirmed until a record is added.'];
@@ -14,7 +14,7 @@ export function documentChecklistDetails(record, label) {
   return details;
 }
 
-export function readinessChecklistDetails({ project, legalDocs, dmas, jcts, warranties, feeProposals }) {
+export function readinessChecklistDetails({ project, legalDocs, dmas, jcts, warranties, feeProposals, appointment }) {
   const accepted = feeProposals.find(f => f.status === 'accepted');
   const fee = accepted || feeProposals.find(f => f.is_current) || feeProposals[0];
   const roles = [['appointment_pm', 'Project Manager'], ['appointment_pd_cdm', 'Principal Designer CDM'], ['appointment_architect', 'Architect'], ['appointment_pd_br', 'Principal Designer BR']];
@@ -26,9 +26,9 @@ export function readinessChecklistDetails({ project, legalDocs, dmas, jcts, warr
       const signed = docs.filter(d => d.executed === 'yes');
       return [`${label}: ${signed.length ? 'signed' : docs.length ? 'signature outstanding' : 'appointment missing'}${signed.length > 1 ? ` (${signed.length} signed records)` : ''}.`, ...signed.filter(d => d.date_of_execution).map(d => `${label} executed: ${formatDate(d.date_of_execution)}`)];
     }),
-    PCSA: documentChecklistDetails(legalDocs.find(d => d.document_type === 'pcsa'), 'PCSA'),
+    PCSA: [...documentChecklistDetails(appointment?.document, 'Contractor appointment'), 'Matches a non-JCT document to the contractor in the Fee Proposal delivery team.', ...(appointment?.name ? [`Contractor: ${appointment.name}`] : []), ...(appointment?.document ? [`Document type: ${DOCUMENT_TYPE[appointment.document.document_type]?.label || appointment.document.document_type}`] : [])],
     DMA: documentChecklistDetails(dmas[0], 'DMA'),
     'Programme (RIBA 2)': project.riba2_end ? [`RIBA 2 completion date recorded: ${formatDate(project.riba2_end)}.`, 'This readiness check uses the recorded completion date, not a separate approval.'] : ['Missing: RIBA 2 completion date.'],
-    'Contractor identified': jcts.length ? ['Contractor identified from a JCT record.', ...documentChecklistDetails(jcts.find(j => j.executed === 'yes') || jcts[0], 'JCT')] : warranties.some(w => w.category === 'contractor') ? ['Contractor identified from a contractor warranty.', 'No JCT record; contract execution cannot be confirmed.'] : ['Missing: JCT or contractor warranty identifying the contractor.'],
+    'Contractor identified': appointment?.identified ? [`Contractor identified from the Fee Proposal delivery team${appointment.name ? `: ${appointment.name}` : ''}.`] : jcts.length ? ['Contractor identified from a JCT record.', ...documentChecklistDetails(jcts.find(j => j.executed === 'yes') || jcts[0], 'JCT')] : warranties.some(w => w.category === 'contractor') ? ['Contractor identified from a contractor warranty.', 'No JCT record; contract execution cannot be confirmed.'] : ['Missing: JCT or contractor warranty identifying the contractor.'],
   };
 }

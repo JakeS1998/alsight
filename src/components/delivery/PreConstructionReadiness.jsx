@@ -5,6 +5,7 @@ import SearchableSelect from '@/components/forms/SearchableSelect';
 import { CheckCircle2, AlertTriangle, XCircle, Loader2 } from "lucide-react";
 import ChecklistHover from '@/components/delivery/ChecklistHover';
 import { readinessChecklistDetails } from '@/components/delivery/checklistDetails';
+import contractorAppointment from '@/components/delivery/contractorAppointment';
 
 const APPT_TYPES = ["appointment_pm", "appointment_pd_cdm", "appointment_architect", "appointment_pd_br"];
 
@@ -15,19 +16,20 @@ const GATEWAYS = [
   { key: "dma", label: "DMA" },
 ];
 
-export function PreConstructionReadiness({ project, legalDocs, dmas, jcts, warranties, feeProposals, delivery, setField, onSave, saving }) {
+export function PreConstructionReadiness({ project, legalDocs, dmas, jcts, warranties, feeProposals, delivery, deliveryTeam = [], suppliers = [], accountMap = {}, setField, onSave, saving }) {
   const items = useMemo(() => {
     const aa = legalDocs.find((d) => d.document_type === "access_agreement");
     const appts = legalDocs.filter((d) => APPT_TYPES.includes(d.document_type));
     const apptDone = appts.filter((d) => d.executed === "yes").length;
-    const pcsa = legalDocs.find((d) => d.document_type === "pcsa");
+    const appointment = contractorAppointment({ deliveryTeam, suppliers, accountMap, legalDocs });
+    const pcsa = appointment.document;
     const dma = dmas[0];
     const feeAccepted = feeProposals.some((f) => f.status === "accepted");
     const feeAny = feeProposals.length > 0;
-    const contractor = jcts.length > 0 || warranties.some((w) => w.category === "contractor");
+    const contractor = appointment.identified || jcts.length > 0 || warranties.some((w) => w.category === "contractor");
     const riba2 = !!project.riba2_end;
 
-    const details = readinessChecklistDetails({ project, legalDocs, dmas, jcts, warranties, feeProposals });
+    const details = readinessChecklistDetails({ project, legalDocs, dmas, jcts, warranties, feeProposals, appointment });
     const mk = (label, done, partial, extra) => ({ label, status: done ? "done" : partial ? "partial" : "pending", extra, details: details[label] });
     return [
       mk("Access Agreement", aa?.executed === "yes", !!aa),
@@ -38,7 +40,7 @@ export function PreConstructionReadiness({ project, legalDocs, dmas, jcts, warra
       mk("Programme (RIBA 2)", riba2, false),
       mk("Contractor identified", contractor, false),
     ];
-  }, [project, legalDocs, dmas, jcts, warranties, feeProposals]);
+  }, [project, legalDocs, dmas, jcts, warranties, feeProposals, deliveryTeam, suppliers, accountMap]);
 
   const doneCount = items.filter((i) => i.status === "done").length;
   const pct = Math.round((doneCount / items.length) * 100);

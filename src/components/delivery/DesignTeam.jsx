@@ -4,6 +4,7 @@ import DesignTeamCard from '@/components/delivery/DesignTeamCard';
 import { designTeamFees } from '@/components/delivery/designTeamFees';
 import ChecklistHover from '@/components/delivery/ChecklistHover';
 import { documentChecklistDetails } from '@/components/delivery/checklistDetails';
+import contractorAppointment from '@/components/delivery/contractorAppointment';
 
 const APPT_ROLES = [
   { label: "Project Manager", type: "appointment_pm" },
@@ -30,16 +31,17 @@ export function DesignTeam({ legalDocs, jcts, warranties, accountMap, deliveryTe
       });
     });
 
-    // Contractor from JCT (or contractor warranty)
+    const appointment = contractorAppointment({ deliveryTeam, suppliers, accountMap, legalDocs });
     const jct = jcts.find((j) => j.executed === "yes") || jcts[0];
-    const contractorName = jct ? (accountMap[jct.contractor_id]?.name || accountMap[jct.account_id]?.name) : null;
+    const contractorDocument = appointment.document || jct;
+    const contractorAccount = appointment.account || (jct ? accountMap[jct.contractor_id] || accountMap[jct.account_id] : null);
     out.push({
       label: "Contractor",
-      details: jct ? documentChecklistDetails(jct, 'JCT contract') : warranties.some(w => w.category === 'contractor') ? ['Contractor identified from a warranty.', 'Missing: JCT contract record; contract sign-off cannot be confirmed.'] : ['Missing: JCT contract or contractor warranty.'],
-      appointed: !!jct || warranties.some((w) => w.category === "contractor"),
-      account: contractorName,
-      supplierAccount: jct ? accountMap[jct.contractor_id] || accountMap[jct.account_id] : null,
-      fee: null, signed: jct?.executed === "yes", po: false, link: jct?.link_to_file,
+      details: contractorDocument ? [...documentChecklistDetails(contractorDocument, appointment.document ? 'Contractor appointment' : 'JCT contract'), ...(appointment.document ? ['Matched to the contractor in the Fee Proposal delivery team.'] : [])] : warranties.some(w => w.category === 'contractor') ? ['Contractor identified from a warranty.', 'Missing: contractor appointment document.'] : ['Missing: contractor appointment document.'],
+      appointed: !!contractorDocument || warranties.some((w) => w.category === "contractor"),
+      account: contractorAccount?.name,
+      supplierAccount: contractorAccount,
+      fee: null, signed: contractorDocument?.executed === "yes", po: contractorDocument?.executed === 'po', link: contractorDocument?.link_to_file,
     });
 
     // Roles not yet tracked as dedicated docs

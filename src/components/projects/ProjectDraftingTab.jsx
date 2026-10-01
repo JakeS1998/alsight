@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { base44 } from "@/api/base44Client";
-import { DOCUMENT_TYPE } from "@/lib/portal";
+import isPreConstructionDocument from '@/components/documents/isPreConstructionDocument';
 import { LegalDocumentCard } from "@/components/documents/LegalDocumentCard";
 import { DMACard } from "@/components/documents/DMACard";
 import { JCTCard } from "@/components/documents/JCTCard";
@@ -20,7 +20,7 @@ const STAGES = [
   { key: "riba4", label: "RIBA 4 report", icon: FileCheck, kind: "report" },
   { key: "dma", label: "Development Management Agreement", icon: FileCheck, kind: "dma" },
   { key: "jct", label: "Construction Contract (JCT)", icon: Gavel, kind: "jct" },
-  { key: "additional", label: "Additional Works & Other", icon: FilePlus, kind: "legal", docTypes: ["additional_works", "other"] },
+  { key: "additional", label: "Other Documents", icon: FilePlus, kind: "legal", docTypes: ["other"] },
 ];
 
 const PM_STAGES = [
@@ -100,7 +100,9 @@ export function ProjectDraftingTab({ project, legalDocs, dmas, jcts, accountMap,
   }, [project.id]);
 
   const docByType = {};
+  const preConstructionDocs = legalDocs.filter(isPreConstructionDocument);
   legalDocs.forEach((d) => {
+    if (!pmView && isPreConstructionDocument(d)) return;
     if (!docByType[d.document_type]) docByType[d.document_type] = [];
     docByType[d.document_type].push(d);
   });
@@ -115,7 +117,9 @@ export function ProjectDraftingTab({ project, legalDocs, dmas, jcts, accountMap,
     <div className="space-y-0">
       {stages.map((stage, i) => {
         let docs = [];
-        if (stage.kind === "legal") {
+        if (stage.key === 'precon') {
+          docs = preConstructionDocs;
+        } else if (stage.kind === "legal") {
           (stage.docTypes || []).forEach((t) => {
             if (docByType[t]) docs = docs.concat(docByType[t]);
           });
