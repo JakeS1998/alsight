@@ -1,5 +1,6 @@
 import { isClientFeeLine } from '@/components/delivery/feeProposalTotals';
 import proposalSupplierGroups from '@/components/delivery/proposalSupplierGroups';
+import { additionalFeeStages } from '@/components/delivery/additionalFeeStages';
 
 const STAGES = ['RIBA 1', 'RIBA 2', 'RIBA 3', 'RIBA 4', 'RIBA 5-7'];
 
@@ -9,10 +10,12 @@ export function drawFeeMatrix(doc, { supplierLines, alsLines, supplierName, mone
   const supplierGroups = proposalSupplierGroups(supplierLines, supplierName);
   const alsRows = new Map();
   alsLines.filter(line => mode === 'internal' || isClientFeeLine(line)).forEach(line => {
-    const stage = STAGES.indexOf(line.riba_stage);
-    const name = `${line.description || 'ALS fee'}${stage < 0 && line.riba_stage ? ` (${line.riba_stage})` : ''}`;
-    if (!alsRows.has(name)) alsRows.set(name, { name, role: '', amounts: Array(6).fill(0) });
-    alsRows.get(name).amounts[stage < 0 ? 5 : stage] += Number(line.internal_fee) || 0;
+    Object.entries(additionalFeeStages(line)).forEach(([stageLabel, value]) => {
+      const stage = STAGES.indexOf(stageLabel);
+      const name = `${line.description || 'ALS fee'}${stage < 0 && stageLabel !== 'Other' ? ` (${stageLabel})` : ''}`;
+      if (!alsRows.has(name)) alsRows.set(name, { name, role: '', amounts: Array(6).fill(0) });
+      alsRows.get(name).amounts[stage < 0 ? 5 : stage] += Number(value) || 0;
+    });
   });
   let y = startY;
   const pageBreak = needed => { if (y + needed > height - 64) { doc.addPage(); y = 55; return true; } return false; };

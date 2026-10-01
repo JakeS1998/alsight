@@ -9,6 +9,7 @@ import { Plus, Trash2, Loader2, FileDown, TrendingUp, ArrowUpRight, ArrowDownRig
 import { formatCurrency, formatDate } from "@/lib/portal";
 import { exportFeeProposalPdf } from "./exportFeeProposalPdf";
 import { feeProposalTotals } from "./feeProposalTotals";
+import { additionalFeeTotal } from '@/components/delivery/additionalFeeStages';
 import SupplierFeeTable from '@/components/delivery/SupplierFeeTable';
 import FeeProposalLines from '@/components/delivery/FeeProposalLines';
 import ContractorBuildUp from '@/components/delivery/ContractorBuildUp';
@@ -42,7 +43,7 @@ const EMPTY_HEADER = {
   link_to_file: "", is_current: true,
 };
 const ALS_LINE = { riba_stage: "", description: "ALS Delivery fee", internal_fee: 0, include_on_client: true };
-const normalizeFeeItems = (lines) => lines.map(line => ({ ...line, include_on_client: line.include_on_client !== false, internal_fee: line.internal_fee === '' || line.internal_fee == null ? 0 : line.internal_fee }));
+const normalizeFeeItems = (lines) => lines.map(line => ({ ...line, include_on_client: line.include_on_client !== false, internal_fee: additionalFeeTotal(line) }));
 const parseItems = (s) => { try { return normalizeFeeItems(JSON.parse(s) || []); } catch { return []; } };
 
 export function FeeProposalSection({ projectId, project, onChanged, deliveryTeam, suppliers }) {
@@ -154,8 +155,12 @@ export function FeeProposalSection({ projectId, project, onChanged, deliveryTeam
     });
   }, [supplierLines, poBySupplier, suppliers]);
 
-  const updateItem = (idx, field, value) => setItems((prev) => prev.map((it, i) => (i === idx ? { ...it, [field]: value } : it)));
-  const addItem = () => setItems((prev) => [...prev, { riba_stage: "", description: "", internal_fee: 0, include_on_client: true }]);
+  const updateItem = (idx, field, value) => setItems((prev) => prev.map((it, i) => {
+    if (i !== idx) return it;
+    const next = { ...it, [field]: value };
+    return field === 'stage_fees' ? { ...next, internal_fee: additionalFeeTotal(next) } : next;
+  }));
+  const addItem = () => setItems((prev) => [...prev, { riba_stage: "", description: "", stage_fees: {}, internal_fee: 0, include_on_client: true }]);
   const removeItem = (idx) => setItems((prev) => prev.filter((_, i) => i !== idx));
 
   const saveBuilder = async () => {
