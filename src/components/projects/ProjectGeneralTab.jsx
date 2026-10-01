@@ -5,7 +5,6 @@ import { base44 } from "@/api/base44Client";
 import { listAll } from "@/components/data/loadAll";
 import listVisiblePortalUsers from '@/components/data/portalUserDirectory';
 import ValuationSnapshot from '@/components/valuations/ValuationSnapshot';
-import StageDrawing from '@/components/dashboard/PipelineStageArtwork';
 import { projectCompletionDates } from '@/components/projects/projectCompletionDates';
 import ProjectDocumentStatuses from '@/components/projects/ProjectDocumentStatuses';
 import Project360Strip from '@/components/projects/Project360Strip';
@@ -177,7 +176,7 @@ export function ProjectGeneralTab({ project, accountMap, onProjectUpdated, singl
             <tbody className="divide-y divide-slate-50">
               {ribaRows.map((r) => (
                 <tr key={r.stage}>
-                  <td className="py-2.5 pr-4 font-medium text-slate-900"><span className="inline-flex items-center gap-2"><StageDrawing stage={r.stage} className="h-10 w-10" />{r.stage}</span></td>
+                  <td className="py-2.5 pr-4 font-medium text-slate-900">{r.stage}</td>
                   <td className="py-2.5 pr-4 text-slate-600">{r.term || "—"}</td>
                   <td className="py-2.5 pr-4 text-muted-foreground" title="System date — read only">{formatDate(r.expected)}</td>
                   <td className="py-2.5">
@@ -198,7 +197,7 @@ export function ProjectGeneralTab({ project, accountMap, onProjectUpdated, singl
                 </tr>
               ))}
               <tr className="bg-slate-50">
-                <td className="py-2.5 pr-4 font-medium text-slate-900">{singleTask ? 'Single task' : <span className="inline-flex items-center gap-2"><StageDrawing stage="RIBA 5–7" className="h-10 w-10" />Construction</span>}</td>
+                <td className="py-2.5 pr-4 font-medium text-slate-900">{singleTask ? 'Single task' : 'Construction'}</td>
                 {!singleTask && <td className="py-2.5 pr-4 text-slate-600">{project.construction_term_weeks || "—"}</td>}
                 {!singleTask && <td className="py-2.5 pr-4 text-muted-foreground" title="System date — read only">{formatDate(expectedDates.riba5_system_date)}</td>}
                 <td className="py-2.5">
