@@ -185,8 +185,8 @@ export function FeeProposalSection({ projectId, project, onChanged, deliveryTeam
     const label = frameworkFees.settings?.uklf || 'UKLF Fee';
     setItems((prev) => {
       const existing = prev.findIndex(line => isUklfLine(line, label));
-      const stageFees = { 'RIBA 5-7': feeAmount };
-      const newLine = { riba_stage: 'RIBA 5-7', description: `${label} (${pct}% of contract value)`, stage_fees: stageFees, internal_fee: feeAmount, include_on_client: true };
+      const stageFees = { 'Other': feeAmount };
+      const newLine = { riba_stage: '', description: `${label} (${pct}% of contract value)`, stage_fees: stageFees, internal_fee: feeAmount, include_on_client: true };
       if (existing >= 0) return prev.map((line, i) => i === existing ? { ...line, ...newLine } : line);
       return [...prev, newLine];
     });

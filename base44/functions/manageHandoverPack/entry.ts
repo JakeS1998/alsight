@@ -29,7 +29,7 @@ export default async function(req: Request): Promise<Response> {
       const register = await readHandoverRegister(base44, item, secrets.get('BASE44_APP_ID'));
       if (input.action === 'register') return Response.json({ config: handoverRegisters[input.key], register });
       if (!item.register_file_uri) return failure('Save the register before downloading.');
-      const bytes = createHandoverRegisterPdf(project, { ...item, registerData: register });
+      const bytes = await createHandoverRegisterPdf(project, { ...item, registerData: register });
       let binary = ''; for (let i = 0; i < bytes.length; i += 8192) binary += String.fromCharCode(...bytes.subarray(i, i + 8192));
       return Response.json({ content: btoa(binary), mime: 'application/pdf', filename: `Handover-${input.key}-v${item.register_version}.pdf` });
     }
