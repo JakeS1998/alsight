@@ -264,7 +264,7 @@ export function FeeProposalSection({ projectId, project, onChanged, deliveryTeam
   return (
     <FormSection title="2 · Fee Proposal" completed={(rows.find(row => row.is_current) || rows[0])?.status === 'accepted'} description="Supplier fees are pulled from the Delivery Team; add the ALS Delivery fee and any other optional lines">
       <div className="space-y-5">
-        {children}
+        {React.Children.map(children, child => React.isValidElement(child) ? React.cloneElement(child, { legacyContractorOhp: { surveysPct: ohpSurveysPct, riba57Pct: ohpRiba57Pct, surveysType: ohpSurveysType, surveysFixed: ohpSurveysFixed } }) : child)}
         <div className="flex items-center justify-between">
           <p className="text-sm text-slate-500">Revisions</p>
           <Button type="button" variant="outline" size="sm" onClick={openAdd}><Plus className="mr-1.5 h-4 w-4" /> Add revision</Button>
@@ -332,7 +332,7 @@ export function FeeProposalSection({ projectId, project, onChanged, deliveryTeam
             <SupplierFeeTable lines={supplierLines} getSupplierName={supplierName} fsf={fsf.allowed ? fsf : undefined} contractors={fsf.allowed ? fsfContractors : undefined} />
             {fsf.allowed && <SupplierFsfSummary alsFee={totals.alsFee} fsfTotal={fsfTotals.total} loading={fsf.loading} error={fsf.error} onSave={fsf.save} />}
 
-            <ContractorBuildUp deliveryTeam={deliveryTeam} ohpSurveysPct={ohpSurveysPct} ohpRiba57Pct={ohpRiba57Pct} ohpSurveysType={ohpSurveysType} ohpSurveysFixed={ohpSurveysFixed} onOhpTypeChange={setOhpSurveysType} onOhpFixedChange={setOhpSurveysFixed} onOhpChange={(group, value) => group === 'surveys' ? setOhpSurveysPct(value) : setOhpRiba57Pct(value)} />
+            <ContractorBuildUp deliveryTeam={deliveryTeam} ohpSurveysPct={ohpSurveysPct} ohpRiba57Pct={ohpRiba57Pct} ohpSurveysType={ohpSurveysType} ohpSurveysFixed={ohpSurveysFixed}  />
 
             <FeeProposalLines items={items} stages={RIBA_STAGES} updateItem={updateItem} addItem={addItem} removeItem={removeItem} />
 

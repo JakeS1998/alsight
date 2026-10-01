@@ -6,6 +6,7 @@ import { base44 } from "@/api/base44Client";
 import { Plus, Trash2, Loader2, Upload, FileCheck } from "lucide-react";
 import ContractorFeeBuilder from '@/components/delivery/ContractorFeeBuilder';
 import ContractorStageOhp from '@/components/delivery/ContractorStageOhp';
+import normalizeContractorOhp from '@/components/delivery/normalizeContractorOhp';
 
 const ROLES = ["Contractor", "Project Manager", "Principal Designer (CDM)", "Principal Designer (BR)", "Architect", "Structural Engineer", "M&E Engineer", "Cost Consultant", "Other"];
 const STAGES = ["riba_1", "riba_2", "riba_3", "riba_4", "riba_5_7"];
@@ -28,16 +29,17 @@ const migrateContractor = (m) => {
   return { ...m, contractor_fees: arr };
 };
 
-export function DeliveryTeam({ project, delivery, setField, onSave, saving, suppliers, embedded = false }) {
+export function DeliveryTeam({ project, delivery, setField, onSave, saving, suppliers, embedded = false, legacyContractorOhp = {} }) {
+  const { surveysPct, riba57Pct, surveysType, surveysFixed } = legacyContractorOhp;
   const [team, setTeam] = useState([]);
   const [uploading, setUploading] = useState(null);
 
   useEffect(() => {
     try {
       const parsed = JSON.parse(delivery.delivery_team || "[]");
-      setTeam((Array.isArray(parsed) ? parsed : []).map((m) => (isContractor(m) ? migrateContractor(m) : m)));
+      setTeam(normalizeContractorOhp((Array.isArray(parsed) ? parsed : []).map(migrateContractor), { surveysPct, riba57Pct, surveysType, surveysFixed }));
     } catch { setTeam([]); }
-  }, [delivery.delivery_team]);
+  }, [delivery.delivery_team, surveysPct, riba57Pct, surveysType, surveysFixed]);
 
   const commit = (next) => { setTeam(next); setField("delivery_team", JSON.stringify(next)); };
   const addMember = () => commit([...team, { ...EMPTY_MEMBER, fees: { ...EMPTY_MEMBER.fees } }]);
@@ -48,7 +50,7 @@ export function DeliveryTeam({ project, delivery, setField, onSave, saving, supp
       const updated = { ...m, [field]: value };
       if (field === "role" && isContractor(updated)) {
         if (!Array.isArray(updated.contractor_fees)) updated.contractor_fees = migrateContractor(updated).contractor_fees;
-        if (updated.contractor_ohp === undefined) updated.contractor_ohp = {};
+        if (updated.contractor_ohp == null) updated.contractor_ohp = {};
       }
       return updated;
     });
@@ -131,7 +133,7 @@ export function DeliveryTeam({ project, delivery, setField, onSave, saving, supp
         ))}
         <div className="flex items-center justify-between">
           <Button type="button" variant="outline" size="sm" onClick={addMember}><Plus className="mr-1.5 h-4 w-4" /> Add team member</Button>
-          <Button type="button" onClick={onSave} disabled={saving} className="bg-primary hover:bg-primary/90">
+          <Button type="button" onClick={() => onSave({ delivery_team: JSON.stringify(team) })} disabled={saving} className="bg-primary hover:bg-primary/90">
             {saving && <Loader2 className="mr-1.5 h-4 w-4 animate-spin" />} Save team
           </Button>
         </div>

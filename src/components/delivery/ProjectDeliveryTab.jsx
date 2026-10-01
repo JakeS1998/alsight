@@ -97,10 +97,10 @@ export function ProjectDeliveryTab({ project, legalDocs, dmas, jcts, warranties,
     try { return JSON.parse(delivery.delivery_team || "[]") || []; } catch { return []; }
   }, [delivery.delivery_team]);
 
-  const saveDelivery = async () => {
+  const saveDelivery = async (overrides) => {
     setSavingDelivery(true);
     try {
-      const payload = { ...delivery, project_id: projectId, client_account_id: project.client_account_id || null, bdm_aad_id: project.bdm_aad_id || null };
+      const payload = { ...delivery, ...(typeof overrides?.delivery_team === 'string' ? { delivery_team: overrides.delivery_team } : {}), project_id: projectId, client_account_id: project.client_account_id || null, bdm_aad_id: project.bdm_aad_id || null };
       // Handover updates are saved separately; do not overwrite them from this form.
       Object.keys(payload).filter(key => key.startsWith('handover_')).forEach(key => delete payload[key]);
       // coerce numeric fields
@@ -114,6 +114,7 @@ export function ProjectDeliveryTab({ project, legalDocs, dmas, jcts, warranties,
         const created = await base44.entities.ProjectDelivery.create(payload);
         if (created?.id) setDeliveryId(created.id);
       }
+      if (typeof overrides?.delivery_team === 'string') setDelivery(previous => ({ ...previous, delivery_team: overrides.delivery_team }));
       setSavedDelivery(payload);
     } finally {
       setSavingDelivery(false);
