@@ -34,7 +34,7 @@ const STATUS_STYLE = {
   sent: "bg-blue-50 text-blue-700", negotiation: "bg-violet-50 text-violet-700",
   accepted: "bg-emerald-50 text-emerald-700", lost: "bg-rose-50 text-rose-700",
 };
-const RIBA_STAGES = ["RIBA 1", "RIBA 2", "RIBA 3", "RIBA 4", "RIBA 5-7", "Pre-construction", "Construction", "Other"];
+const RIBA_STAGES = ["RIBA 1", "RIBA 2", "RIBA 3", "RIBA 4", "RIBA 5-7"];
 const STAGE_LABEL = { riba_1: "RIBA 1", riba_2: "RIBA 2", riba_3: "RIBA 3", riba_4: "RIBA 4", riba_5_7: "RIBA 5-7" };
 const STAGE_KEYS = ["riba_1", "riba_2", "riba_3", "riba_4", "riba_5_7"];
 

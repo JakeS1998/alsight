@@ -7,7 +7,7 @@ export default function FeeProposalLines({ items, stages, updateItem, addItem, r
   return <div>
     <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-muted-foreground">ALS fee &amp; additional lines</p>
     <p className="mb-2 text-xs text-muted-foreground">Lines are included in the client proposal by default. Untick to exclude a line from the client PDF and client total; it remains in the internal proposal. Save builder to retain your choices.</p>
-    <div className="overflow-x-auto"><table className="w-full min-w-[1250px] text-xs">
+    <div className="overflow-x-auto"><table className="w-full min-w-[950px] text-xs">
       <thead className="text-left text-muted-foreground"><tr>
         <th className="w-64 py-2 pr-2">Description</th>
         {stages.map(stage => <th key={stage} className="py-2 pr-2 text-right">{stage} £</th>)}
