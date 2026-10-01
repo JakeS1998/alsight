@@ -39,6 +39,11 @@
     --accent-foreground: 241 53% 17%;
     --destructive: 0 84.2% 60.2%;
     --success: 152 69% 31%;
+    --risk-low: 142 71% 35%;
+    --risk-moderate: 48 96% 53%;
+    --risk-elevated: 38 92% 50%;
+    --risk-high: 24 95% 53%;
+    --risk-critical: 0 72% 51%;
     --destructive-foreground: 0 0% 98%;
     --border: 240 6% 90%;
     --input: 240 6% 90%;
@@ -83,6 +88,11 @@
     --accent-foreground: 241 53% 17%;
     --destructive: 0 62.8% 30.6%;
     --success: 152 64% 60%;
+    --risk-low: 142 69% 58%;
+    --risk-moderate: 48 96% 60%;
+    --risk-elevated: 38 92% 60%;
+    --risk-high: 24 95% 63%;
+    --risk-critical: 0 84% 65%;
     --destructive-foreground: 0 0% 98%;
     --border: 0 0% 14.9%;
     --input: 0 0% 14.9%;

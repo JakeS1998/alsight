@@ -42,6 +42,13 @@ module.exports = {
   				foreground: 'hsl(var(--destructive-foreground))'
   			},
   			success: 'hsl(var(--success))',
+            risk: {
+                low: 'hsl(var(--risk-low))',
+                moderate: 'hsl(var(--risk-moderate))',
+                elevated: 'hsl(var(--risk-elevated))',
+                high: 'hsl(var(--risk-high))',
+                critical: 'hsl(var(--risk-critical))'
+            },
   			border: 'hsl(var(--border))',
   			input: 'hsl(var(--input))',
   			ring: 'hsl(var(--ring))',

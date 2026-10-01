@@ -8,6 +8,9 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "
 import { FormField, FormGrid, formInputClass } from "@/components/forms/PowerForm";
 import { Plus, Pencil, Trash2, Loader2 } from "lucide-react";
 import { formatDate } from "@/lib/portal";
+import { riskIndex } from '@/components/delivery/riskRegisterColumns';
+import { riskHeat } from '@/components/delivery/riskHeat';
+import RiskIndexBadge from '@/components/delivery/RiskIndexBadge';
 
 const emptyForm = (columns) => Object.fromEntries(columns.map((c) => [c.key, c.type === "boolean" ? false : ""]));
 
@@ -88,7 +91,7 @@ export function RegisterList({ title, description, entityName, projectId, projec
 
   const renderInput = (col) => {
     const val = form[col.key];
-    if (col.type === 'calculated') return <output className="block rounded-md border border-input bg-muted px-3 py-2 text-sm">{col.calculate(form) ?? '—'}</output>;
+    if (col.type === 'calculated') return <output className="block rounded-md border border-input bg-muted px-3 py-2 text-sm">{entityName === 'ProjectRisk' && col.key === 'risk_index' ? <RiskIndexBadge index={col.calculate(form)} /> : col.calculate(form) ?? '—'}</output>;
     if (col.type === "select")
       return (
         <SearchableSelect value={val} onChange={(e) => setForm({ ...form, [col.key]: e.target.value })} className={formInputClass}>
@@ -116,6 +119,7 @@ export function RegisterList({ title, description, entityName, projectId, projec
 
   const display = (row, col) => {
     const v = col.type === 'calculated' ? col.calculate(row) : row[col.key];
+    if (entityName === 'ProjectRisk' && col.key === 'risk_index') return <RiskIndexBadge index={v} />;
     if (col.type === "date") return formatDate(v);
     if (col.type === "select") return col.options.find((o) => String(o.value) === String(v))?.label || "—";
     if (col.type === "boolean") return v ? "Yes" : "No";
@@ -147,8 +151,8 @@ export function RegisterList({ title, description, entityName, projectId, projec
             </thead>
             <tbody className="divide-y divide-slate-100">
               {rows.map((row) => (
-                <tr key={row.id} className="hover:bg-slate-50">
-                  {shown.map((c) => <td key={c.key} className="px-3 py-2.5 align-top text-slate-700">{display(row, c)}</td>)}
+                <tr key={row.id} className={entityName === 'ProjectRisk' ? riskHeat(riskIndex(row)).rowClass : 'hover:bg-slate-50'}>
+                  {shown.map((c) => <td key={c.key} className={entityName === 'ProjectRisk' ? 'px-3 py-2.5 align-top text-foreground' : 'px-3 py-2.5 align-top text-slate-700'}>{display(row, c)}</td>)}
                   <td className="px-3 py-2.5 text-right whitespace-nowrap">
                     <button onClick={() => openEdit(row)} className="rounded p-1 text-slate-400 hover:bg-slate-100 hover:text-slate-700"><Pencil className="h-3.5 w-3.5" /></button>
                     <button onClick={() => remove(row.id)} className="rounded p-1 text-slate-400 hover:bg-rose-50 hover:text-rose-600"><Trash2 className="h-3.5 w-3.5" /></button>

@@ -9,6 +9,7 @@ import RiskRegisterTools from '@/components/delivery/RiskRegisterTools';
 const riskCurrency = value => new Intl.NumberFormat('en-GB', { style: 'currency', currency: 'GBP', minimumFractionDigits: 2 }).format(value);
 import { projectStage } from '@/components/dashboard/pipelineStage';
 import { FormSection } from '@/components/forms/PowerForm';
+import RiskHeatLegend from '@/components/delivery/RiskHeatLegend';
 export default function ProjectRiskRegister({ project, delivery, accountMap }) {
   const { user } = useAuth();
   const client = useQueryClient();
@@ -20,6 +21,7 @@ export default function ProjectRiskRegister({ project, delivery, accountMap }) {
   return <FormSection title="Project risk register">
     <div><p className="text-sm text-muted-foreground">{project.name} · {projectStage(project)}</p><p className="mt-2 text-xs text-muted-foreground">Client: {project.client_name || accountMap[project.client_account_id]?.name || 'Not recorded'} · Contractor: {delivery.contractor || 'Not recorded'}</p></div>
     <RiskRegisterGuidance />
+    <RiskHeatLegend />
     <RiskRegisterTools key={project.id} project={project} onImported={() => { setRevision(v => v + 1); refresh(); }} />
     <RegisterList key={`${project.id}-${revision}`} title="Risk" description="Alliance Leisure risk register" entityName="ProjectRisk" projectId={project.id} project={project} columns={RISK_COLUMNS} preparePayload={prepareRisk} onChanged={refresh} paginated sortBy="reference" addLabel="Add risk" />
     {total.isPending ? <p role="status" className="text-sm text-muted-foreground">Calculating client contingency…</p> : total.error ? <p role="alert" className="text-sm text-destructive">Unable to calculate client contingency.</p> : <p className="text-sm font-medium">Proposed client contingency: {riskCurrency(total.data?.rows[0]?.sum_weighted_cost || 0)}<span className="block text-xs font-normal text-muted-foreground">Active Client-owned risks with recorded weighted costs only; existing unscored risks must be reviewed.</span></p>}
