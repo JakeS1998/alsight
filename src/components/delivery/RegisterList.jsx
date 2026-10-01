@@ -11,6 +11,7 @@ import { formatDate } from "@/lib/portal";
 import { riskIndex } from '@/components/delivery/riskRegisterColumns';
 import { riskHeat } from '@/components/delivery/riskHeat';
 import RiskIndexBadge from '@/components/delivery/RiskIndexBadge';
+import RegisterSortHeading from '@/components/delivery/RegisterSortHeading';
 
 const emptyForm = (columns) => Object.fromEntries(columns.map((c) => [c.key, c.type === "boolean" ? false : ""]));
 
@@ -23,7 +24,7 @@ const coerce = (columns, form) => {
   return out;
 };
 
-export function RegisterList({ title, description, entityName, projectId, project, columns, tableColumns, sortBy = "-created_date", addLabel = "Add", preparePayload = value => value, onChanged, paginated = false }) {
+export function RegisterList({ title, description, entityName, projectId, project, columns, tableColumns, sortBy = "-created_date", addLabel = "Add", preparePayload = value => value, onChanged, paginated = false, sortable = false }) {
   const [rows, setRows] = useState([]);
   const [loading, setLoading] = useState(true);
   const [open, setOpen] = useState(false);
@@ -33,20 +34,22 @@ export function RegisterList({ title, description, entityName, projectId, projec
   const [error, setError] = useState('');
   const [cursor, setCursor] = useState(null);
   const [more, setMore] = useState(false);
+  const [headingSort, setHeadingSort] = useState(null);
+  const activeSort = sortable ? headingSort || sortBy : sortBy;
 
   const load = useCallback(async (next = null) => {
     setLoading(true); setError('');
     try {
       if (paginated) {
-        const page = await base44.entities[entityName].filter({ project_id: projectId }, { sort: sortBy, limit: 50, ...(next ? { cursor: next } : {}) });
+        const page = await base44.entities[entityName].filter({ project_id: projectId }, { sort: activeSort, limit: 50, ...(next ? { cursor: next } : {}) });
         setRows(old => next ? [...old, ...page.items] : page.items);
         setCursor(page.next_cursor); setMore(page.has_more);
       } else {
-        setRows(await filterAll(base44.entities[entityName], { project_id: projectId }, sortBy));
+        setRows(await filterAll(base44.entities[entityName], { project_id: projectId }, activeSort));
       }
     } catch (e) { setError(e.message || 'Unable to load register.'); }
     finally { setLoading(false); }
-  }, [entityName, projectId, sortBy, paginated]);
+  }, [entityName, projectId, activeSort, paginated]);
 
   useEffect(() => { load(); }, [load]);
 
@@ -145,7 +148,7 @@ export function RegisterList({ title, description, entityName, projectId, projec
           <table className="w-full text-sm">
             <thead className={entityName === 'ProjectRisk' ? 'sticky top-0 z-10 bg-muted text-left text-xs font-semibold uppercase tracking-wide text-muted-foreground' : 'bg-slate-50 text-left text-xs font-semibold uppercase tracking-wide text-slate-500'}>
               <tr>
-                {shown.map((c) => <th key={c.key} className="px-3 py-2.5 whitespace-nowrap">{c.label}</th>)}
+                {shown.map((c) => sortable ? <RegisterSortHeading key={c.key} column={c} sort={activeSort} onSort={setHeadingSort} loading={loading} /> : <th key={c.key} className="px-3 py-2.5 whitespace-nowrap">{c.label}</th>)}
                 <th className="px-3 py-2.5"></th>
               </tr>
             </thead>
