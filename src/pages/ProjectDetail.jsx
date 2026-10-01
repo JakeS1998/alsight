@@ -24,6 +24,8 @@ import { ProjectTimelineTab } from "@/components/projects/ProjectTimelineTab";
 import { ProjectDeliveryTab } from "@/components/delivery/ProjectDeliveryTab";
 import ProjectPathwayAbout from '@/components/delivery/ProjectPathwayAbout';
 import PMProjectPathway from '@/components/delivery/PMProjectPathway';
+import ProjectChanges from '@/components/alice/ProjectChanges';
+import DocumentInsight from '@/components/alice/DocumentInsight';
 import { ArrowLeft, FileText, ShieldCheck, LayoutDashboard, Receipt, Calendar, ClipboardList, ListChecks } from "lucide-react";
 
 export default function ProjectDetail() {
@@ -130,17 +132,21 @@ export default function ProjectDetail() {
             {INTERNAL_ROLES.includes(user?.role) && project.procurement_route !== false && <TabsTrigger value="uklf"><UKLFIcon /> UKLF</TabsTrigger>}
           </TabsList></div><div aria-hidden="true" className="pointer-events-none absolute inset-y-0 right-0 w-3 bg-gradient-to-l from-secondary to-transparent sm:hidden" /></div>
         </ProjectStickyHeader>
-        <TabsContent value="general" className="mt-6">
+        <TabsContent value="general" className="mt-6 space-y-6">
+          {INTERNAL_ROLES.includes(user?.role) && <ProjectChanges key={project.id} project={project} legalDocs={legalDocs} dmas={dmas} jcts={jcts} />}
           <ProjectGeneralTab project={project} singleTask={frameworkAgreementRoute(legalDocs, dmas, project.project_number).route === 'single_task'} accountMap={accountMap} onProjectUpdated={updated => setProject(current => ({ ...current, ...updated }))} />
         </TabsContent>
         <TabsContent value="timeline" className="mt-6 space-y-6">
+          {INTERNAL_ROLES.includes(user?.role) && <ProjectChanges key={project.id} project={project} legalDocs={legalDocs} dmas={dmas} jcts={jcts} />}
           <ProjectTimelineTab project={project} legalDocs={isSupplier ? legalDocs.filter(d => supplierAccountId && d.account_id === supplierAccountId) : legalDocs} dmas={isSupplier ? [] : dmas} jcts={isSupplier ? jcts.filter(d => supplierAccountId && (d.account_id === supplierAccountId || d.contractor_id === supplierAccountId)) : jcts} warranties={isSupplier ? warranties.filter(d => supplierAccountId && (d.account_id === supplierAccountId || d.supplier_id === supplierAccountId)) : warranties} accountMap={accountMap} supplierOnly={isSupplier} supplierOrders={supplierOrders} supplierCompanyNumber={supplierAccountId ? accountMap[supplierAccountId]?.company_number : null} />
           {canSeeProjectOverview && <ProjectManagerOverview projectId={project.id} mode="timeline" supplier={isSupplier} />}
         </TabsContent>
-        <TabsContent value="drafting" className="mt-6">
+        <TabsContent value="drafting" className="mt-6 space-y-6">
+          {INTERNAL_ROLES.includes(user?.role) && <DocumentInsight project={project} legalDocs={legalDocs} dmas={dmas} jcts={jcts} warranties={warranties} />}
           {isSupplier ? <SupplierProjectDocuments project={project} legalDocs={legalDocs} jcts={jcts} accountMap={accountMap} /> : isExternalPM ? <ProjectDraftingTab project={project} legalDocs={legalDocs.filter(d => ['access_agreement','pcsa'].includes(d.document_type))} dmas={dmas} jcts={jcts} accountMap={accountMap} onProjectUpdated={updated => setProject(current => ({ ...current, ...updated }))} pmView /> : <ProjectDraftingTab project={project} legalDocs={legalDocs} dmas={dmas} jcts={jcts} accountMap={accountMap} onProjectUpdated={updated => setProject(current => ({ ...current, ...updated }))} />}
         </TabsContent>
         <TabsContent value="warranties" className="mt-6 space-y-6">
+          {INTERNAL_ROLES.includes(user?.role) && <DocumentInsight project={project} legalDocs={legalDocs} dmas={dmas} jcts={jcts} warranties={warranties} />}
           <ProjectWarrantiesTab project={project} warranties={warranties} accountMap={accountMap} hideCommentsAndLinks={isSupplier} />
           {canSeeProjectOverview && <ProjectManagerOverview projectId={project.id} mode="warranties" supplier={isSupplier} />}
         </TabsContent>

@@ -15,6 +15,7 @@ import ProfessionalFees from './finance/ProfessionalFees';
 import RetentionSummary from './finance/RetentionSummary';
 import CommercialMilestones from './finance/CommercialMilestones';
 import CommercialAlerts from './finance/CommercialAlerts';
+import FinanceInsight from '@/components/alice/FinanceInsight';
 
 function Spinner() {
   return (
@@ -87,6 +88,7 @@ export function ProjectFinanceTab({ project }) {
 
   return (
     <div className="space-y-6">
+      <FinanceInsight project={project} summary={summary} health={health} delivery={delivery} />
       <CommercialSummary summary={summary} health={health} />
 
       {/* Money In & Out chart — preserved exactly as-is */}

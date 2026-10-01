@@ -1,0 +1,6 @@
+import React from 'react';
+import { Link } from 'react-router-dom';
+const COLORS = { Healthy: 'text-success', Watch: 'text-primary', 'At Risk': 'text-destructive', 'Insufficient Data': 'text-muted-foreground' };
+export default function ProjectHealth({ project, dimensions }) {
+  return <section className="rounded-xl border border-border bg-card p-4"><h2 className="text-sm font-semibold text-als-navy">Project Health</h2><p className="mt-1 text-xs text-muted-foreground">Rule-based indicators, not ALICE decisions. Each dimension has its own evidence; no overall score is inferred.</p><div className="mt-3 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">{dimensions.map(d => <Link key={d.name} to={`/projects/${project.id}?tab=${d.tab}`} className="rounded-lg border border-border p-3 hover:bg-muted"><div className="flex flex-wrap justify-between gap-2 text-xs"><span className="font-semibold">{d.name}</span><span className={COLORS[d.status]}>{d.status}</span></div><p className="mt-1 text-xs text-muted-foreground">{d.reason}</p></Link>)}</div></section>;
+}

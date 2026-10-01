@@ -5,11 +5,11 @@ import { AlertTriangle, CheckCircle2 } from 'lucide-react';
 export default function CommercialAlerts({ alerts }) {
   return (
     <section className="rounded-xl border border-slate-200 bg-white p-5">
-      <h3 className="font-heading text-base font-semibold text-als-navy">Commercial Attention Required</h3>
+      <h3 className="font-heading text-base font-semibold text-als-navy">ALICE Signals</h3>
       {alerts.length === 0 ? (
         <div className="mt-3 flex items-center gap-2 text-sm text-slate-500">
           <CheckCircle2 className="h-4 w-4 text-emerald-500" />
-          No priority commercial issues currently require attention.
+          No current commercial exception is identified by the recorded rules.
         </div>
       ) : (
         <div className="mt-3 space-y-2">

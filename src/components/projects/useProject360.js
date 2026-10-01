@@ -1,10 +1,12 @@
 import { useQuery } from '@tanstack/react-query';
 import { base44 } from '@/api/base44Client';
+import { useAuth } from '@/lib/AuthContext';
 const executed = { $or: [{ executed: { $in: ['yes', 'po'] } }, { date_of_execution: { $exists: true, $nin: [null, ''] } }] };
 const pending = { $and: [{ executed: { $nin: ['yes', 'po'] } }, { $or: [{ date_of_execution: { $exists: false } }, { date_of_execution: { $in: [null, ''] } }] }] };
 export default function useProject360(project) {
+  const { user } = useAuth();
   return useQuery({
-    queryKey: ['project-360', project.id, project.dataverse_id], staleTime: 60000,
+    queryKey: ['project-360', project.id, project.dataverse_id, user?.id, user?.role], staleTime: 60000,
     queryFn: async () => {
       const scope = { project_id: { $in: [project.id, project.dataverse_id].filter(Boolean) } };
       const legalScope = { ...scope, $or: [{ status: { $ne: 'inactive' } }, executed] };

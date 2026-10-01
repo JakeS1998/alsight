@@ -7,6 +7,7 @@ import useJourneyRegisters from '@/components/delivery/useJourneyRegisters';
 import JourneyStageButton from '@/components/delivery/JourneyStageButton';
 import DeliveryJourneySummary from '@/components/delivery/DeliveryJourneySummary';
 import JourneyProgressBreakdown from '@/components/delivery/JourneyProgressBreakdown';
+import PathwayInsight from '@/components/alice/PathwayInsight';
 export default function DeliveryJourney({ project, delivery, feeProposals, legalDocs, dmas, jcts, warranties, suppliers, accountMap, children }) {
   const { user } = useAuth();
   const { registers, error, loading } = useJourneyRegisters(project.id);
@@ -20,6 +21,7 @@ export default function DeliveryJourney({ project, delivery, feeProposals, legal
   const onSelect = id => { setSelected(id); setVisited(previous => new Set([...previous, id])); localStorage.setItem(key, String(id)); };
   const panels = React.Children.toArray(children);
   return <DeliveryCollapseContext.Provider value={null}><div className="min-w-0 w-full space-y-4">
+    <PathwayInsight stages={stages} loading={loading} error={error} onSelect={onSelect} />
     <DeliveryJourneySummary riba={riba} project={project} delivery={delivery || {}} feeProposals={feeProposals} jcts={jcts} />
     <div className="grid min-w-0 gap-4 lg:grid-cols-[12rem_minmax(0,1fr)]">
       <aside className="min-w-0 rounded-xl border border-border bg-card p-2 lg:sticky lg:top-[calc(5rem+var(--project-header-height,0px)+var(--delivery-summary-height,5rem))] lg:max-h-[calc(100dvh-6rem-var(--project-header-height,0px)-var(--delivery-summary-height,5rem))] lg:self-start lg:overflow-y-auto"><p className="hidden px-3 py-2 text-[10px] font-bold uppercase tracking-wider text-muted-foreground lg:block">Pathway steps</p><nav aria-label="ALSight Project Pathway steps" className="flex gap-1 overflow-x-auto lg:flex-col lg:overflow-visible">{stages.map(stage => <JourneyStageButton key={stage.id} stage={stage} active={selected === stage.id} onSelect={onSelect} />)}</nav><p className="px-3 py-2 text-[10px] text-muted-foreground">{loading ? 'Checking registers…' : error ? 'Register progress unavailable.' : 'Progress uses recorded completion indicators.'}</p></aside>

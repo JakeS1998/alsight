@@ -3,6 +3,7 @@ import { preConstructionAppointments } from '@/components/delivery/preConstructi
 import agreementNames from '@/components/projects/agreementNames';
 import { programmeMilestones } from '@/components/delivery/programmeMilestones';
 import contractorAppointment, { savedDeliveryTeam } from '@/components/delivery/contractorAppointment';
+import pathwayStageStatus from '@/components/delivery/pathwayStageStatus';
 export const JOURNEY_STAGES = [
   { id: 1, label: 'Scope', short: 'Scope' },
   { id: 2, label: 'Fee', short: 'Fee' },
@@ -50,5 +51,5 @@ export default function deliveryJourneyProgress({ project, delivery = {}, feePro
     9: completed.construction ? 'Practical completion achieved sets Construction to 100%.' : `Saved programme completion: ${Number(delivery.pct_programme) || 0}%. This is limited to 0–99% until practical completion is achieved; it is not a checklist average.`,
   };
   for (const id of [6, 7, 8]) checks[id] = registers[id]?.percent ?? null;
-  return JOURNEY_STAGES.map(stage => ({ ...stage, percent: checks[stage.id], complete: checks[stage.id] === 100, detail: registers[stage.id]?.detail, checks: breakdown[stage.id] || registers[stage.id]?.checks, explanation: notes[stage.id] || ([6, 7, 8].includes(stage.id) ? registers[stage.id]?.detail : 'Each check has equal weight; the result is rounded to the nearest whole percentage.') }));
+  return JOURNEY_STAGES.map(stage => ({ ...stage, status: pathwayStageStatus(stage, checks[stage.id], breakdown[stage.id], registers[stage.id], delivery, fee, legalDocs, dmas, jcts), percent: checks[stage.id], complete: checks[stage.id] === 100, detail: registers[stage.id]?.detail, checks: breakdown[stage.id] || registers[stage.id]?.checks, explanation: notes[stage.id] || ([6, 7, 8].includes(stage.id) ? registers[stage.id]?.detail : 'Each check has equal weight; the result is rounded to the nearest whole percentage.') }));
 }
