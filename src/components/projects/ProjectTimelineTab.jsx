@@ -227,7 +227,7 @@ export function ProjectTimelineTab({ project, legalDocs, dmas, jcts, warranties,
                   <div className="flex-1 min-w-0 pt-1.5">
                     <div className="rounded-lg border border-slate-200 bg-slate-50/50 px-4 py-2.5">
                       <div className="flex flex-wrap items-center justify-between gap-2">
-                        <span className="inline-flex items-center gap-2">{(/^(RIBA [1-4]|Construction) — /.test(e.label)) && <StageDrawing stage={e.label.startsWith('Construction') ? 'RIBA 5–7' : `RIBA ${e.label.match(/[1-4]/)[0]}`} className="h-10 w-10" />}<span className="text-sm font-semibold text-slate-900">{e.label}</span></span>
+                        <span className="inline-flex items-center gap-2">{(/^RIBA [1-4] — /.test(e.label)) && <StageDrawing stage={`RIBA ${e.label.match(/[1-4]/)[0]}`} className="h-10 w-10" />}<span className="text-sm font-semibold text-slate-900">{e.label}</span></span>
                         <span className={`inline-flex items-center rounded-full border px-2 py-0.5 text-[10px] font-medium ${cat.chip}`}>
                           {cat.label}
                         </span>
