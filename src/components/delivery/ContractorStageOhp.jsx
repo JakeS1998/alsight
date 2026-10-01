@@ -11,7 +11,7 @@ export default function ContractorStageOhp({ member, onChange }) {
   return <section className="space-y-2">
     <h5 className="text-xs font-semibold">Per-stage contractor OHP</h5>
     <p className="text-xs text-muted-foreground">Set a percentage or fixed fee for each stage. Blank values mean no OHP. Save team to keep these rates.</p>
-    <div className="overflow-x-auto rounded-lg border border-border md:overflow-x-visible"><table className="w-full min-w-[720px] text-xs md:min-w-0 md:table-fixed md:break-words">
+    <div className="min-w-0 overflow-x-auto rounded-lg border border-border md:overflow-x-visible"><table className="w-full min-w-[640px] text-xs md:min-w-0 md:table-fixed md:break-words md:[&_td]:px-1 md:[&_th]:px-1">
       <colgroup><col className="w-[21%]" />{CONTRACTOR_STAGES.map(stage => <col key={stage} className="w-[15.8%]" />)}</colgroup>
       <thead className="bg-muted text-left text-muted-foreground"><tr><th className="p-2">Contractor OHP (£)</th>{CONTRACTOR_STAGES.map(stage => <th key={stage} className="p-2">{CONTRACTOR_LABELS[stage]}</th>)}</tr></thead>
       <tbody className="divide-y divide-border">

@@ -11,7 +11,7 @@ export default function ContractorFeeTable({ title, rows, activity, update, remo
       <h5 className="text-xs font-semibold text-muted-foreground">{title} (£)</h5>
       <Button type="button" variant="outline" size="sm" onClick={onAdd}><Plus className="h-4 w-4" />{addLabel}</Button>
     </div>
-    {rows.length > 0 && <div className="overflow-x-auto rounded-lg border border-border md:overflow-x-visible"><table className="w-full min-w-[720px] text-xs md:min-w-0 md:table-fixed md:break-words">
+    {rows.length > 0 && <div className="min-w-0 overflow-x-auto rounded-lg border border-border md:overflow-x-visible"><table className="w-full min-w-[640px] text-xs md:min-w-0 md:table-fixed md:break-words md:[&_td]:px-1 md:[&_th]:px-1">
       <colgroup><col className={activity ? 'w-[36%]' : 'w-[24%]'} /><col className={activity ? 'w-[40%]' : 'w-[22%]'} />{stages.map(stage => <col key={stage} className={activity ? 'w-[20%]' : 'w-[12.5%]'} />)}<col className="w-[4%]" /></colgroup>
       <thead className="bg-muted text-left text-muted-foreground"><tr>
         <th className="p-2">Description</th><th className="p-2">Supplier (optional)</th>

@@ -11,6 +11,7 @@ import { listAll, filterAll } from "@/components/data/loadAll";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { ProjectGeneralTab } from "@/components/projects/ProjectGeneralTab";
 import ProjectPOReferences from '@/components/projects/ProjectPOReferences';
+import ProjectStickyHeader from '@/components/projects/ProjectStickyHeader';
 import FrameworkVersionBadge from '@/components/projects/FrameworkVersionBadge';
 import SupplierProjectDocuments from '@/components/projects/SupplierProjectDocuments';
 import SupplierPurchaseOrders from '@/components/projects/SupplierPurchaseOrders';
@@ -99,7 +100,7 @@ export default function ProjectDetail() {
       </Link>
 
       <Tabs value={activeTab} onValueChange={tab => { setActiveTab(tab); setEditUKLFKpis(false); }}>
-        <div className="space-y-6 xl:sticky xl:top-16 xl:z-30 xl:bg-secondary xl:py-3">
+        <ProjectStickyHeader>
           <div>
             <div className="flex flex-wrap items-center gap-3">
               <h1 className="font-heading text-2xl font-semibold tracking-tight text-slate-900">{project.name}</h1>
@@ -122,7 +123,7 @@ export default function ProjectDetail() {
             {canSeeValuations && <TabsTrigger value="valuations"><ListChecks className="mr-1.5 h-4 w-4" /> Valuations</TabsTrigger>}
             {INTERNAL_ROLES.includes(user?.role) && <TabsTrigger value="uklf"><UKLFIcon /> UKLF</TabsTrigger>}
           </TabsList></div><div aria-hidden="true" className="pointer-events-none absolute inset-y-0 right-0 w-3 bg-gradient-to-l from-secondary to-transparent sm:hidden" /></div>
-        </div>
+        </ProjectStickyHeader>
         <TabsContent value="general" className="mt-6">
           <ProjectGeneralTab project={project} accountMap={accountMap} onProjectUpdated={updated => setProject(current => ({ ...current, ...updated }))} />
         </TabsContent>
