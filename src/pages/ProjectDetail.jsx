@@ -37,6 +37,9 @@ export default function ProjectDetail() {
   const canSeeProjectOverview = isSupplier && !!project?.can_submit_valuation;
   const [activeTab, setActiveTab] = useState('general');
   const [editUKLFKpis, setEditUKLFKpis] = useState(false);
+  useEffect(() => {
+    if (project?.procurement_route === false && activeTab === 'uklf') setActiveTab('general');
+  }, [project?.procurement_route, activeTab]);
   useEffect(() => { const tab = new URLSearchParams(location.search).get('tab'); setActiveTab(isExternalPM ? (['valuations','timeline','drafting','warranties'].includes(tab) ? tab : 'general') : isSupplier ? (['general','timeline','drafting','warranties','purchase-orders'].includes(tab) ? tab : tab === 'valuations' && canSeeValuations ? 'valuations' : 'general') : (tab === 'valuations' && !canSeeValuations) ? 'general' : ['general','timeline','drafting','warranties','finance','delivery','valuations','uklf'].includes(tab) ? tab : 'general'); }, [location.search, isExternalPM, isSupplier, canSeeValuations]);
   const [legalDocs, setLegalDocs] = useState([]);
   const [dmas, setDmas] = useState([]);
@@ -123,7 +126,7 @@ export default function ProjectDetail() {
             {!isExternalPM && !isSupplier && <TabsTrigger value="finance"><Receipt className="mr-1.5 h-4 w-4" /> Finance</TabsTrigger>}
             {!isExternalPM && !isSupplier && <TabsTrigger value="delivery"><ClipboardList className="mr-1.5 h-4 w-4" /> Delivery</TabsTrigger>}
             {canSeeValuations && <TabsTrigger value="valuations"><ListChecks className="mr-1.5 h-4 w-4" /> Valuations</TabsTrigger>}
-            {INTERNAL_ROLES.includes(user?.role) && <TabsTrigger value="uklf"><UKLFIcon /> UKLF</TabsTrigger>}
+            {INTERNAL_ROLES.includes(user?.role) && project.procurement_route !== false && <TabsTrigger value="uklf"><UKLFIcon /> UKLF</TabsTrigger>}
           </TabsList></div><div aria-hidden="true" className="pointer-events-none absolute inset-y-0 right-0 w-3 bg-gradient-to-l from-secondary to-transparent sm:hidden" /></div>
         </ProjectStickyHeader>
         <TabsContent value="general" className="mt-6">
@@ -149,7 +152,7 @@ export default function ProjectDetail() {
           <ProjectDeliveryTab project={project} legalDocs={legalDocs} dmas={dmas} jcts={jcts} warranties={warranties} accountMap={accountMap} />
         </TabsContent>}
         {canSeeValuations && <TabsContent value="valuations" className="mt-6"><ProjectValuationsTab project={project} /></TabsContent>}
-        {INTERNAL_ROLES.includes(user?.role) && <TabsContent value="uklf" className="mt-6"><UKLFProjectTab projectId={project.id} startEditing={editUKLFKpis} onEditDone={() => setEditUKLFKpis(false)} /></TabsContent>}
+        {INTERNAL_ROLES.includes(user?.role) && project.procurement_route !== false && <TabsContent value="uklf" className="mt-6"><UKLFProjectTab projectId={project.id} startEditing={editUKLFKpis} onEditDone={() => setEditUKLFKpis(false)} /></TabsContent>}
       </Tabs>
     </div>
   );

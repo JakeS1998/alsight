@@ -1,6 +1,7 @@
 import { createClientFromRequest } from 'npm:@base44/sdk@0.8.52';
 import { completionOutcome, reportProject } from '../../shared/uklfCompletion.ts';
 import { uklfPortfolioSummary } from '../../shared/uklfPortfolioSummary.ts';
+import { uklfReportScope } from '../../shared/uklfReportScope.ts';
 
 const INTERNAL = ['admin', 'director', 'regional_director', 'bsm', 'finance', 'bdm'];
 const STAGES = ['pq_date', 'aa_signed', 'calloff_date', 'completed_on_time'];
@@ -58,6 +59,10 @@ export default async function(req: Request): Promise<Response> {
     if (body?.reportId || body?.projectId) {
       if (body.reportId && !safeId(body.reportId) || body.projectId && !safeId(body.projectId))
         return Response.json({ error: 'Invalid project reference' }, { status: 400 });
+      if (body.projectId) {
+        const requestedProject = await base44.asServiceRole.entities.Project.get(body.projectId).catch(() => null);
+        if (requestedProject?.procurement_route === false) return Response.json({ report: null, directProject: true });
+      }
       let report = body.reportId ? await source.get(body.reportId).catch(() => null) : null;
       if (!report && body.projectId) {
         const linked = await source.filter({ project_id: body.projectId }, '-created_date', 1);
@@ -72,6 +77,7 @@ export default async function(req: Request): Promise<Response> {
         }
       }
       const project = report ? await reportProject(base44, report, body.projectId) : null;
+      if (project?.procurement_route === false) return Response.json({ report: null, directProject: true });
       const defaults = internal && report ? await suggestedKpis(base44, project) : {};
       const completion = project ? completionOutcome(project) : '';
       return Response.json({ report: report ? { ...safeRow(report, internal), ...(completion ? { completed_on_time: completion } : {}) } : null,
@@ -82,12 +88,13 @@ export default async function(req: Request): Promise<Response> {
     const stage = STAGES.includes(body?.stage) ? body.stage : 'all';
     const search = String(body?.term || '').trim().slice(0, 80);
     const term = search.replace(/^PROJ(\d+)$/i, '$1').replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-    const query = {
+    const scope = await uklfReportScope(base44.asServiceRole.entities);
+    const query = { $and: [scope, {
       ...(stage !== 'all' ? { [stage]: { $gt: '' } } : {}),
       ...(term ? { $or: ['framework_ref', 'project_number', 'site', 'client'].map(field => ({ [field]: { $regex: term, $options: 'i' } })) } : {}),
-    };
+    }] };
     const [records, count, summary] = await Promise.all([
-      source.filter(query, '-framework_ref', 50, page * 50), source.count(query), uklfPortfolioSummary(source, internal),
+      source.filter(query, '-framework_ref', 50, page * 50), source.count(query), uklfPortfolioSummary(source, internal, scope),
     ]);
     const numbers = [...new Set(records.map(r => /^\d+$/.test(r.framework_ref || '') ? `PROJ${r.framework_ref}` : r.project_number).filter(Boolean))];
     const projects = numbers.length ? await base44.asServiceRole.entities.Project.filter({ project_number: { $in: numbers } }, '-created_date', 50) : [];

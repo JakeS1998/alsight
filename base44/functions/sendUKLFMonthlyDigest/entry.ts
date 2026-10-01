@@ -3,6 +3,7 @@ import { readDigestSettings, digestRecipients } from '../../shared/uklfDigestSet
 import { uklfPortfolioSummary } from '../../shared/uklfPortfolioSummary.ts';
 import { uklfDigestMessage } from '../../shared/uklfDigestMessage.ts';
 import { uklfDigestActivity } from '../../shared/uklfDigestActivity.ts';
+import { uklfReportScope } from '../../shared/uklfReportScope.ts';
 export default async function(req: Request): Promise<Response> {
   try {
     const base44 = createClientFromRequest(req);
@@ -11,9 +12,10 @@ export default async function(req: Request): Promise<Response> {
     const body = await req.json();
     if (!['preview', 'scheduled', 'test'].includes(body.action)) return Response.json({ error: 'Invalid digest operation.' }, { status: 400 });
     const db = base44.entities, now = new Date();
+    const reportScope = await uklfReportScope(db);
     if (body.action === 'test') {
       if (!user.email) return Response.json({ error: 'Your account has no email address.' }, { status: 400 });
-      const [summary, activity] = await Promise.all([uklfPortfolioSummary(db.FrameworkProjectReport), uklfDigestActivity(db, now)]);
+      const [summary, activity] = await Promise.all([uklfPortfolioSummary(db.FrameworkProjectReport, false, reportScope), uklfDigestActivity(db, now)]);
       const message = uklfDigestMessage(summary, now, activity);
       await base44.asServiceRole.integrations.Core.SendEmail({
         to: user.email,
@@ -27,7 +29,7 @@ export default async function(req: Request): Promise<Response> {
     if (!settings.enabled && body.action === 'scheduled') return Response.json({ skipped: 'Monthly emails are paused.' });
     const parts = Object.fromEntries(new Intl.DateTimeFormat('en-GB', { timeZone: 'Europe/London', year: 'numeric', month: '2-digit', day: '2-digit', hour: '2-digit', hourCycle: 'h23' }).formatToParts(now).map(part => [part.type, part.value]));
     if (body.action === 'scheduled' && (parts.day !== '01' || Number(parts.hour) < 9)) return Response.json({ skipped: 'Not the monthly UK send window.' });
-    const [recipients, summary, activity] = await Promise.all([digestRecipients(db, settings.selected_user_ids || []), uklfPortfolioSummary(db.FrameworkProjectReport), uklfDigestActivity(db, now, body.action === 'scheduled')]);
+    const [recipients, summary, activity] = await Promise.all([digestRecipients(db, settings.selected_user_ids || []), uklfPortfolioSummary(db.FrameworkProjectReport, false, reportScope), uklfDigestActivity(db, now, body.action === 'scheduled')]);
     const message = uklfDigestMessage(summary, now, activity);
     if (body.action === 'preview') return Response.json({ enabled: settings.enabled, recipientCount: recipients.length, summary, activity, ...message });
     const period = `${parts.year}-${parts.month}`;

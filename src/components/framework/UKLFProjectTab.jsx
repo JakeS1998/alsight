@@ -6,11 +6,12 @@ import FrameworkPhotoGallery from '@/components/framework/FrameworkPhotoGallery'
 import UKLFKPIEditor from '@/components/framework/UKLFKPIEditor';
 import FrameworkVersionBadge from '@/components/projects/FrameworkVersionBadge';
 
-export default function UKLFProjectTab({ projectId, reportId, startEditing = false, onEditDone }) {
+export default function UKLFProjectTab({ projectId, reportId, startEditing = false, onEditDone, onDirectProject }) {
   const { user } = useAuth();
   const internal = INTERNAL_ROLES.includes(user?.role);
   const canEdit = ['admin', 'director', 'bsm', 'bdm'].includes(user?.role);
   const [report, setReport] = useState(null);
+  const [directProject, setDirectProject] = useState(false);
   const [defaults, setDefaults] = useState({});
   const [editingKpis, setEditingKpis] = useState(false);
   const [loading, setLoading] = useState(true);
@@ -18,7 +19,7 @@ export default function UKLFProjectTab({ projectId, reportId, startEditing = fal
   useEffect(() => {
     let active = true; setLoading(true); setError(''); setEditingKpis(internal && startEditing);
     base44.functions.invoke('getStakeholderFrameworkReport', { ...(reportId ? { reportId } : { projectId }) })
-      .then(({ data }) => { if (active) { setReport(data.report); setDefaults(data.defaults || {}); } })
+      .then(({ data }) => { if (active) { setReport(data.report); setDefaults(data.defaults || {}); setDirectProject(Boolean(data.directProject)); onDirectProject?.(Boolean(data.directProject)); } })
       .catch(() => { if (active) setError('Unable to load UKLF details.'); })
       .finally(() => { if (active) setLoading(false); });
     return () => { active = false; };
@@ -26,6 +27,7 @@ export default function UKLFProjectTab({ projectId, reportId, startEditing = fal
   useEffect(() => { if (internal && startEditing) setEditingKpis(true); }, [internal, startEditing]);
   if (loading) return <p className="py-8 text-sm text-slate-500">Loading UKLF details…</p>;
   if (error) return <p role="alert" className="py-8 text-sm text-destructive">{error}</p>;
+  if (directProject) return <p className="rounded-xl border border-slate-200 bg-white p-6 text-sm text-slate-500">Direct projects are not included in UKLF reporting.</p>;
   if (!report) return <p className="rounded-xl border border-slate-200 bg-white p-6 text-sm text-slate-500">No UKLF record is linked to this project yet.</p>;
   const fields = [
     ['Project questionnaire', report.pq_status], ['Questionnaire date', formatDate(report.pq_date)],
