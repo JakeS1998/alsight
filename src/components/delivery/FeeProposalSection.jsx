@@ -11,6 +11,7 @@ import { exportFeeProposalPdf } from "./exportFeeProposalPdf";
 import { feeProposalTotals } from "./feeProposalTotals";
 import { additionalFeeTotal } from '@/components/delivery/additionalFeeStages';
 import SupplierFeeTable from '@/components/delivery/SupplierFeeTable';
+import FeePdfOptionsDialog from '@/components/delivery/FeePdfOptionsDialog';
 import FeeProposalLines from '@/components/delivery/FeeProposalLines';
 import ContractorBuildUp from '@/components/delivery/ContractorBuildUp';
 import { contractorBuildUp as computeContractorBuildUp } from '@/components/delivery/contractorBuildUp';
@@ -59,6 +60,7 @@ export function FeeProposalSection({ projectId, project, onChanged, deliveryTeam
   const [savingBuilder, setSavingBuilder] = useState(false);
   const [exporting, setExporting] = useState(null);
   const [exportError, setExportError] = useState('');
+  const [exportKind, setExportKind] = useState(null);
 
   const [headerOpen, setHeaderOpen] = useState(false);
   const [editing, setEditing] = useState(null);
@@ -229,14 +231,15 @@ export function FeeProposalSection({ projectId, project, onChanged, deliveryTeam
 
   const removeProposal = async (id) => { await base44.entities.FeeProposal.delete(id); load(); };
 
-  const doExport = async (includeInternal = false) => {
+  const doExport = async (includeInternal = false, includeRiba57 = true) => {
     if (!selected) return;
+    setExportKind(null);
     setExporting(includeInternal ? 'internal' : 'client'); setExportError('');
     try {
       await exportFeeProposalPdf({
         project,
         proposal: { ...selected, line_items: JSON.stringify(items), fee_value: totals.alsFee, external_cost: totals.supplierFees },
-        suppliers, poBySupplier, supplierLines, contractorBuild, includeInternal,
+        suppliers, poBySupplier, supplierLines, contractorBuild, includeInternal, includeRiba57,
       });
     } catch (error) { setExportError(error.message || 'Unable to export the proposal. Please try again.'); }
     finally { setExporting(null); }
@@ -291,8 +294,8 @@ export function FeeProposalSection({ projectId, project, onChanged, deliveryTeam
             <div className="flex flex-wrap items-center justify-between gap-2">
               <h4 className="text-sm font-semibold text-slate-900">Fee Proposal Builder · R{selected.revision_number || 1}</h4>
               <div className="flex items-center gap-2">
-                <Button type="button" variant="outline" size="sm" disabled={!!exporting} onClick={() => doExport(false)}>{exporting === 'client' ? <Loader2 className="h-4 w-4 animate-spin" /> : <FileDown className="mr-1.5 h-4 w-4" />} Client PDF</Button>
-                <Button type="button" variant="outline" size="sm" disabled={!!exporting} onClick={() => doExport(true)}>{exporting === 'internal' ? <Loader2 className="h-4 w-4 animate-spin" /> : <FileDown className="mr-1.5 h-4 w-4" />} Internal PDF</Button>
+                <Button type="button" variant="outline" size="sm" disabled={!!exporting} onClick={() => setExportKind('client')}>{exporting === 'client' ? <Loader2 className="h-4 w-4 animate-spin" /> : <FileDown className="mr-1.5 h-4 w-4" />} Client PDF</Button>
+                <Button type="button" variant="outline" size="sm" disabled={!!exporting} onClick={() => setExportKind('internal')}>{exporting === 'internal' ? <Loader2 className="h-4 w-4 animate-spin" /> : <FileDown className="mr-1.5 h-4 w-4" />} Internal PDF</Button>
                 <Button type="button" size="sm" onClick={saveBuilder} disabled={savingBuilder} className="bg-primary hover:bg-primary/90">
                   {savingBuilder && <Loader2 className="mr-1.5 h-4 w-4 animate-spin" />} Save builder
                 </Button>
@@ -326,6 +329,7 @@ export function FeeProposalSection({ projectId, project, onChanged, deliveryTeam
         )}
       </div>
 
+      <FeePdfOptionsDialog kind={exportKind} onClose={() => setExportKind(null)} onDownload={includeRiba57 => doExport(exportKind === 'internal', includeRiba57)} />
       <Dialog open={headerOpen} onOpenChange={setHeaderOpen}>
         <DialogContent className="sm:max-w-2xl">
           <DialogHeader><DialogTitle>{editing ? "Edit revision" : "Add revision"}</DialogTitle></DialogHeader>

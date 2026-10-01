@@ -5,9 +5,10 @@ import { FEE_BRAND } from '@/components/delivery/feeProposalBrand';
 
 const STAGES = ['RIBA 1', 'RIBA 2', 'RIBA 3', 'RIBA 4', 'RIBA 5-7'];
 
-export function drawFeeMatrix(doc, { supplierLines, alsLines, supplierName, money, x, startY, width, height, mode = 'client' }) {
-  const widths = [width - 550, 78, 78, 78, 78, 78, 70, 90];
-  const headers = ['Project element / consultant', ...STAGES, 'Other', 'Total'];
+export function drawFeeMatrix(doc, { supplierLines, alsLines, supplierName, money, x, startY, width, height, mode = 'client', includeRiba57 = true }) {
+  const visibleStages = includeRiba57 ? STAGES : STAGES.slice(0, 4);
+  const widths = [width - visibleStages.length * 78 - 160, ...visibleStages.map(() => 78), 70, 90];
+  const headers = ['Project element / consultant', ...visibleStages, 'Other', 'Total'];
   const supplierGroups = proposalSupplierGroups(supplierLines, supplierName);
   const alsRows = new Map();
   alsLines.filter(line => mode === 'internal' || isClientFeeLine(line)).forEach(line => {
@@ -37,7 +38,7 @@ export function drawFeeMatrix(doc, { supplierLines, alsLines, supplierName, mone
     doc.setDrawColor(...FEE_BRAND.silver); doc.line(x, y + rowHeight, x + width, y + rowHeight);
     doc.setTextColor(...FEE_BRAND.navy); doc.setFont('helvetica', isTotal ? 'bold' : 'normal'); doc.text(main, x + 7, y + 14);
     if (role.length) { doc.setTextColor(...FEE_BRAND.navy); doc.text(role, x + 7, y + 14 + main.length * 10); }
-    const amounts = data.amounts || Array(6).fill(0);
+    const amounts = (data.amounts || Array(6).fill(0)).filter((_, index) => includeRiba57 || index !== 4);
     const total = amounts.reduce((sum, amount) => sum + amount, 0);
     let cursor = x + widths[0];
     [...amounts, total].forEach((amount, i) => { doc.setTextColor(...FEE_BRAND.navy); doc.text(money(amount), cursor + widths[i + 1] - 7, y + 14, { align: 'right' }); cursor += widths[i + 1]; });

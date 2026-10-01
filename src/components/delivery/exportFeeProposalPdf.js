@@ -4,11 +4,12 @@ import { drawFeeMatrix } from "./drawFeeMatrix";
 import { feeProposalTotals } from "./feeProposalTotals";
 import { FEE_BRAND, loadFeeProposalLogo, drawFeeProposalBrand } from '@/components/delivery/feeProposalBrand';
 import { drawFeeProposalSummary } from '@/components/delivery/drawFeeProposalSummary';
+import feePdfScope from '@/components/delivery/feePdfScope';
 
 const parseItems = (s) => { try { return JSON.parse(s) || []; } catch { return []; } };
 const money = (n) => (n == null || n === "" ? "—" : `£${Number(n).toLocaleString("en-GB", { minimumFractionDigits: 0, maximumFractionDigits: 0 })}`);
 
-export async function exportFeeProposalPdf({ project, proposal, suppliers, poBySupplier, supplierLines, contractorBuild, includeInternal = false }) {
+export async function exportFeeProposalPdf({ project, proposal, suppliers, poBySupplier, supplierLines, contractorBuild, includeInternal = false, includeRiba57 = true }) {
   const logo = await loadFeeProposalLogo();
   const doc = new jsPDF({ unit: "pt", format: "a4", orientation: "landscape" });
   const W = doc.internal.pageSize.getWidth();
@@ -28,15 +29,18 @@ export async function exportFeeProposalPdf({ project, proposal, suppliers, poByS
   y += 22;
 
   const supplierName = (cn) => suppliers.find((s) => s.company_number === cn)?.name || cn || "—";
-  const alsLines = parseItems(proposal.line_items);
+  const scope = feePdfScope(supplierLines, parseItems(proposal.line_items), contractorBuild, includeRiba57);
+  supplierLines = scope.supplierLines;
+  contractorBuild = scope.contractorBuild;
+  const alsLines = scope.alsLines;
   const totals = feeProposalTotals(supplierLines, alsLines, contractorBuild);
 
   const x0 = M;
-  drawFeeProposalSummary(doc, { supplierLines, alsLines, supplierName, contractorBuild, totals, money, x: x0, startY: y, width: W - 2 * M, brand: FEE_BRAND });
+  drawFeeProposalSummary(doc, { supplierLines, alsLines, supplierName, contractorBuild, totals, money, x: x0, startY: y, width: W - 2 * M, brand: FEE_BRAND, includeRiba57 });
   doc.addPage(); y = 94;
   doc.setFont('helvetica', 'bold'); doc.setFontSize(16); doc.setTextColor(...FEE_BRAND.navy);
   doc.text('Detailed fee breakdown.', x0, y); y += 25;
-  const matrix = drawFeeMatrix(doc, { supplierLines, alsLines, supplierName, money, x: x0, startY: y, width: W - 2 * M, height: H });
+  const matrix = drawFeeMatrix(doc, { supplierLines, alsLines, supplierName, money, x: x0, startY: y, width: W - 2 * M, height: H, includeRiba57 });
   y = matrix.y;
   if (contractorBuild && contractorBuild.hasContractor && (contractorBuild.ohpTotal || contractorBuild.total)) {
     if (y + (contractorBuild.hasStageOhp ? 110 : 70) > H - 55) { doc.addPage(); y = 84; }
@@ -49,7 +53,7 @@ export async function exportFeeProposalPdf({ project, proposal, suppliers, poByS
       });
     } else {
       doc.text(`Surveys & consultants (RIBA 1-4): ${money(contractorBuild.surveysBase)} + OHP ${contractorBuild.ohpSurveysType === 'fixed' ? money(contractorBuild.surveysOhp) + ' fixed fee' : contractorBuild.ohpSurveysPct + '%'} = ${money(contractorBuild.surveysTotal)}`, x0, y); y += 13;
-      doc.text(`RIBA 5-7 authorised activities: ${money(contractorBuild.riba57Base)} + OHP ${contractorBuild.ohpRiba57Pct}% = ${money(contractorBuild.riba57Total)}`, x0, y); y += 13;
+      if (includeRiba57) { doc.text(`RIBA 5-7 authorised activities: ${money(contractorBuild.riba57Base)} + OHP ${contractorBuild.ohpRiba57Pct}% = ${money(contractorBuild.riba57Total)}`, x0, y); y += 13; }
     }
     doc.setFont("helvetica", "bold"); doc.setTextColor(...FEE_BRAND.navy);
     doc.text(`Contractor total (with OHP): ${money(contractorBuild.total)}`, x0, y); y += 20;
@@ -65,7 +69,7 @@ export async function exportFeeProposalPdf({ project, proposal, suppliers, poByS
     doc.setFont('helvetica', 'bold'); doc.setFontSize(13); doc.setTextColor(...FEE_BRAND.navy);
     doc.text("INTERNAL COMMERCIAL — NOT FOR CLIENT DISTRIBUTION", x0, y); y += 22;
     doc.setFontSize(10); doc.text(`${project.name || "Project"} · R${proposal.revision_number || 1}`, x0, y); y += 24;
-    y = drawFeeMatrix(doc, { supplierLines, alsLines, supplierName, money, x: x0, startY: y, width: W - 2 * M, height: H, mode: 'internal' }).y;
+    y = drawFeeMatrix(doc, { supplierLines, alsLines, supplierName, money, x: x0, startY: y, width: W - 2 * M, height: H, mode: 'internal', includeRiba57 }).y;
     if (y + 66 > H - 55) { doc.addPage(); y = 84; }
     doc.setFont("helvetica", "bold"); doc.setFontSize(9); doc.setTextColor(...FEE_BRAND.navy);
     doc.text(`ALS fee (recorded profit): ${money(totals.alsFee)}`, x0, y); y += 16;

@@ -1,13 +1,13 @@
 import proposalSupplierGroups from '@/components/delivery/proposalSupplierGroups';
 import { additionalFeeTotal } from '@/components/delivery/additionalFeeStages';
 import { isClientFeeLine } from '@/components/delivery/feeProposalTotals';
-export function drawFeeProposalSummary(doc, { supplierLines, alsLines, supplierName, contractorBuild, totals, money, x, startY, width, brand }) {
+export function drawFeeProposalSummary(doc, { supplierLines, alsLines, supplierName, contractorBuild, totals, money, x, startY, width, brand, includeRiba57 = true }) {
   const groups = proposalSupplierGroups(supplierLines, supplierName);
   const sum = rows => rows.reduce((value, row) => value + row.amounts.reduce((a, b) => a + b, 0), 0);
   const rows = [
     ['Consultants / professional services', sum(groups.consultant)],
     ['Surveys & investigations', sum(groups.survey)],
-    ['Contractor authorised activities (RIBA 5–7)', sum(groups.authorised_activity)],
+    ...(includeRiba57 ? [['Contractor authorised activities (RIBA 5–7)', sum(groups.authorised_activity)]] : []),
     ['Delivery services', sum(groups.delivery)],
     ['ALS & additional fees', alsLines.filter(isClientFeeLine).reduce((value, line) => value + additionalFeeTotal(line), 0)],
     ['Contractor OHP', contractorBuild?.ohpTotal || 0],
