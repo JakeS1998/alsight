@@ -67,11 +67,12 @@ export function FeeProposalSection({ projectId, project, onChanged, deliveryTeam
     (deliveryTeam || []).forEach((m) => {
       if (String(m.role || "").toLowerCase() === "contractor" && Array.isArray(m.contractor_fees)) {
         m.contractor_fees.forEach((f) => {
+          const supName = f.supplier ? supplierName(f.supplier) || f.supplier : "";
           out.push({
             riba_stage: STAGE_LABEL[f.stage] || (f.type === "authorised_activity" ? "RIBA 5-7" : "Survey"),
             role: m.role || "Supplier",
-            description: `${m.role || "Supplier"}${m.supplier_company_number ? " — " + supplierName(m.supplier_company_number) : ""}`,
-            supplier_company_number: m.supplier_company_number || "",
+            description: `${m.role || "Supplier"}${m.supplier_company_number ? " — " + supplierName(m.supplier_company_number) : ""}${supName ? " · " + supName : ""}`,
+            supplier_company_number: f.supplier || m.supplier_company_number || "",
             supplier_fee: Number(f.amount) || 0,
             fee_proposal_link: m.fee_proposal_link || "",
           });
