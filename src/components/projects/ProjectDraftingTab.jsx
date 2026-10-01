@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { base44 } from "@/api/base44Client";
-import isPreConstructionDocument from '@/components/documents/isPreConstructionDocument';
+import isPreConstructionDocument, { isLetterOfIntent } from '@/components/documents/isPreConstructionDocument';
 import { LegalDocumentCard } from "@/components/documents/LegalDocumentCard";
 import { DMACard } from "@/components/documents/DMACard";
 import { JCTCard } from "@/components/documents/JCTCard";
@@ -12,13 +12,14 @@ import {
 } from "lucide-react";
 
 // Lifecycle stages in the requested project order:
-// PQ → AA → Pre-Construction appointments → DMA → JCT (+ catch-all at end)
+// PQ → AA → Pre-Construction appointments → DMA → LOI (when present) → JCT (+ catch-all at end)
 const STAGES = [
   { key: "pq", label: "Project Questionnaire", icon: FileSearch, kind: "pq" },
   { key: "aa", label: "Access Agreement", icon: FileCheck, kind: "legal", docTypes: ["access_agreement"] },
-  { key: "precon", label: "Pre-Construction", icon: UserCheck, kind: "legal", docTypes: ["appointment_pm", "appointment_pd_cdm", "appointment_architect", "appointment_pd_br", "pcsa", "loi"] },
+  { key: "precon", label: "Pre-Construction", icon: UserCheck, kind: "legal", docTypes: ["appointment_pm", "appointment_pd_cdm", "appointment_architect", "appointment_pd_br", "pcsa", "additional_works"] },
   { key: "riba4", label: "RIBA 4 report", icon: FileCheck, kind: "report" },
   { key: "dma", label: "Development Management Agreement", icon: FileCheck, kind: "dma" },
+  { key: "loi", label: "Letters of Intent (LOI)", icon: FilePlus, kind: "legal", docTypes: ["loi"] },
   { key: "jct", label: "Construction Contract (JCT)", icon: Gavel, kind: "jct" },
   { key: "additional", label: "Other Documents", icon: FilePlus, kind: "legal", docTypes: ["other"] },
 ];
@@ -28,6 +29,7 @@ const PM_STAGES = [
   { key: "pcsa", label: "Pre-Construction Services Agreement", icon: UserCheck, kind: "legal", docTypes: ["pcsa"] },
   { key: "riba4", label: "RIBA 4 report", icon: FileCheck, kind: "report" },
   { key: "dma", label: "Development Management Agreement", icon: FileCheck, kind: "dma" },
+  { key: "loi", label: "Letters of Intent (LOI)", icon: FilePlus, kind: "legal", docTypes: ["loi"] },
   { key: "jct", label: "Construction Contract (JCT)", icon: Gavel, kind: "jct" },
 ];
 
@@ -81,7 +83,8 @@ function PqCard({ project, psoOutstanding }) {
 }
 
 export function ProjectDraftingTab({ project, legalDocs, dmas, jcts, accountMap, pmView = false, onProjectUpdated }) {
-  const stages = pmView ? PM_STAGES : STAGES;
+  const loiDocs = legalDocs.filter(isLetterOfIntent);
+  const stages = (pmView ? PM_STAGES : STAGES).filter(stage => stage.key !== 'loi' || loiDocs.length > 0);
   const [psoStatus, setPsoStatus] = useState({ pq: false, aa: false, aa_variations: false, dma: false });
 
   useEffect(() => {
@@ -102,6 +105,7 @@ export function ProjectDraftingTab({ project, legalDocs, dmas, jcts, accountMap,
   const docByType = {};
   const preConstructionDocs = legalDocs.filter(isPreConstructionDocument);
   legalDocs.forEach((d) => {
+    if (isLetterOfIntent(d)) return;
     if (!pmView && isPreConstructionDocument(d)) return;
     if (!docByType[d.document_type]) docByType[d.document_type] = [];
     docByType[d.document_type].push(d);
@@ -119,6 +123,8 @@ export function ProjectDraftingTab({ project, legalDocs, dmas, jcts, accountMap,
         let docs = [];
         if (stage.key === 'precon') {
           docs = preConstructionDocs;
+        } else if (stage.key === 'loi') {
+          docs = loiDocs;
         } else if (stage.kind === "legal") {
           (stage.docTypes || []).forEach((t) => {
             if (docByType[t]) docs = docs.concat(docByType[t]);
