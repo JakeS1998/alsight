@@ -23,13 +23,13 @@ export function contractValueExclUklfAndContingency(supplierFees, feeLines, uklf
   return Math.max(0, (Number(supplierFees) || 0) + eligibleFees);
 }
 
-export default function FrameworkFeeCalculator({ supplierFees, feeLines, settings, onApply }) {
+export default function FrameworkFeeCalculator({ supplierFees, feeLines, settings }) {
   const { bands, uklf, contingency } = settings;
   const contractValue = useMemo(() => contractValueExclUklfAndContingency(supplierFees, feeLines, uklf, contingency), [supplierFees, feeLines, uklf, contingency]);
   const pct = useMemo(() => frameworkFeePct(bands, contractValue), [bands, contractValue]);
   const progressive = settings.calculation === 'progressive';
   const feeAmount = useMemo(() => frameworkFeeAmount(bands, contractValue, settings.calculation), [bands, contractValue, settings.calculation]);
-  const hasUklfLine = useMemo(() => feeLines.some(line => isUklfLine(line, uklf)), [feeLines, uklf]);
+
 
   if (!bands.length) return <div className="rounded-lg border border-border bg-muted/50 p-3 text-sm text-muted-foreground">{settings.version ? `${settings.version} ${agreementFeeLabel(settings.version, settings.route)} fee bands have not been configured. Add them in Admin settings before calculating the UKLF fee.` : 'A recognised project number is required to determine the framework fee bands.'} Existing fee lines are unchanged.</div>;
 
@@ -46,9 +46,7 @@ export default function FrameworkFeeCalculator({ supplierFees, feeLines, setting
     </div>
     {progressive && <div className="mt-2 text-xs text-muted-foreground">{progressiveFeeBreakdown(bands, contractValue).map((row, index) => <p key={index}>{row.pct}% of {formatCurrency(row.portion)} = {formatCurrency(Math.round(row.fee * 100) / 100)}</p>)}</div>}
     <div className="mt-2 flex flex-wrap gap-2">
-      <button type="button" onClick={() => onApply(feeAmount, pct, contractValue, progressive)} className="inline-flex items-center rounded-md bg-primary px-3 py-1.5 text-xs font-medium text-primary-foreground hover:bg-primary/90">
-        {hasUklfLine ? 'Update UKLF fee line' : 'Add UKLF fee line'}
-      </button>
+
       <span className="self-center text-xs text-muted-foreground">Contract value (excl. UKLF &amp; contingency): {formatCurrency(contractValue)}</span>
     </div>
   </div>;

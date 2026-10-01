@@ -17,7 +17,8 @@ import useSupplierFsf from '@/components/delivery/useSupplierFsf';
 import SupplierFsfSummary from '@/components/delivery/SupplierFsfSummary';
 import { supplierFsfTotals } from '@/components/delivery/supplierFsf';
 import FeeProposalLines from '@/components/delivery/FeeProposalLines';
-import FrameworkFeeCalculator, { isUklfLine } from '@/components/delivery/FrameworkFeeCalculator';
+import FrameworkFeeCalculator from '@/components/delivery/FrameworkFeeCalculator';
+import automaticFrameworkFeeLines from '@/components/delivery/automaticFrameworkFeeLines';
 import useFrameworkFees from '@/components/delivery/useFrameworkFees';
 import frameworkVersion from '@/components/projects/frameworkVersion';
 import frameworkAgreementRoute from '@/components/delivery/frameworkAgreementRoute';
@@ -62,7 +63,7 @@ export function FeeProposalSection({ projectId, project, onChanged, deliveryTeam
   const [rows, setRows] = useState([]);
   const [pos, setPos] = useState([]);
   const [selectedId, setSelectedId] = useState(null);
-  const [items, setItems] = useState([ALS_LINE]);
+  const [storedItems, setItems] = useState([ALS_LINE]);
   const [ohpSurveysPct, setOhpSurveysPct] = useState(0);
   const [ohpSurveysType, setOhpSurveysType] = useState('percentage');
   const [ohpSurveysFixed, setOhpSurveysFixed] = useState(0);
@@ -169,6 +170,8 @@ export function FeeProposalSection({ projectId, project, onChanged, deliveryTeam
   }, [pos]);
 
   const contractorBuild = useMemo(() => singleTask ? null : computeContractorBuildUp(deliveryTeam, ohpSurveysPct, ohpRiba57Pct, ohpSurveysType, ohpSurveysFixed), [singleTask, deliveryTeam, ohpSurveysPct, ohpRiba57Pct, ohpSurveysType, ohpSurveysFixed]);
+  const automaticSettings = !loading && selectedId && agreement.route && !frameworkFees.loading && !frameworkFees.error && frameworkFees.settings?.bands?.length ? frameworkFees.settings : null;
+  const items = useMemo(() => automaticFrameworkFeeLines(storedItems, feeProposalTotals(supplierLines, [], contractorBuild).supplierFees, automaticSettings, singleTask), [storedItems, supplierLines, contractorBuild, automaticSettings, singleTask]);
   const totals = useMemo(() => feeProposalTotals(supplierLines, items, contractorBuild), [supplierLines, items, contractorBuild]);
   const fsfContractors = useMemo(() => singleTask ? taskFees.contractors : contractorFsfRows(deliveryTeam, contractorBuild), [singleTask, taskFees, deliveryTeam, contractorBuild]);
   const fsfTotals = fsf.allowed ? supplierFsfTotals(supplierLines, fsf.rates, fsfContractors) : null;
@@ -182,23 +185,13 @@ export function FeeProposalSection({ projectId, project, onChanged, deliveryTeam
     });
   }, [supplierLines, poBySupplier, suppliers]);
 
-  const updateItem = (idx, field, value) => setItems((prev) => prev.map((it, i) => {
+  const updateItem = (idx, field, value) => setItems(items.map((it, i) => {
     if (i !== idx) return it;
     const next = { ...it, [field]: value };
     return field === 'stage_fees' ? { ...next, internal_fee: additionalFeeTotal(next) } : next;
   }));
-  const addItem = () => setItems((prev) => [...prev, { riba_stage: "", description: "", stage_fees: {}, internal_fee: 0, include_on_client: true }]);
-  const removeItem = (idx) => setItems((prev) => prev.filter((_, i) => i !== idx));
-  const applyUklfFee = (feeAmount, pct, contractValue, progressive = false) => {
-    const label = frameworkFees.settings?.uklf || 'UKLF Fee';
-    setItems((prev) => {
-      const existing = prev.findIndex(line => isUklfLine(line, label));
-      const stageFees = { 'Other': feeAmount };
-      const newLine = { riba_stage: '', description: progressive ? `${label} (progressive single-task bands)` : `${label} (${pct}% of contract value)`, stage_fees: stageFees, internal_fee: feeAmount, include_on_client: true };
-      if (existing >= 0) return prev.map((line, i) => i === existing ? { ...line, ...newLine } : line);
-      return [...prev, newLine];
-    });
-  };
+  const addItem = () => setItems([...items, { riba_stage: "", description: "", stage_fees: {}, internal_fee: 0, include_on_client: true }]);
+  const removeItem = (idx) => setItems(items.filter((_, i) => i !== idx));
 
   const saveBuilder = async () => {
     if (!selectedId) return;
@@ -352,7 +345,7 @@ export function FeeProposalSection({ projectId, project, onChanged, deliveryTeam
             {frameworkFees.error && <p role="alert" className="text-sm text-destructive">{frameworkFees.error}</p>}
             {frameworkFees.loading && <p role="status" className="text-sm text-muted-foreground">Loading framework fee bands…</p>}
             {agreement.message && <p role="status" className="rounded-lg border border-border bg-muted/50 p-3 text-sm text-muted-foreground">{agreement.message} Existing fee lines are unchanged.</p>}
-            {agreement.route && frameworkFees.settings && !frameworkFees.loading && !frameworkFees.error && <FrameworkFeeCalculator supplierFees={totals.supplierFees} feeLines={items} settings={frameworkFees.settings} onApply={applyUklfFee} />}
+            {agreement.route && frameworkFees.settings && !frameworkFees.loading && !frameworkFees.error && <FrameworkFeeCalculator supplierFees={totals.supplierFees} feeLines={items} settings={frameworkFees.settings} />}
 
             {/* Supplier fees (from delivery team) */}
             <SupplierFeeTable singleTask={singleTask} lines={supplierLines} getSupplierName={supplierName} fsf={fsf.allowed ? fsf : undefined} contractors={fsf.allowed ? fsfContractors : undefined} />
@@ -360,7 +353,7 @@ export function FeeProposalSection({ projectId, project, onChanged, deliveryTeam
 
             {!singleTask && <ContractorBuildUp deliveryTeam={deliveryTeam} ohpSurveysPct={ohpSurveysPct} ohpRiba57Pct={ohpRiba57Pct} ohpSurveysType={ohpSurveysType} ohpSurveysFixed={ohpSurveysFixed}  />}
 
-            <FeeProposalLines singleTask={singleTask} items={items} stages={singleTask ? ['Task'] : RIBA_STAGES} updateItem={updateItem} addItem={addItem} removeItem={removeItem} />
+            <FeeProposalLines automaticUklfLabel={automaticSettings?.uklf} singleTask={singleTask} items={items} stages={singleTask ? ['Task'] : RIBA_STAGES} updateItem={updateItem} addItem={addItem} removeItem={removeItem} />
 
             {supplierComparison.length > 0 && (
               <div className="rounded-lg border border-slate-200 bg-slate-50 p-3">
