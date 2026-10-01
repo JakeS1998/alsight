@@ -17,6 +17,8 @@ import useSupplierFsf from '@/components/delivery/useSupplierFsf';
 import SupplierFsfSummary from '@/components/delivery/SupplierFsfSummary';
 import { supplierFsfTotals } from '@/components/delivery/supplierFsf';
 import FeeProposalLines from '@/components/delivery/FeeProposalLines';
+import FrameworkFeeCalculator, { isUklfLine } from '@/components/delivery/FrameworkFeeCalculator';
+import useFrameworkFees from '@/components/delivery/useFrameworkFees';
 import ContractorBuildUp from '@/components/delivery/ContractorBuildUp';
 import { contractorBuildUp as computeContractorBuildUp, isContractorMember } from '@/components/delivery/contractorBuildUp';
 import { contractorFsfKey, contractorFsfRows } from '@/components/delivery/contractorFsf';
@@ -69,6 +71,7 @@ export function FeeProposalSection({ projectId, project, onChanged, deliveryTeam
   const [saveError, setSaveError] = useState('');
   const { user } = useAuth();
   const fsf = useSupplierFsf(user, selectedId, projectId);
+  const frameworkFees = useFrameworkFees();
 
   const [headerOpen, setHeaderOpen] = useState(false);
   const [editing, setEditing] = useState(null);
@@ -178,6 +181,16 @@ export function FeeProposalSection({ projectId, project, onChanged, deliveryTeam
   }));
   const addItem = () => setItems((prev) => [...prev, { riba_stage: "", description: "", stage_fees: {}, internal_fee: 0, include_on_client: true }]);
   const removeItem = (idx) => setItems((prev) => prev.filter((_, i) => i !== idx));
+  const applyUklfFee = (feeAmount, pct) => {
+    const label = frameworkFees.settings?.uklf || 'UKLF Fee';
+    setItems((prev) => {
+      const existing = prev.findIndex(line => isUklfLine(line, label));
+      const stageFees = { 'RIBA 5-7': feeAmount };
+      const newLine = { riba_stage: 'RIBA 5-7', description: `${label} (${pct}% of contract value)`, stage_fees: stageFees, internal_fee: feeAmount, include_on_client: true };
+      if (existing >= 0) return prev.map((line, i) => i === existing ? { ...line, ...newLine } : line);
+      return [...prev, newLine];
+    });
+  };
 
   const saveBuilder = async () => {
     if (!selectedId) return;
@@ -327,6 +340,8 @@ export function FeeProposalSection({ projectId, project, onChanged, deliveryTeam
               <Stat label="Proposed client fees" value={formatCurrency(totals.proposedFees)} />
               <Stat label="ALS fee as % of proposal" value={totals.alsFeePct == null ? "—" : `${totals.alsFeePct}%`} accent />
             </div>
+
+            {frameworkFees.settings && !frameworkFees.loading && <FrameworkFeeCalculator supplierFees={totals.supplierFees} feeLines={items} settings={frameworkFees.settings} onApply={applyUklfFee} />}
 
             {/* Supplier fees (from delivery team) */}
             <SupplierFeeTable lines={supplierLines} getSupplierName={supplierName} fsf={fsf.allowed ? fsf : undefined} contractors={fsf.allowed ? fsfContractors : undefined} />
