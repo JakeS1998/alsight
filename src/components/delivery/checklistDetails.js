@@ -1,5 +1,6 @@
 import { formatDate, DOCUMENT_TYPE } from '@/lib/portal';
 import agreementNames from '@/components/projects/agreementNames';
+import { REQUIRED_PRE_CONSTRUCTION_APPOINTMENTS } from '@/components/delivery/preConstructionAppointments';
 
 export function documentChecklistDetails(record, label) {
   if (!record) return [`Missing: ${label} record.`, 'Sign-off cannot be confirmed until a record is added.'];
@@ -18,15 +19,15 @@ export function documentChecklistDetails(record, label) {
 export function readinessChecklistDetails({ project, legalDocs, dmas, jcts, warranties, feeProposals, appointment }) {
   const accepted = feeProposals.find(f => f.status === 'accepted');
   const fee = accepted || feeProposals.find(f => f.is_current) || feeProposals[0];
-  const roles = [['appointment_pm', 'Project Manager'], ['appointment_pd_cdm', 'Principal Designer CDM'], ['appointment_architect', 'Architect'], ['appointment_pd_br', 'Principal Designer BR']];
+  const roles = REQUIRED_PRE_CONSTRUCTION_APPOINTMENTS;
   return {
     'Access Agreement': documentChecklistDetails(legalDocs.find(d => d.document_type === 'access_agreement'), agreementNames(project.project_number).access),
     'Fee Proposal': fee ? [accepted ? 'Signed off: fee proposal accepted.' : `Outstanding: client acceptance (current status: ${(fee.status || 'draft').replaceAll('_', ' ')}).`, `Revision: R${fee.revision_number || 1}`, fee.client_approval_date ? `Client approval: ${formatDate(fee.client_approval_date)}` : 'Client approval date not recorded.'] : ['Missing: fee proposal revision.', 'Outstanding: client acceptance.'],
-    Appointments: roles.flatMap(([type, label]) => {
+    Appointments: ['Architect appointment is optional and does not affect pre-construction completion.', ...roles.flatMap(([type, label]) => {
       const docs = legalDocs.filter(d => d.document_type === type);
       const signed = docs.filter(d => d.executed === 'yes');
       return [`${label}: ${signed.length ? 'signed' : docs.length ? 'signature outstanding' : 'appointment missing'}${signed.length > 1 ? ` (${signed.length} signed records)` : ''}.`, ...signed.filter(d => d.date_of_execution).map(d => `${label} executed: ${formatDate(d.date_of_execution)}`)];
-    }),
+    })],
     PCSA: [...documentChecklistDetails(appointment?.document, 'Contractor appointment'), 'Matches a non-JCT document to the contractor in the Fee Proposal delivery team.', ...(appointment?.name ? [`Contractor: ${appointment.name}`] : []), ...(appointment?.document ? [`Document type: ${DOCUMENT_TYPE[appointment.document.document_type]?.label || appointment.document.document_type}`] : [])],
     DMA: documentChecklistDetails(dmas[0], agreementNames(project.project_number).developmentShort),
     'Programme (RIBA 2)': project.riba2_end ? [`RIBA 2 completion date recorded: ${formatDate(project.riba2_end)}.`, 'This readiness check uses the recorded completion date, not a separate approval.'] : ['Missing: RIBA 2 completion date.'],

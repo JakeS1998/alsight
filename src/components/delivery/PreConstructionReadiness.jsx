@@ -8,7 +8,7 @@ import { readinessChecklistDetails } from '@/components/delivery/checklistDetail
 import contractorAppointment from '@/components/delivery/contractorAppointment';
 import agreementNames from '@/components/projects/agreementNames';
 
-const APPT_TYPES = ["appointment_pm", "appointment_pd_cdm", "appointment_architect", "appointment_pd_br"];
+import { preConstructionAppointments } from '@/components/delivery/preConstructionAppointments';
 
 const GATEWAYS = [
   { key: "pq", label: "Project Questionnaire (PQ)" },
@@ -20,8 +20,7 @@ const GATEWAYS = [
 export function PreConstructionReadiness({ project, legalDocs, dmas, jcts, warranties, feeProposals, delivery, deliveryTeam = [], suppliers = [], accountMap = {}, setField, onSave, saving }) {
   const items = useMemo(() => {
     const aa = legalDocs.find((d) => d.document_type === "access_agreement");
-    const appts = legalDocs.filter((d) => APPT_TYPES.includes(d.document_type));
-    const apptDone = appts.filter((d) => d.executed === "yes").length;
+    const appts = preConstructionAppointments(legalDocs);
     const appointment = contractorAppointment({ deliveryTeam, suppliers, accountMap, legalDocs });
     const pcsa = appointment.document;
     const dma = dmas[0];
@@ -36,7 +35,7 @@ export function PreConstructionReadiness({ project, legalDocs, dmas, jcts, warra
     return [
       mk("Access Agreement", aa?.executed === "yes", !!aa),
       mk("Fee Proposal", feeAccepted, feeAny),
-      mk("Appointments", apptDone >= 4, apptDone > 0, `${apptDone}/4`),
+      mk("Appointments", appts.done, appts.completed > 0, `${appts.completed}/${appts.total}`),
       mk("PCSA", pcsa?.executed === "yes", !!pcsa),
       mk("DMA", dma?.executed === "yes", !!dma),
       mk("Programme (RIBA 2)", riba2, false),
