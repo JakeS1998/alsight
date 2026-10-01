@@ -2,6 +2,7 @@ import React, { useEffect, useState, useMemo } from "react";
 import { Link } from 'react-router-dom';
 import { base44 } from "@/api/base44Client";
 import { listAll } from "@/components/data/loadAll";
+import listVisiblePortalUsers from '@/components/data/portalUserDirectory';
 import { useAuth } from "@/lib/AuthContext";
 import { formatDate, ROLE_LABELS } from "@/lib/portal";
 import { Users, ExternalLink, Mail, Phone, BadgeCheck, UserPlus, ShieldCheck } from "lucide-react";
@@ -33,7 +34,7 @@ export default function Contacts() {
   useEffect(() => {
     Promise.all([
       listAll(base44.entities.Contact),
-      isAdmin ? listAll(base44.entities.User).catch(() => []) : Promise.resolve([]),
+      isAdmin ? listVisiblePortalUsers().catch(() => []) : Promise.resolve([]),
       isAdmin ? listAll(base44.entities.Account, "-name").catch(() => []) : Promise.resolve([]),
       isAdmin ? listAll(base44.entities.PendingPortalAccess).catch(() => []) : Promise.resolve([]),
     ]).then(([c, u, a, pending]) => {
@@ -62,7 +63,7 @@ export default function Contacts() {
     : contacts;
 
   const refreshAccess = () => {
-    listAll(base44.entities.User).then(setUsers).catch(() => {});
+    listVisiblePortalUsers().then(setUsers).catch(() => {});
     listAll(base44.entities.PendingPortalAccess).then(setPendingAccess).catch(() => {});
   };
 

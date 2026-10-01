@@ -184,12 +184,12 @@ export function FeeProposalSection({ projectId, project, onChanged, deliveryTeam
   }));
   const addItem = () => setItems((prev) => [...prev, { riba_stage: "", description: "", stage_fees: {}, internal_fee: 0, include_on_client: true }]);
   const removeItem = (idx) => setItems((prev) => prev.filter((_, i) => i !== idx));
-  const applyUklfFee = (feeAmount, pct) => {
+  const applyUklfFee = (feeAmount, pct, contractValue, progressive = false) => {
     const label = frameworkFees.settings?.uklf || 'UKLF Fee';
     setItems((prev) => {
       const existing = prev.findIndex(line => isUklfLine(line, label));
       const stageFees = { 'Other': feeAmount };
-      const newLine = { riba_stage: '', description: `${label} (${pct}% of contract value)`, stage_fees: stageFees, internal_fee: feeAmount, include_on_client: true };
+      const newLine = { riba_stage: '', description: progressive ? `${label} (progressive single-task bands)` : `${label} (${pct}% of contract value)`, stage_fees: stageFees, internal_fee: feeAmount, include_on_client: true };
       if (existing >= 0) return prev.map((line, i) => i === existing ? { ...line, ...newLine } : line);
       return [...prev, newLine];
     });

@@ -4,6 +4,7 @@ import { base44 } from '@/api/base44Client';
 import { useAuth } from '@/lib/AuthContext';
 import { Plus, Trash2, Loader2 } from 'lucide-react';
 import { formatCurrency } from '@/lib/portal';
+import { frameworkFeeAmount } from '@/lib/frameworkFees';
 import useFrameworkFees from '@/components/delivery/useFrameworkFees';
 import { AGREEMENT_FEE_ROUTES } from '@/components/delivery/frameworkAgreementRoute';
 import { agreementFeeLabel } from '@/components/projects/agreementNames';
@@ -77,7 +78,7 @@ export default function FrameworkFeeSettings() {
 
   return <section className="rounded-xl border border-border bg-card p-5" aria-labelledby="framework-fee-heading">
     <h2 id="framework-fee-heading" className="text-lg font-semibold">UKLF framework fee bands</h2>
-    <p className="mt-1 text-sm text-muted-foreground">The framework fee is a percentage of the total contract value, excluding the UKLF fee and contingency. Bands are matched to the contract value and applied automatically in the fee proposal builder.</p>
+    <p className="mt-1 text-sm text-muted-foreground">The framework fee is a percentage of the total contract value, excluding the UKLF fee and contingency. {settings?.calculation === 'progressive' ? 'FW4 single-task fees are progressive: each rate applies only to the portion within its band, not to the whole project value.' : 'Bands are matched to the contract value and applied automatically in the fee proposal builder.'}</p>
     <div className="mt-4 flex flex-wrap items-center gap-3">
       <label htmlFor="fee-framework-version" className="text-sm font-semibold">Framework</label>
       <select id="fee-framework-version" value={version} disabled={saving} onChange={e => { setVersion(e.target.value); setSaved(false); setSaveError(''); }} className="h-9 rounded-lg border border-input bg-background px-3 text-sm">
@@ -108,18 +109,18 @@ export default function FrameworkFeeSettings() {
               <th className="px-3 py-2.5 text-right">Min (£)</th>
               <th className="px-3 py-2.5 text-right">Max (£)</th>
               <th className="px-3 py-2.5 text-right">Fee %</th>
-              <th className="px-3 py-2.5 text-right">Example fee</th>
+              <th className="px-3 py-2.5 text-right">{settings?.calculation === 'progressive' ? 'Fee at min value' : 'Example fee'}</th>
               <th className="px-3 py-2.5" />
             </tr>
           </thead>
           <tbody className="divide-y divide-border">
             {!bands.length && <tr><td colSpan={6} className="px-3 py-6 text-center text-muted-foreground">No {version} {agreementFeeLabel(version, route)} fee bands configured. Add a band to set this agreement’s rates.</td></tr>}
             {bands.map((band, index) => {
-              const example = Math.round((Number(band.min) || 0) * (Number(band.pct) || 0) / 100);
+              const example = settings?.calculation === 'progressive' ? frameworkFeeAmount(bands, band.min, 'progressive') : Math.round((Number(band.min) || 0) * (Number(band.pct) || 0) / 100);
               return <tr key={index}>
                 <td className="px-3 py-2 text-muted-foreground">{bandLabel(band, index, bands.length)}</td>
-                <td className="px-3 py-2"><input type="number" min="0" step="1" value={band.min} onChange={e => updateBand(index, 'min', e.target.value)} className="h-8 w-32 rounded border border-input bg-background px-2 text-right text-sm" /></td>
-                <td className="px-3 py-2"><input type="number" min="0" step="1" value={band.max} onChange={e => updateBand(index, 'max', e.target.value)} className="h-8 w-32 rounded border border-input bg-background px-2 text-right text-sm" /></td>
+                <td className="px-3 py-2"><input type="number" min="0" step="0.01" value={band.min} onChange={e => updateBand(index, 'min', e.target.value)} className="h-8 w-32 rounded border border-input bg-background px-2 text-right text-sm" /></td>
+                <td className="px-3 py-2"><input type="number" min="0" step="0.01" value={band.max} onChange={e => updateBand(index, 'max', e.target.value)} className="h-8 w-32 rounded border border-input bg-background px-2 text-right text-sm" /></td>
                 <td className="px-3 py-2"><input type="number" min="0" max="100" step="0.01" value={band.pct} onChange={e => updateBand(index, 'pct', e.target.value)} className="h-8 w-20 rounded border border-input bg-background px-2 text-right text-sm" /></td>
                 <td className="px-3 py-2 text-right tabular-nums text-muted-foreground">{formatCurrency(example)}</td>
                 <td className="px-3 py-2 text-right"><button type="button" onClick={() => removeBand(index)} aria-label={`Remove band ${index + 1}`} className="rounded p-1 text-muted-foreground hover:bg-destructive/10 hover:text-destructive"><Trash2 className="h-3.5 w-3.5" /></button></td>
@@ -128,6 +129,7 @@ export default function FrameworkFeeSettings() {
           </tbody>
         </table>
       </div>
+      {settings?.calculation === 'progressive' && <p className="text-sm text-muted-foreground">Worked example: £12,000 = £250 on the first £5,000 + £150 on the next £5,000 + £30 on the remaining £2,000 = £430 (using the supplied rates).</p>}
       <button type="button" onClick={addBand} className="inline-flex items-center gap-1 text-sm text-primary hover:underline"><Plus className="h-4 w-4" /> Add band</button>
       {saveError && <p role="alert" className="text-sm text-destructive">{saveError}</p>}
       {saved && <p role="status" className="text-sm text-success">Framework fee bands saved. New fee proposals will use the updated rates.</p>}

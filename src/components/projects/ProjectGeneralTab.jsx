@@ -3,6 +3,7 @@ import { Link } from "react-router-dom";
 import { useAuth } from "@/lib/AuthContext";
 import { base44 } from "@/api/base44Client";
 import { listAll } from "@/components/data/loadAll";
+import listVisiblePortalUsers from '@/components/data/portalUserDirectory';
 import ValuationSnapshot from '@/components/valuations/ValuationSnapshot';
 import StageDrawing from '@/components/dashboard/PipelineStageArtwork';
 import { projectCompletionDates } from '@/components/projects/projectCompletionDates';
@@ -47,7 +48,7 @@ export function ProjectGeneralTab({ project, accountMap, onProjectUpdated }) {
     (async () => {
       const [contacts, users] = await Promise.all([
         listAll(base44.entities.Contact, "-full_name").catch(() => []),
-        listAll(base44.entities.User).catch(() => []),
+        listVisiblePortalUsers().catch(() => []),
       ]);
       const byAad = {};
       const byDv = {};

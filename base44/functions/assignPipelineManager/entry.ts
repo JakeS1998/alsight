@@ -2,6 +2,7 @@ import { createClientFromRequest } from 'npm:@base44/sdk@0.8.52';
 import { assignStaffManager } from '../../shared/pipelineManager.ts';
 import { syncStaffReporting } from '../../shared/syncStaffReporting.ts';
 import { withPortalUserNames } from '../../shared/portalUserNames.ts';
+import { portalDirectoryQuery } from '../../shared/portalDirectoryVisibility.ts';
 
 export default async function(req: Request): Promise<Response> {
   try {
@@ -12,8 +13,8 @@ export default async function(req: Request): Promise<Response> {
     const payload = await req.json();
     const internal = ['admin', 'director', 'regional_director', 'bsm', 'finance', 'bdm'];
     if (payload.action === 'list') {
-      const all = await base44.asServiceRole.entities.User.list();
-      const named = await withPortalUserNames(base44.asServiceRole.entities, all.filter(person => internal.includes(person.role)));
+      const all = await base44.asServiceRole.entities.User.filter({ ...portalDirectoryQuery, role: { $in: internal } });
+      const named = await withPortalUserNames(base44.asServiceRole.entities, all);
       return Response.json({ users: named.map(person => ({ id: person.id, full_name: person.full_name, email: person.email, role: person.role, staff_aad_id: person.staff_aad_id || '', line_manager_id: person.line_manager_id || '' })) });
     }
     if (payload.action === 'sync_staff') {

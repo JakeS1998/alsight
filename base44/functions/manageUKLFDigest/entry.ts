@@ -1,6 +1,7 @@
 import { createClientFromRequest } from 'npm:@base44/sdk@0.8.52';
 import { DIGEST_KEY, readDigestSettings } from '../../shared/uklfDigestSettings.ts';
 import { withPortalUserNames } from '../../shared/portalUserNames.ts';
+import { portalDirectoryQuery } from '../../shared/portalDirectoryVisibility.ts';
 export default async function(req: Request): Promise<Response> {
   try {
     const base44 = createClientFromRequest(req);
@@ -13,7 +14,7 @@ export default async function(req: Request): Promise<Response> {
     if (body.action === 'get') {
       const offset = body.offset ?? 0;
       if (!Number.isInteger(offset) || offset < 0 || offset > 10000) return Response.json({ error: 'Invalid user page.' }, { status: 400 });
-      const [settings, users] = await Promise.all([readDigestSettings(db), directory.filter({ role: { $ne: 'framework_stakeholder' } }, 'full_name', 51, offset)]);
+      const [settings, users] = await Promise.all([readDigestSettings(db), directory.filter({ ...portalDirectoryQuery, role: { $ne: 'framework_stakeholder' } }, 'full_name', 51, offset)]);
       const named = await withPortalUserNames(db, users.slice(0, 50));
       return Response.json({ settings, users: named.map(person => ({ id: person.id, full_name: person.full_name, email: person.email })), hasMore: users.length > 50 });
     }

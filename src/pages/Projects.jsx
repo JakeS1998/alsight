@@ -3,6 +3,7 @@ import { Link } from "react-router-dom";
 import { useAuth } from "@/lib/AuthContext";
 import { base44 } from "@/api/base44Client";
 import { listAll, filterAll } from "@/components/data/loadAll";
+import listVisiblePortalUsers from '@/components/data/portalUserDirectory';
 import { formatCurrency, formatDate, regionName } from "@/lib/portal";
 import { RequestDialog } from "@/components/projects/RequestDialog";
 import useProjectPage from '@/components/projects/useProjectPage';
@@ -67,7 +68,7 @@ export default function Projects() {
       const [p, a, u, staffContacts] = await Promise.all([
         role === 'supplier' ? base44.functions.invoke('supplierProjectAccess', { action: 'projects' }).then(res => res.data.projects || []) : [],
         listAll(base44.entities.Account, "-name").catch(() => []),
-        listAll(base44.entities.User).catch(() => []),
+        listVisiblePortalUsers().catch(() => []),
         (async () => {
           const [bdmC, bsmC] = await Promise.all([
             filterAll(base44.entities.Contact, { portal_role: "bdm" }, "-full_name").catch(() => []),
