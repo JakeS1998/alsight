@@ -17,7 +17,6 @@ import SupplierProjectDocuments from '@/components/projects/SupplierProjectDocum
 import SupplierPurchaseOrders from '@/components/projects/SupplierPurchaseOrders';
 import ProjectManagerOverview from '@/components/projects/ProjectManagerOverview';
 import { ProjectDraftingTab } from "@/components/projects/ProjectDraftingTab";
-import AlternativeAgreementEditor from '@/components/projects/AlternativeAgreementEditor';
 import frameworkAgreementRoute from '@/components/delivery/frameworkAgreementRoute';
 import { ProjectWarrantiesTab } from "@/components/projects/ProjectWarrantiesTab";
 import { ProjectFinanceTab } from "@/components/projects/ProjectFinanceTab";
@@ -137,7 +136,6 @@ export default function ProjectDetail() {
           {canSeeProjectOverview && <ProjectManagerOverview projectId={project.id} mode="timeline" supplier={isSupplier} />}
         </TabsContent>
         <TabsContent value="drafting" className="mt-6">
-          {user?.role === 'admin' && <AlternativeAgreementEditor project={project} documents={legalDocs} onSaved={record => setLegalDocs(current => current.some(doc => doc.id === record.id) ? current.map(doc => doc.id === record.id ? record : doc) : [...current, record])} />}
           {isSupplier ? <SupplierProjectDocuments project={project} legalDocs={legalDocs} jcts={jcts} accountMap={accountMap} /> : isExternalPM ? <ProjectDraftingTab project={project} legalDocs={legalDocs.filter(d => ['access_agreement','pcsa'].includes(d.document_type))} dmas={dmas} jcts={jcts} accountMap={accountMap} onProjectUpdated={updated => setProject(current => ({ ...current, ...updated }))} pmView /> : <ProjectDraftingTab project={project} legalDocs={legalDocs} dmas={dmas} jcts={jcts} accountMap={accountMap} onProjectUpdated={updated => setProject(current => ({ ...current, ...updated }))} />}
         </TabsContent>
         <TabsContent value="warranties" className="mt-6 space-y-6">
