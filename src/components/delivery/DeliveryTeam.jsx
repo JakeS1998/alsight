@@ -4,11 +4,28 @@ import { Button } from "@/components/ui/button";
 import SearchableSelect from '@/components/forms/SearchableSelect';
 import { base44 } from "@/api/base44Client";
 import { Plus, Trash2, Loader2, Upload, FileCheck } from "lucide-react";
+import ContractorFeeBuilder from '@/components/delivery/ContractorFeeBuilder';
 
 const ROLES = ["Contractor", "Project Manager", "Principal Designer (CDM)", "Principal Designer (BR)", "Architect", "Structural Engineer", "M&E Engineer", "Cost Consultant", "Other"];
 const STAGES = ["riba_1", "riba_2", "riba_3", "riba_4", "riba_5_7"];
 const STAGE_LABELS = { riba_1: "RIBA 1", riba_2: "RIBA 2", riba_3: "RIBA 3", riba_4: "RIBA 4", riba_5_7: "RIBA 5-7" };
 const EMPTY_MEMBER = { role: "", supplier_company_number: "", fee_proposal_link: "", fees: { riba_1: "", riba_2: "", riba_3: "", riba_4: "", riba_5_7: "" } };
+
+const isContractor = (m) => String(m?.role || "").trim().toLowerCase() === "contractor";
+
+// Migrate legacy per-stage fees object into the contractor_fees array used by the builder.
+const migrateContractor = (m) => {
+  if (!isContractor(m) || Array.isArray(m.contractor_fees)) return m;
+  const legacy = m.fees || {};
+  const arr = [];
+  STAGES.forEach((st) => {
+    const val = legacy[st];
+    if (val !== "" && val !== null && val !== undefined && Number(val) > 0) {
+      arr.push({ id: `${st}-${Math.random().toString(36).slice(2)}`, type: st === "riba_5_7" ? "authorised_activity" : "survey", stage: st, amount: Number(val) });
+    }
+  });
+  return { ...m, contractor_fees: arr };
+};
 
 export function DeliveryTeam({ project, delivery, setField, onSave, saving, suppliers }) {
   const [team, setTeam] = useState([]);
@@ -17,15 +34,26 @@ export function DeliveryTeam({ project, delivery, setField, onSave, saving, supp
   useEffect(() => {
     try {
       const parsed = JSON.parse(delivery.delivery_team || "[]");
-      setTeam(Array.isArray(parsed) ? parsed : []);
+      setTeam((Array.isArray(parsed) ? parsed : []).map((m) => (isContractor(m) ? migrateContractor(m) : m)));
     } catch { setTeam([]); }
   }, [delivery.delivery_team]);
 
   const commit = (next) => { setTeam(next); setField("delivery_team", JSON.stringify(next)); };
   const addMember = () => commit([...team, { ...EMPTY_MEMBER, fees: { ...EMPTY_MEMBER.fees } }]);
   const removeMember = (idx) => commit(team.filter((_, i) => i !== idx));
-  const setMember = (idx, field, value) => commit(team.map((m, i) => (i === idx ? { ...m, [field]: value } : m)));
+  const setMember = (idx, field, value) => {
+    const next = team.map((m, i) => {
+      if (i !== idx) return m;
+      const updated = { ...m, [field]: value };
+      if (field === "role" && isContractor(updated) && !Array.isArray(updated.contractor_fees)) {
+        updated.contractor_fees = migrateContractor(updated).contractor_fees;
+      }
+      return updated;
+    });
+    commit(next);
+  };
   const setFee = (idx, stage, value) => commit(team.map((m, i) => (i === idx ? { ...m, fees: { ...m.fees, [stage]: value } } : m)));
+  const setContractorFees = (idx, fees) => commit(team.map((m, i) => (i === idx ? { ...m, contractor_fees: fees } : m)));
 
   const uploadFile = async (idx, file) => {
     if (!file) return;
@@ -78,17 +106,24 @@ export function DeliveryTeam({ project, delivery, setField, onSave, saving, supp
               </div>
               <button onClick={() => removeMember(idx)} className="mt-1 rounded p-1 text-slate-400 hover:bg-rose-50 hover:text-rose-600"><Trash2 className="h-4 w-4" /></button>
             </div>
-            <div>
-              <p className="mb-1.5 text-xs font-semibold uppercase tracking-wide text-slate-400">Fees per RIBA stage (£)</p>
-              <div className="grid grid-cols-2 gap-2 sm:grid-cols-5">
-                {STAGES.map((st) => (
-                  <div key={st}>
-                    <label className="mb-0.5 block text-[11px] text-slate-500">{STAGE_LABELS[st]}</label>
-                    <input type="number" value={m.fees?.[st] ?? ""} onChange={(e) => setFee(idx, st, e.target.value)} placeholder="0" className="h-9 w-full rounded-lg border border-slate-300 bg-white px-2 text-sm focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20" />
-                  </div>
-                ))}
+            {isContractor(m) ? (
+              <div>
+                <p className="mb-1.5 text-xs font-semibold uppercase tracking-wide text-slate-400">Contractor fee build-up (£)</p>
+                <ContractorFeeBuilder fees={m.contractor_fees} onChange={(fees) => setContractorFees(idx, fees)} />
               </div>
-            </div>
+            ) : (
+              <div>
+                <p className="mb-1.5 text-xs font-semibold uppercase tracking-wide text-slate-400">Fees per RIBA stage (£)</p>
+                <div className="grid grid-cols-2 gap-2 sm:grid-cols-5">
+                  {STAGES.map((st) => (
+                    <div key={st}>
+                      <label className="mb-0.5 block text-[11px] text-slate-500">{STAGE_LABELS[st]}</label>
+                      <input type="number" value={m.fees?.[st] ?? ""} onChange={(e) => setFee(idx, st, e.target.value)} placeholder="0" className="h-9 w-full rounded-lg border border-slate-300 bg-white px-2 text-sm focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20" />
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
           </div>
         ))}
         <div className="flex items-center justify-between">

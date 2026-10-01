@@ -9,11 +9,20 @@ export function contractorMembers(deliveryTeam) {
 
 export function contractorBuildUp(deliveryTeam, ohpSurveysPct, ohpRiba57Pct) {
   const contractors = contractorMembers(deliveryTeam);
-  const surveysBase = contractors.reduce(
-    (sum, m) => SURVEY_STAGES.reduce((s, st) => s + (Number(m.fees?.[st]) || 0), 0),
-    0,
-  );
-  const riba57Base = contractors.reduce((sum, m) => sum + (Number(m.fees?.riba_5_7) || 0), 0);
+  let surveysBase = 0;
+  let riba57Base = 0;
+  contractors.forEach((m) => {
+    if (Array.isArray(m.contractor_fees) && m.contractor_fees.length) {
+      m.contractor_fees.forEach((f) => {
+        const amt = Number(f.amount) || 0;
+        if (f.type === 'authorised_activity' || f.stage === 'riba_5_7') riba57Base += amt;
+        else surveysBase += amt;
+      });
+    } else {
+      surveysBase += SURVEY_STAGES.reduce((s, st) => s + (Number(m.fees?.[st]) || 0), 0);
+      riba57Base += Number(m.fees?.riba_5_7) || 0;
+    }
+  });
   const ohpS = Number(ohpSurveysPct) || 0;
   const ohpR = Number(ohpRiba57Pct) || 0;
   const surveysOhp = Math.round(surveysBase * ohpS) / 100;

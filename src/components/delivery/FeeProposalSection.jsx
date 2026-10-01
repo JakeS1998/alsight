@@ -65,17 +65,30 @@ export function FeeProposalSection({ projectId, project, onChanged, deliveryTeam
   const supplierLines = useMemo(() => {
     const out = [];
     (deliveryTeam || []).forEach((m) => {
-      STAGE_KEYS.forEach((st) => {
-        const fee = Number(m.fees?.[st]) || 0;
-        out.push({
-          riba_stage: STAGE_LABEL[st],
-          role: m.role || "Supplier",
-          description: `${m.role || "Supplier"}${m.supplier_company_number ? " — " + supplierName(m.supplier_company_number) : ""}`,
-          supplier_company_number: m.supplier_company_number || "",
-          supplier_fee: fee,
-          fee_proposal_link: m.fee_proposal_link || "",
+      if (String(m.role || "").toLowerCase() === "contractor" && Array.isArray(m.contractor_fees)) {
+        m.contractor_fees.forEach((f) => {
+          out.push({
+            riba_stage: STAGE_LABEL[f.stage] || (f.type === "authorised_activity" ? "RIBA 5-7" : "Survey"),
+            role: m.role || "Supplier",
+            description: `${m.role || "Supplier"}${m.supplier_company_number ? " — " + supplierName(m.supplier_company_number) : ""}`,
+            supplier_company_number: m.supplier_company_number || "",
+            supplier_fee: Number(f.amount) || 0,
+            fee_proposal_link: m.fee_proposal_link || "",
+          });
         });
-      });
+      } else {
+        STAGE_KEYS.forEach((st) => {
+          const fee = Number(m.fees?.[st]) || 0;
+          out.push({
+            riba_stage: STAGE_LABEL[st],
+            role: m.role || "Supplier",
+            description: `${m.role || "Supplier"}${m.supplier_company_number ? " — " + supplierName(m.supplier_company_number) : ""}`,
+            supplier_company_number: m.supplier_company_number || "",
+            supplier_fee: fee,
+            fee_proposal_link: m.fee_proposal_link || "",
+          });
+        });
+      }
     });
     return out;
   }, [deliveryTeam, suppliers]);
