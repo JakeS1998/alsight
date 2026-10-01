@@ -5,7 +5,7 @@ import { projectCompletionDates } from '@/components/projects/projectCompletionD
 import ProjectEmptyState from '@/components/projects/ProjectEmptyState';
 import { legalDocumentName, dmaName, jctName, warrantyName } from "@/components/documents/documentNames";
 import {
-  Building2, FileText, FileCheck, Gavel, ShieldCheck, Receipt, FileX, Calendar,
+  Building2, FileText, FileCheck, Gavel, ShieldCheck, Receipt, Calendar,
 } from "lucide-react";
 
 const CATEGORIES = {
@@ -173,14 +173,6 @@ export function ProjectTimelineTab({ project, legalDocs, dmas, jcts, warranties,
         )}
       </div>
 
-      {/* Invoice placeholder */}
-      {!supplierOnly && <div className="flex items-center gap-3 rounded-xl border border-dashed border-slate-300 bg-slate-50/60 px-4 py-3">
-        <FileX className="h-5 w-5 text-slate-400" />
-        <div>
-          <p className="text-sm font-medium text-slate-600">Invoices</p>
-          <p className="text-xs text-slate-400">Invoice tracking will appear here once invoice data is connected.</p>
-        </div>
-      </div>}
 
       {/* Chronological timeline */}
       {events.length === 0 ? (
