@@ -1,0 +1,153 @@
+{
+  "name": "RiskRegisterApproval",
+  "type": "object",
+  "properties": {
+    "project_id": {
+      "type": "string"
+    },
+    "client_account_id": {
+      "type": "string"
+    },
+    "stakeholder": {
+      "type": "string",
+      "enum": [
+        "pm",
+        "contractor",
+        "client",
+        "als"
+      ]
+    },
+    "approved": {
+      "type": "boolean",
+      "default": false
+    },
+    "approver_name": {
+      "type": "string",
+      "maxLength": 200
+    },
+    "recorded_by": {
+      "type": "string"
+    },
+    "recorded_at": {
+      "type": "string",
+      "format": "date-time"
+    }
+  },
+  "required": [
+    "project_id",
+    "stakeholder",
+    "approved",
+    "recorded_by",
+    "recorded_at"
+  ],
+  "rls": {
+    "read": {
+      "$or": [
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        },
+        {
+          "user_condition": {
+            "role": "director"
+          }
+        },
+        {
+          "user_condition": {
+            "role": "regional_director"
+          }
+        },
+        {
+          "user_condition": {
+            "role": "bdm"
+          }
+        },
+        {
+          "user_condition": {
+            "role": "bsm"
+          }
+        },
+        {
+          "user_condition": {
+            "role": "finance"
+          }
+        },
+        {
+          "$and": [
+            {
+              "user_condition": {
+                "role": "client"
+              }
+            },
+            {
+              "data.client_account_id": {
+                "$exists": true,
+                "$nin": [
+                  null,
+                  ""
+                ]
+              }
+            },
+            {
+              "data.client_account_id": "{{user.data.account_id}}"
+            }
+          ]
+        }
+      ]
+    },
+    "create": {
+      "$or": [
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        },
+        {
+          "user_condition": {
+            "role": "director"
+          }
+        },
+        {
+          "user_condition": {
+            "role": "bdm"
+          }
+        },
+        {
+          "user_condition": {
+            "role": "bsm"
+          }
+        }
+      ]
+    },
+    "update": {
+      "$or": [
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        },
+        {
+          "user_condition": {
+            "role": "director"
+          }
+        },
+        {
+          "user_condition": {
+            "role": "bdm"
+          }
+        },
+        {
+          "user_condition": {
+            "role": "bsm"
+          }
+        }
+      ]
+    },
+    "delete": {
+      "user_condition": {
+        "role": "admin"
+      }
+    }
+  }
+}

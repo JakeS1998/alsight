@@ -2,9 +2,11 @@ import { useEffect } from 'react';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { base44 } from '@/api/base44Client';
 import { useAuth } from '@/lib/AuthContext';
-const REGISTERS = [{ id: 6, entity: 'ProjectAction', done: 'done' }, { id: 7, entity: 'ProjectDecision', done: 'agreed' }, { id: 8, entity: 'ProjectRisk', done: 'closed' }];
+import useRiskRegisterApproval from '@/components/delivery/useRiskRegisterApproval';
+const REGISTERS = [{ id: 6, entity: 'ProjectAction', done: 'done' }, { id: 7, entity: 'ProjectDecision', done: 'agreed' }];
 export default function useJourneyRegisters(projectId) {
   const { user } = useAuth();
+  const riskReview = useRiskRegisterApproval(projectId);
   const client = useQueryClient();
   const key = ['delivery-journey-registers', projectId, user?.id, user?.role];
   const query = useQuery({ queryKey: key, staleTime: 30000, queryFn: async () => Object.fromEntries(await Promise.all(REGISTERS.map(async register => {
@@ -18,5 +20,5 @@ export default function useJourneyRegisters(projectId) {
     const unsubscribes = REGISTERS.map(register => base44.entities[register.entity].subscribe(refresh));
     return () => unsubscribes.forEach(unsubscribe => unsubscribe());
   }, [projectId, user?.id, user?.role, client]);
-  return { registers: query.data || (query.error ? Object.fromEntries(REGISTERS.map(register => [register.id, { percent: null, detail: 'Unavailable' }])) : {}), error: query.error, loading: query.isPending };
+  return { registers: { ...(query.data || (query.error ? Object.fromEntries(REGISTERS.map(register => [register.id, { percent: null, detail: 'Unavailable' }])) : {})), 8: riskReview.progress }, error: query.error || riskReview.error, loading: query.isPending || riskReview.isPending };
 }
