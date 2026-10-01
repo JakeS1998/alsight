@@ -48,7 +48,7 @@ export function DesignTeam({ legalDocs, jcts, warranties, accountMap, deliveryTe
   }, [legalDocs, jcts, warranties, accountMap, deliveryTeam, suppliers]);
 
   return (
-    <FormSection title="4 · Design & Consultant Team" description="Reuses your appointment documents — no duplicate data entry">
+    <FormSection title="4 · Design & Consultant Team" completed={cards.filter(card => !card.untracked).every(card => card.signed || card.po)} description="Reuses your appointment documents — no duplicate data entry">
       <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
         {cards.map((c) => <ChecklistHover key={c.label} title={c.label} details={c.details}><div className="h-full"><DesignTeamCard {...c} /></div></ChecklistHover>)}
       </div>

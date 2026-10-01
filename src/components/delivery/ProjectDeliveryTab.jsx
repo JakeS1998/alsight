@@ -14,6 +14,7 @@ import ProjectRiskRegister from '@/components/delivery/ProjectRiskRegister';
 import ProjectHandoverPack from '@/components/handover/ProjectHandoverPack';
 import DeliveryCollapseProvider from '@/components/delivery/DeliveryCollapseContext';
 import DeliveryStage from '@/components/delivery/DeliveryStage';
+import deliveryStageCompletion from '@/components/delivery/deliveryStageCompletion';
 
 const DELIVERY_DEFAULT = {
   funding_route: "", scope_summary: "", client_objectives: "", initial_constraints: "",
@@ -59,6 +60,7 @@ export function ProjectDeliveryTab({ project, legalDocs, dmas, jcts, warranties,
   const projectId = project.id;
   const [delivery, setDelivery] = useState(DELIVERY_DEFAULT);
   const [deliveryId, setDeliveryId] = useState(null);
+  const [savedDelivery, setSavedDelivery] = useState(null);
   const [savingDelivery, setSavingDelivery] = useState(false);
   const [feeProposals, setFeeProposals] = useState([]);
   const [bdmName, setBdmName] = useState(null);
@@ -74,9 +76,11 @@ export function ProjectDeliveryTab({ project, legalDocs, dmas, jcts, warranties,
     if (existing.length) {
       setDeliveryId(existing[0].id);
       setDelivery({ ...DELIVERY_DEFAULT, ...existing[0] });
+      setSavedDelivery(existing[0]);
     } else {
       setDeliveryId(null);
       setDelivery(DELIVERY_DEFAULT);
+      setSavedDelivery(null);
     }
   }, [projectId]);
 
@@ -111,13 +115,14 @@ export function ProjectDeliveryTab({ project, legalDocs, dmas, jcts, warranties,
         const created = await base44.entities.ProjectDelivery.create(payload);
         if (created?.id) setDeliveryId(created.id);
       }
+      setSavedDelivery(payload);
     } finally {
       setSavingDelivery(false);
     }
   };
 
   return (
-    <DeliveryCollapseProvider key={projectId}><div className="space-y-6">
+    <DeliveryCollapseProvider key={projectId} projectId={projectId} completion={deliveryStageCompletion(project, savedDelivery)}><div className="space-y-6">
       <DeliveryScoping project={project} accountMap={accountMap} bdmName={bdmName} delivery={delivery} setField={setField} onSave={saveDelivery} saving={savingDelivery} />
       <DeliveryTeam project={project} delivery={delivery} setField={setField} onSave={saveDelivery} saving={savingDelivery} suppliers={suppliers} />
       <FeeProposalSection projectId={projectId} project={project} onChanged={setFeeProposals} deliveryTeam={deliveryTeam} suppliers={suppliers} />

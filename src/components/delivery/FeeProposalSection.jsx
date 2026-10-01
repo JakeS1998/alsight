@@ -262,7 +262,7 @@ export function FeeProposalSection({ projectId, project, onChanged, deliveryTeam
   };
 
   return (
-    <FormSection title="2 · Fee Proposal" description="Supplier fees are pulled from the Delivery Team; add the ALS Delivery fee and any other optional lines">
+    <FormSection title="2 · Fee Proposal" completed={(rows.find(row => row.is_current) || rows[0])?.status === 'accepted'} description="Supplier fees are pulled from the Delivery Team; add the ALS Delivery fee and any other optional lines">
       <div className="space-y-5">
         <div className="flex items-center justify-between">
           <p className="text-sm text-slate-500">Revisions</p>
