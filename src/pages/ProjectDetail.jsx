@@ -123,7 +123,7 @@ export default function ProjectDetail() {
             <TabsTrigger value="warranties"><ShieldCheck className="mr-1.5 h-4 w-4" /> Warranties</TabsTrigger>
             {isSupplier && <TabsTrigger value="purchase-orders"><Receipt className="mr-1.5 h-4 w-4" /> Purchase orders</TabsTrigger>}
             {!isExternalPM && !isSupplier && <TabsTrigger value="finance"><Receipt className="mr-1.5 h-4 w-4" /> Finance</TabsTrigger>}
-            {!isExternalPM && !isSupplier && <TabsTrigger value="delivery"><ClipboardList className="mr-1.5 h-4 w-4" /> Delivery</TabsTrigger>}
+            {!isExternalPM && !isSupplier && <TabsTrigger value="delivery"><ClipboardList className="mr-1.5 h-4 w-4" /> ALSight Project Pathway</TabsTrigger>}
             {canSeeValuations && <TabsTrigger value="valuations"><ListChecks className="mr-1.5 h-4 w-4" /> Valuations</TabsTrigger>}
             {INTERNAL_ROLES.includes(user?.role) && project.procurement_route !== false && <TabsTrigger value="uklf"><UKLFIcon /> UKLF</TabsTrigger>}
           </TabsList></div><div aria-hidden="true" className="pointer-events-none absolute inset-y-0 right-0 w-3 bg-gradient-to-l from-secondary to-transparent sm:hidden" /></div>
