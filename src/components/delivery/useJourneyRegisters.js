@@ -13,7 +13,7 @@ export default function useJourneyRegisters(projectId) {
     const result = await base44.entities[register.entity].aggregate({ query: { project_id: projectId }, groupBy: 'status' });
     const total = result.rows.reduce((sum, row) => sum + row.count, 0);
     const done = result.rows.find(row => row.status === register.done)?.count || 0;
-    return [register.id, { percent: total ? (done === total ? 100 : Math.min(99, Math.round(done / total * 100))) : 0, detail: total ? `${done} of ${total} ${register.done}` : 'No entries yet' }];
+    return [register.id, { percent: total ? (done === total ? 100 : Math.min(99, Math.round(done / total * 100))) : 0, detail: total ? `${done} of ${total} ${register.done}` : 'No entries yet', checks: total ? result.rows.map(row => ({ label: `${row.count} ${register.id === 6 ? 'actions' : 'decisions'}: ${row.status.replaceAll('_', ' ')}`, done: row.status === register.done })) : [{ label: `No ${register.id === 6 ? 'actions' : 'decisions'} recorded yet`, done: false }] }];
   }))) });
   useEffect(() => {
     const refresh = event => { if (!event.data?.project_id || event.data.project_id === projectId) client.invalidateQueries({ queryKey: key }); };

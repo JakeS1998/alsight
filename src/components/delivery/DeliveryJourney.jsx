@@ -6,6 +6,7 @@ import deliveryJourneyProgress from '@/components/delivery/deliveryJourneyProgre
 import useJourneyRegisters from '@/components/delivery/useJourneyRegisters';
 import JourneyStageButton from '@/components/delivery/JourneyStageButton';
 import DeliveryJourneySummary from '@/components/delivery/DeliveryJourneySummary';
+import JourneyProgressBreakdown from '@/components/delivery/JourneyProgressBreakdown';
 export default function DeliveryJourney({ project, delivery, feeProposals, legalDocs, dmas, jcts, warranties, suppliers, accountMap, children }) {
   const { user } = useAuth();
   const { registers, error, loading } = useJourneyRegisters(project.id);
@@ -22,7 +23,7 @@ export default function DeliveryJourney({ project, delivery, feeProposals, legal
     <DeliveryJourneySummary riba={riba} project={project} delivery={delivery || {}} feeProposals={feeProposals} jcts={jcts} />
     <div className="grid min-w-0 gap-4 lg:grid-cols-[12rem_minmax(0,1fr)]">
       <aside className="min-w-0 rounded-xl border border-border bg-card p-2 lg:sticky lg:top-[calc(5rem+var(--project-header-height,0px)+var(--delivery-summary-height,5rem))] lg:max-h-[calc(100dvh-6rem-var(--project-header-height,0px)-var(--delivery-summary-height,5rem))] lg:self-start lg:overflow-y-auto"><p className="hidden px-3 py-2 text-[10px] font-bold uppercase tracking-wider text-muted-foreground lg:block">Delivery stages</p><nav aria-label="Select delivery stage" className="flex gap-1 overflow-x-auto lg:flex-col lg:overflow-visible">{stages.map(stage => <JourneyStageButton key={stage.id} stage={stage} active={selected === stage.id} onSelect={onSelect} />)}</nav><p className="px-3 py-2 text-[10px] text-muted-foreground">{loading ? 'Checking registers…' : error ? 'Register progress unavailable.' : 'Progress uses recorded completion indicators.'}</p></aside>
-      <main aria-label={`${stages[selected - 1].label} details`} className="min-w-0 [&_section>div]:space-y-4">{panels.map((panel, index) => visited.has(index + 1) && <div key={index} hidden={selected !== index + 1}>{panel}</div>)}</main>
+      <main aria-label={`${stages[selected - 1].label} details`} className="min-w-0 [&_section>div]:space-y-4"><JourneyProgressBreakdown stage={stages[selected - 1]} />{panels.map((panel, index) => visited.has(index + 1) && <div key={index} hidden={selected !== index + 1}>{panel}</div>)}</main>
     </div>
   </div></DeliveryCollapseContext.Provider>;
 }
