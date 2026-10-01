@@ -216,16 +216,30 @@ export function ProjectGeneralTab({ project, accountMap, onProjectUpdated, singl
 
       {(role === 'project_manager' || (role === 'supplier' && project.can_submit_valuation)) && <ProjectDocumentStatuses projectId={project.id} projectNumber={project.project_number} />}
 
-      {/* Comments & Links */}
-      {role !== 'supplier' && role !== 'project_manager' && <div className="grid gap-4 lg:grid-cols-2">
-        {project.comments && (
+      {/* Comments, additional details and links */}
+      <div className={role !== 'supplier' && role !== 'project_manager' ? 'grid gap-4 lg:grid-cols-2' : 'space-y-6'}>
+        {role !== 'supplier' && role !== 'project_manager' && project.comments && (
           <div className="rounded-xl border border-slate-200 bg-white p-5">
             <h3 className="mb-2 text-sm font-semibold text-slate-900">Comments</h3>
             <p className="text-sm text-slate-600 whitespace-pre-line">{project.comments}</p>
           </div>
         )}
-        {links.length > 0 && (
-          <div className="rounded-xl border border-slate-200 bg-white p-5">
+        <div className="rounded-xl border border-slate-200 bg-white p-5">
+          <h3 className="mb-4 text-sm font-semibold text-slate-900">Additional Details</h3>
+          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+            <Detail label="Procurement Route" value={project.procurement_route === true ? "Framework" : project.procurement_route === false ? "Direct" : "—"} />
+            <Detail label="Live Project" value={project.live_project ? "Yes" : "No"} />
+            <Detail label="Approval Status" value={project.approval_status || "—"} />
+            <Detail label="AA Executed" value={formatDate(project.aa_executed_date)} />
+            <Detail label="PQ Approval" value={formatDate(project.pq_approval_date)} />
+            <Detail label="Construction Term" value={project.construction_term_weeks ? `${project.construction_term_weeks} weeks` : "—"} />
+            {role !== 'supplier' && role !== 'project_manager' && <><Detail label="IE Value" value={formatCurrency(project.ie_value)} />
+            <Detail label="IE Commencement" value={formatDate(project.ie_commencement_date)} />
+            <Detail label="Payment Type" value={project.payment_type || "—"} /></>}
+          </div>
+        </div>
+        {role !== 'supplier' && role !== 'project_manager' && links.length > 0 && (
+          <div className="rounded-xl border border-slate-200 bg-white p-5 lg:col-span-2">
             <h3 className="mb-2 text-sm font-semibold text-slate-900">SharePoint Links</h3>
             <div className="space-y-2">
               {links.map((l) => (
@@ -237,22 +251,6 @@ export function ProjectGeneralTab({ project, accountMap, onProjectUpdated, singl
             </div>
           </div>
         )}
-      </div>}
-
-      {/* Additional details */}
-      <div className="rounded-xl border border-slate-200 bg-white p-5">
-        <h3 className="mb-4 text-sm font-semibold text-slate-900">Additional Details</h3>
-        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-          <Detail label="Procurement Route" value={project.procurement_route === true ? "Framework" : project.procurement_route === false ? "Direct" : "—"} />
-          <Detail label="Live Project" value={project.live_project ? "Yes" : "No"} />
-          <Detail label="Approval Status" value={project.approval_status || "—"} />
-          <Detail label="AA Executed" value={formatDate(project.aa_executed_date)} />
-          <Detail label="PQ Approval" value={formatDate(project.pq_approval_date)} />
-          <Detail label="Construction Term" value={project.construction_term_weeks ? `${project.construction_term_weeks} weeks` : "—"} />
-          {role !== 'supplier' && role !== 'project_manager' && <><Detail label="IE Value" value={formatCurrency(project.ie_value)} />
-          <Detail label="IE Commencement" value={formatDate(project.ie_commencement_date)} />
-          <Detail label="Payment Type" value={project.payment_type || "—"} /></>}
-        </div>
       </div>
     </div>
   );
