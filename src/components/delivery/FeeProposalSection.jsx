@@ -57,6 +57,8 @@ export function FeeProposalSection({ projectId, project, onChanged, deliveryTeam
   const [ohpRiba57Pct, setOhpRiba57Pct] = useState(0);
   const [loading, setLoading] = useState(true);
   const [savingBuilder, setSavingBuilder] = useState(false);
+  const [exporting, setExporting] = useState(null);
+  const [exportError, setExportError] = useState('');
 
   const [headerOpen, setHeaderOpen] = useState(false);
   const [editing, setEditing] = useState(null);
@@ -227,17 +229,17 @@ export function FeeProposalSection({ projectId, project, onChanged, deliveryTeam
 
   const removeProposal = async (id) => { await base44.entities.FeeProposal.delete(id); load(); };
 
-  const doExport = (includeInternal = false) => {
+  const doExport = async (includeInternal = false) => {
     if (!selected) return;
-    exportFeeProposalPdf({
-      project,
-      proposal: { ...selected, line_items: JSON.stringify(items), fee_value: totals.alsFee, external_cost: totals.supplierFees },
-      suppliers,
-      poBySupplier,
-      supplierLines,
-      contractorBuild,
-      includeInternal,
-    });
+    setExporting(includeInternal ? 'internal' : 'client'); setExportError('');
+    try {
+      await exportFeeProposalPdf({
+        project,
+        proposal: { ...selected, line_items: JSON.stringify(items), fee_value: totals.alsFee, external_cost: totals.supplierFees },
+        suppliers, poBySupplier, supplierLines, contractorBuild, includeInternal,
+      });
+    } catch (error) { setExportError(error.message || 'Unable to export the proposal. Please try again.'); }
+    finally { setExporting(null); }
   };
 
   return (
@@ -289,14 +291,15 @@ export function FeeProposalSection({ projectId, project, onChanged, deliveryTeam
             <div className="flex flex-wrap items-center justify-between gap-2">
               <h4 className="text-sm font-semibold text-slate-900">Fee Proposal Builder · R{selected.revision_number || 1}</h4>
               <div className="flex items-center gap-2">
-                <Button type="button" variant="outline" size="sm" onClick={() => doExport(false)}><FileDown className="mr-1.5 h-4 w-4" /> Client PDF</Button>
-                <Button type="button" variant="outline" size="sm" onClick={() => doExport(true)}><FileDown className="mr-1.5 h-4 w-4" /> Internal PDF</Button>
+                <Button type="button" variant="outline" size="sm" disabled={!!exporting} onClick={() => doExport(false)}>{exporting === 'client' ? <Loader2 className="h-4 w-4 animate-spin" /> : <FileDown className="mr-1.5 h-4 w-4" />} Client PDF</Button>
+                <Button type="button" variant="outline" size="sm" disabled={!!exporting} onClick={() => doExport(true)}>{exporting === 'internal' ? <Loader2 className="h-4 w-4 animate-spin" /> : <FileDown className="mr-1.5 h-4 w-4" />} Internal PDF</Button>
                 <Button type="button" size="sm" onClick={saveBuilder} disabled={savingBuilder} className="bg-primary hover:bg-primary/90">
                   {savingBuilder && <Loader2 className="mr-1.5 h-4 w-4 animate-spin" />} Save builder
                 </Button>
               </div>
             </div>
 
+            {exportError && <p role="alert" className="text-sm text-destructive">{exportError}</p>}
             <div className="grid gap-3 rounded-lg bg-primary/5 p-3 sm:grid-cols-4">
               <Stat label="ALS fee (recorded profit)" value={formatCurrency(totals.alsFee)} />
               <Stat label="Supplier fees" value={formatCurrency(totals.supplierFees)} />
