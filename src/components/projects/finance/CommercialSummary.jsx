@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import DashboardInfoTooltip from '@/components/dashboard/DashboardInfoTooltip';
 import { moneyOrNR, moneySigned } from './financeMoney';
+import ContractValueWaterfall from './ContractValueWaterfall';
 
 const HEALTH = {
   healthy: { label: 'Healthy', className: 'bg-emerald-50 text-emerald-700 border-emerald-200', dot: 'bg-emerald-500' },
@@ -9,15 +10,15 @@ const HEALTH = {
   not_enough_data: { label: 'Not enough data', className: 'bg-slate-50 text-slate-500 border-slate-200', dot: 'bg-slate-300' },
 };
 
-function SummaryCard({ label, value, sub, help }) {
+function SummaryCard({ label, value, sub, help, valueClass, cardClass }) {
   return (
-    <div className="rounded-xl border border-slate-200 bg-white p-4">
+    <div className={`rounded-xl border border-slate-200 p-4 ${cardClass || 'bg-white'}`}>
       <div className="flex items-center gap-1.5">
-        <span className="text-xs font-medium uppercase tracking-wide text-slate-500">{label}</span>
+        <span className="text-xs font-medium uppercase tracking-wide text-[#6e737c]">{label}</span>
         {help && <DashboardInfoTooltip label={label}>{help}</DashboardInfoTooltip>}
       </div>
-      <p className="mt-1.5 font-heading text-xl font-semibold text-als-navy">{value}</p>
-      {sub && <p className="mt-0.5 text-xs text-slate-400">{sub}</p>}
+      <p className={`mt-1.5 font-heading text-lg font-semibold ${valueClass || 'text-[#0d1117]'}`}>{value}</p>
+      {sub && <p className="mt-0.5 text-xs text-[#6e737c]">{sub}</p>}
     </div>
   );
 }
@@ -27,9 +28,7 @@ function HealthBadge({ health }) {
   const h = HEALTH[health.status];
   return (
     <div className="rounded-xl border border-slate-200 bg-white p-4">
-      <div className="flex items-center gap-1.5">
-        <span className="text-xs font-medium uppercase tracking-wide text-slate-500">Commercial Health</span>
-      </div>
+      <span className="text-xs font-medium uppercase tracking-wide text-[#6e737c]">Commercial Health</span>
       <div className="mt-1.5 flex items-center gap-2">
         <span className={`h-2.5 w-2.5 rounded-full ${h.dot}`} />
         <span className={`inline-flex rounded-full border px-2.5 py-0.5 text-sm font-semibold ${h.className}`}>{h.label}</span>
@@ -53,43 +52,69 @@ function HealthBadge({ health }) {
   );
 }
 
-function WaterfallStep({ label, value, accent, isLast }) {
-  return (
-    <>
-      <div className="flex flex-col items-center text-center">
-        <p className="text-xs text-slate-500">{label}</p>
-        <p className={`mt-0.5 text-sm font-semibold ${accent || 'text-als-navy'}`}>{value}</p>
-      </div>
-      {!isLast && <span className="mx-1 text-slate-300">→</span>}
-    </>
-  );
-}
-
 export default function CommercialSummary({ summary, health }) {
   return (
     <div className="space-y-4">
+      {/* Operational headline cards */}
       <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
-        <SummaryCard label="Original Contract Sum" value={moneyOrNR(summary.contractSum)} help="The contract sum when the construction contract was entered into." />
-        <SummaryCard label="Approved Variations" value={moneySigned(summary.approvedVariations)} help="Agreed financial adjustments from the Decision Register." />
-        <SummaryCard label="Current Contract Value" value={moneyOrNR(summary.currentContractValue)} help="Original contract sum plus approved variations." />
         <SummaryCard label="Certified to Date" value={moneyOrNR(summary.certifiedToDate)} help="Cumulative value certified through the valuation process." />
         <SummaryCard label="Paid to Date" value={moneyOrNR(summary.paidToDate)} help="Total amount paid across all completed valuations." />
         <SummaryCard label="Remaining Contract Value" value={moneyOrNR(summary.remainingContractValue)} help="Current contract value less certified value to date." />
-        <SummaryCard label="Forecast Final Cost" value={moneyOrNR(summary.forecastFinalCost)} help="Current forecast of the total construction cost at completion." />
-        <SummaryCard label="Pending Variations" value={moneySigned(summary.pendingVariations)} help="Open financial adjustments awaiting agreement." />
+        <HealthBadge health={health} />
       </div>
 
-      <div className="grid gap-4 lg:grid-cols-3">
-        <div className="lg:col-span-2 rounded-xl border border-slate-200 bg-white p-4">
-          <h3 className="text-xs font-medium uppercase tracking-wide text-slate-500">Contract Value Waterfall</h3>
-          <div className="mt-3 flex flex-wrap items-center justify-center gap-y-2">
-            <WaterfallStep label="Original Contract" value={moneyOrNR(summary.contractSum)} />
-            <WaterfallStep label="Approved Variations" value={moneySigned(summary.approvedVariations)} accent={summary.approvedVariations > 0 ? 'text-emerald-600' : summary.approvedVariations < 0 ? 'text-rose-600' : ''} />
-            <WaterfallStep label="Current Contract" value={moneyOrNR(summary.currentContractValue)} />
-            <WaterfallStep label="Forecast Final Cost" value={moneyOrNR(summary.forecastFinalCost)} isLast />
-          </div>
-        </div>
-        <HealthBadge health={health} />
+      {/* Waterfall chart */}
+      <ContractValueWaterfall summary={summary} />
+
+      {/* Waterfall summary cards */}
+      <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4 xl:grid-cols-7">
+        <SummaryCard
+          label="Original Contract Sum"
+          value={moneyOrNR(summary.contractSum)}
+          sub="Construction contract value at appointment"
+          help="The contract sum when the construction contract was entered into."
+        />
+        <SummaryCard
+          label="Approved Variations"
+          value={moneySigned(summary.approvedAdditions)}
+          sub={summary.approvedVariationCount ? `${summary.approvedVariationCount} approved variation${summary.approvedVariationCount !== 1 ? 's' : ''}` : 'No approved variations'}
+          valueClass="text-[#fd8c3f]"
+          help="Agreed positive financial adjustments from the Decision Register."
+        />
+        <SummaryCard
+          label="Approved Omissions"
+          value={summary.approvedOmissions ? moneySigned(-summary.approvedOmissions) : moneyOrNR(0)}
+          sub={summary.approvedOmissionCount ? `${summary.approvedOmissionCount} approved omission${summary.approvedOmissionCount !== 1 ? 's' : ''}` : 'No approved omissions'}
+          valueClass="text-rose-700"
+          cardClass="bg-rose-50/40"
+          help="Agreed negative financial adjustments (omissions) from the Decision Register."
+        />
+        <SummaryCard
+          label="Current Contract Value"
+          value={moneyOrNR(summary.currentContractValue)}
+          sub="Original + approved variations"
+          help="Original contract sum plus net approved variations."
+        />
+        <SummaryCard
+          label="Pending Variations"
+          value={moneySigned(summary.pendingVariations)}
+          sub={summary.pendingVariationCount ? `${summary.pendingVariationCount} pending variation${summary.pendingVariationCount !== 1 ? 's' : ''}` : 'No pending variations'}
+          valueClass="text-[#fd8c3f]"
+          cardClass="bg-orange-50/40"
+          help="Open financial adjustments awaiting agreement."
+        />
+        <SummaryCard
+          label="Risk Allowance"
+          value={moneyOrNR(summary.riskAllowance)}
+          sub={summary.riskAllowance != null ? 'From open risk register items' : 'No risk allowance recorded'}
+          help="Sum of weighted costs from open items in the Risk Register."
+        />
+        <SummaryCard
+          label="Forecast Final Cost"
+          value={moneyOrNR(summary.forecastFinalCost)}
+          sub="Current value + pending changes"
+          help="Current contract value plus pending variations and risk allowance."
+        />
       </div>
     </div>
   );

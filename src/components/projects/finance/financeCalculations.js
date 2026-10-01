@@ -33,20 +33,27 @@ export function consultantFees(delivery) {
 }
 
 // Core commercial figures from delivery, decisions and valuations
-export function commercialSummary(delivery, decisions, valuations) {
+export function commercialSummary(delivery, decisions, valuations, risks) {
   const contractSum = asNum(delivery?.contract_sum);
   const approvedDecisions = decisions.filter(d => d.status === 'agreed');
   const pendingDecisions = decisions.filter(d => d.status === 'open');
-  const approvedVariations = approvedDecisions.reduce((s, d) => s + (asNum(d.financial_adjustment) || 0), 0);
+  const approvedAdditions = approvedDecisions.filter(d => (asNum(d.financial_adjustment) || 0) > 0).reduce((s, d) => s + (asNum(d.financial_adjustment) || 0), 0);
+  const approvedOmissions = approvedDecisions.filter(d => (asNum(d.financial_adjustment) || 0) < 0).reduce((s, d) => s + Math.abs(asNum(d.financial_adjustment) || 0), 0);
+  const approvedVariations = approvedAdditions - approvedOmissions;
+  const approvedVariationCount = approvedDecisions.filter(d => (asNum(d.financial_adjustment) || 0) > 0).length;
+  const approvedOmissionCount = approvedDecisions.filter(d => (asNum(d.financial_adjustment) || 0) < 0).length;
   const pendingVariations = pendingDecisions.reduce((s, d) => s + (asNum(d.financial_adjustment) || 0), 0);
+  const pendingVariationCount = pendingDecisions.length;
   const currentContractValue = contractSum != null ? contractSum + approvedVariations : null;
   const approvedVals = valuations.filter(v => ['approved', 'paid'].includes(v.status));
   const certifiedToDate = approvedVals.length > 0 ? Math.max(0, ...approvedVals.map(v => asNum(v.approved_gross) || 0)) : null;
   const paidVals = valuations.filter(v => v.status === 'paid');
   const paidToDate = paidVals.length > 0 ? paidVals.reduce((s, v) => s + (asNum(v.amount_paid) || 0), 0) : null;
   const remainingContractValue = currentContractValue != null && certifiedToDate != null ? currentContractValue - certifiedToDate : null;
-  const forecastFinalCost = currentContractValue != null ? currentContractValue + pendingVariations : null;
-  return { contractSum, approvedVariations, pendingVariations, currentContractValue, certifiedToDate, paidToDate, remainingContractValue, forecastFinalCost, approvedDecisions, pendingDecisions };
+  const openRisks = (risks || []).filter(r => r.status === 'open');
+  const riskAllowance = openRisks.length > 0 ? openRisks.reduce((s, r) => s + (asNum(r.weighted_cost) || 0), 0) : null;
+  const forecastFinalCost = currentContractValue != null ? currentContractValue + (pendingVariations || 0) + (riskAllowance || 0) : null;
+  return { contractSum, approvedAdditions, approvedOmissions, approvedVariations, approvedVariationCount, approvedOmissionCount, pendingVariations, pendingVariationCount, currentContractValue, certifiedToDate, paidToDate, remainingContractValue, riskAllowance, forecastFinalCost, approvedDecisions, pendingDecisions };
 }
 
 // Derive a non-arbitrary commercial health status from live factors

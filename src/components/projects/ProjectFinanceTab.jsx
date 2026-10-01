@@ -76,7 +76,7 @@ export function ProjectFinanceTab({ project }) {
   })).filter(po => po.date && po.amount > 0), [pos, lineItemsByPo]);
 
   const delivery = fin.deliveries?.[0];
-  const summary = useMemo(() => commercialSummary(delivery, fin.decisions || [], fin.valuations || []), [delivery, fin.decisions, fin.valuations]);
+  const summary = useMemo(() => commercialSummary(delivery, fin.decisions || [], fin.valuations || [], fin.risks || []), [delivery, fin.decisions, fin.valuations, fin.risks]);
   const health = useMemo(() => commercialHealth(summary, fin.valuations || []), [summary, fin.valuations]);
   const consultants = useMemo(() => consultantFees(delivery), [delivery]);
   const alerts = useMemo(() => commercialAlerts(summary, fin.valuations || [], pos, project, consultants), [summary, fin.valuations, pos, project, consultants]);
