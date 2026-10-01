@@ -1,13 +1,14 @@
 import React from 'react';
 import { Plus, Trash2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import ContractorFeeImport from '@/components/delivery/ContractorFeeImport';
 
 const SURVEY_STAGES = ['riba_1', 'riba_2', 'riba_3', 'riba_4'];
 const STAGE_LABELS = { riba_1: 'RIBA 1', riba_2: 'RIBA 2', riba_3: 'RIBA 3', riba_4: 'RIBA 4', riba_5_7: 'RIBA 5-7' };
 
 const newId = () => (typeof crypto !== 'undefined' && crypto.randomUUID ? crypto.randomUUID() : `${Date.now()}-${Math.random().toString(36).slice(2)}`);
 
-export default function ContractorFeeBuilder({ fees, onChange }) {
+export default function ContractorFeeBuilder({ projectId, fees, onChange }) {
   const list = Array.isArray(fees) ? fees : [];
 
   const addSurvey = () => onChange([...list, { id: newId(), type: 'survey', stage: 'riba_1', amount: '' }]);
@@ -18,6 +19,7 @@ export default function ContractorFeeBuilder({ fees, onChange }) {
 
   return (
     <div className="space-y-2">
+      <ContractorFeeImport projectId={projectId} onImport={rows => onChange([...list, ...rows])} />
       <div className="flex flex-wrap gap-2">
         <Button type="button" variant="outline" size="sm" onClick={addSurvey}><Plus className="mr-1 h-4 w-4" /> Add survey</Button>
         <Button type="button" variant="outline" size="sm" onClick={addConsultant}><Plus className="mr-1 h-4 w-4" /> Add consultant</Button>

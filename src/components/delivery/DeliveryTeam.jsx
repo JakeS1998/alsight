@@ -109,7 +109,7 @@ export function DeliveryTeam({ project, delivery, setField, onSave, saving, supp
             {isContractor(m) ? (
               <div>
                 <p className="mb-1.5 text-xs font-semibold uppercase tracking-wide text-slate-400">Contractor fee build-up (£)</p>
-                <ContractorFeeBuilder fees={m.contractor_fees} onChange={(fees) => setContractorFees(idx, fees)} />
+                <ContractorFeeBuilder projectId={project.id} fees={m.contractor_fees} onChange={(fees) => setContractorFees(idx, fees)} />
               </div>
             ) : (
               <div>
