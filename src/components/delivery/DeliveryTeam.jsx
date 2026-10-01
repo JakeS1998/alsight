@@ -28,7 +28,7 @@ const migrateContractor = (m) => {
   return { ...m, contractor_fees: arr };
 };
 
-export function DeliveryTeam({ project, delivery, setField, onSave, saving, suppliers }) {
+export function DeliveryTeam({ project, delivery, setField, onSave, saving, suppliers, embedded = false }) {
   const [team, setTeam] = useState([]);
   const [uploading, setUploading] = useState(null);
 
@@ -67,7 +67,7 @@ export function DeliveryTeam({ project, delivery, setField, onSave, saving, supp
   };
 
   return (
-    <FormSection title="1b · Delivery Team" description="Add each supplier, upload their fee proposal and enter their fees per RIBA stage — these feed the Fee Proposal">
+    <FormSection title={embedded ? 'Delivery Team' : '1b · Delivery Team'} collapsible={!embedded} description="Add each supplier, upload their fee proposal and enter their fees per RIBA stage — these feed the Fee Proposal">
       <div className="space-y-3">
         {team.length === 0 && (
           <div className="rounded-xl border border-dashed border-slate-300 bg-white py-8 text-center text-sm text-slate-500">No team members yet. Add the contractor, PM, PD and other suppliers.</div>

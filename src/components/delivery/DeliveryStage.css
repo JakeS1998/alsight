@@ -3,15 +3,15 @@
   width: 100%;
   box-sizing: border-box;
   overflow: hidden;
-  border: 1px solid hsl(var(--als-navy));
+  border: 1px solid hsl(var(--als-navy) / .16);
   border-radius: 10px;
   background: hsl(var(--card));
-  box-shadow: 0 5px 14px hsl(var(--als-navy) / .18);
+  box-shadow: 0 5px 14px hsl(var(--als-navy) / .06);
   vertical-align: top;
 }
 .delivery-stage__header {
-  background: hsl(var(--als-navy));
-  color: hsl(var(--sidebar-foreground));
+  background: hsl(var(--muted));
+  color: hsl(var(--foreground));
 }
 .delivery-stage__toggle {
   position: relative;
@@ -28,8 +28,8 @@
   cursor: pointer;
   transition: background-color .18s ease, box-shadow .18s ease;
 }
-.delivery-stage__toggle:hover { background: hsl(var(--als-navy-light)); }
-.delivery-stage__toggle:active { background: hsl(var(--als-navy)); }
+.delivery-stage__toggle:hover { background: hsl(var(--primary) / .08); }
+.delivery-stage__toggle:active { background: hsl(var(--primary) / .14); }
 .delivery-stage__toggle:focus-visible { outline: 2px solid hsl(var(--primary)); outline-offset: -3px; }
 .delivery-stage__chevron {
   display: grid;
@@ -39,11 +39,11 @@
   place-items: center;
   border: 1px solid hsl(var(--primary) / .58);
   border-radius: 6px;
-  background: hsl(var(--als-navy-light) / .32);
-  color: hsl(var(--primary));
+  background: hsl(var(--card));
+  color: hsl(var(--foreground));
   transition: background-color .18s ease, transform .18s ease;
 }
-.delivery-stage__toggle:hover .delivery-stage__chevron { background: hsl(var(--als-navy-light) / .62); }
+.delivery-stage__toggle:hover .delivery-stage__chevron { background: hsl(var(--primary) / .16); }
 .delivery-stage__toggle:active .delivery-stage__chevron { transform: translateX(2px); }
 .delivery-stage__title {
   min-width: 0;
@@ -54,7 +54,7 @@
   letter-spacing: .035em;
   text-transform: uppercase;
 }
-.delivery-stage__description { color: hsl(var(--sidebar-foreground) / .75); }
+.delivery-stage__description { color: hsl(var(--muted-foreground)); }
 .delivery-stage__corner {
   position: absolute;
   top: 0;

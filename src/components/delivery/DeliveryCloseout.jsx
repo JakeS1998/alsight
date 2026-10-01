@@ -17,7 +17,7 @@ const FINAL = [
 const DEFECTS = ["6 months", "12 months", "24 months", "Other"];
 const RETENTION = ["0%", "2.5%", "3%", "5%", "Other"];
 
-export function DeliveryCloseout({ delivery, setField, onSave, saving }) {
+export function DeliveryCloseout({ delivery, setField, onSave, saving, children }) {
   return (
     <FormSection title="10 · Practical Completion & Close-out" description="Finish the lifecycle properly — PC, final account, handover and lessons learned">
       <div className="space-y-4">
@@ -41,6 +41,7 @@ export function DeliveryCloseout({ delivery, setField, onSave, saving }) {
           </Button>
         </div>
       </div>
+      {children}
     </FormSection>
   );
 }

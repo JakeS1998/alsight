@@ -124,8 +124,9 @@ export function ProjectDeliveryTab({ project, legalDocs, dmas, jcts, warranties,
   return (
     <DeliveryCollapseProvider key={projectId} projectId={projectId} completion={deliveryStageCompletion(project, savedDelivery)}><div className="space-y-6">
       <DeliveryScoping project={project} accountMap={accountMap} bdmName={bdmName} delivery={delivery} setField={setField} onSave={saveDelivery} saving={savingDelivery} />
-      <DeliveryTeam project={project} delivery={delivery} setField={setField} onSave={saveDelivery} saving={savingDelivery} suppliers={suppliers} />
-      <FeeProposalSection projectId={projectId} project={project} onChanged={setFeeProposals} deliveryTeam={deliveryTeam} suppliers={suppliers} />
+      <FeeProposalSection projectId={projectId} project={project} onChanged={setFeeProposals} deliveryTeam={deliveryTeam} suppliers={suppliers}>
+        <DeliveryTeam embedded project={project} delivery={delivery} setField={setField} onSave={saveDelivery} saving={savingDelivery} suppliers={suppliers} />
+      </FeeProposalSection>
       <PreConstructionReadiness project={project} legalDocs={legalDocs} dmas={dmas} jcts={jcts} warranties={warranties} feeProposals={feeProposals} delivery={delivery} setField={setField} onSave={saveDelivery} saving={savingDelivery} />
       <DesignTeam legalDocs={legalDocs} jcts={jcts} warranties={warranties} accountMap={accountMap} deliveryTeam={deliveryTeam} suppliers={suppliers} />
       <ProgrammeMilestones project={project} feeProposals={feeProposals} jcts={jcts} delivery={delivery} />
@@ -133,8 +134,9 @@ export function ProjectDeliveryTab({ project, legalDocs, dmas, jcts, warranties,
       <DeliveryStage title="7 · Decision Register"><RegisterList title="Decision" description="Lightweight decision & client-approval register" entityName="ProjectDecision" projectId={projectId} project={project} columns={DECISION_COLS} tableColumns={DECISION_TABLE} sortBy="-date_requested" addLabel="Add decision" /></DeliveryStage>
       <ProjectRiskRegister project={project} delivery={delivery} accountMap={accountMap} />
       <DeliveryConstruction delivery={delivery} setField={setField} onSave={saveDelivery} saving={savingDelivery} />
-      <DeliveryCloseout delivery={delivery} setField={setField} onSave={saveDelivery} saving={savingDelivery} />
-      <ProjectHandoverPack project={project} savingDelivery={savingDelivery} onStarted={loadDelivery} />
+      <DeliveryCloseout delivery={delivery} setField={setField} onSave={saveDelivery} saving={savingDelivery}>
+        <ProjectHandoverPack embedded project={project} savingDelivery={savingDelivery} onStarted={loadDelivery} />
+      </DeliveryCloseout>
     </div></DeliveryCollapseProvider>
   );
 }

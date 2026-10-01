@@ -8,9 +8,9 @@ import DeliveryStage from '@/components/delivery/DeliveryStage';
  * help text, required indicators and responsive two-column grids.
  */
 
-export function FormSection({ title, description, children, className, completed }) {
-  const collapsible = useContext(DeliveryCollapseContext);
-  if (collapsible) return <DeliveryStage title={title} description={description} className={className} completed={completed}>{children}</DeliveryStage>;
+export function FormSection({ title, description, children, className, completed, collapsible = true }) {
+  const collapseContext = useContext(DeliveryCollapseContext);
+  if (collapseContext && collapsible) return <DeliveryStage title={title} description={description} className={className} completed={completed}>{children}</DeliveryStage>;
   return (
     <section className={cn("overflow-hidden rounded-xl border border-slate-200 bg-white", className)}>
       <header className="flex items-center gap-2 border-b border-slate-200 bg-slate-50 px-4 py-3">

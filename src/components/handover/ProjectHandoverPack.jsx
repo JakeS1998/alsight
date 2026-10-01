@@ -6,14 +6,14 @@ import HandoverPackHeader from '@/components/handover/HandoverPackHeader';
 import HandoverItem from '@/components/handover/HandoverItem';
 import { FormSection } from '@/components/forms/PowerForm';
 
-export default function ProjectHandoverPack({ project, savingDelivery, onStarted }) {
+export default function ProjectHandoverPack({ project, savingDelivery, onStarted, embedded = false }) {
   const { user } = useAuth();
   const enabled = ['admin','director','regional_director','bdm','bsm','finance'].includes(user?.role);
   const editable = ['admin','director','bdm','bsm'].includes(user?.role);
   const handover = useHandoverPack(project.id, savingDelivery, onStarted, enabled);
   if (!enabled) return null;
   const { pack, busy, error, load, action, download } = handover;
-  return <FormSection title="11 · Project handover pack" completed={!!pack?.started && pack.ready && pack.percentage === 100} description="Structured close-out evidence, review status and document versions. Save close-out changes above to include them in the pack.">
+  return <FormSection title={embedded ? 'Project handover pack' : '11 · Project handover pack'} collapsible={!embedded} completed={!!pack?.started && pack.ready && pack.percentage === 100} description="Structured close-out evidence, review status and document versions. Save close-out changes above to include them in the pack.">
     <div className="space-y-4">
     {error && <div role="alert" className="text-sm text-destructive">{error}<button type="button" onClick={load} disabled={busy} className="ml-2 underline">Retry / recheck</button></div>}
     {busy && <p role="status" className="text-sm text-muted-foreground">Updating / preparing handover pack…</p>}

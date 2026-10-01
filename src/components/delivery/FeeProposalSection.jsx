@@ -52,7 +52,7 @@ const ALS_LINE = { riba_stage: "", description: "ALS Delivery fee", internal_fee
 const normalizeFeeItems = (lines) => lines.map(line => ({ ...line, include_on_client: line.include_on_client !== false, internal_fee: additionalFeeTotal(line) }));
 const parseItems = (s) => { try { return normalizeFeeItems(JSON.parse(s) || []); } catch { return []; } };
 
-export function FeeProposalSection({ projectId, project, onChanged, deliveryTeam, suppliers }) {
+export function FeeProposalSection({ projectId, project, onChanged, deliveryTeam, suppliers, children }) {
   const [rows, setRows] = useState([]);
   const [pos, setPos] = useState([]);
   const [selectedId, setSelectedId] = useState(null);
@@ -264,6 +264,7 @@ export function FeeProposalSection({ projectId, project, onChanged, deliveryTeam
   return (
     <FormSection title="2 · Fee Proposal" completed={(rows.find(row => row.is_current) || rows[0])?.status === 'accepted'} description="Supplier fees are pulled from the Delivery Team; add the ALS Delivery fee and any other optional lines">
       <div className="space-y-5">
+        {children}
         <div className="flex items-center justify-between">
           <p className="text-sm text-slate-500">Revisions</p>
           <Button type="button" variant="outline" size="sm" onClick={openAdd}><Plus className="mr-1.5 h-4 w-4" /> Add revision</Button>
