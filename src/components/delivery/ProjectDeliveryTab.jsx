@@ -124,7 +124,7 @@ export function ProjectDeliveryTab({ project, legalDocs, dmas, jcts, warranties,
   return (
     <DeliveryJourney key={projectId} project={project} delivery={savedDelivery} feeProposals={feeProposals} legalDocs={legalDocs} dmas={dmas} jcts={jcts} warranties={warranties} suppliers={suppliers} accountMap={accountMap}>
       <DeliveryScoping project={project} accountMap={accountMap} bdmName={bdmName} delivery={delivery} setField={setField} onSave={saveDelivery} saving={savingDelivery} />
-      <FeeProposalSection projectId={projectId} project={project} onChanged={setFeeProposals} deliveryTeam={deliveryTeam} suppliers={suppliers}>
+      <FeeProposalSection projectId={projectId} project={project} onChanged={setFeeProposals} deliveryTeam={deliveryTeam} suppliers={suppliers} legalDocs={legalDocs} dmas={dmas}>
         <DeliveryTeam embedded project={project} delivery={delivery} setField={setField} onSave={saveDelivery} saving={savingDelivery} suppliers={suppliers} />
       </FeeProposalSection>
       <PreConstructionReadiness deliveryTeam={deliveryTeam} suppliers={suppliers} accountMap={accountMap} project={project} legalDocs={legalDocs} dmas={dmas} jcts={jcts} warranties={warranties} feeProposals={feeProposals} delivery={delivery} setField={setField} onSave={saveDelivery} saving={savingDelivery} />

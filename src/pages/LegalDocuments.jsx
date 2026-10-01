@@ -34,7 +34,7 @@ export default function LegalDocuments() {
   }, []);
 
   const projectMap = {};
-  projects.forEach((p) => { if (p.dataverse_id) projectMap[p.dataverse_id] = p; });
+  projects.forEach((p) => { projectMap[p.id] = p; if (p.dataverse_id) projectMap[p.dataverse_id] = p; });
   const accountMap = {};
   accounts.forEach((a) => { if (a.dataverse_id) accountMap[a.dataverse_id] = a; });
 

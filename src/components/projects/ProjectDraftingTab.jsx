@@ -21,6 +21,8 @@ const STAGES = [
   { key: "dma", label: "Development Management Agreement", icon: FileCheck, kind: "dma" },
   { key: "loi", label: "Letters of Intent (LOI)", icon: FilePlus, kind: "legal", docTypes: ["loi"] },
   { key: "jct", label: "Construction Contract (JCT)", icon: Gavel, kind: "jct" },
+  { key: "equipment", label: "Equipment-only Agreement", icon: FileCheck, kind: "legal", docTypes: ["equipment_only_agreement"] },
+  { key: "single_task", label: "Single-task Agreement", icon: FileCheck, kind: "legal", docTypes: ["single_task_agreement"] },
   { key: "additional", label: "Other Documents", icon: FilePlus, kind: "legal", docTypes: ["other"] },
 ];
 
@@ -84,7 +86,11 @@ function PqCard({ project, psoOutstanding }) {
 
 export function ProjectDraftingTab({ project, legalDocs, dmas, jcts, accountMap, pmView = false, onProjectUpdated }) {
   const loiDocs = legalDocs.filter(isLetterOfIntent);
-  const stages = (pmView ? PM_STAGES : STAGES).filter(stage => stage.key !== 'loi' || loiDocs.length > 0);
+  const stages = (pmView ? PM_STAGES : STAGES).filter(stage => {
+    if (stage.key === 'loi') return loiDocs.length > 0;
+    if (['equipment', 'single_task'].includes(stage.key)) return legalDocs.some(doc => stage.docTypes.includes(doc.document_type));
+    return true;
+  });
   const [psoStatus, setPsoStatus] = useState({ pq: false, aa: false, aa_variations: false, dma: false });
 
   useEffect(() => {

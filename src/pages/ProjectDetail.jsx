@@ -17,6 +17,7 @@ import SupplierProjectDocuments from '@/components/projects/SupplierProjectDocum
 import SupplierPurchaseOrders from '@/components/projects/SupplierPurchaseOrders';
 import ProjectManagerOverview from '@/components/projects/ProjectManagerOverview';
 import { ProjectDraftingTab } from "@/components/projects/ProjectDraftingTab";
+import AlternativeAgreementEditor from '@/components/projects/AlternativeAgreementEditor';
 import { ProjectWarrantiesTab } from "@/components/projects/ProjectWarrantiesTab";
 import { ProjectFinanceTab } from "@/components/projects/ProjectFinanceTab";
 import { ProjectTimelineTab } from "@/components/projects/ProjectTimelineTab";
@@ -53,7 +54,7 @@ export default function ProjectDetail() {
         const dvId = proj.dataverse_id;
 
         const [docs, dmasData, jctsData, warrs, accounts, orders] = await Promise.all([
-          !isSupplier || supplierAccountId ? filterAll(base44.entities.LegalDocument, { project_id: dvId, ...(isSupplier ? { account_id: supplierAccountId } : {}) }).catch(() => []) : [],
+          !isSupplier || supplierAccountId ? filterAll(base44.entities.LegalDocument, { project_id: { $in: [proj.id, dvId].filter(Boolean) }, ...(isSupplier ? { account_id: supplierAccountId } : {}) }).catch(() => []) : [],
           isSupplier ? [] : filterAll(base44.entities.DMA, { project_id: dvId }).catch(() => []),
           !isSupplier || supplierAccountId ? filterAll(base44.entities.JCT, { project_id: dvId, ...(isSupplier ? { $or: [{ account_id: supplierAccountId }, { contractor_id: supplierAccountId }] } : {}) }).catch(() => []) : [],
           !isSupplier || supplierAccountId ? filterAll(base44.entities.Warranty, { project_id: dvId, ...(isSupplier ? { $or: [{ account_id: supplierAccountId }, { supplier_id: supplierAccountId }] } : {}) }).catch(() => []) : [],
@@ -132,6 +133,7 @@ export default function ProjectDetail() {
           {canSeeProjectOverview && <ProjectManagerOverview projectId={project.id} mode="timeline" supplier={isSupplier} />}
         </TabsContent>
         <TabsContent value="drafting" className="mt-6">
+          {user?.role === 'admin' && <AlternativeAgreementEditor project={project} documents={legalDocs} onSaved={record => setLegalDocs(current => current.some(doc => doc.id === record.id) ? current.map(doc => doc.id === record.id ? record : doc) : [...current, record])} />}
           {isSupplier ? <SupplierProjectDocuments project={project} legalDocs={legalDocs} jcts={jcts} accountMap={accountMap} /> : isExternalPM ? <ProjectDraftingTab project={project} legalDocs={legalDocs.filter(d => ['access_agreement','pcsa'].includes(d.document_type))} dmas={dmas} jcts={jcts} accountMap={accountMap} onProjectUpdated={updated => setProject(current => ({ ...current, ...updated }))} pmView /> : <ProjectDraftingTab project={project} legalDocs={legalDocs} dmas={dmas} jcts={jcts} accountMap={accountMap} onProjectUpdated={updated => setProject(current => ({ ...current, ...updated }))} />}
         </TabsContent>
         <TabsContent value="warranties" className="mt-6 space-y-6">

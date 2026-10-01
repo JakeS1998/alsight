@@ -5,6 +5,7 @@ import { useAuth } from '@/lib/AuthContext';
 import { Plus, Trash2, Loader2 } from 'lucide-react';
 import { formatCurrency } from '@/lib/portal';
 import useFrameworkFees from '@/components/delivery/useFrameworkFees';
+import { AGREEMENT_FEE_ROUTES } from '@/components/delivery/frameworkAgreementRoute';
 
 const bandLabel = (band, index, total) => {
   const min = Number(band.min) || 0;
@@ -16,7 +17,8 @@ const bandLabel = (band, index, total) => {
 
 export default function FrameworkFeeSettings() {
   const [version, setVersion] = useState('FW3');
-  const { settings, loading, error, reload } = useFrameworkFees(version);
+  const [route, setRoute] = useState('dma');
+  const { settings, loading, error, reload } = useFrameworkFees(version, route);
   const { user } = useAuth();
   const [bands, setBands] = useState([]);
   const [contingency, setContingency] = useState('');
@@ -75,12 +77,16 @@ export default function FrameworkFeeSettings() {
   return <section className="rounded-xl border border-border bg-card p-5" aria-labelledby="framework-fee-heading">
     <h2 id="framework-fee-heading" className="text-lg font-semibold">UKLF framework fee bands</h2>
     <p className="mt-1 text-sm text-muted-foreground">The framework fee is a percentage of the total contract value, excluding the UKLF fee and contingency. Bands are matched to the contract value and applied automatically in the fee proposal builder.</p>
-    <div className="mt-4 flex items-center gap-3">
+    <div className="mt-4 flex flex-wrap items-center gap-3">
       <label htmlFor="fee-framework-version" className="text-sm font-semibold">Framework</label>
       <select id="fee-framework-version" value={version} disabled={saving} onChange={e => { setVersion(e.target.value); setSaved(false); setSaveError(''); }} className="h-9 rounded-lg border border-input bg-background px-3 text-sm">
         <option value="FW3">FW3</option><option value="FW4">FW4</option>
       </select>
-      <span className="text-xs text-muted-foreground">Each framework has its own fee bands.</span>
+      <label htmlFor="fee-agreement-route" className="text-sm font-semibold">Agreement</label>
+      <select id="fee-agreement-route" value={route} disabled={saving} onChange={e => { setRoute(e.target.value); setSaved(false); setSaveError(''); }} className="h-9 rounded-lg border border-input bg-background px-3 text-sm">
+        {Object.entries(AGREEMENT_FEE_ROUTES).map(([key, label]) => <option key={key} value={key}>{label}</option>)}
+      </select>
+      <span className="text-xs text-muted-foreground">Separate bands for each framework and agreement; DMA rates are only payable under a DMA.</span>
     </div>
     <form onSubmit={save} className="mt-4 space-y-5">
       <div className="grid gap-3 sm:grid-cols-2">
@@ -106,7 +112,7 @@ export default function FrameworkFeeSettings() {
             </tr>
           </thead>
           <tbody className="divide-y divide-border">
-            {!bands.length && <tr><td colSpan={6} className="px-3 py-6 text-center text-muted-foreground">No {version} fee bands configured. Add a band to set this framework’s rates.</td></tr>}
+            {!bands.length && <tr><td colSpan={6} className="px-3 py-6 text-center text-muted-foreground">No {version} {AGREEMENT_FEE_ROUTES[route]} fee bands configured. Add a band to set this agreement’s rates.</td></tr>}
             {bands.map((band, index) => {
               const example = Math.round((Number(band.min) || 0) * (Number(band.pct) || 0) / 100);
               return <tr key={index}>

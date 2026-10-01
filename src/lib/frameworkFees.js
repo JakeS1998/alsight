@@ -16,15 +16,16 @@ export const DEFAULT_FRAMEWORK_FEE_LABELS = {
   uklf: 'UKLF Fee',
 };
 
-export async function readFrameworkFeeSettings(entities, version = 'FW3') {
-  const key = version === 'FW3' ? FRAMEWORK_FEE_KEY : version === 'FW4' ? `${FRAMEWORK_FEE_KEY}-fw4` : null;
-  const defaults = { key, version, bands: version === 'FW3' ? DEFAULT_FRAMEWORK_FEE_BANDS : [], ...DEFAULT_FRAMEWORK_FEE_LABELS };
+export async function readFrameworkFeeSettings(entities, version = 'FW3', route = 'dma') {
+  const frameworkKey = version === 'FW3' ? FRAMEWORK_FEE_KEY : version === 'FW4' ? `${FRAMEWORK_FEE_KEY}-fw4` : null;
+  const key = frameworkKey && route ? (route === 'dma' ? frameworkKey : `${frameworkKey}-${route}`) : null;
+  const defaults = { key, version, route, bands: version === 'FW3' && route === 'dma' ? DEFAULT_FRAMEWORK_FEE_BANDS : [], ...DEFAULT_FRAMEWORK_FEE_LABELS };
   if (!key) return defaults;
   const { items } = await entities.FrameworkFeeSettings.filter({ key }, { limit: 1 });
   const row = items[0];
   if (!row) return defaults;
   return {
-    key, version,
+    key, version, route,
     bands: Array.isArray(row.bands) ? row.bands : defaults.bands,
     contingency: row.contingency_label || DEFAULT_FRAMEWORK_FEE_LABELS.contingency,
     uklf: row.uklf_label || DEFAULT_FRAMEWORK_FEE_LABELS.uklf,

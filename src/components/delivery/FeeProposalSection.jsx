@@ -20,6 +20,7 @@ import FeeProposalLines from '@/components/delivery/FeeProposalLines';
 import FrameworkFeeCalculator, { isUklfLine } from '@/components/delivery/FrameworkFeeCalculator';
 import useFrameworkFees from '@/components/delivery/useFrameworkFees';
 import frameworkVersion from '@/components/projects/frameworkVersion';
+import frameworkAgreementRoute from '@/components/delivery/frameworkAgreementRoute';
 import ContractorBuildUp from '@/components/delivery/ContractorBuildUp';
 import { contractorBuildUp as computeContractorBuildUp, isContractorMember } from '@/components/delivery/contractorBuildUp';
 import { contractorFsfKey, contractorFsfRows } from '@/components/delivery/contractorFsf';
@@ -55,7 +56,7 @@ const ALS_LINE = { riba_stage: "", description: "ALS Delivery fee", internal_fee
 const normalizeFeeItems = (lines) => lines.map(line => ({ ...line, include_on_client: line.include_on_client !== false, internal_fee: additionalFeeTotal(line) }));
 const parseItems = (s) => { try { return normalizeFeeItems(JSON.parse(s) || []); } catch { return []; } };
 
-export function FeeProposalSection({ projectId, project, onChanged, deliveryTeam, suppliers, children }) {
+export function FeeProposalSection({ projectId, project, onChanged, deliveryTeam, suppliers, legalDocs, dmas, children }) {
   const [rows, setRows] = useState([]);
   const [pos, setPos] = useState([]);
   const [selectedId, setSelectedId] = useState(null);
@@ -72,7 +73,8 @@ export function FeeProposalSection({ projectId, project, onChanged, deliveryTeam
   const [saveError, setSaveError] = useState('');
   const { user } = useAuth();
   const fsf = useSupplierFsf(user, selectedId, projectId);
-  const frameworkFees = useFrameworkFees(frameworkVersion(project.project_number));
+  const agreement = frameworkAgreementRoute(legalDocs, dmas);
+  const frameworkFees = useFrameworkFees(frameworkVersion(project.project_number), agreement.route);
 
   const [headerOpen, setHeaderOpen] = useState(false);
   const [editing, setEditing] = useState(null);
@@ -344,7 +346,8 @@ export function FeeProposalSection({ projectId, project, onChanged, deliveryTeam
 
             {frameworkFees.error && <p role="alert" className="text-sm text-destructive">{frameworkFees.error}</p>}
             {frameworkFees.loading && <p role="status" className="text-sm text-muted-foreground">Loading framework fee bands…</p>}
-            {frameworkFees.settings && !frameworkFees.loading && !frameworkFees.error && <FrameworkFeeCalculator supplierFees={totals.supplierFees} feeLines={items} settings={frameworkFees.settings} onApply={applyUklfFee} />}
+            {agreement.message && <p role="status" className="rounded-lg border border-border bg-muted/50 p-3 text-sm text-muted-foreground">{agreement.message} Existing fee lines are unchanged.</p>}
+            {agreement.route && frameworkFees.settings && !frameworkFees.loading && !frameworkFees.error && <FrameworkFeeCalculator supplierFees={totals.supplierFees} feeLines={items} settings={frameworkFees.settings} onApply={applyUklfFee} />}
 
             {/* Supplier fees (from delivery team) */}
             <SupplierFeeTable lines={supplierLines} getSupplierName={supplierName} fsf={fsf.allowed ? fsf : undefined} contractors={fsf.allowed ? fsfContractors : undefined} />

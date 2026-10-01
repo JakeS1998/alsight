@@ -29,6 +29,8 @@
         "appointment_pd_br",
         "pcsa",
         "loi",
+        "equipment_only_agreement",
+        "single_task_agreement",
         "other"
       ]
     },

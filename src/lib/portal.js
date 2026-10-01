@@ -63,6 +63,8 @@ export const DOCUMENT_TYPE = {
   appointment_pd_br: { label: "Appointment – PD BR", code: "760820005", order: 6 },
   pcsa: { label: "PCSA", code: "760820006", order: 7 },
   loi: { label: "LOI", code: "760820017", order: 8 },
+  equipment_only_agreement: { label: "Equipment-only Agreement", order: 9 },
+  single_task_agreement: { label: "Single-task Agreement", order: 10 },
   other: { label: "Other", code: "", order: 99 },
 };
 
