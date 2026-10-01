@@ -1,11 +1,12 @@
 import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { Sparkles } from 'lucide-react';
-export default function AliceInsight({ title = 'ALICE Insight', statements = [], evidence = [], signals = [], detail, children }) {
+import { Button } from '@/components/ui/button';
+export default function AliceInsight({ title = 'ALICE Insight', statements = [], evidence = [], signals = [], detail, children, onAcknowledge }) {
   const [expanded, setExpanded] = useState(false);
   const [sources, setSources] = useState(false);
   return <section aria-label={title} className="rounded-xl border border-border border-l-2 border-l-primary bg-card p-4 text-foreground">
-    <header className="mb-2 flex items-center gap-2"><Sparkles aria-hidden="true" className="h-4 w-4 text-primary" /><h2 className="text-sm font-semibold text-als-navy">{title}</h2></header>
+    <header className="mb-2 flex items-center gap-2"><Sparkles aria-hidden="true" className="h-4 w-4 text-primary" /><h2 className="text-sm font-semibold text-als-navy">{title}</h2>{onAcknowledge && <Button type="button" variant="outline" size="sm" className="ml-auto" onClick={onAcknowledge}>Acknowledge</Button>}</header>
     <ul className="space-y-1 text-sm">{statements.map((s, i) => <li key={i}>{s.to ? <Link className="hover:underline underline-offset-4" to={s.to}>{s.text}</Link> : s.text}</li>)}</ul>
     {children}
     {signals.length > 0 && <div className="mt-3 border-t border-border pt-2"><h3 className="text-xs font-semibold text-als-navy">ALICE Signals</h3><ul className="mt-1 space-y-1 text-xs text-muted-foreground">{signals.map((s, i) => <li key={i}>{s.to ? <Link to={s.to} className="hover:underline">{s.text}</Link> : s.text}</li>)}</ul></div>}
