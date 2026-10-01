@@ -10,7 +10,7 @@ const APPT_ROLES = [
   { label: "Project Manager", type: "appointment_pm" },
   { label: "Principal Designer BR", type: "appointment_pd_br" },
   { label: "Principal Designer CDM", type: "appointment_pd_cdm" },
-  { label: "Architect", type: "appointment_architect" },
+  { label: "Architect", type: "appointment_architect", optional: true },
 ];
 
 export function DesignTeam({ legalDocs, jcts, warranties, accountMap, deliveryTeam = [], suppliers = [] }) {
@@ -20,7 +20,8 @@ export function DesignTeam({ legalDocs, jcts, warranties, accountMap, deliveryTe
       const doc = legalDocs.find((d) => d.document_type === role.type);
       out.push({
         label: role.label,
-        details: [...documentChecklistDetails(doc, role.label), ...(doc && !accountMap[doc.account_id]?.name ? ['Missing: linked supplier name.'] : [])],
+        optional: !!role.optional,
+        details: [...(role.optional && !doc ? [] : documentChecklistDetails(doc, role.label)), ...(doc && !accountMap[doc.account_id]?.name ? ['Missing: linked supplier name.'] : []), ...(role.optional ? ['Architect appointment is optional and does not affect stage completion.'] : [])],
         supplierAccount: doc ? accountMap[doc.account_id] : null,
         appointed: !!doc,
         account: doc ? accountMap[doc.account_id]?.name : null,
@@ -46,11 +47,11 @@ export function DesignTeam({ legalDocs, jcts, warranties, accountMap, deliveryTe
 
     // Roles not yet tracked as dedicated docs
     ["Cost Consultant", "Structural Engineer", "M&E"].forEach((label) => out.push({ label, appointed: false, untracked: true, details: ['This role is not tracked by a dedicated appointment type in this matrix.', 'No appointment sign-off is available here; this does not confirm that the role is unappointed.'] }));
-    return out.map(card => designTeamFees(card, deliveryTeam, suppliers));
+    return out.map(card => ({ ...designTeamFees(card, deliveryTeam, suppliers), label: card.optional ? `${card.label} (optional)` : card.label }));
   }, [legalDocs, jcts, warranties, accountMap, deliveryTeam, suppliers]);
 
   return (
-    <FormSection title="4 · Design & Consultant Team" completed={cards.filter(card => !card.untracked).every(card => card.signed || card.po)} description="Reuses your appointment documents — no duplicate data entry">
+    <FormSection title="4 · Design & Consultant Team" completed={cards.filter(card => !card.untracked && !card.optional).every(card => card.signed || card.po)} description="Reuses your appointment documents — no duplicate data entry">
       <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
         {cards.map((c) => <ChecklistHover key={c.label} title={c.label} details={c.details}><div className="h-full"><DesignTeamCard {...c} /></div></ChecklistHover>)}
       </div>
