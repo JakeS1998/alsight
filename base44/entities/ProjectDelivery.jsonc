@@ -534,11 +534,6 @@
               "user_condition": {
                 "role": "supplier"
               }
-            },
-            {
-              "user_condition": {
-                "role": "project_manager"
-              }
             }
           ]
         },
