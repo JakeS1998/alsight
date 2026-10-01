@@ -6,6 +6,7 @@ import { Plus, Trash2, Loader2 } from 'lucide-react';
 import { formatCurrency } from '@/lib/portal';
 import useFrameworkFees from '@/components/delivery/useFrameworkFees';
 import { AGREEMENT_FEE_ROUTES } from '@/components/delivery/frameworkAgreementRoute';
+import { agreementFeeLabel } from '@/components/projects/agreementNames';
 
 const bandLabel = (band, index, total) => {
   const min = Number(band.min) || 0;
@@ -84,9 +85,9 @@ export default function FrameworkFeeSettings() {
       </select>
       <label htmlFor="fee-agreement-route" className="text-sm font-semibold">Agreement</label>
       <select id="fee-agreement-route" value={route} disabled={saving} onChange={e => { setRoute(e.target.value); setSaved(false); setSaveError(''); }} className="h-9 rounded-lg border border-input bg-background px-3 text-sm">
-        {Object.entries(AGREEMENT_FEE_ROUTES).map(([key, label]) => <option key={key} value={key}>{label}</option>)}
+        {Object.keys(AGREEMENT_FEE_ROUTES).map(key => <option key={key} value={key}>{agreementFeeLabel(version, key)}</option>)}
       </select>
-      <span className="text-xs text-muted-foreground">Separate bands for each framework and agreement; DMA rates are only payable under a DMA.</span>
+      <span className="text-xs text-muted-foreground">Separate bands for each framework and agreement; {version === 'FW4' ? 'DPA rates are only payable under a Development Partner Agreement.' : 'DMA rates are only payable under a DMA.'}</span>
     </div>
     <form onSubmit={save} className="mt-4 space-y-5">
       <div className="grid gap-3 sm:grid-cols-2">
@@ -112,7 +113,7 @@ export default function FrameworkFeeSettings() {
             </tr>
           </thead>
           <tbody className="divide-y divide-border">
-            {!bands.length && <tr><td colSpan={6} className="px-3 py-6 text-center text-muted-foreground">No {version} {AGREEMENT_FEE_ROUTES[route]} fee bands configured. Add a band to set this agreement’s rates.</td></tr>}
+            {!bands.length && <tr><td colSpan={6} className="px-3 py-6 text-center text-muted-foreground">No {version} {agreementFeeLabel(version, route)} fee bands configured. Add a band to set this agreement’s rates.</td></tr>}
             {bands.map((band, index) => {
               const example = Math.round((Number(band.min) || 0) * (Number(band.pct) || 0) / 100);
               return <tr key={index}>

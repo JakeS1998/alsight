@@ -212,7 +212,7 @@ export function ProjectGeneralTab({ project, accountMap, onProjectUpdated }) {
         </div>
       </div>
 
-      {(role === 'project_manager' || (role === 'supplier' && project.can_submit_valuation)) && <ProjectDocumentStatuses projectId={project.id} />}
+      {(role === 'project_manager' || (role === 'supplier' && project.can_submit_valuation)) && <ProjectDocumentStatuses projectId={project.id} projectNumber={project.project_number} />}
 
       {/* Comments & Links */}
       {role !== 'supplier' && role !== 'project_manager' && <div className="grid gap-4 lg:grid-cols-2">

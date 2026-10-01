@@ -6,6 +6,7 @@ import { CheckCircle2, AlertTriangle, XCircle, Loader2 } from "lucide-react";
 import ChecklistHover from '@/components/delivery/ChecklistHover';
 import { readinessChecklistDetails } from '@/components/delivery/checklistDetails';
 import contractorAppointment from '@/components/delivery/contractorAppointment';
+import agreementNames from '@/components/projects/agreementNames';
 
 const APPT_TYPES = ["appointment_pm", "appointment_pd_cdm", "appointment_architect", "appointment_pd_br"];
 
@@ -30,7 +31,8 @@ export function PreConstructionReadiness({ project, legalDocs, dmas, jcts, warra
     const riba2 = !!project.riba2_end;
 
     const details = readinessChecklistDetails({ project, legalDocs, dmas, jcts, warranties, feeProposals, appointment });
-    const mk = (label, done, partial, extra) => ({ label, status: done ? "done" : partial ? "partial" : "pending", extra, details: details[label] });
+    const names = agreementNames(project.project_number);
+    const mk = (label, done, partial, extra) => ({ label: label === 'Access Agreement' ? names.access : label === 'DMA' ? names.developmentShort : label, status: done ? "done" : partial ? "partial" : "pending", extra, details: details[label] });
     return [
       mk("Access Agreement", aa?.executed === "yes", !!aa),
       mk("Fee Proposal", feeAccepted, feeAny),
@@ -83,7 +85,7 @@ export function PreConstructionReadiness({ project, legalDocs, dmas, jcts, warra
               return (
                 <div key={g.key} className="rounded-lg border border-slate-200 p-3">
                   <div className="mb-2 flex items-center justify-between">
-                    <p className="text-sm font-semibold text-slate-800">{g.label}</p>
+                    <p className="text-sm font-semibold text-slate-800">{g.key === 'aa' ? `${agreementNames(project.project_number).access} (${agreementNames(project.project_number).accessShort})` : g.key === 'dma' ? agreementNames(project.project_number).developmentShort : g.key === 'aa_variations' ? `${agreementNames(project.project_number).accessShort} Variations` : g.label}</p>
                     {received ? (
                       <span className="inline-flex items-center gap-1 rounded-full border border-emerald-200 bg-emerald-50 px-2 py-0.5 text-[10px] font-medium text-emerald-700"><CheckCircle2 className="h-3 w-3" /> PSO received</span>
                     ) : (

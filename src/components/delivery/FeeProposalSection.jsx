@@ -73,7 +73,7 @@ export function FeeProposalSection({ projectId, project, onChanged, deliveryTeam
   const [saveError, setSaveError] = useState('');
   const { user } = useAuth();
   const fsf = useSupplierFsf(user, selectedId, projectId);
-  const agreement = frameworkAgreementRoute(legalDocs, dmas);
+  const agreement = frameworkAgreementRoute(legalDocs, dmas, project.project_number);
   const frameworkFees = useFrameworkFees(frameworkVersion(project.project_number), agreement.route);
 
   const [headerOpen, setHeaderOpen] = useState(false);

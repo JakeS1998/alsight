@@ -1,14 +1,15 @@
 import React, { useState } from "react";
+import agreementNames from '@/components/projects/agreementNames';
 import { DOCUMENT_TYPE, formatDate } from "@/lib/portal";
 import { legalDocumentName } from "@/components/documents/documentNames";
 import { DocTypeBadge, ExecutedBadge } from "@/components/StatusBadge";
 import { ProgressTracker, getLegalDocSteps } from "@/components/documents/ProgressTracker";
 import { ChevronDown, ChevronRight, Download, ExternalLink, FileText, AlertCircle } from "lucide-react";
 
-export function LegalDocumentCard({ doc, projectName, accountName, psoOutstanding, hideCommentsAndLinks = false, hideFinancials = false }) {
+export function LegalDocumentCard({ doc, projectName, projectNumber, accountName, psoOutstanding, hideCommentsAndLinks = false, hideFinancials = false }) {
   const [open, setOpen] = useState(false);
   const steps = getLegalDocSteps(doc);
-  const typeCfg = DOCUMENT_TYPE[doc.document_type] || { label: doc.document_type };
+  const typeCfg = doc.document_type === 'access_agreement' ? { label: agreementNames(projectNumber).access } : DOCUMENT_TYPE[doc.document_type] || { label: doc.document_type };
 
   return (
     <div className="overflow-hidden rounded-xl border border-slate-200 bg-white">
@@ -18,9 +19,9 @@ export function LegalDocumentCard({ doc, projectName, accountName, psoOutstandin
             {open ? <ChevronDown className="h-4 w-4 text-slate-400 shrink-0" /> : <ChevronRight className="h-4 w-4 text-slate-400 shrink-0" />}
             <FileText className="h-4 w-4 text-primary shrink-0" />
             <div className="min-w-0">
-              <p className="truncate text-sm font-semibold text-slate-900">{legalDocumentName(doc, projectName, accountName)}</p>
+              <p className="truncate text-sm font-semibold text-slate-900">{legalDocumentName(doc, projectName, accountName, projectNumber)}</p>
               <div className="mt-0.5 flex items-center gap-2">
-                <DocTypeBadge type={doc.document_type} />
+                <DocTypeBadge type={doc.document_type} projectNumber={projectNumber} />
                 {accountName && <span className="truncate text-xs text-slate-500">{accountName}</span>}
               </div>
             </div>

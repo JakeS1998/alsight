@@ -5,6 +5,7 @@ import { LegalDocumentCard } from "@/components/documents/LegalDocumentCard";
 import { DMACard } from "@/components/documents/DMACard";
 import { JCTCard } from "@/components/documents/JCTCard";
 import RibaReportLink from '@/components/projects/RibaReportLink';
+import agreementNames from '@/components/projects/agreementNames';
 import ProjectEmptyState from '@/components/projects/ProjectEmptyState';
 import {
   FileSearch, FileCheck, UserCheck, Gavel, FilePlus,
@@ -157,7 +158,7 @@ export function ProjectDraftingTab({ project, legalDocs, dmas, jcts, accountMap,
 
             <div className={`flex-1 pb-8 ${isLast ? "pb-0" : ""}`}>
               <div className="flex flex-wrap items-center gap-2 mb-3">
-                <h3 className="text-sm font-semibold text-slate-900">{stage.label}</h3>
+                <h3 className="text-sm font-semibold text-slate-900">{stage.key === 'aa' ? agreementNames(project.project_number).access : stage.key === 'dma' ? agreementNames(project.project_number).development : stage.label}</h3>
                 {stage.kind !== "pq" && stage.kind !== "report" && (
                   <span className="rounded-full bg-slate-100 px-2 py-0.5 text-xs font-medium text-slate-600">{docs.length}</span>
                 )}
@@ -186,15 +187,15 @@ export function ProjectDraftingTab({ project, legalDocs, dmas, jcts, accountMap,
                         (doc.document_type === "access_agreement" && !psoStatus.aa) ||
                         (doc.document_type === "additional_works" && !psoStatus.aa_variations)
                       );
-                      return <LegalDocumentCard key={doc.id} doc={doc} projectName={project.name} accountName={accountMap[doc.account_id]?.name} psoOutstanding={psoOutstanding} hideFinancials={pmView} />;
+                      return <LegalDocumentCard key={doc.id} doc={doc} projectName={project.name} projectNumber={project.project_number} accountName={accountMap[doc.account_id]?.name} psoOutstanding={psoOutstanding} hideFinancials={pmView} />;
                     })}
-                  {stage.kind === "dma" && docs.map((doc) => <DMACard key={doc.id} doc={doc} projectName={project.name} psoOutstanding={!!doc.drafted_date && !psoStatus.dma} />)}
+                  {stage.kind === "dma" && docs.map((doc) => <DMACard key={doc.id} doc={doc} projectName={project.name} projectNumber={project.project_number} psoOutstanding={!!doc.drafted_date && !psoStatus.dma} />)}
                   {stage.kind === "jct" &&
                     docs.map((doc) => (
                       <JCTCard
                         key={doc.id}
                         doc={doc}
-                        projectName={project.name}
+                        projectName={project.name} projectNumber={project.project_number}
                         accountName={accountMap[doc.account_id]?.name}
                         contractorName={accountMap[doc.contractor_id]?.name}
                       />

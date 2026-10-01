@@ -2,7 +2,7 @@ import React, { useMemo } from 'react';
 import { formatCurrency } from '@/lib/portal';
 import { frameworkFeePct, frameworkFeeAmount } from '@/lib/frameworkFees';
 import { additionalFeeTotal } from '@/components/delivery/additionalFeeStages';
-import { AGREEMENT_FEE_ROUTES } from '@/components/delivery/frameworkAgreementRoute';
+import { agreementFeeLabel } from '@/components/projects/agreementNames';
 
 
 const CONTINGENCY_RE = /contingency/i;
@@ -30,13 +30,13 @@ export default function FrameworkFeeCalculator({ supplierFees, feeLines, setting
   const feeAmount = useMemo(() => frameworkFeeAmount(bands, contractValue), [bands, contractValue]);
   const hasUklfLine = useMemo(() => feeLines.some(line => isUklfLine(line, uklf)), [feeLines, uklf]);
 
-  if (!bands.length) return <div className="rounded-lg border border-border bg-muted/50 p-3 text-sm text-muted-foreground">{settings.version ? `${settings.version} ${AGREEMENT_FEE_ROUTES[settings.route]} fee bands have not been configured. Add them in Admin settings before calculating the UKLF fee.` : 'A recognised project number is required to determine the framework fee bands.'} Existing fee lines are unchanged.</div>;
+  if (!bands.length) return <div className="rounded-lg border border-border bg-muted/50 p-3 text-sm text-muted-foreground">{settings.version ? `${settings.version} ${agreementFeeLabel(settings.version, settings.route)} fee bands have not been configured. Add them in Admin settings before calculating the UKLF fee.` : 'A recognised project number is required to determine the framework fee bands.'} Existing fee lines are unchanged.</div>;
 
   return <div className="rounded-lg border border-primary/30 bg-primary/5 p-3">
     <div className="flex flex-wrap items-center justify-between gap-2">
       <div>
-        <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">UKLF {settings.version} · {AGREEMENT_FEE_ROUTES[settings.route]} fee (auto-calculated)</p>
-        <p className="mt-0.5 text-sm text-muted-foreground">Payable under the {AGREEMENT_FEE_ROUTES[settings.route]}. Applied to all supplier, contractor and additional fees across every RIBA stage, excluding UKLF fee and contingency.</p>
+        <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">UKLF {settings.version} · {agreementFeeLabel(settings.version, settings.route)} fee (auto-calculated)</p>
+        <p className="mt-0.5 text-sm text-muted-foreground">Payable under the {agreementFeeLabel(settings.version, settings.route)}. Applied to all supplier, contractor and additional fees across every RIBA stage, excluding UKLF fee and contingency.</p>
       </div>
       <div className="text-right">
         <p className="text-lg font-semibold text-primary">{formatCurrency(feeAmount)}</p>

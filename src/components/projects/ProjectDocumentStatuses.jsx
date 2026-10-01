@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { base44 } from '@/api/base44Client';
+import agreementNames from '@/components/projects/agreementNames';
 
 const types = [
   ['pcsa', 'PCSA'],
@@ -8,7 +9,7 @@ const types = [
   ['jct', 'JCT'],
 ];
 
-export default function ProjectDocumentStatuses({ projectId }) {
+export default function ProjectDocumentStatuses({ projectId, projectNumber }) {
   const [statuses, setStatuses] = useState(null);
   const [error, setError] = useState('');
 
@@ -27,7 +28,7 @@ export default function ProjectDocumentStatuses({ projectId }) {
     {error ? <p role="alert" className="text-sm text-destructive">{error}</p> : !statuses ? <p role="status" className="text-sm text-slate-500">Loading statuses…</p> :
       <div className="grid gap-3 sm:grid-cols-2">
         {types.map(([key, label]) => <div key={key} className="flex items-center justify-between gap-3 rounded-lg border border-slate-200 p-3">
-          <span className="text-sm font-medium text-slate-700">{label}</span>
+          <span className="text-sm font-medium text-slate-700">{key === 'aa' ? `${agreementNames(projectNumber).access} (${agreementNames(projectNumber).accessShort})` : key === 'dma' ? `${agreementNames(projectNumber).development} (${agreementNames(projectNumber).developmentShort})` : label}</span>
           <span className="text-sm text-slate-600">{statuses[key] || 'Not recorded'}</span>
         </div>)}
       </div>}

@@ -1,4 +1,5 @@
 import React from "react";
+import agreementNames from '@/components/projects/agreementNames';
 import { DOCUMENT_TYPE, EXECUTED_STATUS, PSO_CHECK, WARRANTY_STATUS, WARRANTY_CATEGORY, FORM_OF_JCT, RIBA_STAGE } from "@/lib/portal";
 
 export function StatusBadge({ status, map }) {
@@ -10,8 +11,8 @@ export function StatusBadge({ status, map }) {
   );
 }
 
-export const DocTypeBadge = ({ type }) => {
-  const cfg = DOCUMENT_TYPE[type] || { label: type || "Other" };
+export const DocTypeBadge = ({ type, projectNumber }) => {
+  const cfg = type === 'access_agreement' ? { label: agreementNames(projectNumber).access } : DOCUMENT_TYPE[type] || { label: type || "Other" };
   return <span className="inline-block rounded bg-primary/10 px-1.5 py-0.5 text-[10px] font-semibold text-primary">{cfg.label}</span>;
 };
 

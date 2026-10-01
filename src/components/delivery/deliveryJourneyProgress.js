@@ -1,4 +1,5 @@
 import deliveryStageCompletion from '@/components/delivery/deliveryStageCompletion';
+import agreementNames from '@/components/projects/agreementNames';
 import { programmeMilestones } from '@/components/delivery/programmeMilestones';
 import contractorAppointment, { savedDeliveryTeam } from '@/components/delivery/contractorAppointment';
 export const JOURNEY_STAGES = [
@@ -27,7 +28,7 @@ export default function deliveryJourneyProgress({ project, delivery = {}, feePro
   const breakdown = {
     1: [check('Feasibility complete', delivery.feasibility_status === 'complete'), check('Site visit completed', delivery.site_visit_completed)],
     2: [check('Current fee proposal recorded', !!fee), check('Current fee proposal accepted', fee?.status === 'accepted')],
-    3: [check('Access Agreement executed', aa?.executed === 'yes'), check('Fee proposal accepted', feeProposals.some(f => f.status === 'accepted')), check('At least four executed appointment records', appointments.filter(d => d.executed === 'yes').length >= 4, `${appointments.filter(d => d.executed === 'yes').length} executed records`), check('Contractor appointment executed', pcsa?.executed === 'yes', pcsa?.document_id), check('DMA executed', dmas[0]?.executed === 'yes'), check('RIBA 2 completion date recorded', !!project.riba2_end), check('Contractor identified', appointment.identified || jcts.length > 0 || warranties.some(w => w.category === 'contractor'))],
+    3: [check(`${agreementNames(project.project_number).access} executed`, aa?.executed === 'yes'), check('Fee proposal accepted', feeProposals.some(f => f.status === 'accepted')), check('At least four executed appointment records', appointments.filter(d => d.executed === 'yes').length >= 4, `${appointments.filter(d => d.executed === 'yes').length} executed records`), check('Contractor appointment executed', pcsa?.executed === 'yes', pcsa?.document_id), check(`${agreementNames(project.project_number).developmentShort} executed`, dmas[0]?.executed === 'yes'), check('RIBA 2 completion date recorded', !!project.riba2_end), check('Contractor identified', appointment.identified || jcts.length > 0 || warranties.some(w => w.category === 'contractor'))],
     4: [...APPTS.map((type, index) => { const doc = legalDocs.find(d => d.document_type === type); return check(`${labels[index]} appointment executed or PO issued`, ['yes', 'po'].includes(doc?.executed), doc?.document_id); }), check('Contractor appointment executed / PO issued, or JCT executed', ['yes', 'po'].includes(pcsa?.executed) || jcts.some(j => j.executed === 'yes'))],
     5: programmeMilestones(project, feeProposals, jcts, delivery).map(m => check(m.label, m.done ?? !!m.date, m.details?.join(' '))),
     9: [check('Practical completion achieved', completed.construction)],

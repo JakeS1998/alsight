@@ -74,8 +74,8 @@ export default function LegalDocuments() {
               <div key={d.id} className="flex flex-col rounded-2xl border border-slate-200 bg-white p-5">
                 <div className="mb-3 flex items-start justify-between gap-2">
                   <div className="min-w-0">
-                    <p className="text-sm font-semibold text-slate-900">{legalDocumentName(d, project?.name, accountMap[d.account_id]?.name)}</p>
-                    <div className="mt-1"><DocTypeBadge type={d.document_type} /></div>
+                    <p className="text-sm font-semibold text-slate-900">{legalDocumentName(d, project?.name, accountMap[d.account_id]?.name, project?.project_number)}</p>
+                    <div className="mt-1"><DocTypeBadge type={d.document_type} projectNumber={project?.project_number} /></div>
                   </div>
                   <ExecutedBadge status={d.executed} />
                 </div>

@@ -1,6 +1,7 @@
 import React, { useEffect, useState, useMemo } from "react";
 import { loadProjectPOs, isLegacyProject } from '@/components/projects/poLinking';
 import StageDrawing from '@/components/projects/StageDrawing';
+import agreementNames from '@/components/projects/agreementNames';
 import { projectCompletionDates } from '@/components/projects/projectCompletionDates';
 import ProjectEmptyState from '@/components/projects/ProjectEmptyState';
 import { legalDocumentName, dmaName, jctName, warrantyName } from "@/components/documents/documentNames";
@@ -29,7 +30,7 @@ function buildEvents(project, legalDocs, dmas, jcts, warranties, pos, accountMap
   if (!supplierOnly) {
     const expectedDates = projectCompletionDates(project);
     add(project.pq_approval_date, "Project Questionnaire approved", "project");
-    add(project.aa_executed_date, "Access Agreement executed", "project");
+    add(project.aa_executed_date, `${agreementNames(project.project_number).access} executed`, "project");
     add(project.ie_commencement_date, "Insights & Engagement commenced", "project");
     add(project.practical_completion_date, 'Construction — Actual Completion', 'project');
     add(expectedDates.riba5_system_date, 'Construction — Expected Completion (system)', 'project');
@@ -40,7 +41,7 @@ function buildEvents(project, legalDocs, dmas, jcts, warranties, pos, accountMap
   }
 
   legalDocs.forEach((d) => {
-    const id = legalDocumentName(d, project.name, accountMap[d.account_id]?.name);
+    const id = legalDocumentName(d, project.name, accountMap[d.account_id]?.name, project.project_number);
     add(d.drafted_date, `${id} drafted`, "legal");
     add(d.approval_date, `${id} approved`, "legal", d.approval_status);
     add(d.sent_to_client, `${id} sent to client`, "legal");
@@ -48,7 +49,7 @@ function buildEvents(project, legalDocs, dmas, jcts, warranties, pos, accountMap
   });
 
   dmas.forEach((d) => {
-    const id = dmaName(project.name);
+    const id = dmaName(project.name, project.project_number);
     add(d.drafted_date, `${id} drafted`, "dma");
     add(d.approval_date, `${id} approved`, "dma", d.approval_status);
     add(d.sent_for_signing, `${id} sent for signing`, "dma");
@@ -158,7 +159,7 @@ export function ProjectTimelineTab({ project, legalDocs, dmas, jcts, warranties,
               }`}
             >
               <span className={`h-2 w-2 rounded-full ${on ? c.dot : "bg-slate-300"}`} />
-              {c.label}
+              {key === 'dma' ? agreementNames(project.project_number).developmentShort : c.label}
             </button>
           );
         })}
@@ -221,7 +222,7 @@ export function ProjectTimelineTab({ project, legalDocs, dmas, jcts, warranties,
                       <div className="flex flex-wrap items-center justify-between gap-2">
                         <span className="inline-flex items-center gap-2">{(/^RIBA [1-4] — /.test(e.label)) && <StageDrawing stage={`RIBA ${e.label.match(/[1-4]/)[0]}`} className="h-10 w-10" />}<span className="text-sm font-semibold text-slate-900">{e.label}</span></span>
                         <span className={`inline-flex items-center rounded-full border px-2 py-0.5 text-[10px] font-medium ${cat.chip}`}>
-                          {cat.label}
+                          {e.cat === 'dma' ? agreementNames(project.project_number).developmentShort : cat.label}
                         </span>
                       </div>
                       {e.detail && (
