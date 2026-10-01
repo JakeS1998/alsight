@@ -10,7 +10,7 @@ export default function SingleTaskDelivery({ project, legalDocs, delivery, saved
   const { user } = useAuth();
   const key = `als-single-task-phase:${user?.id}:${project.id}`;
   const current = feeProposals.find(proposal => proposal.is_current) || feeProposals[0];
-  const agreement = legalDocs.find(doc => doc.status !== 'inactive' && doc.document_type === 'single_task_agreement');
+  const agreement = legalDocs.find(doc => doc.document_type === 'single_task_agreement');
   const completed = !!savedDelivery?.pc_achieved && savedDelivery?.client_handover === 'complete';
   const agreed = agreement?.executed === 'yes' && current?.status === 'accepted';
   const active = completed ? 'completion' : agreed ? 'works' : 'agreement';

@@ -8,15 +8,14 @@ export const AGREEMENT_FEE_ROUTES = {
 
 export default function frameworkAgreementRoute(legalDocs = [], dmas = [], projectNumber) {
   const names = agreementNames(projectNumber);
-  const active = legalDocs.filter(doc => doc.status !== 'inactive');
-  if (active.some(doc => doc.document_type === 'access_agreement')) {
-    return dmas.some(doc => doc.status !== 'inactive')
+  if (legalDocs.some(doc => doc.document_type === 'access_agreement')) {
+    return dmas.length > 0
       ? { route: 'dma', message: '' }
       : { route: null, message: `${names.developmentShort} fees are payable under the ${names.development}. Link the ${names.developmentShort} before calculating this fee.` };
   }
-  const equipment = active.some(doc => doc.document_type === 'equipment_only_agreement');
-  const single = active.some(doc => doc.document_type === 'single_task_agreement');
-  if (equipment && single) return { route: null, message: 'Both alternative agreement types are linked. Confirm the applicable agreement and mark the other inactive before calculating fees.' };
+  const equipment = legalDocs.some(doc => doc.document_type === 'equipment_only_agreement');
+  const single = legalDocs.some(doc => doc.document_type === 'single_task_agreement');
+  if (equipment && single) return { route: null, message: 'Both alternative agreement types are linked. Confirm the applicable agreement and remove the incorrect agreement type before calculating fees.' };
   if (equipment || single) return { route: equipment ? 'equipment_only' : 'single_task', message: '' };
   return { route: null, message: `No ${names.access} is linked. Add an Equipment-only Agreement or Single-task Agreement in Documents to determine the fee bands.` };
 }
