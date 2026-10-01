@@ -8,9 +8,16 @@ export function valuationTotals(record, previousCertified = 0) {
   const gross = sum(items, i => Number(i.previous || 0) + Number(i.completed || 0) + Number(i.materials || 0));
   const variations = sum(items, i => i.variations);
   const contract = sum(items, i => i.contract_value);
-  const current = Math.max(0, gross - previousCertified);
-  const retention = current * Number(record.retention_percent || 0) / 100;
+  const retentionPct = Number(record.retention_percent || 0);
+  const retention = sum(items, i => {
+    const itemGross = Number(i.previous || 0) + Number(i.completed || 0) + Number(i.materials || 0);
+    const cat = i.retention_category || 'full';
+    const rate = cat === 'none' ? 0 : cat === 'half' ? retentionPct / 2 : retentionPct;
+    return itemGross * rate / 100;
+  });
   const deductions = sum(record.deductions, d => d.amount);
-  return { gross, variations, contract, revised: contract + variations, current, retention, deductions, due: current - retention - deductions };
+  const current = Math.max(0, gross - previousCertified);
+  const due = Math.max(0, gross - retention - deductions - previousCertified);
+  return { gross, variations, contract, revised: contract + variations, current, retention, deductions, due };
 }
 export function StatusPill({ status }) { return <span className={`inline-flex rounded-full px-2.5 py-1 text-xs font-semibold ${STATUS_STYLE[status] || STATUS_STYLE.draft}`}>{STATUSES[status] || status}</span>; }

@@ -33,6 +33,10 @@
     "company_number": {
       "type": "string"
     },
+    "company_logo_uri": {
+      "type": "string",
+      "description": "Private file URI for the company logo (used in valuation PDF exports)"
+    },
     "department": {
       "type": "string"
     },

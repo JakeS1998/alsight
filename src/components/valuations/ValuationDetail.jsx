@@ -6,6 +6,7 @@ import ValuationSchedule from './ValuationSchedule';
 import ValuationDeductions from './ValuationDeductions';
 import ValuationActions from './ValuationActions';
 import ValuationEvidence from './ValuationEvidence';
+import ValuationExport from './ValuationExport';
 import ValuationActivity from './ValuationActivity';
 
 export default function ValuationDetail({ project, initial, valuations, user, onAction, onBack, managerName, contractorName, meta }) {
@@ -41,6 +42,7 @@ export default function ValuationDetail({ project, initial, valuations, user, on
     <ValuationDeductions value={value} onChange={change} editable={editable} canAdjust={role === 'admin'} />
     <div className="rounded-2xl border border-als-navy-light bg-card p-5 text-lg font-semibold text-als-navy">Amount due this valuation: {formatCurrency(totals.due)}{hasOver && <p className="text-sm text-orange-700">One or more items exceed their revised value.</p>}</div>
     <ValuationEvidence value={value} editable={editable} onAction={run} />
+    <ValuationExport value={value} />
     <ValuationActions key={value.id} value={value} role={role} editable={editable} onAction={run} busy={busy} previousCertified={previousCertified} />
     {saved && editable && <p role="status" className="text-sm text-emerald-700">Draft saved. You can return to it later from the valuation register.</p>}
     <ValuationActivity value={value} onAction={run} busy={busy} />

@@ -197,7 +197,7 @@ export default async function(req: Request): Promise<Response> {
       if (!['draft', 'returned'].includes(record.status)) return response('This valuation is locked');
       const items = input.items;
       if (!Array.isArray(items) || items.length > 100) return response('Too many schedule items');
-      const cleanItems = items.map((item, index) => ({ number: index + 1, description: str(item.description, 250), contract_value: money(item.contract_value), variations: money(item.variations), previous: money(item.previous), completed: money(item.completed), materials: money(item.materials) }));
+      const cleanItems = items.map((item, index) => ({ number: index + 1, description: str(item.description, 250), contract_value: money(item.contract_value), variations: money(item.variations), previous: money(item.previous), completed: money(item.completed), materials: money(item.materials), retention_category: ['full','half','none'].includes(item.retention_category) ? item.retention_category : 'full' }));
       if (cleanItems.some(i => [i.contract_value, i.variations, i.previous, i.completed, i.materials].some(n => !Number.isFinite(n) || n < 0))) return response('Schedule amounts must be valid and non-negative');
       const deductions = input.deductions;
       if (!Array.isArray(deductions) || deductions.length > 30) return response('Too many deductions');
@@ -230,7 +230,8 @@ export default async function(req: Request): Promise<Response> {
         const priorCertified = Math.max(0, ...previous.filter(v => v.id !== record.id && v.number < record.number && ['approved', 'paid'].includes(v.status)).map(v => money(v.approved_gross)));
         const current = Math.max(0, money(gross - priorCertified));
         const approvedGross = input.approved_gross == null ? money(gross) : money(input.approved_gross);
-        const retention = input.approved_retention == null ? money(Math.max(0, approvedGross - priorCertified) * money(record.retention_percent) / 100) : money(input.approved_retention);
+        const retentionPct = money(record.retention_percent);
+        const retention = input.approved_retention == null ? money((record.items || []).reduce((total, item) => { const itemGross = money(item.previous) + money(item.completed) + money(item.materials); const cat = item.retention_category || 'full'; const rate = cat === 'none' ? 0 : cat === 'half' ? retentionPct / 2 : retentionPct; return total + itemGross * rate / 100; }, 0)) : money(input.approved_retention);
         const deductions = input.approved_deductions == null ? money((record.deductions || []).reduce((sum, d) => sum + money(d.amount), 0)) : money(input.approved_deductions);
         if ([retention, deductions, approvedGross].some(n => !Number.isFinite(n) || n < 0) || approvedGross > gross || retention + deductions > approvedGross - priorCertified) return response('Approved figures must be valid and cannot exceed the submitted valuation');
         changes = { status: 'approved', reviewer_name: actor, review_comments: comment, approved_at: now, approved_by: actor, approved_gross: approvedGross, approved_retention: retention, approved_deductions: deductions, approved_net: money(approvedGross - priorCertified - retention - deductions), payment_status: 'awaiting_invoice' };
