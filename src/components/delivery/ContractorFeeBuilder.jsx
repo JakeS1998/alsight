@@ -1,6 +1,4 @@
 import React from 'react';
-import { Plus } from 'lucide-react';
-import { Button } from '@/components/ui/button';
 import ContractorFeeImport from '@/components/delivery/ContractorFeeImport';
 import ContractorFeeTable from '@/components/delivery/ContractorFeeTable';
 import { groupContractorFees, flattenContractorRows, CONTRACTOR_STAGES, contractorFeeId } from '@/components/delivery/contractorFeeRows';
@@ -14,14 +12,9 @@ export default function ContractorFeeBuilder({ projectId, fees, onChange }) {
     ? { ...row, amounts: { ...row.amounts, [field]: value } } : { ...row, [field]: value }));
   return <div className="space-y-3">
     <ContractorFeeImport projectId={projectId} onImport={imported => commit(groupContractorFees([...list, ...imported]))} />
-    <div className="flex flex-wrap gap-2">
-      <Button type="button" variant="outline" size="sm" onClick={() => add('survey')}><Plus className="h-4 w-4" /> Add survey</Button>
-      <Button type="button" variant="outline" size="sm" onClick={() => add('consultant')}><Plus className="h-4 w-4" /> Add consultant</Button>
-      <Button type="button" variant="outline" size="sm" onClick={() => add('authorised_activity')}><Plus className="h-4 w-4" /> Add authorised activity</Button>
-    </div>
     {!rows.length && <p className="text-xs text-muted-foreground">Add surveys and consultants with fees across RIBA 1–4, or authorised activities with one RIBA 5–7 fee.</p>}
-    <ContractorFeeTable title="Surveys & investigations" rows={rows.filter(row => row.type === 'survey')} update={update} remove={remove} />
-    <ContractorFeeTable title="Consultants" rows={rows.filter(row => row.type === 'consultant')} update={update} remove={remove} />
-    <ContractorFeeTable title="Authorised activities" rows={rows.filter(row => row.type === 'authorised_activity')} activity update={update} remove={remove} />
+    <ContractorFeeTable title="Surveys & investigations" rows={rows.filter(row => row.type === 'survey')} update={update} remove={remove} addLabel="Add survey" onAdd={() => add('survey')} />
+    <ContractorFeeTable title="Consultants" rows={rows.filter(row => row.type === 'consultant')} update={update} remove={remove} addLabel="Add consultant" onAdd={() => add('consultant')} />
+    <ContractorFeeTable title="Authorised activities" rows={rows.filter(row => row.type === 'authorised_activity')} activity update={update} remove={remove} addLabel="Add authorised activity" onAdd={() => add('authorised_activity')} />
   </div>;
 }

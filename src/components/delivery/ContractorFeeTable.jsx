@@ -1,14 +1,17 @@
 import React from 'react';
-import { Trash2 } from 'lucide-react';
+import { Plus, Trash2 } from 'lucide-react';
+import { Button } from '@/components/ui/button';
 import { formatCurrency } from '@/lib/portal';
 import { CONTRACTOR_STAGES, CONTRACTOR_LABELS } from '@/components/delivery/contractorFeeRows';
 const inputClass = 'h-8 w-full rounded border border-input bg-background px-2 text-xs focus:outline-none focus:ring-2 focus:ring-primary/20';
-export default function ContractorFeeTable({ title, rows, activity, update, remove }) {
-  if (!rows.length) return null;
+export default function ContractorFeeTable({ title, rows, activity, update, remove, addLabel, onAdd }) {
   const stages = activity ? ['riba_5_7'] : CONTRACTOR_STAGES.slice(0, 4);
   return <section className="space-y-1">
-    <h5 className="text-xs font-semibold text-muted-foreground">{title} (£)</h5>
-    <div className="overflow-x-auto rounded-lg border border-border"><table className="w-full min-w-[720px] text-xs">
+    <div className="flex flex-wrap items-center justify-between gap-2">
+      <h5 className="text-xs font-semibold text-muted-foreground">{title} (£)</h5>
+      <Button type="button" variant="outline" size="sm" onClick={onAdd}><Plus className="h-4 w-4" />{addLabel}</Button>
+    </div>
+    {rows.length > 0 && <div className="overflow-x-auto rounded-lg border border-border"><table className="w-full min-w-[720px] text-xs">
       <thead className="bg-muted text-left text-muted-foreground"><tr>
         <th className="w-1/3 p-2">Description</th><th className="p-2">Supplier (optional)</th>
         {stages.map(stage => <th key={stage} className="w-24 p-2">{CONTRACTOR_LABELS[stage]}</th>)}<th className="w-8 p-2" />
@@ -23,6 +26,6 @@ export default function ContractorFeeTable({ title, rows, activity, update, remo
        <td colSpan={2} className="p-2">{title} total</td>
        {stages.map(stage => <td key={stage} className="p-2 text-right">{formatCurrency(rows.reduce((sum, row) => sum + (Number(row.amounts[stage]) || 0), 0))}</td>)}<td />
       </tr></tfoot>
-      </table></div>
+      </table></div>}
   </section>;
 }
