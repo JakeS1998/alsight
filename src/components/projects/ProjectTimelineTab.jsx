@@ -1,13 +1,13 @@
 import React, { useEffect, useState, useMemo } from "react";
+import { base44 } from '@/api/base44Client';
 import { loadProjectPOs, isLegacyProject } from '@/components/projects/poLinking';
-import StageDrawing from '@/components/projects/StageDrawing';
 import agreementNames from '@/components/projects/agreementNames';
 import frameworkAgreementRoute from '@/components/delivery/frameworkAgreementRoute';
 import { projectCompletionDates } from '@/components/projects/projectCompletionDates';
 import ProjectEmptyState from '@/components/projects/ProjectEmptyState';
 import { legalDocumentName, dmaName, jctName, warrantyName } from "@/components/documents/documentNames";
 import {
-  Building2, FileText, FileCheck, Gavel, ShieldCheck, Receipt, Calendar,
+  Building2, FileText, FileCheck, Gavel, ShieldCheck, Receipt, Calendar, PoundSterling,
 } from "lucide-react";
 
 const CATEGORIES = {
@@ -17,9 +17,10 @@ const CATEGORIES = {
   jct: { label: "JCT", icon: Gavel, dot: "bg-purple-500", chip: "bg-purple-50 text-purple-700 border-purple-200" },
   warranty: { label: "Warranty", icon: ShieldCheck, dot: "bg-teal-500", chip: "bg-teal-50 text-teal-700 border-teal-200" },
   po: { label: "Purchase Order", icon: Receipt, dot: "bg-amber-500", chip: "bg-amber-50 text-amber-700 border-amber-200" },
+  valuation: { label: "Valuation", icon: PoundSterling, dot: "bg-emerald-500", chip: "bg-emerald-50 text-emerald-700 border-emerald-200" },
 };
 
-function buildEvents(project, legalDocs, dmas, jcts, warranties, pos, accountMap, supplierOnly) {
+function buildEvents(project, legalDocs, dmas, jcts, warranties, pos, valuations, accountMap, supplierOnly) {
   const ev = [];
   const add = (date, label, cat, detail) => {
     if (!date) return;
@@ -85,6 +86,15 @@ function buildEvents(project, legalDocs, dmas, jcts, warranties, pos, accountMap
     add(p.sent_date, `${id} sent`, "po", `${p.supplier_company_number || ''}${refs}`);
   });
 
+  valuations.forEach((v) => {
+    const id = `Valuation ${v.number}`;
+    const statusLabel = v.status && v.status !== 'draft' ? ` (${v.status.replace('_', ' ')})` : '';
+    add(v.valuation_date, `${id} dated`, "valuation");
+    add(v.submitted_at, `${id} submitted`, "valuation");
+    add(v.approved_at, `${id} approved`, "valuation", v.approved_net != null ? `Net £${Number(v.approved_net).toLocaleString()}` : statusLabel);
+    add(v.payment_date, `${id} paid`, "valuation", v.amount_paid != null ? `£${Number(v.amount_paid).toLocaleString()}` : '');
+  });
+
   return ev.sort((a, b) => b.ts - a.ts); // newest first
 }
 
@@ -105,6 +115,7 @@ function DateLabel({ date }) {
 export function ProjectTimelineTab({ project, legalDocs, dmas, jcts, warranties, accountMap, supplierOnly = false, supplierCompanyNumber, supplierOrders = null }) {
   const categories = supplierOnly ? Object.entries(CATEGORIES).filter(([key]) => ['legal', 'jct', 'warranty', 'po'].includes(key)) : Object.entries(CATEGORIES);
   const [pos, setPos] = useState([]);
+  const [valuations, setValuations] = useState([]);
   const [loading, setLoading] = useState(true);
   const [active, setActive] = useState(() => Object.keys(CATEGORIES));
   const [sortOrder, setSortOrder] = useState("newest");
@@ -114,8 +125,12 @@ export function ProjectTimelineTab({ project, legalDocs, dmas, jcts, warranties,
       try {
         if (supplierOnly) { setPos(supplierOrders || []); return; }
         if (!project.project_number) return;
-        const data = await loadProjectPOs(project).catch(() => []);
-        setPos(data);
+        const [poData, valPage] = await Promise.all([
+          loadProjectPOs(project).catch(() => []),
+          base44.entities.Valuation.filter({ project_id: project.id, status: { $ne: 'draft' } }, { sort: 'number', limit: 100, fields: ['number', 'status', 'valuation_date', 'submitted_at', 'approved_at', 'approved_net', 'payment_date', 'amount_paid'] }).catch(() => ({ items: [] })),
+        ]);
+        setPos(poData);
+        setValuations(valPage.items || []);
       } finally {
         setLoading(false);
       }
@@ -123,8 +138,8 @@ export function ProjectTimelineTab({ project, legalDocs, dmas, jcts, warranties,
   }, [project.id, supplierOnly, supplierOrders]);
 
   const allEvents = useMemo(
-    () => buildEvents(project, legalDocs, dmas, jcts, warranties, pos, accountMap, supplierOnly),
-    [project, legalDocs, dmas, jcts, warranties, pos, accountMap, supplierOnly]
+    () => buildEvents(project, legalDocs, dmas, jcts, warranties, pos, valuations, accountMap, supplierOnly),
+    [project, legalDocs, dmas, jcts, warranties, pos, valuations, accountMap, supplierOnly]
   );
   const events = useMemo(
     () => allEvents.filter((e) => active.includes(e.cat)).sort((a, b) => sortOrder === "newest" ? b.ts - a.ts : a.ts - b.ts),
@@ -223,7 +238,7 @@ export function ProjectTimelineTab({ project, legalDocs, dmas, jcts, warranties,
                   <div className="flex-1 min-w-0 pt-1.5">
                     <div className="rounded-lg border border-slate-200 bg-slate-50/50 px-4 py-2.5">
                       <div className="flex flex-wrap items-center justify-between gap-2">
-                        <span className="inline-flex items-center gap-2">{(/^RIBA [1-4] — /.test(e.label)) && <StageDrawing stage={`RIBA ${e.label.match(/[1-4]/)[0]}`} className="h-10 w-10" />}<span className="text-sm font-semibold text-slate-900">{e.label}</span></span>
+                        <span className="inline-flex items-center gap-2"><span className="text-sm font-semibold text-slate-900">{e.label}</span></span>
                         <span className={`inline-flex items-center rounded-full border px-2 py-0.5 text-[10px] font-medium ${cat.chip}`}>
                           {e.cat === 'dma' ? agreementNames(project.project_number).developmentShort : cat.label}
                         </span>
