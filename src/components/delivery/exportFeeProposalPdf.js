@@ -43,7 +43,7 @@ export function exportFeeProposalPdf({ project, proposal, suppliers, poBySupplie
     doc.setFont("helvetica", "bold"); doc.setFontSize(10); doc.setTextColor(15, 23, 42);
     doc.text("Contractor build-up", x0, y); y += 14;
     doc.setFont("helvetica", "normal"); doc.setFontSize(9); doc.setTextColor(51, 65, 85);
-    doc.text(`Surveys (RIBA 1-4): ${money(contractorBuild.surveysBase)} + OHP ${contractorBuild.ohpSurveysPct}% = ${money(contractorBuild.surveysTotal)}`, x0, y); y += 13;
+    doc.text(`Surveys & consultants (RIBA 1-4): ${money(contractorBuild.surveysBase)} + OHP ${contractorBuild.ohpSurveysType === 'fixed' ? money(contractorBuild.surveysOhp) + ' fixed fee' : contractorBuild.ohpSurveysPct + '%'} = ${money(contractorBuild.surveysTotal)}`, x0, y); y += 13;
     doc.text(`RIBA 5-7 authorised activities: ${money(contractorBuild.riba57Base)} + OHP ${contractorBuild.ohpRiba57Pct}% = ${money(contractorBuild.riba57Total)}`, x0, y); y += 13;
     doc.setFont("helvetica", "bold"); doc.setTextColor(15, 23, 42);
     doc.text(`Contractor total (with OHP): ${money(contractorBuild.total)}`, x0, y); y += 20;

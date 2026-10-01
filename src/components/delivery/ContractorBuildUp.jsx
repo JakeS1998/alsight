@@ -2,8 +2,8 @@ import React from 'react';
 import { formatCurrency } from '@/lib/portal';
 import { contractorBuildUp } from './contractorBuildUp';
 
-export default function ContractorBuildUp({ deliveryTeam, ohpSurveysPct, ohpRiba57Pct, onOhpChange }) {
-  const build = contractorBuildUp(deliveryTeam, ohpSurveysPct, ohpRiba57Pct);
+export default function ContractorBuildUp({ deliveryTeam, ohpSurveysPct, ohpRiba57Pct, ohpSurveysType = 'percentage', ohpSurveysFixed = 0, onOhpTypeChange, onOhpFixedChange, onOhpChange }) {
+  const build = contractorBuildUp(deliveryTeam, ohpSurveysPct, ohpRiba57Pct, ohpSurveysType, ohpSurveysFixed);
   if (!build.hasContractor) {
     return <div className="rounded-lg border border-dashed border-slate-300 bg-slate-50 p-3 text-sm text-slate-500">No contractor in the Delivery Team. Add a contractor with fees per RIBA stage to build up their fee.</div>;
   }
@@ -13,15 +13,15 @@ export default function ContractorBuildUp({ deliveryTeam, ohpSurveysPct, ohpRiba
       <thead className="text-left text-xs text-slate-500"><tr>
         <th className="py-1.5 pr-2">Stage group</th>
         <th className="py-1.5 pr-2 text-right">Base</th>
-        <th className="py-1.5 pr-2 text-right">OHP %</th>
+        <th className="py-1.5 pr-2 text-right">OHP basis / value</th>
         <th className="py-1.5 pr-2 text-right">OHP £</th>
         <th className="py-1.5 pr-2 text-right">Total</th>
       </tr></thead>
       <tbody className="divide-y divide-slate-200">
         <tr>
-          <td className="py-1.5 pr-2 font-medium text-slate-700">Surveys (RIBA 1-4)</td>
+          <td className="py-1.5 pr-2 font-medium text-slate-700">Surveys & consultants (RIBA 1-4)</td>
           <td className="py-1.5 pr-2 text-right tabular-nums">{formatCurrency(build.surveysBase)}</td>
-          <td className="py-1.5 pr-2 text-right"><input type="number" min="0" step="0.1" value={ohpSurveysPct} onChange={e => onOhpChange('surveys', e.target.value)} className="h-8 w-20 rounded-lg border border-input bg-background px-2 text-right text-sm focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20" /></td>
+          <td className="py-1.5 pr-2 text-right"><div className="flex justify-end gap-2"><select aria-label="RIBA 1–4 OHP basis" value={ohpSurveysType} onChange={e => onOhpTypeChange(e.target.value)} className="h-8 rounded-lg border border-input bg-background px-2 text-sm"><option value="percentage">Percentage %</option><option value="fixed">Fixed fee £</option></select><input aria-label="RIBA 1–4 OHP value" type="number" min="0" step="0.01" value={ohpSurveysType === 'fixed' ? ohpSurveysFixed : ohpSurveysPct} onChange={e => ohpSurveysType === 'fixed' ? onOhpFixedChange(e.target.value) : onOhpChange('surveys', e.target.value)} className="h-8 w-24 rounded-lg border border-input bg-background px-2 text-right text-sm focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20" /></div></td>
           <td className="py-1.5 pr-2 text-right tabular-nums text-slate-600">{formatCurrency(build.surveysOhp)}</td>
           <td className="py-1.5 pr-2 text-right tabular-nums font-semibold text-slate-900">{formatCurrency(build.surveysTotal)}</td>
         </tr>

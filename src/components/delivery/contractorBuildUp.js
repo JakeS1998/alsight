@@ -7,7 +7,7 @@ export function contractorMembers(deliveryTeam) {
   return (deliveryTeam || []).filter(isContractorMember);
 }
 
-export function contractorBuildUp(deliveryTeam, ohpSurveysPct, ohpRiba57Pct) {
+export function contractorBuildUp(deliveryTeam, ohpSurveysPct, ohpRiba57Pct, ohpSurveysType = 'percentage', ohpSurveysFixed = 0) {
   const contractors = contractorMembers(deliveryTeam);
   let surveysBase = 0;
   let riba57Base = 0;
@@ -25,7 +25,7 @@ export function contractorBuildUp(deliveryTeam, ohpSurveysPct, ohpRiba57Pct) {
   });
   const ohpS = Number(ohpSurveysPct) || 0;
   const ohpR = Number(ohpRiba57Pct) || 0;
-  const surveysOhp = Math.round(surveysBase * ohpS) / 100;
+  const surveysOhp = ohpSurveysType === 'fixed' ? Math.round((Number(ohpSurveysFixed) || 0) * 100) / 100 : Math.round(surveysBase * ohpS) / 100;
   const riba57Ohp = Math.round(riba57Base * ohpR) / 100;
   const surveysTotal = surveysBase + surveysOhp;
   const riba57Total = riba57Base + riba57Ohp;
@@ -40,6 +40,7 @@ export function contractorBuildUp(deliveryTeam, ohpSurveysPct, ohpRiba57Pct) {
     rawTotal: surveysBase + riba57Base,
     ohpTotal: surveysOhp + riba57Ohp,
     total: surveysTotal + riba57Total,
+    ohpSurveysType,
     ohpSurveysPct: ohpS,
     ohpRiba57Pct: ohpR,
   };

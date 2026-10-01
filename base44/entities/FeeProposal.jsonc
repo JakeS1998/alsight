@@ -50,8 +50,22 @@
     },
     "ohp_surveys_pct": {
       "type": "number",
-      "description": "Contractor OHP % applied to surveys (RIBA 1-4)",
+      "description": "Contractor OHP % applied to surveys and consultants (RIBA 1-4)",
       "default": 0
+    },
+    "ohp_surveys_type": {
+      "type": "string",
+      "enum": [
+        "percentage",
+        "fixed"
+      ],
+      "default": "percentage"
+    },
+    "ohp_surveys_fixed": {
+      "type": "number",
+      "minimum": 0,
+      "default": 0,
+      "description": "Fixed OHP fee in GBP for surveys and consultants (RIBA 1-4)"
     },
     "ohp_riba57_pct": {
       "type": "number",

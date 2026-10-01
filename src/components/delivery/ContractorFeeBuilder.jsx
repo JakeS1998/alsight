@@ -11,6 +11,7 @@ export default function ContractorFeeBuilder({ fees, onChange }) {
   const list = Array.isArray(fees) ? fees : [];
 
   const addSurvey = () => onChange([...list, { id: newId(), type: 'survey', stage: 'riba_1', amount: '' }]);
+  const addConsultant = () => onChange([...list, { id: newId(), type: 'consultant', stage: 'riba_1', amount: '' }]);
   const addActivity = () => onChange([...list, { id: newId(), type: 'authorised_activity', stage: 'riba_5_7', amount: '' }]);
   const remove = (id) => onChange(list.filter((f) => f.id !== id));
   const update = (id, field, value) => onChange(list.map((f) => (f.id === id ? { ...f, [field]: value } : f)));
@@ -19,18 +20,19 @@ export default function ContractorFeeBuilder({ fees, onChange }) {
     <div className="space-y-2">
       <div className="flex flex-wrap gap-2">
         <Button type="button" variant="outline" size="sm" onClick={addSurvey}><Plus className="mr-1 h-4 w-4" /> Add survey</Button>
+        <Button type="button" variant="outline" size="sm" onClick={addConsultant}><Plus className="mr-1 h-4 w-4" /> Add consultant</Button>
         <Button type="button" variant="outline" size="sm" onClick={addActivity}><Plus className="mr-1 h-4 w-4" /> Add authorised activity</Button>
       </div>
       {list.length === 0 ? (
-        <p className="text-xs text-slate-500">Add surveys (RIBA 1-4) and authorised activities (RIBA 5-7) to build up the contractor fee.</p>
+        <p className="text-xs text-slate-500">Add surveys and consultants (RIBA 1-4), and authorised activities (RIBA 5-7) to build up the contractor fee.</p>
       ) : (
         <div className="space-y-2">
           {list.map((f) => (
             <div key={f.id} className="flex flex-wrap items-center gap-2 rounded-lg border border-slate-200 bg-slate-50 p-2">
               <span className={`rounded px-2 py-0.5 text-xs font-medium ${f.type === 'survey' ? 'bg-amber-100 text-amber-800' : 'bg-sky-100 text-sky-800'}`}>
-                {f.type === 'survey' ? 'Survey' : 'Authorised activity'}
+                {f.type === 'survey' ? 'Survey' : f.type === 'consultant' ? 'Consultant' : 'Authorised activity'}
               </span>
-              {f.type === 'survey' ? (
+              {f.type !== 'authorised_activity' ? (
                 <select value={f.stage} onChange={(e) => update(f.id, 'stage', e.target.value)} className="h-8 rounded border border-input bg-background px-2 text-sm focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20">
                   {SURVEY_STAGES.map((st) => <option key={st} value={st}>{STAGE_LABELS[st]}</option>)}
                 </select>

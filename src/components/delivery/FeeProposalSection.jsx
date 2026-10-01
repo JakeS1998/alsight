@@ -51,6 +51,8 @@ export function FeeProposalSection({ projectId, project, onChanged, deliveryTeam
   const [selectedId, setSelectedId] = useState(null);
   const [items, setItems] = useState([ALS_LINE]);
   const [ohpSurveysPct, setOhpSurveysPct] = useState(0);
+  const [ohpSurveysType, setOhpSurveysType] = useState('percentage');
+  const [ohpSurveysFixed, setOhpSurveysFixed] = useState(0);
   const [ohpRiba57Pct, setOhpRiba57Pct] = useState(0);
   const [loading, setLoading] = useState(true);
   const [savingBuilder, setSavingBuilder] = useState(false);
@@ -110,8 +112,10 @@ export function FeeProposalSection({ projectId, project, onChanged, deliveryTeam
         const parsed = parseItems(cur.line_items);
         setItems(parsed.length ? parsed : [ALS_LINE]);
         setOhpSurveysPct(Number(cur.ohp_surveys_pct) || 0);
+        setOhpSurveysType(cur.ohp_surveys_type || 'percentage');
+        setOhpSurveysFixed(Number(cur.ohp_surveys_fixed) || 0);
         setOhpRiba57Pct(Number(cur.ohp_riba57_pct) || 0);
-      } else { setSelectedId(null); setItems([ALS_LINE]); setOhpSurveysPct(0); setOhpRiba57Pct(0); }
+      } else { setSelectedId(null); setItems([ALS_LINE]); setOhpSurveysPct(0); setOhpRiba57Pct(0); setOhpSurveysType('percentage'); setOhpSurveysFixed(0); }
       onChanged?.(p);
     } finally { setLoading(false); }
   }, [projectId, project.project_number, onChanged]);
@@ -125,6 +129,8 @@ export function FeeProposalSection({ projectId, project, onChanged, deliveryTeam
     const parsed = parseItems(r?.line_items);
     setItems(parsed.length ? parsed : [ALS_LINE]);
     setOhpSurveysPct(Number(r?.ohp_surveys_pct) || 0);
+    setOhpSurveysType(r?.ohp_surveys_type || 'percentage');
+    setOhpSurveysFixed(Number(r?.ohp_surveys_fixed) || 0);
     setOhpRiba57Pct(Number(r?.ohp_riba57_pct) || 0);
   };
 
@@ -134,7 +140,7 @@ export function FeeProposalSection({ projectId, project, onChanged, deliveryTeam
     return m;
   }, [pos]);
 
-  const contractorBuild = useMemo(() => computeContractorBuildUp(deliveryTeam, ohpSurveysPct, ohpRiba57Pct), [deliveryTeam, ohpSurveysPct, ohpRiba57Pct]);
+  const contractorBuild = useMemo(() => computeContractorBuildUp(deliveryTeam, ohpSurveysPct, ohpRiba57Pct, ohpSurveysType, ohpSurveysFixed), [deliveryTeam, ohpSurveysPct, ohpRiba57Pct, ohpSurveysType, ohpSurveysFixed]);
   const totals = useMemo(() => feeProposalTotals(supplierLines, items, contractorBuild), [supplierLines, items, contractorBuild]);
 
   const supplierComparison = useMemo(() => {
@@ -159,6 +165,8 @@ export function FeeProposalSection({ projectId, project, onChanged, deliveryTeam
         fee_value: totals.alsFee,
         external_cost: totals.supplierFees,
         ohp_surveys_pct: Number(ohpSurveysPct) || 0,
+        ohp_surveys_type: ohpSurveysType,
+        ohp_surveys_fixed: Number(ohpSurveysFixed) || 0,
         ohp_riba57_pct: Number(ohpRiba57Pct) || 0,
       });
       load();
@@ -292,7 +300,7 @@ export function FeeProposalSection({ projectId, project, onChanged, deliveryTeam
             {/* Supplier fees (from delivery team) */}
             <SupplierFeeTable lines={supplierLines} getSupplierName={supplierName} />
 
-            <ContractorBuildUp deliveryTeam={deliveryTeam} ohpSurveysPct={ohpSurveysPct} ohpRiba57Pct={ohpRiba57Pct} onOhpChange={(group, value) => group === 'surveys' ? setOhpSurveysPct(value) : setOhpRiba57Pct(value)} />
+            <ContractorBuildUp deliveryTeam={deliveryTeam} ohpSurveysPct={ohpSurveysPct} ohpRiba57Pct={ohpRiba57Pct} ohpSurveysType={ohpSurveysType} ohpSurveysFixed={ohpSurveysFixed} onOhpTypeChange={setOhpSurveysType} onOhpFixedChange={setOhpSurveysFixed} onOhpChange={(group, value) => group === 'surveys' ? setOhpSurveysPct(value) : setOhpRiba57Pct(value)} />
 
             <FeeProposalLines items={items} stages={RIBA_STAGES} updateItem={updateItem} addItem={addItem} removeItem={removeItem} />
 
