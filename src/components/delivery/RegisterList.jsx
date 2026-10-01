@@ -178,7 +178,7 @@ export function RegisterList({ title, description, entityName, projectId, projec
             <FormGrid>
               {columns.map((col) => (
                 <div key={col.key} className={col.fullWidth ? "sm:col-span-2" : ""}>
-                  <FormField label={col.label} required={col.required}>{renderInput(col)}</FormField>
+                  <FormField label={col.label} required={col.required} help={col.help}>{renderInput(col)}</FormField>
                 </div>
               ))}
             </FormGrid>

@@ -48,12 +48,13 @@ const DECISION_COLS = [
   { key: "decision_maker", label: "Decision maker", type: "text" },
   { key: "decision", label: "Decision", type: "textarea", fullWidth: true },
   { key: "date_agreed", label: "Date agreed", type: "date" },
-  { key: "financial_impact", label: "Financial impact", type: "text" },
+  { key: "financial_impact", label: "Financial impact notes", type: "text" },
+  { key: "financial_adjustment", label: "Contract adjustment (£)", type: "number", step: "0.01", help: "Enter a positive addition, negative omission, or 0 for no cost change. Only Agreed decisions adjust the saved construction contract in Valuations; notes alone do not change totals." },
   { key: "programme_impact", label: "Programme impact", type: "text" },
   { key: "supporting_document", label: "Supporting document (link)", type: "text", fullWidth: true },
   { key: "status", label: "Status", type: "select", options: [{ value: "open", label: "Open" }, { value: "agreed", label: "Agreed" }] },
 ];
-const DECISION_TABLE = ["decision_title", "requested_by", "required_by", "date_agreed", "status"];
+const DECISION_TABLE = ["decision_title", "requested_by", "required_by", "date_agreed", "financial_adjustment", "status"];
 
 
 

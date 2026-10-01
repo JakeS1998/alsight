@@ -1,4 +1,4 @@
-import { createClientFromRequest } from 'npm:@base44/sdk@0.8.49';
+import { createClientFromRequest } from 'npm:@base44/sdk@0.8.52';
 
 const response = (message, status = 400) => Response.json({ error: message }, { status });
 const money = (n) => Math.round((Number(n) || 0) * 100) / 100;
@@ -158,10 +158,17 @@ export default async function(req: Request): Promise<Response> {
     const now = new Date().toISOString();
     const db = base44.asServiceRole.entities.Valuation;
     if (action === 'meta') {
-      const delivery = await base44.asServiceRole.entities.ProjectDelivery.filter({ project_id: projectId }, '-created_date', 1);
-      const manager = project.project_manager_id ? await base44.asServiceRole.entities.Contact.filter({ dataverse_id: project.project_manager_id }, '-created_date', 1) : [];
-      const contractor = project.contractor_contact_id ? await base44.asServiceRole.entities.Contact.filter({ dataverse_id: project.contractor_contact_id }, '-created_date', 1) : [];
-      return Response.json({ meta: { contract_sum: delivery[0]?.contract_sum ?? null, contract_start: delivery[0]?.contract_start || null, manager_name: manager[0]?.full_name || '', contractor_name: contractor[0]?.full_name || '' } });
+      const entities = base44.asServiceRole.entities;
+      const [deliveryPage, adjustments, manager, contractor] = await Promise.all([
+        entities.ProjectDelivery.filter({ project_id: projectId }, { sort: '-created_date', limit: 1, fields: ['contract_sum', 'contract_start'] }),
+        entities.ProjectDecision.aggregate({ query: { project_id: projectId, status: 'agreed' }, sum: 'financial_adjustment' }),
+        project.project_manager_id ? entities.Contact.filter({ dataverse_id: project.project_manager_id }, '-created_date', 1) : Promise.resolve([]),
+        project.contractor_contact_id ? entities.Contact.filter({ dataverse_id: project.contractor_contact_id }, '-created_date', 1) : Promise.resolve([]),
+      ]);
+      const delivery = deliveryPage.items[0];
+      const contractSum = delivery?.contract_sum == null ? null : money(delivery.contract_sum);
+      const approvedVariations = money(adjustments.rows[0]?.sum_financial_adjustment);
+      return Response.json({ meta: { contract_sum: contractSum, approved_variations: approvedVariations, revised_contract_sum: contractSum == null ? null : money(contractSum + approvedVariations), contract_start: delivery?.contract_start || null, manager_name: manager[0]?.full_name || '', contractor_name: contractor[0]?.full_name || '' } });
     }
     const event = (kind, previous = '', next = '') => ({ kind, actor, actor_id: user.id, organisation: isManager || isSupplierManager ? 'External Project Manager' : 'Alliance Leisure', at: now, previous, next });
     if (action === 'create') {

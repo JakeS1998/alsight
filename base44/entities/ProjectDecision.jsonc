@@ -41,6 +41,11 @@
     "financial_impact": {
       "type": "string"
     },
+    "financial_adjustment": {
+      "type": "number",
+      "default": 0,
+      "description": "Net contract adjustment in GBP: positive for additions, negative for omissions. Only agreed decisions affect valuation contract totals."
+    },
     "programme_impact": {
       "type": "string"
     },
