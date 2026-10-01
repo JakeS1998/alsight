@@ -37,7 +37,8 @@ export default function ContractorFeeBuilder({ fees, onChange }) {
               ) : (
                 <span className="text-xs text-slate-500">{STAGE_LABELS[f.stage] || 'RIBA 5-7'}</span>
               )}
-              <input type="text" value={f.supplier || ''} onChange={(e) => update(f.id, 'supplier', e.target.value)} placeholder="Supplier (optional)" className="h-8 min-w-[10rem] flex-1 rounded border border-input bg-background px-2 text-sm focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20" />
+              <input type="text" value={f.supplier || ''} onChange={(e) => update(f.id, 'supplier', e.target.value)} placeholder="Supplier (optional)" className="h-8 min-w-[10rem] rounded border border-input bg-background px-2 text-sm focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20" />
+              <input type="text" value={f.description || ''} onChange={(e) => update(f.id, 'description', e.target.value)} placeholder="Description (optional)" className="h-8 min-w-[12rem] flex-1 rounded border border-input bg-background px-2 text-sm focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20" />
               <span className="text-xs text-slate-400">£</span>
               <input type="number" value={f.amount} onChange={(e) => update(f.id, 'amount', e.target.value)} placeholder="0" className="h-8 w-32 rounded border border-input bg-background px-2 text-sm focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20" />
               <button type="button" onClick={() => remove(f.id)} className="ml-auto rounded p-1 text-slate-400 hover:bg-rose-50 hover:text-rose-600"><Trash2 className="h-4 w-4" /></button>
