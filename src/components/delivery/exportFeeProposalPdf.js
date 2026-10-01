@@ -18,7 +18,7 @@ export function exportFeeProposalPdf({ project, proposal, suppliers, poBySupplie
   doc.setTextColor(255, 255, 255); doc.setFont("helvetica", "bold"); doc.setFontSize(16);
   doc.text("ALSight", M, 34);
   doc.setFont("helvetica", "normal"); doc.setFontSize(11);
-  doc.text("Fee Proposal", W - M, 34, { align: "right" });
+  doc.text("Fees and Survey Summary", W - M, 34, { align: "right" });
 
   y = 84;
   doc.setTextColor(15, 23, 42); doc.setFont("helvetica", "bold"); doc.setFontSize(13);
@@ -50,7 +50,8 @@ export function exportFeeProposalPdf({ project, proposal, suppliers, poBySupplie
   }
   if (y + 28 > H - 55) { doc.addPage(); y = 60; }
   doc.setFont("helvetica", "bold"); doc.setFontSize(10); doc.setTextColor(15, 23, 42);
-  doc.text(`Total proposed fees: ${money(totals.proposedFees)}`, x0, y);
+  doc.setFillColor(255, 245, 157); doc.rect(x0, y - 14, W - 2 * M, 24, 'F');
+  doc.text(`PROJECT FEE TOTAL: ${money(totals.proposedFees)}`, x0 + 7, y);
   const clientPageCount = doc.getNumberOfPages();
 
   if (includeInternal) {

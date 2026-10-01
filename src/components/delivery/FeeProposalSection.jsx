@@ -75,6 +75,8 @@ export function FeeProposalSection({ projectId, project, onChanged, deliveryTeam
             role: m.role || "Supplier",
             description: `${m.role || "Supplier"}${m.supplier_company_number ? " — " + supplierName(m.supplier_company_number) : ""}${supName ? " · " + supName : ""}${f.description ? " — " + f.description : ""}`,
             supplier_company_number: f.supplier || m.supplier_company_number || "",
+            fee_category: f.type,
+            item_description: f.description || "",
             supplier_fee: Number(f.amount) || 0,
             fee_proposal_link: m.fee_proposal_link || "",
           });

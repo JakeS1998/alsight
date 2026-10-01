@@ -1,19 +1,12 @@
 import { isClientFeeLine } from '@/components/delivery/feeProposalTotals';
+import proposalSupplierGroups from '@/components/delivery/proposalSupplierGroups';
 
 const STAGES = ['RIBA 1', 'RIBA 2', 'RIBA 3', 'RIBA 4', 'RIBA 5-7'];
 
 export function drawFeeMatrix(doc, { supplierLines, alsLines, supplierName, money, x, startY, width, height, mode = 'client' }) {
   const widths = [width - 550, 78, 78, 78, 78, 78, 70, 90];
-  const headers = ['Supplier / role', ...STAGES, 'Other', 'Total'];
-  const supplierRows = new Map();
-  supplierLines.forEach(line => {
-    const role = line.role || line.description?.split(' — ')[0] || 'Supplier';
-    const name = supplierName(line.supplier_company_number);
-    const key = `${line.supplier_company_number || name}\u0000${role}`;
-    if (!supplierRows.has(key)) supplierRows.set(key, { name, role, amounts: Array(6).fill(0) });
-    const stage = STAGES.indexOf(line.riba_stage);
-    supplierRows.get(key).amounts[stage < 0 ? 5 : stage] += Number(line.supplier_fee) || 0;
-  });
+  const headers = ['Project element / consultant', ...STAGES, 'Other', 'Total'];
+  const supplierGroups = proposalSupplierGroups(supplierLines, supplierName);
   const alsRows = new Map();
   alsLines.filter(line => mode === 'internal' || isClientFeeLine(line)).forEach(line => {
     const stage = STAGES.indexOf(line.riba_stage);
@@ -59,8 +52,11 @@ export function drawFeeMatrix(doc, { supplierLines, alsLines, supplierName, mone
     return totals.reduce((sum, amount) => sum + amount, 0);
   };
   if (mode === 'client') {
-    section('Proposed supplier fees', [...supplierRows.values()], 'Total supplier fees');
-    section('ALS & additional fees', [...alsRows.values()], 'Total ALS & additional fees');
+    section('Consultants / professional services', supplierGroups.consultant, 'SUB-TOTAL PROFESSIONAL SERVICES');
+    section('Surveys & investigations', supplierGroups.survey, 'SUB-TOTAL SURVEYS & INVESTIGATIONS');
+    if (supplierGroups.authorised_activity.length) section('Contractor authorised activities (RIBA 5-7)', supplierGroups.authorised_activity, 'SUB-TOTAL AUTHORISED ACTIVITIES');
+    if (supplierGroups.delivery.length) section('Delivery services', supplierGroups.delivery, 'SUB-TOTAL DELIVERY SERVICES');
+    section('ALS & additional fees', [...alsRows.values()], 'SUB-TOTAL ALS & ADDITIONAL FEES');
   } else {
     section('ALS & internal fee breakdown', [...alsRows.values()], 'Total recorded fees');
   }
