@@ -22,6 +22,7 @@ import { ProjectWarrantiesTab } from "@/components/projects/ProjectWarrantiesTab
 import { ProjectFinanceTab } from "@/components/projects/ProjectFinanceTab";
 import { ProjectTimelineTab } from "@/components/projects/ProjectTimelineTab";
 import { ProjectDeliveryTab } from "@/components/delivery/ProjectDeliveryTab";
+import ProjectPathwayAbout from '@/components/delivery/ProjectPathwayAbout';
 import { ArrowLeft, FileText, ShieldCheck, LayoutDashboard, Receipt, Calendar, ClipboardList, ListChecks } from "lucide-react";
 
 export default function ProjectDetail() {
@@ -148,6 +149,7 @@ export default function ProjectDetail() {
         </TabsContent>}
         {!isExternalPM && !isSupplier && <TabsContent value="delivery" className="mt-6">
           <ProjectDeliveryTab project={project} legalDocs={legalDocs} dmas={dmas} jcts={jcts} warranties={warranties} accountMap={accountMap} />
+          <ProjectPathwayAbout />
         </TabsContent>}
         {canSeeValuations && <TabsContent value="valuations" className="mt-6"><ProjectValuationsTab project={project} /></TabsContent>}
         {INTERNAL_ROLES.includes(user?.role) && project.procurement_route !== false && <TabsContent value="uklf" className="mt-6"><UKLFProjectTab projectId={project.id} startEditing={editUKLFKpis} onEditDone={() => setEditUKLFKpis(false)} /></TabsContent>}
