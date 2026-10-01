@@ -12,6 +12,10 @@ import { feeProposalTotals } from "./feeProposalTotals";
 import { additionalFeeTotal } from '@/components/delivery/additionalFeeStages';
 import SupplierFeeTable from '@/components/delivery/SupplierFeeTable';
 import FeePdfOptionsDialog from '@/components/delivery/FeePdfOptionsDialog';
+import { useAuth } from '@/lib/AuthContext';
+import useSupplierFsf from '@/components/delivery/useSupplierFsf';
+import SupplierFsfSummary from '@/components/delivery/SupplierFsfSummary';
+import { supplierFsfTotals } from '@/components/delivery/supplierFsf';
 import FeeProposalLines from '@/components/delivery/FeeProposalLines';
 import ContractorBuildUp from '@/components/delivery/ContractorBuildUp';
 import { contractorBuildUp as computeContractorBuildUp } from '@/components/delivery/contractorBuildUp';
@@ -61,6 +65,9 @@ export function FeeProposalSection({ projectId, project, onChanged, deliveryTeam
   const [exporting, setExporting] = useState(null);
   const [exportError, setExportError] = useState('');
   const [exportKind, setExportKind] = useState(null);
+  const [saveError, setSaveError] = useState('');
+  const { user } = useAuth();
+  const fsf = useSupplierFsf(user, selectedId, projectId);
 
   const [headerOpen, setHeaderOpen] = useState(false);
   const [editing, setEditing] = useState(null);
@@ -149,6 +156,7 @@ export function FeeProposalSection({ projectId, project, onChanged, deliveryTeam
 
   const contractorBuild = useMemo(() => computeContractorBuildUp(deliveryTeam, ohpSurveysPct, ohpRiba57Pct, ohpSurveysType, ohpSurveysFixed), [deliveryTeam, ohpSurveysPct, ohpRiba57Pct, ohpSurveysType, ohpSurveysFixed]);
   const totals = useMemo(() => feeProposalTotals(supplierLines, items, contractorBuild), [supplierLines, items, contractorBuild]);
+  const fsfTotals = fsf.allowed ? supplierFsfTotals(supplierLines, fsf.rates) : null;
 
   const supplierComparison = useMemo(() => {
     const bySup = {};
@@ -169,8 +177,9 @@ export function FeeProposalSection({ projectId, project, onChanged, deliveryTeam
 
   const saveBuilder = async () => {
     if (!selectedId) return;
-    setSavingBuilder(true);
+    setSavingBuilder(true); setSaveError('');
     try {
+      if (fsf.allowed) await fsf.save();
       await base44.entities.FeeProposal.update(selectedId, {
         line_items: JSON.stringify(normalizeFeeItems(items)),
         fee_value: totals.alsFee,
@@ -181,7 +190,8 @@ export function FeeProposalSection({ projectId, project, onChanged, deliveryTeam
         ohp_riba57_pct: Number(ohpRiba57Pct) || 0,
       });
       load();
-    } finally { setSavingBuilder(false); }
+    } catch (error) { setSaveError(error.message || 'Unable to save the builder. Please try again.'); }
+    finally { setSavingBuilder(false); }
   };
 
   const openAdd = () => {
@@ -232,7 +242,7 @@ export function FeeProposalSection({ projectId, project, onChanged, deliveryTeam
   const removeProposal = async (id) => { await base44.entities.FeeProposal.delete(id); load(); };
 
   const doExport = async (includeInternal = false, includeRiba57 = true) => {
-    if (!selected) return;
+    if (!selected || (includeInternal && !fsf.allowed)) return;
     setExportKind(null);
     setExporting(includeInternal ? 'internal' : 'client'); setExportError('');
     try {
@@ -240,6 +250,7 @@ export function FeeProposalSection({ projectId, project, onChanged, deliveryTeam
         project,
         proposal: { ...selected, line_items: JSON.stringify(items), fee_value: totals.alsFee, external_cost: totals.supplierFees },
         suppliers, poBySupplier, supplierLines, contractorBuild, includeInternal, includeRiba57,
+        fsfRates: includeInternal && fsf.allowed ? fsf.rates : undefined,
       });
     } catch (error) { setExportError(error.message || 'Unable to export the proposal. Please try again.'); }
     finally { setExporting(null); }
@@ -295,14 +306,15 @@ export function FeeProposalSection({ projectId, project, onChanged, deliveryTeam
               <h4 className="text-sm font-semibold text-slate-900">Fee Proposal Builder · R{selected.revision_number || 1}</h4>
               <div className="flex items-center gap-2">
                 <Button type="button" variant="outline" size="sm" disabled={!!exporting} onClick={() => setExportKind('client')}>{exporting === 'client' ? <Loader2 className="h-4 w-4 animate-spin" /> : <FileDown className="mr-1.5 h-4 w-4" />} Client PDF</Button>
-                <Button type="button" variant="outline" size="sm" disabled={!!exporting} onClick={() => setExportKind('internal')}>{exporting === 'internal' ? <Loader2 className="h-4 w-4 animate-spin" /> : <FileDown className="mr-1.5 h-4 w-4" />} Internal PDF</Button>
-                <Button type="button" size="sm" onClick={saveBuilder} disabled={savingBuilder} className="bg-primary hover:bg-primary/90">
+                {fsf.allowed && <Button type="button" variant="outline" size="sm" disabled={!!exporting || fsf.loading || !!fsf.error} onClick={() => setExportKind('internal')}>{exporting === 'internal' ? <Loader2 className="h-4 w-4 animate-spin" /> : <FileDown className="mr-1.5 h-4 w-4" />} Internal PDF</Button>}
+                <Button type="button" size="sm" onClick={saveBuilder} disabled={savingBuilder || fsf.loading || !!fsf.error} className="bg-primary hover:bg-primary/90">
                   {savingBuilder && <Loader2 className="mr-1.5 h-4 w-4 animate-spin" />} Save builder
                 </Button>
               </div>
             </div>
 
             {exportError && <p role="alert" className="text-sm text-destructive">{exportError}</p>}
+            {saveError && <p role="alert" className="text-sm text-destructive">{saveError}</p>}
             <div className="grid gap-3 rounded-lg bg-primary/5 p-3 sm:grid-cols-4">
               <Stat label="ALS fee (recorded profit)" value={formatCurrency(totals.alsFee)} />
               <Stat label="Supplier fees" value={formatCurrency(totals.supplierFees)} />
@@ -311,7 +323,8 @@ export function FeeProposalSection({ projectId, project, onChanged, deliveryTeam
             </div>
 
             {/* Supplier fees (from delivery team) */}
-            <SupplierFeeTable lines={supplierLines} getSupplierName={supplierName} />
+            <SupplierFeeTable lines={supplierLines} getSupplierName={supplierName} fsf={fsf.allowed ? fsf : undefined} />
+            {fsf.allowed && <SupplierFsfSummary alsFee={totals.alsFee} fsfTotal={fsfTotals.total} loading={fsf.loading} error={fsf.error} onSave={fsf.save} />}
 
             <ContractorBuildUp deliveryTeam={deliveryTeam} ohpSurveysPct={ohpSurveysPct} ohpRiba57Pct={ohpRiba57Pct} ohpSurveysType={ohpSurveysType} ohpSurveysFixed={ohpSurveysFixed} onOhpTypeChange={setOhpSurveysType} onOhpFixedChange={setOhpSurveysFixed} onOhpChange={(group, value) => group === 'surveys' ? setOhpSurveysPct(value) : setOhpRiba57Pct(value)} />
 

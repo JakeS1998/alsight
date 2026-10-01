@@ -5,11 +5,15 @@ import { feeProposalTotals } from "./feeProposalTotals";
 import { FEE_BRAND, loadFeeProposalLogo, drawFeeProposalBrand } from '@/components/delivery/feeProposalBrand';
 import { drawFeeProposalSummary } from '@/components/delivery/drawFeeProposalSummary';
 import feePdfScope from '@/components/delivery/feePdfScope';
+import { base44 } from '@/api/base44Client';
+import { isAlsStaff } from '@/components/delivery/supplierFsf';
+import drawSupplierFsf from '@/components/delivery/drawSupplierFsf';
 
 const parseItems = (s) => { try { return JSON.parse(s) || []; } catch { return []; } };
 const money = (n) => (n == null || n === "" ? "—" : `£${Number(n).toLocaleString("en-GB", { minimumFractionDigits: 0, maximumFractionDigits: 0 })}`);
 
-export async function exportFeeProposalPdf({ project, proposal, suppliers, poBySupplier, supplierLines, contractorBuild, includeInternal = false, includeRiba57 = true }) {
+export async function exportFeeProposalPdf({ project, proposal, suppliers, poBySupplier, supplierLines, contractorBuild, includeInternal = false, includeRiba57 = true, fsfRates }) {
+  if (includeInternal && !isAlsStaff(await base44.auth.me())) throw new Error('Internal PDFs are available to ALS staff only.');
   const logo = await loadFeeProposalLogo();
   const doc = new jsPDF({ unit: "pt", format: "a4", orientation: "landscape" });
   const W = doc.internal.pageSize.getWidth();
@@ -75,6 +79,8 @@ export async function exportFeeProposalPdf({ project, proposal, suppliers, poByS
     doc.text(`ALS fee (recorded profit): ${money(totals.alsFee)}`, x0, y); y += 16;
     doc.text(`Supplier fees: ${money(totals.supplierFees)}     Client proposal total: ${money(totals.proposedFees)}`, x0, y); y += 16;
     doc.text(`ALS fee as % of proposed fees: ${totals.alsFeePct == null ? '—' : `${totals.alsFeePct}%`}`, x0, y); y += 24;
+
+  if (fsfRates) y = drawSupplierFsf(doc, { lines: supplierLines, rates: fsfRates, alsFee: totals.alsFee, supplierName, money, x: x0, startY: y, height: H });
 
   // Supplier vs PO comparison
   if (y + 35 > H - 55) { doc.addPage(); y = 84; }
