@@ -18,7 +18,8 @@ import SupplierFsfSummary from '@/components/delivery/SupplierFsfSummary';
 import { supplierFsfTotals } from '@/components/delivery/supplierFsf';
 import FeeProposalLines from '@/components/delivery/FeeProposalLines';
 import ContractorBuildUp from '@/components/delivery/ContractorBuildUp';
-import { contractorBuildUp as computeContractorBuildUp } from '@/components/delivery/contractorBuildUp';
+import { contractorBuildUp as computeContractorBuildUp, isContractorMember } from '@/components/delivery/contractorBuildUp';
+import { contractorFsfKey, contractorFsfRows } from '@/components/delivery/contractorFsf';
 
 const BASIS = [
   { value: "fixed", label: "Fixed" },
@@ -87,6 +88,7 @@ export function FeeProposalSection({ projectId, project, onChanged, deliveryTeam
             role: m.role || "Supplier",
             description: `${m.role || "Supplier"}${m.supplier_company_number ? " — " + supplierName(m.supplier_company_number) : ""}${supName ? " · " + supName : ""}${f.description ? " — " + f.description : ""}`,
             supplier_company_number: f.supplier || m.supplier_company_number || "",
+            fsf_supplier_key: !f.supplier || f.supplier === m.supplier_company_number ? contractorFsfKey(m) : undefined,
             fee_category: f.type,
             item_description: f.description || "",
             supplier_fee: Number(f.amount) || 0,
@@ -101,6 +103,7 @@ export function FeeProposalSection({ projectId, project, onChanged, deliveryTeam
             role: m.role || "Supplier",
             description: `${m.role || "Supplier"}${m.supplier_company_number ? " — " + supplierName(m.supplier_company_number) : ""}`,
             supplier_company_number: m.supplier_company_number || "",
+            fsf_supplier_key: isContractorMember(m) ? contractorFsfKey(m) : undefined,
             supplier_fee: fee,
             fee_proposal_link: m.fee_proposal_link || "",
           });
@@ -156,7 +159,8 @@ export function FeeProposalSection({ projectId, project, onChanged, deliveryTeam
 
   const contractorBuild = useMemo(() => computeContractorBuildUp(deliveryTeam, ohpSurveysPct, ohpRiba57Pct, ohpSurveysType, ohpSurveysFixed), [deliveryTeam, ohpSurveysPct, ohpRiba57Pct, ohpSurveysType, ohpSurveysFixed]);
   const totals = useMemo(() => feeProposalTotals(supplierLines, items, contractorBuild), [supplierLines, items, contractorBuild]);
-  const fsfTotals = fsf.allowed ? supplierFsfTotals(supplierLines, fsf.rates) : null;
+  const fsfContractors = useMemo(() => contractorFsfRows(deliveryTeam, contractorBuild), [deliveryTeam, contractorBuild]);
+  const fsfTotals = fsf.allowed ? supplierFsfTotals(supplierLines, fsf.rates, fsfContractors) : null;
 
   const supplierComparison = useMemo(() => {
     const bySup = {};
@@ -251,6 +255,7 @@ export function FeeProposalSection({ projectId, project, onChanged, deliveryTeam
         proposal: { ...selected, line_items: JSON.stringify(items), fee_value: totals.alsFee, external_cost: totals.supplierFees },
         suppliers, poBySupplier, supplierLines, contractorBuild, includeInternal, includeRiba57,
         fsfRates: includeInternal && fsf.allowed ? fsf.rates : undefined,
+        fsfContractors: includeInternal && fsf.allowed ? fsfContractors : undefined,
       });
     } catch (error) { setExportError(error.message || 'Unable to export the proposal. Please try again.'); }
     finally { setExporting(null); }
@@ -323,7 +328,7 @@ export function FeeProposalSection({ projectId, project, onChanged, deliveryTeam
             </div>
 
             {/* Supplier fees (from delivery team) */}
-            <SupplierFeeTable lines={supplierLines} getSupplierName={supplierName} fsf={fsf.allowed ? fsf : undefined} />
+            <SupplierFeeTable lines={supplierLines} getSupplierName={supplierName} fsf={fsf.allowed ? fsf : undefined} contractors={fsf.allowed ? fsfContractors : undefined} />
             {fsf.allowed && <SupplierFsfSummary alsFee={totals.alsFee} fsfTotal={fsfTotals.total} loading={fsf.loading} error={fsf.error} onSave={fsf.save} />}
 
             <ContractorBuildUp deliveryTeam={deliveryTeam} ohpSurveysPct={ohpSurveysPct} ohpRiba57Pct={ohpRiba57Pct} ohpSurveysType={ohpSurveysType} ohpSurveysFixed={ohpSurveysFixed} onOhpTypeChange={setOhpSurveysType} onOhpFixedChange={setOhpSurveysFixed} onOhpChange={(group, value) => group === 'surveys' ? setOhpSurveysPct(value) : setOhpRiba57Pct(value)} />
