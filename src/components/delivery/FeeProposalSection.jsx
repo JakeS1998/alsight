@@ -241,7 +241,7 @@ export function FeeProposalSection({ projectId, project, onChanged, deliveryTeam
   };
 
   return (
-    <FormSection title={singleTask ? 'Single-task fee proposal' : '2 · Fee Proposal'} completed={(rows.find(row => row.is_current) || rows[0])?.status === 'accepted'} description="Supplier fees are pulled from the Delivery Team; add the ALS Delivery fee and any other optional lines">
+    <FormSection title={singleTask ? 'Single-task fee proposal' : '02 · Fee'} completed={(rows.find(row => row.is_current) || rows[0])?.status === 'accepted'} description="Supplier fees are pulled from the Delivery Team; add the ALS Delivery fee and any other optional lines">
       <div className="space-y-5">
         {React.Children.map(children, child => React.isValidElement(child) ? React.cloneElement(child, { legacyContractorOhp: { surveysPct: ohpSurveysPct, riba57Pct: ohpRiba57Pct, surveysType: ohpSurveysType, surveysFixed: ohpSurveysFixed } }) : child)}
         <div className="flex items-center justify-between">

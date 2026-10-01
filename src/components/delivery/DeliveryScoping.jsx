@@ -9,7 +9,7 @@ import { formatCurrency } from "@/lib/portal";
 
 export function DeliveryScoping({ project, accountMap, bdmName, delivery, setField, onSave, saving }) {
   return (
-    <FormSection title="1 · Opportunity & Scoping" description="Existing project info is shown read-only; supplementary scoping fields are editable">
+    <FormSection title="01 · Scope" description="Existing project info is shown read-only; supplementary scoping fields are editable">
       <div className="space-y-5">
         <div className="grid gap-3 rounded-lg bg-slate-50 p-3 sm:grid-cols-2 lg:grid-cols-4">
           <ReadOnly icon={<Building2 className="h-3.5 w-3.5" />} label="Client / authority" value={accountMap[project.client_account_id]?.name || project.client_name || "—"} />

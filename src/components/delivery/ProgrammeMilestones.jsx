@@ -11,7 +11,7 @@ export function ProgrammeMilestones({ project, feeProposals, jcts, delivery }) {
   const milestones = useMemo(() => programmeMilestones(project, feeProposals, jcts, delivery), [project, feeProposals, jcts, delivery?.pc_achieved, delivery?.client_handover]);
 
   return (
-    <FormSection title="5 · Programme" completed={milestones.every(milestone => milestone.done ?? !!milestone.date)} description="High-level milestone programme built from your existing RIBA and contract dates">
+    <FormSection title="05 · Programme" completed={milestones.every(milestone => milestone.done ?? !!milestone.date)} description="High-level milestone programme built from your existing RIBA and contract dates">
       <div className="flex flex-wrap items-stretch gap-2">
         {milestones.map((m, i) => {
           const done = m.done ?? !!m.date;

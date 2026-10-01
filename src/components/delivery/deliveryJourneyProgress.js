@@ -4,16 +4,16 @@ import agreementNames from '@/components/projects/agreementNames';
 import { programmeMilestones } from '@/components/delivery/programmeMilestones';
 import contractorAppointment, { savedDeliveryTeam } from '@/components/delivery/contractorAppointment';
 export const JOURNEY_STAGES = [
-  { id: 1, label: 'Opportunity & Scoping', short: 'Scoping' },
-  { id: 2, label: 'Fee Proposal', short: 'Fees' },
-  { id: 3, label: 'Pre-Construction', short: 'Readiness' },
-  { id: 4, label: 'Design & Consultant Team', short: 'Design' },
+  { id: 1, label: 'Scope', short: 'Scope' },
+  { id: 2, label: 'Fee', short: 'Fee' },
+  { id: 3, label: 'Prepare', short: 'Prepare' },
+  { id: 4, label: 'Design', short: 'Design' },
   { id: 5, label: 'Programme', short: 'Programme' },
-  { id: 6, label: 'Action Register', short: 'Actions', showProgress: false },
-  { id: 7, label: 'Decision Register', short: 'Decisions', showProgress: false },
-  { id: 8, label: 'Project Risk Register', short: 'Risks' },
-  { id: 9, label: 'Construction', short: 'Construction' },
-  { id: 10, label: 'Practical Completion & Close-out', short: 'Close-out' },
+  { id: 6, label: 'Act', short: 'Act', showProgress: false },
+  { id: 7, label: 'Decide', short: 'Decide', showProgress: false },
+  { id: 8, label: 'De-risk', short: 'De-risk' },
+  { id: 9, label: 'Build', short: 'Build' },
+  { id: 10, label: 'Handover', short: 'Handover' },
 ];
 const percent = checks => Math.round(checks.filter(Boolean).length / checks.length * 100);
 const APPTS = ['appointment_pm', 'appointment_pd_cdm', 'appointment_pd_br'];

@@ -9,7 +9,7 @@ const LAD = ["None", "Low", "Medium", "High"];
 
 export function DeliveryConstruction({ delivery, setField, onSave, saving }) {
   return (
-    <FormSection title="9 · Construction" description="Client-side headline information once the project reaches site">
+    <FormSection title="09 · Build" description="Client-side headline information once the project reaches site">
       <div className="space-y-4">
         <FormGrid>
           <FormField label="Contract sum (£)"><input type="number" value={delivery.contract_sum ?? ""} onChange={(e) => setField("contract_sum", e.target.value)} className={formInputClass} /></FormField>

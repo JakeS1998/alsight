@@ -47,7 +47,7 @@ export function PreConstructionReadiness({ project, legalDocs, dmas, jcts, warra
   const pct = Math.round((doneCount / items.length) * 100);
 
   return (
-    <FormSection title="3 · Pre-Construction" completed={doneCount === items.length} description="Consolidated readiness view pulled from your existing legal, finance and delivery records">
+    <FormSection title="03 · Prepare" completed={doneCount === items.length} description="Consolidated readiness view pulled from your existing legal, finance and delivery records">
       <div className="space-y-5">
         <div className="flex items-center gap-4">
           <div className="relative h-16 w-16 shrink-0">

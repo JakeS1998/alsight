@@ -19,7 +19,7 @@ export default function ProjectRiskRegister({ project, delivery, accountMap }) {
   const total = useQuery({ queryKey: key, queryFn: () => base44.entities.ProjectRisk.aggregate({ query: { project_id: project.id, owner: 'Client', status: 'open' }, sum: 'weighted_cost' }) });
   const refresh = () => client.invalidateQueries({ queryKey: key });
   useEffect(() => base44.entities.ProjectRisk.subscribe(refresh), [project.id, user?.id, user?.role]);
-  return <FormSection title="8 · Project risk register">
+  return <FormSection title="08 · De-risk">
     <div><p className="text-sm text-muted-foreground">{project.name} · {projectStage(project)}</p><p className="mt-2 text-xs text-muted-foreground">Client: {project.client_name || accountMap[project.client_account_id]?.name || 'Not recorded'} · Contractor: {delivery.contractor || 'Not recorded'}</p></div>
     <RiskRegisterGuidance />
     <RiskHeatLegend />

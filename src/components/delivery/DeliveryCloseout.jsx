@@ -19,7 +19,7 @@ const RETENTION = ["0%", "2.5%", "3%", "5%", "Other"];
 
 export function DeliveryCloseout({ delivery, setField, onSave, saving, children }) {
   return (
-    <FormSection title="10 · Practical Completion & Close-out" description="Finish the lifecycle properly — PC, final account, handover and lessons learned">
+    <FormSection title="10 · Handover" description="Finish the lifecycle properly — PC, final account, handover and lessons learned">
       <div className="space-y-4">
         <FormGrid>
           <FormField label="PC achieved"><input type="date" value={delivery.pc_achieved ? String(delivery.pc_achieved).slice(0, 10) : ""} onChange={(e) => setField("pc_achieved", e.target.value)} className={formInputClass} /></FormField>
