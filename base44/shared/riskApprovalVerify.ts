@@ -1,4 +1,5 @@
 import { fail, hash, isStale, riskMetadata, loadSnapshot, packetPublic } from './riskApprovalData.ts';
+import { riskApprovalVerificationMessage } from './riskApprovalVerificationMessage.ts';
 export async function recipientAction(base44, user, packet, input) {
   const db = base44.asServiceRole.entities;
   const step = packet.steps[packet.current_index];
@@ -13,7 +14,7 @@ export async function recipientAction(base44, user, packet, input) {
     const now = new Date(); const challengeId = crypto.randomUUID();
     const challenge = await db.RiskApprovalChallenge.create({ packet_id: packet.id, user_id: user.id, step_index: packet.current_index, code_hash: await hash(`${challengeId}:${code}`), session_hash: challengeId, sent_at: now.toISOString(), expires_at: new Date(now.getTime() + 600000).toISOString(), attempts: 0, used: false });
     try {
-      await base44.asServiceRole.integrations.Core.SendEmail({ to: step.email, subject: `ALSight verification code — ${packet.reference}`, text: `Your risk-register verification code is ${code}. It expires in 10 minutes. This code verifies your review of ${packet.reference} for ${packet.project_name}; it is not a portal login code. Do not share it.`, from_name: 'ALSight' });
+      await base44.asServiceRole.integrations.Core.SendEmail({ to: step.email, from_name: 'ALSight', ...riskApprovalVerificationMessage(packet, code) });
     } catch (error) { await db.RiskApprovalChallenge.update(challenge.id, { used: true }); throw error; }
     return { challenge_id: challenge.id };
   }
