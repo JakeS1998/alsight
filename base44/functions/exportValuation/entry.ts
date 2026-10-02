@@ -27,7 +27,7 @@ export default async function(req: Request): Promise<Response> {
     if (valuation.status === 'draft' && (valuation.draft_owner_id || valuation.audit?.find((e: any) => e.kind === 'Created')?.actor_id) !== user.id) return response('Valuation not available', 404);
     const db = base44.asServiceRole.entities;
     const [deliveryPage, adjustments, manager, contractor, clientAccount, previous] = await Promise.all([
-      db.ProjectDelivery.filter({ project_id: projectId }, { sort: '-created_date', limit: 1, fields: ['contract_sum', 'contract_start', 'contractor'] }),
+      db.ProjectDelivery.filter({ project_id: projectId }, { sort: '-created_date', limit: 1, fields: ['contract_sum', 'contract_start', 'contractor', 'delivery_team'] }),
       db.ProjectDecision.aggregate({ query: { project_id: projectId, status: 'agreed' }, sum: 'financial_adjustment' }),
       project.project_manager_id ? db.Contact.filter({ dataverse_id: project.project_manager_id }, { sort: '-created_date', limit: 1 }) : Promise.resolve({ items: [] }),
       project.contractor_contact_id ? db.Contact.filter({ dataverse_id: project.contractor_contact_id }, { sort: '-created_date', limit: 1 }) : Promise.resolve({ items: [] }),
@@ -35,6 +35,10 @@ export default async function(req: Request): Promise<Response> {
       db.Valuation.filter({ project_id: projectId }, { sort: '-number', limit: 500 }),
     ]);
     const delivery = deliveryPage.items[0], pm = manager.items[0], con = contractor.items[0], emp = clientAccount.items[0];
+    const team = JSON.parse(delivery?.delivery_team || '[]');
+    const contractorMember = team.find((member: any) => String(member.role || '').toLowerCase() === 'contractor' && member.supplier_company_number);
+    const companyNumber = contractorMember?.supplier_company_number || con?.company_number;
+    const contractorAccount = companyNumber ? (await db.Account.filter({ company_number: companyNumber }, { limit: 1 })).items[0] : null;
     const retentionPct = money(valuation.retention_percent);
     const items = (valuation.items || []).map((item: any) => {
       const gross = money(item.previous) + money(item.completed) + money(item.materials);
@@ -62,7 +66,7 @@ export default async function(req: Request): Promise<Response> {
       documentType, status: valuation.status,
       projectName: project.name || '', projectNumber: project.project_number || '', siteAddress: project.site_postcode || '',
       employer: { name: emp?.name || project.client_name || 'Alliance Leisure Services Limited', address: fmtAddr(emp) || '2430/2440 The Quadrant, Aztec West, Bristol, BS32 4AQ' },
-      contractor: { name: con?.company_name || con?.full_name || delivery?.contractor || '', address: fmtAddr(con) },
+      contractor: { name: contractorAccount?.name || contractorAccount?.company_name || con?.company_name || delivery?.contractor || 'Not recorded', address: fmtAddr(contractorAccount) || fmtAddr(con) },
       preparedBy: { name: pm?.company_name || pm?.full_name || '', address: fmtAddr(pm) },
       valuationNumber: valuation.number, contractDate: delivery?.contract_start || '',
       periodStart: valuation.period_start || '', periodEnd: valuation.period_end || '', valuationDate: valuation.valuation_date || '',
