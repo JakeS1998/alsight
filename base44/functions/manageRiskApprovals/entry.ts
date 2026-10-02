@@ -2,12 +2,13 @@ import { createClientFromRequest } from 'npm:@base44/sdk@0.8.52';
 import { approvalSummary, canIssue, fail, packetPublic, loadSnapshot } from '../../shared/riskApprovalData.ts';
 import { issueRiskApproval } from '../../shared/riskApprovalIssue.ts';
 import { recipientAction } from '../../shared/riskApprovalVerify.ts';
+import { addRiskRecipient } from '../../shared/riskApprovalRecipients.ts';
 export default async function(req) {
   try {
     const base44 = createClientFromRequest(req); const user = await base44.auth.me();
     if (!user || !(await base44.auth.isAuthenticated())) return Response.json({ error: 'Please sign in with your registered portal account.' }, { status: 401 });
     const input = await req.json(); const db = base44.asServiceRole.entities;
-    if (!['status','recipients','issue','review','send_code','verify','accept','reject','withdraw','retry','history','snapshot'].includes(input.action)) fail('Unknown approval action.');
+    if (!['status','recipients','issue','review','send_code','verify','accept','reject','withdraw','retry','history','snapshot','add_recipient'].includes(input.action)) fail('Unknown approval action.');
     if (['status','recipients','issue','history'].includes(input.action)) {
       if (typeof input.project_id !== 'string' || !/^[a-zA-Z0-9_-]{1,100}$/.test(input.project_id)) fail('Choose a project.');
       const project = await base44.entities.Project.get(input.project_id);
@@ -35,10 +36,11 @@ export default async function(req) {
     if (typeof input.packet_id !== 'string' || !/^[a-zA-Z0-9_-]{1,100}$/.test(input.packet_id)) fail('Choose an issued register.');
     const packet = await db.RiskApprovalPacket.get(input.packet_id);
     if (!packet) fail('Approval issue not found.', 404);
-    if (['withdraw','retry','snapshot'].includes(input.action)) {
+    if (['withdraw','retry','snapshot','add_recipient'].includes(input.action)) {
       const project = await base44.entities.Project.get(packet.project_id);
       if (!project || !canIssue(user, project)) fail('You cannot manage this approval issue.', 403);
       if (input.action === 'snapshot') return Response.json({ snapshot: await loadSnapshot(base44, packet) });
+      if (input.action === 'add_recipient') return Response.json(await addRiskRecipient(db, packet, input));
       if (packet.status !== 'active') fail('This issue is no longer active.', 409);
       if (input.action === 'withdraw') {
         await db.RiskApprovalPacket.updateMany({ id: packet.id, status: 'active', current_index: packet.current_index }, { $set: { status: 'withdrawn', withdrawn_by: user.full_name || user.email, withdrawn_at: new Date().toISOString() } });

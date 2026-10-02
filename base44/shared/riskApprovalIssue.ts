@@ -1,8 +1,11 @@
 import { canIssue, fail, hash, parties, riskMetadata, packetPublic } from './riskApprovalData.ts';
+import { registeredRiskRecipient } from './riskApprovalRecipients.ts';
 export async function issueRiskApproval(base44, user, project, input) {
   if (!canIssue(user, project)) fail('Only the assigned BDM, an administrator or a director can issue this register.', 403);
   const db = base44.asServiceRole.entities;
-  if (!Array.isArray(input.steps) || input.steps.length !== 4 || new Set(input.steps.map(step => step.party)).size !== 4 || input.steps.some(step => !parties.includes(step.party) || typeof step.user_id !== 'string' || !/^[a-zA-Z0-9_-]{1,100}$/.test(step.user_id)) || new Set(input.steps.map(step => step.user_id)).size !== 4) fail('Choose four distinct registered recipients, one for each party.');
+  if (!Array.isArray(input.steps) || input.steps.length !== 4 || input.steps.some(step => !step || !parties.includes(step.party) || (step.user_id !== '' && (typeof step.user_id !== 'string' || !/^[a-zA-Z0-9_-]{1,100}$/.test(step.user_id)))) || new Set(input.steps.map(step => step.party)).size !== 4 || !input.steps[0].user_id) fail('Choose the first recipient; the other parties can be added later.');
+  const selected = input.steps.filter(step => step.user_id);
+  if (new Set(selected.map(step => step.user_id)).size !== selected.length) fail('Choose a different registered recipient for each selected party.');
   const { records } = await db.RiskApprovalLock.upsert([{ project_id: project.id }], { key: 'project_id' });
   const lock = records[0]; const token = crypto.randomUUID(); const now = new Date().toISOString();
   const claimed = await db.RiskApprovalLock.updateMany({ id: lock.id, lease_until: { $lt: now } }, { $set: { lease_token: token, lease_until: new Date(Date.now() + 120000).toISOString() } });
@@ -11,9 +14,8 @@ export async function issueRiskApproval(base44, user, project, input) {
   if (await db.RiskApprovalPacket.count({ project_id: project.id, status: 'active' })) fail('Withdraw the active issue before issuing a new version.', 409);
   const steps = [];
   for (const step of input.steps) {
-    const recipient = await db.User.get(step.user_id);
-    if (!recipient?.email || recipient.email.toLowerCase() === 'jakesavage31@gmail.com') fail('Choose a visible registered portal recipient.');
-    steps.push({ party: step.party, user_id: recipient.id, email: recipient.email, name: recipient.full_name || recipient.email, status: 'waiting' });
+    const recipient = step.user_id ? await registeredRiskRecipient(db, step.user_id) : { user_id: '', email: '', name: '' };
+    steps.push({ party: step.party, ...recipient, status: 'waiting' });
   }
   const before = await riskMetadata(db, project.id);
   if (!before.count) fail('Add risks before issuing the register.');

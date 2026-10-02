@@ -10,6 +10,7 @@ export default async function(req) {
     if (!packet || packet.status !== 'active' || packet.notification_status !== 'pending') return Response.json({ skipped: true });
     if (isStale(packet, await riskMetadata(db, packet.project_id))) return Response.json({ skipped: true, reason: 'Register changed' });
     const step = packet.steps[packet.current_index];
+    if (!step?.user_id) return Response.json({ skipped: true, reason: 'Awaiting recipient assignment' });
     const recipient = await db.User.get(step.user_id);
     if (!recipient || recipient.email.toLowerCase() !== step.email.toLowerCase()) {
       await db.RiskApprovalPacket.update(packet.id, { notification_status: 'failed' });

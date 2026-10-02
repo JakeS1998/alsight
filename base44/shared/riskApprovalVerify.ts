@@ -37,7 +37,7 @@ export async function recipientAction(base44, user, packet, input) {
   if (input.action === 'reject' && !input.comment.trim()) fail('Provide a reason for declining.');
   const steps = packet.steps.map((entry, index) => index === packet.current_index ? { ...entry, status: input.action === 'accept' ? 'accepted' : 'rejected', decided_at: new Date().toISOString(), verification_method: 'email_otp', decision_id: crypto.randomUUID(), comment: input.comment.trim() } : entry);
   const next = input.action === 'accept' ? packet.current_index + 1 : packet.current_index;
-  const updated = await db.RiskApprovalPacket.updateMany({ id: packet.id, status: 'active', current_index: packet.current_index }, { $set: { steps, current_index: next, status: input.action === 'reject' ? 'rejected' : next === 4 ? 'completed' : 'active', notification_status: next < 4 && input.action === 'accept' ? 'sending' : 'pending' } });
+  const updated = await db.RiskApprovalPacket.updateMany({ id: packet.id, status: 'active', current_index: packet.current_index, steps: packet.steps }, { $set: { steps, current_index: next, status: input.action === 'reject' ? 'rejected' : next === 4 ? 'completed' : 'active', notification_status: next < 4 && input.action === 'accept' ? 'sending' : 'pending' } });
   if (!updated.updated) fail('A decision has already been recorded or the issue was withdrawn.', 409);
   // Single-record update emits the entity event; the compare-and-set above intentionally does not.
   if (next < 4 && input.action === 'accept') await db.RiskApprovalPacket.update(packet.id, { notification_status: 'pending' });
