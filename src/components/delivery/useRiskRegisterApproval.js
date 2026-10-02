@@ -7,7 +7,7 @@ export default function useRiskRegisterApproval(projectId) {
   const { user } = useAuth();
   const client = useQueryClient();
   const key = ['risk-register-approval', projectId, user?.id, user?.role];
-  const query = useQuery({ queryKey: key, staleTime: 30000, refetchInterval: query => query.state.data?.packet?.status === 'active' ? 30000 : false, queryFn: async () => (await base44.functions.invoke('manageRiskApprovals', { action: 'status', project_id: projectId })).data });
+  const query = useQuery({ queryKey: key, staleTime: 30000, refetchInterval: query => query.state.data?.packets?.some(packet => packet.status === 'active') ? 30000 : false, queryFn: async () => (await base44.functions.invoke('manageRiskApprovals', { action: 'status', project_id: projectId })).data });
   const refresh = () => client.invalidateQueries({ queryKey: key });
   useEffect(() => {
     const changed = event => { if (!event.data?.project_id || event.data.project_id === projectId) client.invalidateQueries({ queryKey: key }); };

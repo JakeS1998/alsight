@@ -3,15 +3,13 @@ import { registeredRiskRecipient } from './riskApprovalRecipients.ts';
 export async function issueRiskApproval(base44, user, project, input) {
   if (!canIssue(user, project)) fail('Only the assigned BDM, an administrator or a director can issue this register.', 403);
   const db = base44.asServiceRole.entities;
-  if (!Array.isArray(input.steps) || input.steps.length !== 4 || input.steps.some(step => !step || !parties.includes(step.party) || (step.user_id !== '' && (typeof step.user_id !== 'string' || !/^[a-zA-Z0-9_-]{1,100}$/.test(step.user_id)))) || new Set(input.steps.map(step => step.party)).size !== 4 || !input.steps[0].user_id) fail('Choose the first recipient; the other parties can be added later.');
-  const selected = input.steps.filter(step => step.user_id);
-  if (new Set(selected.map(step => step.user_id)).size !== selected.length) fail('Choose a different registered recipient for each selected party.');
+  if (!Array.isArray(input.steps) || input.steps.length !== 1 || !input.steps[0] || !parties.includes(input.steps[0].party) || typeof input.steps[0].user_id !== 'string' || !/^[a-zA-Z0-9_-]{1,100}$/.test(input.steps[0].user_id)) fail('Choose one party and one registered recipient for this invitation.');
   const { records } = await db.RiskApprovalLock.upsert([{ project_id: project.id }], { key: 'project_id' });
   const lock = records[0]; const token = crypto.randomUUID(); const now = new Date().toISOString();
   const claimed = await db.RiskApprovalLock.updateMany({ id: lock.id, lease_until: { $lt: now } }, { $set: { lease_token: token, lease_until: new Date(Date.now() + 120000).toISOString() } });
   if (!claimed.updated) fail('Another issue is being prepared. Please wait and refresh.', 409);
   try {
-  if (await db.RiskApprovalPacket.count({ project_id: project.id, status: 'active' })) fail('Withdraw the active issue before issuing a new version.', 409);
+  if (await db.RiskApprovalPacket.count({ project_id: project.id, status: 'active', steps: { $elemMatch: { party: input.steps[0].party, status: 'waiting' } } })) fail('This party already has an active invitation. Withdraw that invitation before reissuing.', 409);
   const steps = [];
   for (const step of input.steps) {
     const recipient = step.user_id ? await registeredRiskRecipient(db, step.user_id) : { user_id: '', email: '', name: '' };

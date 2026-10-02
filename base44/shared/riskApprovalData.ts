@@ -14,11 +14,20 @@ export async function riskMetadata(db, projectId) {
 export const isStale = (packet, meta) => packet.risk_count !== meta.count || (packet.risk_updated_at || '') !== meta.updated;
 export const packetPublic = packet => packet ? Object.fromEntries(['id','project_id','project_name','reference','issued_by_name','issued_at','status','current_index','snapshot_hash','risk_count','steps','notification_status','notification_at','withdrawn_by','withdrawn_at'].map(key => [key, packet[key]])) : null;
 export async function approvalSummary(db, projectId) {
-  const [page, meta] = await Promise.all([db.RiskApprovalPacket.filter({ project_id: projectId }, { sort: '-created_date', limit: 1 }), riskMetadata(db, projectId)]);
-  const packet = page.items[0]; const stale = packet ? isStale(packet, meta) : false;
-  const valid = packet && !stale && ['active', 'completed'].includes(packet.status);
-  const approvals = valid ? packet.steps.filter(step => step.status === 'accepted').map(step => ({ stakeholder: step.party, approved: true, approver_name: step.name, recorded_at: step.decided_at, verified: true })) : [];
-  return { count: meta.count, packet: packetPublic(packet), stale, approvals };
+  const [pages, meta] = await Promise.all([
+    Promise.all(parties.map(party => db.RiskApprovalPacket.filter({ project_id: projectId, 'steps.party': party }, { sort: '-created_date', limit: 1 }))),
+    riskMetadata(db, projectId),
+  ]);
+  const approvals = []; const packets = new Map();
+  pages.forEach((page, index) => {
+    const packet = page.items[0]; if (!packet) return;
+    const stale = isStale(packet, meta);
+    packets.set(packet.id, { ...packetPublic(packet), stale });
+    const step = packet.steps.find(entry => entry.party === parties[index]);
+    if (!stale && ['active','completed'].includes(packet.status) && step?.status === 'accepted') approvals.push({ stakeholder: step.party, approved: true, approver_name: step.name, recorded_at: step.decided_at, verified: true });
+  });
+  const current = Array.from(packets.values());
+  return { count: meta.count, packets: current, packet: current[0] || null, stale: current.some(packet => packet.stale), approvals };
 }
 export async function loadSnapshot(base44, packet) {
   const { signed_url } = await base44.asServiceRole.integrations.Core.CreateFileSignedUrl({ file_uri: packet.snapshot_uri, expires_in: 60 });

@@ -54,7 +54,7 @@ export default async function(req) {
     if (input.action === 'review') {
       const summary = await approvalSummary(db, packet.project_id);
       const accepted = packet.steps.some(step => step.user_id === user.id && step.status === 'accepted');
-      return Response.json({ packet: packetPublic(packet), stale: summary.packet?.id !== packet.id || summary.stale, is_current: packet.status === 'active' && packet.steps[packet.current_index]?.user_id === user.id, ...(accepted ? { snapshot: await loadSnapshot(base44, packet) } : {}) });
+      return Response.json({ packet: packetPublic(packet), stale: !summary.packets.some(current => current.id === packet.id && !current.stale), is_current: packet.status === 'active' && packet.steps[packet.current_index]?.user_id === user.id, ...(accepted ? { snapshot: await loadSnapshot(base44, packet) } : {}) });
     }
     return Response.json(await recipientAction(base44, user, packet, input));
   } catch (error) { console.error('Risk approval operation failed', error.message); return Response.json({ error: error.status ? error.message : 'Unable to process the approval. Please try again.' }, { status: error.status || 500 }); }

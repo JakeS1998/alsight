@@ -21,7 +21,7 @@ export default function RiskApprovalReview() {
     {flow.action.error && <p role="alert" className="text-sm text-destructive">{flow.action.error}</p>}
     {current && !stale && !flow.session && <RiskEmailVerification action={flow.action} challengeId={flow.challengeId} onSend={flow.send} onVerify={flow.verify} />}
     {(flow.snapshot || flow.query.data.snapshot) && <RiskIssuedSnapshot snapshot={flow.snapshot || flow.query.data.snapshot} />}
-    {current && !stale && flow.session && <RiskAcceptanceDecision reference={packet.reference} busy={flow.action.busy} onDecision={flow.decide} />}
+    {current && !stale && flow.session && <RiskAcceptanceDecision reference={packet.reference} busy={flow.action.busy} onDecision={flow.decide} sequential={packet.steps.length > 1} />}
     <p className="break-all text-xs text-muted-foreground">Version integrity reference: {packet.snapshot_hash}. This workflow records explicit acceptance; it is not a qualified electronic signature.</p>
   </main>;
 }
