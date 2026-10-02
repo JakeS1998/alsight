@@ -1,11 +1,13 @@
 import { createClientFromRequest } from 'npm:@base44/sdk@0.8.52';
 import { createRiskWorkbook } from '../../shared/riskWorkbook.ts';
 import { createRiskPdf } from '../../shared/riskPdf.ts';
+import { approvalSummary } from '../../shared/riskApprovalData.ts';
 export default async function(req: Request): Promise<Response> {
   try {
     const base44 = createClientFromRequest(req); const user = await base44.auth.me();
     if (!user) return Response.json({ error: 'Please sign in.' }, { status: 401 });
-    const { projectId, format } = await req.json();
+    const { projectId, format, certified = false } = await req.json();
+    if (typeof certified !== 'boolean') return Response.json({ error: 'Choose certified or non-certified.' }, { status: 400 });
     if (typeof projectId !== 'string' || !/^[a-zA-Z0-9_-]{1,100}$/.test(projectId) || !['pdf','xlsx'].includes(format)) return Response.json({ error: 'Choose PDF or Excel and a project.' }, { status: 400 });
     const project = await base44.entities.Project.get(projectId);
     if (!project) return Response.json({ error: 'Project not accessible.' }, { status: 403 });
@@ -15,8 +17,9 @@ export default async function(req: Request): Promise<Response> {
     rows.forEach(row => { if (row.probability_rating && row.impact_rating) { row.risk_index = row.probability_rating*row.impact_rating; row.weighted_cost = row.anticipated_cost == null ? null : Math.round(row.anticipated_cost*row.risk_index/25*100)/100; } });
     const context = { projectName: project.name, clientName: project.client_name || clients.items[0]?.name || 'Not recorded', contractor: delivery.items[0]?.contractor || 'Not recorded', date: new Date().toLocaleDateString('en-GB', { timeZone: 'Europe/London' }) };
     const contingency = totals.rows[0]?.sum_weighted_cost || 0;
-    const bytes = format === 'xlsx' ? await createRiskWorkbook(context, rows, contingency) : createRiskPdf(context, rows, contingency);
+    const approvals = format === 'pdf' && certified ? await approvalSummary(base44.asServiceRole.entities, projectId) : null;
+    const bytes = format === 'xlsx' ? await createRiskWorkbook(context, rows, contingency) : createRiskPdf(context, rows, contingency, approvals);
     let binary = ''; for (let i=0;i<bytes.length;i+=8192) binary += String.fromCharCode(...bytes.subarray(i,i+8192));
-    return Response.json({ content: btoa(binary), mime: format === 'pdf' ? 'application/pdf' : 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet', filename: `Risk-register-${String(project.project_number || project.name).replace(/[^a-zA-Z0-9_-]/g,'-').slice(0,80)}.${format}` });
+    return Response.json({ content: btoa(binary), mime: format === 'pdf' ? 'application/pdf' : 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet', filename: `Risk-register-${String(project.project_number || project.name).replace(/[^a-zA-Z0-9_-]/g,'-').slice(0,80)}${format === 'pdf' && certified ? '-certified' : ''}.${format}` });
   } catch (error) { console.error('Risk export failed',error); return Response.json({ error: 'Unable to export this risk register. Please try again.' }, { status: 500 }); }
 }
