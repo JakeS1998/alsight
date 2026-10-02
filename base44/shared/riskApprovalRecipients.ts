@@ -1,9 +1,11 @@
 import { fail, isStale, riskMetadata, packetPublic } from './riskApprovalData.ts';
+import { withPortalUserNames } from './portalUserNames.ts';
 export async function registeredRiskRecipient(db, userId) {
   if (typeof userId !== 'string' || !/^[a-zA-Z0-9_-]{1,100}$/.test(userId)) fail('Choose a registered recipient.');
   const recipient = await db.User.get(userId);
   if (!recipient?.email || recipient.email.toLowerCase() === 'jakesavage31@gmail.com') fail('Choose a visible registered portal recipient.');
-  return { user_id: recipient.id, email: recipient.email, name: recipient.full_name || recipient.email };
+  const [namedRecipient] = await withPortalUserNames(db, [recipient]);
+  return { user_id: recipient.id, email: recipient.email, name: namedRecipient.full_name || recipient.email };
 }
 export async function addRiskRecipient(db, packet, input) {
   if (packet.status !== 'active') fail('This issue is no longer active.', 409);

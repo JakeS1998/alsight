@@ -1,5 +1,6 @@
 import { canIssue, fail, hash, parties, riskMetadata, packetPublic } from './riskApprovalData.ts';
 import { registeredRiskRecipient } from './riskApprovalRecipients.ts';
+import { withPortalUserNames } from './portalUserNames.ts';
 export async function issueRiskApproval(base44, user, project, input) {
   if (!canIssue(user, project)) fail('Only the assigned BDM, an administrator or a director can issue this register.', 403);
   const db = base44.asServiceRole.entities;
@@ -27,13 +28,15 @@ export async function issueRiskApproval(base44, user, project, input) {
   if (before.count !== after.count || before.updated !== after.updated || rows.length !== before.count) fail('The register changed while preparing the issue. Please try again.', 409);
   const reference = `RR-${new Date().toISOString().slice(0, 10)}-${crypto.randomUUID().slice(0, 8)}`;
   const issuedAt = new Date().toISOString();
-  const text = JSON.stringify({ reference, projectName: project.name, issuedAt, issuedBy: user.full_name || user.email, rows });
+  const [namedIssuer] = await withPortalUserNames(db, [user]);
+  const issuerName = namedIssuer.full_name || user.email;
+  const text = JSON.stringify({ reference, projectName: project.name, issuedAt, issuedBy: issuerName, rows });
   if (new TextEncoder().encode(text).length > 2000000) fail('This register is too large to issue.');
   const snapshotHash = await hash(text);
   const { file_uri } = await base44.asServiceRole.integrations.Core.UploadPrivateFile({ file: new File([text], `${reference}.json`, { type: 'application/json' }) });
   const currentLock = await db.RiskApprovalLock.get(lock.id);
   if (currentLock.lease_token !== token || currentLock.lease_until < new Date().toISOString()) fail('Issue preparation expired. Please try again.', 409);
-  const packet = await db.RiskApprovalPacket.create({ project_id: project.id, project_name: project.name, reference, issued_at: issuedAt, issued_by_id: user.id, issued_by_name: user.full_name || user.email, status: 'active', current_index: 0, snapshot_uri: file_uri, snapshot_hash: snapshotHash, risk_count: before.count, risk_updated_at: before.updated, steps, notification_index: -1, notification_status: 'pending' });
+  const packet = await db.RiskApprovalPacket.create({ project_id: project.id, project_name: project.name, reference, issued_at: issuedAt, issued_by_id: user.id, issued_by_name: issuerName, status: 'active', current_index: 0, snapshot_uri: file_uri, snapshot_hash: snapshotHash, risk_count: before.count, risk_updated_at: before.updated, steps, notification_index: -1, notification_status: 'pending' });
   return { packet: packetPublic(packet) };
   } finally {
     await db.RiskApprovalLock.updateMany({ id: lock.id, lease_token: token }, { $set: { lease_until: '1970-01-01T00:00:00.000Z', lease_token: '' } });

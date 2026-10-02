@@ -3,6 +3,7 @@ import { approvalSummary, canIssue, fail, packetPublic, loadSnapshot } from '../
 import { issueRiskApproval } from '../../shared/riskApprovalIssue.ts';
 import { recipientAction } from '../../shared/riskApprovalVerify.ts';
 import { addRiskRecipient } from '../../shared/riskApprovalRecipients.ts';
+import { withPortalUserNames } from '../../shared/portalUserNames.ts';
 export default async function(req) {
   try {
     const base44 = createClientFromRequest(req); const user = await base44.auth.me();
@@ -29,7 +30,8 @@ export default async function(req) {
         if (typeof input.search !== 'string' || input.search.length < 2 || input.search.length > 100) return Response.json({ items: [] });
         const escaped = input.search.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
         const users = await db.User.filter({ $and: [{ email: { $ne: 'jakesavage31@gmail.com' } }, { $or: [{ full_name: { $regex: escaped, $options: 'i' } }, { email: { $regex: escaped, $options: 'i' } }] }] }, 'full_name', 20);
-        return Response.json({ items: users.map(person => ({ id: person.id, name: person.full_name || person.email, email: person.email })) });
+        const namedUsers = await withPortalUserNames(db, users);
+        return Response.json({ items: namedUsers.map(person => ({ id: person.id, name: person.full_name || person.email, email: person.email })) });
       }
       return Response.json(await issueRiskApproval(base44, user, project, input));
     }

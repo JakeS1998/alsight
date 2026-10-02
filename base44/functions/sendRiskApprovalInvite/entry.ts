@@ -1,6 +1,7 @@
 import { createClientFromRequest } from 'npm:@base44/sdk@0.8.52';
 import { isStale, riskMetadata, partyLabels } from '../../shared/riskApprovalData.ts';
 import { riskApprovalInvitationMessage } from '../../shared/riskApprovalInvitationMessage.ts';
+import { withPortalUserNames } from '../../shared/portalUserNames.ts';
 export default async function(req) {
   try {
     const base44 = createClientFromRequest(req); const user = await base44.auth.me();
@@ -21,7 +22,9 @@ export default async function(req) {
     if (!claim.updated) return Response.json({ skipped: true });
     try {
       const link = `https://alsight.base44.app/risk-approvals/${encodeURIComponent(packet.id)}`;
-      const message = riskApprovalInvitationMessage(packet, step, partyLabels[step.party], link);
+      const issuer = await db.User.get(packet.issued_by_id);
+      const [namedRecipient, namedIssuer] = await withPortalUserNames(db, [recipient, issuer]);
+      const message = riskApprovalInvitationMessage({ ...packet, issued_by_name: namedIssuer.full_name || packet.issued_by_name }, { ...step, name: namedRecipient.full_name || step.name }, partyLabels[step.party], link);
       await base44.asServiceRole.integrations.Core.SendEmail({ to: step.email, from_name: 'ALSight', ...message });
       await db.RiskApprovalPacket.updateMany({ id: packet.id, current_index: packet.current_index, notification_status: 'sending' }, { $set: { notification_status: 'sent', notification_index: packet.current_index, notification_at: new Date().toISOString() } });
       return Response.json({ sent: true });
