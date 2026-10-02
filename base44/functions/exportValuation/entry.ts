@@ -65,7 +65,8 @@ export default async function(req: Request): Promise<Response> {
     const data = {
       documentType, status: valuation.status,
       projectName: project.name || '', projectNumber: project.project_number || '', siteAddress: project.site_postcode || '',
-      employer: { name: emp?.name || project.client_name || 'Alliance Leisure Services Limited', address: fmtAddr(emp) || '2430/2440 The Quadrant, Aztec West, Bristol, BS32 4AQ' },
+      employer: { name: 'Alliance Leisure Services Limited', address: '2430/2440 The Quadrant, Aztec West, Bristol, BS32 4AQ' },
+      client: { name: emp?.name || project.client_name || 'Not recorded', address: fmtAddr(emp) },
       contractor: { name: contractorAccount?.name || contractorAccount?.company_name || con?.company_name || delivery?.contractor || 'Not recorded', address: fmtAddr(contractorAccount) || fmtAddr(con) },
       preparedBy: { name: pm?.company_name || pm?.full_name || '', address: fmtAddr(pm) },
       valuationNumber: valuation.number, contractDate: delivery?.contract_start || '',

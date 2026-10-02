@@ -89,6 +89,7 @@ function drawPaymentNotice(doc: jsPDF, data: any, logo: Uint8Array | null): void
   const leftEnd2 = metadataBlock(doc, y, 'EMPLOYER', [data.employer.name, data.employer.address], M, colW);
   const rightEnd2 = metadataBlock(doc, y, 'CONTRACTOR', [data.contractor.name, data.contractor.address], M + colW + 20, colW);
   y = Math.max(leftEnd2, rightEnd2) + 6;
+  y = metadataBlock(doc, y, 'CLIENT', [data.client.name, data.client.address], M, colW) + 6;
   const dates = [['CONTRACT DATE (LOI)', fmtDate(data.contractDate)], ['DUE DATE', fmtDate(data.paymentDueDate)], ['ISSUE DATE', fmtDate(data.valuationDate)], ['INSTALMENT NUMBER', String(data.valuationNumber)]];
   dates.forEach(([label, val]) => { doc.setFont('helvetica', 'bold'); doc.setFontSize(7); doc.setTextColor(100, 100, 110); doc.text(label, M, y); doc.setFont('helvetica', 'normal'); doc.setFontSize(9); doc.setTextColor(...BLACK); doc.text(val || '\u2014', M + 130, y); y += 14; });
   y += 8;
@@ -121,7 +122,7 @@ function drawInterimCertificate(doc: jsPDF, data: any, logo: Uint8Array | null):
   y = textLines(doc, `Interim Certificate ${data.valuationNumber}`, M, y, CW - 140, 18);
   y += 8; doc.setTextColor(...BLACK);
   doc.setFont('helvetica', 'normal'); doc.setFontSize(10);
-  const details = [['Employer', data.employer.name], ['Contractor', data.contractor.name], ['Location of the works', data.projectName], ['Date', fmtDate(data.valuationDate)]];
+  const details = [['Employer', data.employer.name], ['Client', data.client.name], ['Contractor', data.contractor.name], ['Location of the works', data.projectName], ['Date', fmtDate(data.valuationDate)]];
   details.forEach(([label, val]) => { doc.setFont('helvetica', 'bold'); doc.text(label + ':', M, y); doc.setFont('helvetica', 'normal'); y = textLines(doc, val || '\u2014', M + 140, y, CW - 140, 13) + 4; });
   y += 6;
   doc.setFont('helvetica', 'bold'); doc.text('Contract Sum:', M, y); doc.setFont('helvetica', 'normal'); doc.text(gbp(data.contractSum), PAGE_W - M, y, { align: 'right' });
