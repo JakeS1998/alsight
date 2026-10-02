@@ -1,5 +1,6 @@
 import { createClientFromRequest } from 'npm:@base44/sdk@0.8.52';
 import { isStale, riskMetadata, partyLabels } from '../../shared/riskApprovalData.ts';
+import { riskApprovalInvitationMessage } from '../../shared/riskApprovalInvitationMessage.ts';
 export default async function(req) {
   try {
     const base44 = createClientFromRequest(req); const user = await base44.auth.me();
@@ -20,7 +21,8 @@ export default async function(req) {
     if (!claim.updated) return Response.json({ skipped: true });
     try {
       const link = `https://alsight.base44.app/risk-approvals/${encodeURIComponent(packet.id)}`;
-      await base44.asServiceRole.integrations.Core.SendEmail({ to: step.email, subject: `Risk register acceptance required — ${packet.reference}`, from_name: 'ALSight', text: `You are the next ${partyLabels[step.party]} reviewer for ${packet.project_name}.\n\n${packet.issued_by_name} issued the locked register ${packet.reference} on ${packet.issued_at}.\n\nReview it here: ${link}\n\nSign in with this registered email address, request a verification code, then review the full issued register and explicitly accept or decline it. ${packet.steps.length === 1 ? 'Your decision is recorded independently; no other party has to approve first.' : 'Acceptance invites the next party; declining stops this earlier sequential issue.'} This is a recorded approval, not an Adobe-style digital signature.` });
+      const message = riskApprovalInvitationMessage(packet, step, partyLabels[step.party], link);
+      await base44.asServiceRole.integrations.Core.SendEmail({ to: step.email, from_name: 'ALSight', ...message });
       await db.RiskApprovalPacket.updateMany({ id: packet.id, current_index: packet.current_index, notification_status: 'sending' }, { $set: { notification_status: 'sent', notification_index: packet.current_index, notification_at: new Date().toISOString() } });
       return Response.json({ sent: true });
     } catch (error) {
