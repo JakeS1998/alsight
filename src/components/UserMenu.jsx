@@ -16,6 +16,7 @@ export default function UserMenu({ user, onSignOut, onNavigate, mobile = false }
     <DropdownMenuContent align={mobile ? 'start' : 'end'} className="w-52">
       <DropdownMenuItem asChild><Link to="/account-settings" onClick={onNavigate}><KeyRound /> Account settings</Link></DropdownMenuItem>
       {INTERNAL_ROLES.includes(role) && <DropdownMenuItem asChild><Link to="/delegation" onClick={onNavigate}><UserCog /> Delegation</Link></DropdownMenuItem>}
+      {role === 'admin' && <DropdownMenuItem asChild><Link to="/admin" onClick={onNavigate}><UserCog /> Admin</Link></DropdownMenuItem>}
       <DropdownMenuSeparator />
       <DropdownMenuItem onSelect={onSignOut}><LogOut /> Sign out</DropdownMenuItem>
     </DropdownMenuContent>
