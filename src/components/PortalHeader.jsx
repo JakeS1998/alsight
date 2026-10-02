@@ -7,7 +7,7 @@ import NotificationCenter from '@/components/NotificationCenter';
 import UserMenu from '@/components/UserMenu';
 import PortalSearch from '@/components/search/PortalSearch';
 import UKLFIcon from '@/components/framework/UKLFIcon';
-import { LayoutDashboard, FolderKanban, Building2, UserCircle, Menu, X, Users, UserCog, BriefcaseBusiness } from 'lucide-react';
+import { LayoutDashboard, FolderKanban, Building2, UserCircle, Menu, X, Users, UserCog, BriefcaseBusiness, CircleHelp } from 'lucide-react';
 
 const ALL_ROLES = ['admin', 'director', 'regional_director', 'bsm', 'finance', 'bdm', 'client', 'supplier', 'project_manager'];
 const NAV_ITEMS = [
@@ -19,6 +19,7 @@ const NAV_ITEMS = [
   { label: 'Accounts', path: '/accounts', icon: Building2, roles: ALL_ROLES.filter(role => role !== 'supplier') },
   { label: 'Contacts', path: '/contacts', icon: Users, roles: ['admin'] },
   { label: 'Admin', path: '/admin', icon: UserCog, roles: ['admin'] },
+  { label: 'Help', path: '/help', icon: CircleHelp, roles: ALL_ROLES.concat(['framework_stakeholder']) },
 ];
 export default function PortalHeader() {
   const { user, logout } = useAuth();
