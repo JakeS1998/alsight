@@ -1,0 +1,69 @@
+{
+  "name": "RiskApprovalChallenge",
+  "type": "object",
+  "properties": {
+    "packet_id": {
+      "type": "string"
+    },
+    "user_id": {
+      "type": "string"
+    },
+    "step_index": {
+      "type": "integer"
+    },
+    "code_hash": {
+      "type": "string"
+    },
+    "session_hash": {
+      "type": "string"
+    },
+    "expires_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "sent_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "attempts": {
+      "type": "integer",
+      "default": 0
+    },
+    "used": {
+      "type": "boolean",
+      "default": false
+    }
+  },
+  "required": [
+    "packet_id",
+    "user_id",
+    "step_index",
+    "code_hash",
+    "expires_at",
+    "sent_at",
+    "attempts",
+    "used"
+  ],
+  "rls": {
+    "read": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "create": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "update": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "delete": {
+      "user_condition": {
+        "role": "admin"
+      }
+    }
+  }
+}

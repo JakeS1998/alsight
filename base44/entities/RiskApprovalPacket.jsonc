@@ -1,0 +1,170 @@
+{
+  "name": "RiskApprovalPacket",
+  "type": "object",
+  "properties": {
+    "project_id": {
+      "type": "string"
+    },
+    "project_name": {
+      "type": "string"
+    },
+    "issued_by_id": {
+      "type": "string"
+    },
+    "issued_by_name": {
+      "type": "string"
+    },
+    "issued_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "reference": {
+      "type": "string"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "active",
+        "completed",
+        "rejected",
+        "withdrawn"
+      ]
+    },
+    "current_index": {
+      "type": "integer",
+      "minimum": 0,
+      "maximum": 4
+    },
+    "snapshot_uri": {
+      "type": "string"
+    },
+    "snapshot_hash": {
+      "type": "string"
+    },
+    "risk_count": {
+      "type": "integer"
+    },
+    "risk_updated_at": {
+      "type": "string"
+    },
+    "steps": {
+      "type": "array",
+      "minItems": 4,
+      "maxItems": 4,
+      "items": {
+        "type": "object",
+        "properties": {
+          "party": {
+            "type": "string",
+            "enum": [
+              "pm",
+              "contractor",
+              "client",
+              "als"
+            ]
+          },
+          "user_id": {
+            "type": "string"
+          },
+          "email": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "waiting",
+              "accepted",
+              "rejected"
+            ]
+          },
+          "decided_at": {
+            "type": "string"
+          },
+          "verification_method": {
+            "type": "string",
+            "enum": [
+              "email_otp",
+              "portal_session"
+            ]
+          },
+          "decision_id": {
+            "type": "string"
+          },
+          "comment": {
+            "type": "string",
+            "maxLength": 2000
+          }
+        },
+        "required": [
+          "party",
+          "user_id",
+          "email",
+          "name",
+          "status"
+        ]
+      }
+    },
+    "notification_index": {
+      "type": "integer",
+      "default": -1
+    },
+    "notification_status": {
+      "type": "string",
+      "enum": [
+        "pending",
+        "sending",
+        "sent",
+        "failed"
+      ],
+      "default": "pending"
+    },
+    "notification_at": {
+      "type": "string"
+    },
+    "withdrawn_by": {
+      "type": "string"
+    },
+    "withdrawn_at": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "project_id",
+    "project_name",
+    "issued_by_id",
+    "issued_by_name",
+    "issued_at",
+    "reference",
+    "status",
+    "current_index",
+    "snapshot_uri",
+    "snapshot_hash",
+    "risk_count",
+    "steps"
+  ],
+  "rls": {
+    "read": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "create": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "update": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "delete": {
+      "user_condition": {
+        "role": "admin"
+      }
+    }
+  }
+}

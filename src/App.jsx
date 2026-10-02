@@ -39,6 +39,7 @@ const CRMActivities = lazy(() => import('@/pages/CRMActivities'));
 const CRMClients = lazy(() => import('@/pages/CRMClients'));
 const Delegation = lazy(() => import('@/pages/Delegation'));
 const AccountSettings = lazy(() => import('@/pages/AccountSettings'));
+const RiskApprovalReview = lazy(() => import('@/pages/RiskApprovalReview'));
 
 const AuthenticatedApp = () => {
   const { isLoadingAuth, isLoadingPublicSettings, authError, user } = useAuth();
@@ -67,6 +68,9 @@ const AuthenticatedApp = () => {
       <Route path="/register" element={<Register />} />
       <Route path="/forgot-password" element={<ForgotPassword />} />
       <Route path="/reset-password" element={<ResetPassword />} />
+      <Route element={<ProtectedRoute unauthenticatedElement={<Navigate to={`/login?returnTo=${encodeURIComponent(location.pathname + location.search)}`} replace />} />}>
+        <Route path="/risk-approvals/:packetId" element={<RiskApprovalReview />} />
+      </Route>
       <Route element={<ProtectedRoute unauthenticatedElement={<Navigate to="/login" replace />} />}>
         <Route element={<PortalLayout />}>
           <Route path="/framework-reports" element={<FrameworkReports />} />
