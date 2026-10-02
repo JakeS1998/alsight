@@ -1,0 +1,164 @@
+{
+  "name": "ValuationDocumentIssue",
+  "type": "object",
+  "properties": {
+    "project_id": {
+      "type": "string"
+    },
+    "valuation_id": {
+      "type": "string"
+    },
+    "document_type": {
+      "type": "string",
+      "enum": [
+        "payment_notice",
+        "interim_certificate"
+      ]
+    },
+    "issue_reference": {
+      "type": "string"
+    },
+    "authorised_by_id": {
+      "type": "string"
+    },
+    "authorised_by_name": {
+      "type": "string"
+    },
+    "authorised_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "issued_by_id": {
+      "type": "string"
+    },
+    "issued_by_name": {
+      "type": "string"
+    },
+    "issued_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "issuer_organisation": {
+      "type": "string"
+    },
+    "named_authorised_party": {
+      "type": "string",
+      "maxLength": 200
+    },
+    "contract_reference": {
+      "type": "string",
+      "maxLength": 300
+    },
+    "authority_clause": {
+      "type": "string",
+      "maxLength": 500
+    },
+    "authority_confirmed": {
+      "type": "boolean"
+    },
+    "filename": {
+      "type": "string"
+    },
+    "file_uri": {
+      "type": "string"
+    },
+    "bdm_aad_id": {
+      "type": "string"
+    },
+    "bsm_aad_id": {
+      "type": "string"
+    },
+    "department_id": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "project_id",
+    "valuation_id",
+    "document_type",
+    "issue_reference",
+    "authorised_by_id",
+    "authorised_by_name",
+    "authorised_at",
+    "issued_by_id",
+    "issued_by_name",
+    "issued_at",
+    "named_authorised_party",
+    "contract_reference",
+    "authority_clause",
+    "authority_confirmed",
+    "file_uri",
+    "filename"
+  ],
+  "rls": {
+    "read": {
+      "$or": [
+        {
+          "data.issued_by_id": "{{user.id}}"
+        },
+        {
+          "data.bdm_aad_id": "{{user.id}}"
+        },
+        {
+          "data.bsm_aad_id": "{{user.id}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        },
+        {
+          "user_condition": {
+            "role": "director"
+          }
+        },
+        {
+          "user_condition": {
+            "role": "bsm"
+          }
+        },
+        {
+          "user_condition": {
+            "role": "finance"
+          }
+        },
+        {
+          "$and": [
+            {
+              "user_condition": {
+                "role": "regional_director"
+              }
+            },
+            {
+              "data.department_id": {
+                "$exists": true,
+                "$nin": [
+                  null,
+                  ""
+                ]
+              }
+            },
+            {
+              "data.department_id": "{{user.data.region}}"
+            }
+          ]
+        }
+      ]
+    },
+    "create": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "update": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "delete": {
+      "user_condition": {
+        "role": "admin"
+      }
+    }
+  }
+}

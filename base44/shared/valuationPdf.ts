@@ -74,6 +74,26 @@ function financialLine(doc: jsPDF, y: number, label: string, value: string, bold
   return y + 18;
 }
 
+function drawIssueRecord(doc: jsPDF, data: any, y: number): void {
+  const issue = data.issue;
+  doc.setFont('helvetica', 'normal'); doc.setFontSize(8); doc.setTextColor(...BLACK);
+  const stamp = value => new Date(value).toLocaleString('en-GB', { timeZone: 'Europe/London', day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit', second: '2-digit', timeZoneName: 'short' });
+  const lines = issue ? [
+    `Authorised by: ${issue.authorised_by_name} | ${stamp(issue.authorised_at)}`,
+    `Issued by: ${issue.issued_by_name} | ${stamp(issue.issued_at)}`,
+    `Issuer organisation: ${issue.issuer_organisation}`,
+    `For the named authorised party: ${issue.named_authorised_party}`,
+    `Executed contract: ${issue.contract_reference}`,
+    `Authority clause / appointment: ${issue.authority_clause}`,
+    `Issue reference: ${issue.issue_reference}`,
+    'Contractual authority confirmed by the issuer for this document; not independently verified by ALSight.',
+    'Recorded PDF issue does not constitute service on the contractor.'
+  ] : ['DRAFT - NOT ISSUED', 'No formal authorisation or issue has been recorded for this preview.'];
+  const wrapped = lines.flatMap(line => doc.splitTextToSize(line, CW));
+  if (y + wrapped.length * 11 > PAGE_H - 45) { doc.addPage(); y = M; }
+  wrapped.forEach(line => { if (y > PAGE_H - 45) { doc.addPage(); y = M; } doc.text(line, M, y); y += 11; });
+}
+
 function drawPaymentNotice(doc: jsPDF, data: any, logo: Uint8Array | null): void {
   let y = M + 10;
   drawLogo(doc, logo, M);
@@ -90,7 +110,7 @@ function drawPaymentNotice(doc: jsPDF, data: any, logo: Uint8Array | null): void
   const rightEnd2 = metadataBlock(doc, y, 'CONTRACTOR', [data.contractor.name, data.contractor.address], M + colW + 20, colW);
   y = Math.max(leftEnd2, rightEnd2) + 6;
   y = metadataBlock(doc, y, 'CLIENT', [data.client.name, data.client.address], M, colW) + 6;
-  const dates = [['CONTRACT DATE (LOI)', fmtDate(data.contractDate)], ['DUE DATE', fmtDate(data.paymentDueDate)], ['ISSUE DATE', fmtDate(data.valuationDate)], ['INSTALMENT NUMBER', String(data.valuationNumber)]];
+  const dates = [['CONTRACT DATE (LOI)', fmtDate(data.contractDate)], ['DUE DATE', fmtDate(data.paymentDueDate)], [data.issue ? 'ISSUE DATE' : 'VALUATION DATE', fmtDate(data.issue?.issued_at || data.valuationDate)], ['INSTALMENT NUMBER', String(data.valuationNumber)]];
   dates.forEach(([label, val]) => { doc.setFont('helvetica', 'bold'); doc.setFontSize(7); doc.setTextColor(100, 100, 110); doc.text(label, M, y); doc.setFont('helvetica', 'normal'); doc.setFontSize(9); doc.setTextColor(...BLACK); doc.text(val || '\u2014', M + 130, y); y += 14; });
   y += 8;
   let fy = y;
@@ -104,15 +124,10 @@ function drawPaymentNotice(doc: jsPDF, data: any, logo: Uint8Array | null): void
   fy = financialLine(doc, fy, 'TOTAL NOW DUE TO CONTRACTOR (excluding V.A.T.):', gbp(data.due), true, false, true);
   y = fy + 14;
   doc.setFont('helvetica', 'normal'); doc.setFontSize(9);
-  y = textLines(doc, `I/We certify that under the terms of the contract, payment is now due from the Employer to the Contractor in the sum of: ${numberToWords(data.due)}.`, M, y, CW, 12) + 8;
+  y = textLines(doc, `${data.issue ? 'I/We certify' : 'Draft for review: proposed confirmation'} that under the terms of the contract, payment is now due from the Employer to the Contractor in the sum of: ${numberToWords(data.due)}.`, M, y, CW, 12) + 8;
   doc.setFont('helvetica', 'italic'); doc.setFontSize(8); doc.setTextColor(80, 80, 90);
-  y = textLines(doc, 'This Payment Notice is issued in accordance with the contract terms. All amounts are exclusive of VAT. CIS deductions apply where relevant.', M, y, CW, 11) + 20;
-  doc.setTextColor(...BLACK);
-  doc.setDrawColor(...BLACK); doc.setLineWidth(0.5); doc.line(M, y, M + 200, y);
-  doc.setFont('helvetica', 'normal'); doc.setFontSize(9);
-  doc.text('Signed', M, y - 3);
-  doc.text(`For ${data.preparedBy.name || 'Employer\u2019s Agent'}`, M, y + 14);
-  doc.text(fmtDate(data.valuationDate) || '', M + 250, y + 14);
+  y = textLines(doc, data.issue ? 'This Payment Notice is issued on the contractual authority confirmed by the named issuer below. All amounts are exclusive of VAT. CIS deductions apply where relevant.' : 'Draft Payment Notice for review only; not issued. All amounts are exclusive of VAT. CIS deductions apply where relevant.', M, y, CW, 11) + 20;
+  drawIssueRecord(doc, data, y);
 }
 
 function drawInterimCertificate(doc: jsPDF, data: any, logo: Uint8Array | null): void {
@@ -122,13 +137,13 @@ function drawInterimCertificate(doc: jsPDF, data: any, logo: Uint8Array | null):
   y = textLines(doc, `Interim Certificate ${data.valuationNumber}`, M, y, CW - 140, 18);
   y += 8; doc.setTextColor(...BLACK);
   doc.setFont('helvetica', 'normal'); doc.setFontSize(10);
-  const details = [['Employer', data.employer.name], ['Client', data.client.name], ['Contractor', data.contractor.name], ['Location of the works', data.projectName], ['Date', fmtDate(data.valuationDate)]];
+  const details = [['Employer', data.employer.name], ['Client', data.client.name], ['Contractor', data.contractor.name], ['Location of the works', data.projectName], [data.issue ? 'Issue date' : 'Valuation date', fmtDate(data.issue?.issued_at || data.valuationDate)]];
   details.forEach(([label, val]) => { doc.setFont('helvetica', 'bold'); doc.text(label + ':', M, y); doc.setFont('helvetica', 'normal'); y = textLines(doc, val || '\u2014', M + 140, y, CW - 140, 13) + 4; });
   y += 6;
   doc.setFont('helvetica', 'bold'); doc.text('Contract Sum:', M, y); doc.setFont('helvetica', 'normal'); doc.text(gbp(data.contractSum), PAGE_W - M, y, { align: 'right' });
   doc.setDrawColor(...BLACK); doc.setLineWidth(0.5); doc.line(PAGE_W - M - 150, y - 11, PAGE_W - M, y - 11); y += 20;
   doc.setFont('helvetica', 'normal'); doc.setFontSize(9);
-  y = textLines(doc, `${data.preparedBy.name || 'The Employer\u2019s Agent'} hereby certifies that in accordance with the Contract payment, as detailed below, is due from the Employer to the Contractor.`, M, y, CW, 12) + 10;
+  y = textLines(doc, `${data.issue?.named_authorised_party || 'Draft for review'} ${data.issue ? 'hereby certifies' : 'sets out the proposed certification'} that in accordance with the Contract payment, as detailed below, is due from the Employer to the Contractor.`, M, y, CW, 12) + 10;
   let fy = y;
   fy = financialLine(doc, fy, 'Total value:', gbp(data.gross));
   fy = financialLine(doc, fy, `Retention (${data.retentionPercent}%):`, gbp(data.retention));
@@ -142,11 +157,7 @@ function drawInterimCertificate(doc: jsPDF, data: any, logo: Uint8Array | null):
   doc.setDrawColor(...BLACK); doc.setLineWidth(0.5); doc.line(PAGE_W - M - 150, y + 3, PAGE_W - M, y + 3); doc.line(PAGE_W - M - 150, y + 6, PAGE_W - M, y + 6); y += 20;
   doc.setFont('helvetica', 'italic'); doc.setFontSize(8); doc.setTextColor(80, 80, 90);
   doc.text('All of the above amounts are exclusive of VAT.', M, y); y += 24;
-  doc.setTextColor(...BLACK);
-  doc.setDrawColor(...BLACK); doc.setLineWidth(0.5); doc.line(M, y, M + 200, y);
-  doc.setFont('helvetica', 'normal'); doc.setFontSize(9);
-  doc.text('Signed', M, y - 3);
-  doc.text(`For ${data.preparedBy.name || 'Employer\u2019s Agent'}`, M, y + 14);
+  drawIssueRecord(doc, data, y);
 }
 
 function drawRow(doc: jsPDF, y: number, cells: any[], widths: number[], rowH: number, bold = false, fill = false): void {
@@ -215,6 +226,10 @@ export function createValuationPdf(type: string, data: any, logo: Uint8Array | n
   else if (type === 'interim_certificate') drawInterimCertificate(doc, data, logo);
   else if (type === 'statement_of_retention') drawStatementOfRetention(doc, data, logo);
   const pages = doc.getNumberOfPages();
-  for (let p = 1; p <= pages; p++) { doc.setPage(p); drawFooter(doc, data.preparedBy?.name || '', p, pages); }
+  for (let p = 1; p <= pages; p++) {
+    doc.setPage(p);
+    if (data.isDraftDocument) { doc.setFont('helvetica', 'bold'); doc.setFontSize(8); doc.setTextColor(...NAVY); doc.text('DRAFT - NOT ISSUED', PAGE_W - M, 18, { align: 'right' }); }
+    drawFooter(doc, data.preparedBy?.name || '', p, pages);
+  }
   return new Uint8Array(doc.output('arraybuffer'));
 }
