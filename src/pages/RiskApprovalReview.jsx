@@ -5,7 +5,7 @@ import useRiskAcceptance from '@/components/risk-approvals/useRiskAcceptance';
 import RiskApprovalTimeline from '@/components/risk-approvals/RiskApprovalTimeline';
 import RiskEmailVerification from '@/components/risk-approvals/RiskEmailVerification';
 import RiskAcceptanceDecision from '@/components/risk-approvals/RiskAcceptanceDecision';
-import RiskIssuedSnapshot from '@/components/risk-approvals/RiskIssuedSnapshot';
+import RiskSnapshotReview from '@/components/risk-approvals/RiskSnapshotReview';
 export default function RiskApprovalReview() {
   const { packetId } = useParams(); const { user } = useAuth();
   const flow = useRiskAcceptance(packetId);
@@ -20,7 +20,7 @@ export default function RiskApprovalReview() {
     {flow.message && <p role="status" className="text-sm font-medium">{flow.message}</p>}
     {flow.action.error && <p role="alert" className="text-sm text-destructive">{flow.action.error}</p>}
     {current && !stale && !flow.session && <RiskEmailVerification action={flow.action} challengeId={flow.challengeId} onSend={flow.send} onVerify={flow.verify} />}
-    {(flow.snapshot || flow.query.data.snapshot) && <RiskIssuedSnapshot snapshot={flow.snapshot || flow.query.data.snapshot} />}
+    {(flow.snapshot || flow.query.data.snapshot) && <RiskSnapshotReview snapshot={flow.snapshot || flow.query.data.snapshot} packetId={packetId} challengeId={flow.challengeId} session={flow.session} canComment={current && !stale && !!flow.session} />}
     {current && !stale && flow.session && <RiskAcceptanceDecision reference={packet.reference} busy={flow.action.busy} onDecision={flow.decide} sequential={packet.steps.length > 1} />}
     <p className="break-all text-xs text-muted-foreground">Version integrity reference: {packet.snapshot_hash}. This workflow records explicit acceptance; it is not a qualified electronic signature.</p>
   </main>;

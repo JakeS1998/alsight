@@ -5,6 +5,7 @@ import { Button } from '@/components/ui/button';
 import RiskApprovalTimeline from '@/components/risk-approvals/RiskApprovalTimeline';
 import RiskAddRecipientForm from '@/components/risk-approvals/RiskAddRecipientForm';
 import useRiskApprovalAction from '@/components/risk-approvals/useRiskApprovalAction';
+import RiskFeedbackList from '@/components/risk-approvals/RiskFeedbackList';
 export default function RiskApprovalPacketCard({ project, packet, editable, onChanged }) {
   const { user } = useAuth();
   const action = useRiskApprovalAction(onChanged);
@@ -14,6 +15,7 @@ export default function RiskApprovalPacketCard({ project, packet, editable, onCh
     <p className="text-sm font-bold">{packet.reference} · {packet.status}</p>
     <p className="text-xs text-muted-foreground">Issued by {packet.issued_by_name} on {new Date(packet.issued_at).toLocaleString('en-GB')}</p>
     <RiskApprovalTimeline packet={packet} />
+    {editable && <RiskFeedbackList packetId={packet.id} />}
     {packet.stale && <p role="alert" className="text-sm text-destructive">The live register has changed. This decision applies to the issued version; reissue for current approval.</p>}
     {active && <p className="text-xs text-muted-foreground">{assigned ? `Invitation: ${packet.notification_status}${packet.notification_status === 'failed' ? ' — retry below.' : ''}` : 'Waiting for the next recipient on this earlier sequential issue.'}</p>}
     <div className="flex flex-wrap gap-2">

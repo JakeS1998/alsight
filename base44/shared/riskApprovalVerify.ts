@@ -1,5 +1,6 @@
 import { fail, hash, isStale, riskMetadata, loadSnapshot, packetPublic } from './riskApprovalData.ts';
 import { riskApprovalVerificationMessage } from './riskApprovalVerificationMessage.ts';
+import { saveRiskReviewComment } from './riskReviewComments.ts';
 export async function recipientAction(base44, user, packet, input) {
   const db = base44.asServiceRole.entities;
   const step = packet.steps[packet.current_index];
@@ -31,8 +32,9 @@ export async function recipientAction(base44, user, packet, input) {
     await db.RiskApprovalChallenge.update(challenge.id, { session_hash: await hash(session), code_hash: '' });
     return { verification_session: session, snapshot: await loadSnapshot(base44, packet) };
   }
-  if (!['accept','reject'].includes(input.action)) fail('Unknown approval action.');
+  if (!['accept','reject','comment'].includes(input.action)) fail('Unknown approval action.');
   if (typeof input.verification_session !== 'string' || input.verification_session.length > 200 || await hash(input.verification_session) !== challenge.session_hash || challenge.code_hash !== '') fail('Verify your email before recording a decision.', 403);
+  if (input.action === 'comment') return await saveRiskReviewComment(base44, user, packet, input);
   if (typeof input.comment !== 'string' || input.comment.length > 2000) fail('Comments must be no more than 2,000 characters.');
   if (input.action === 'accept' && input.confirmed !== true) fail('Confirm that you have reviewed and accept this issued version.');
   if (input.action === 'reject' && !input.comment.trim()) fail('Provide a reason for declining.');

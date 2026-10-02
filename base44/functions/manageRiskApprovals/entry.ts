@@ -9,7 +9,7 @@ export default async function(req) {
     const base44 = createClientFromRequest(req); const user = await base44.auth.me();
     if (!user || !(await base44.auth.isAuthenticated())) return Response.json({ error: 'Please sign in with your registered portal account.' }, { status: 401 });
     const input = await req.json(); const db = base44.asServiceRole.entities;
-    if (!['status','recipients','issue','review','send_code','verify','accept','reject','withdraw','retry','history','snapshot','add_recipient'].includes(input.action)) fail('Unknown approval action.');
+    if (!['status','recipients','issue','review','send_code','verify','accept','reject','withdraw','retry','history','snapshot','add_recipient','comments','comment'].includes(input.action)) fail('Unknown approval action.');
     if (['status','recipients','issue','history'].includes(input.action)) {
       if (typeof input.project_id !== 'string' || !/^[a-zA-Z0-9_-]{1,100}$/.test(input.project_id)) fail('Choose a project.');
       const project = await base44.entities.Project.get(input.project_id);
@@ -38,6 +38,14 @@ export default async function(req) {
     if (typeof input.packet_id !== 'string' || !/^[a-zA-Z0-9_-]{1,100}$/.test(input.packet_id)) fail('Choose an issued register.');
     const packet = await db.RiskApprovalPacket.get(input.packet_id);
     if (!packet) fail('Approval issue not found.', 404);
+    if (input.action === 'comments') {
+      const recipient = packet.steps.some(step => step.user_id === user.id && step.email.toLowerCase() === user.email.toLowerCase());
+      const project = ['admin','director','bdm'].includes(user.role) ? await base44.entities.Project.get(packet.project_id) : null;
+      const manager = project && canIssue(user, project);
+      if (!manager && !recipient) fail('You cannot read comments for this issue.', 403);
+      if (input.cursor != null && (typeof input.cursor !== 'string' || input.cursor.length > 2000)) fail('Invalid page.');
+      return Response.json(await db.RiskReviewComment.filter({ packet_id: packet.id, ...(!manager ? { author_id: user.id } : {}) }, { sort: '-created_date', limit: 50, ...(input.cursor ? { cursor: input.cursor } : {}) }));
+    }
     if (['withdraw','retry','snapshot','add_recipient'].includes(input.action)) {
       const project = await base44.entities.Project.get(packet.project_id);
       if (!project || !canIssue(user, project)) fail('You cannot manage this approval issue.', 403);
