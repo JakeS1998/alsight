@@ -6,6 +6,7 @@ import { retrieveBlackflag } from '../../shared/aseBlackflagSource.ts';
 import { retrieveGazette } from '../../shared/aseGazetteSource.ts';
 import { retrieveHmrc } from '../../shared/aseHmrcSource.ts';
 import { retrieveLocalAuthority } from '../../shared/aseLocalAuthoritySource.ts';
+import { retrieveAccounts } from '../../shared/aseAccountsSource.ts';
 export default async function(req: Request): Promise<Response> {
   let base44,attempt;
   try {
@@ -18,7 +19,10 @@ export default async function(req: Request): Promise<Response> {
     if(input.action==='status') {
       const sources=await Promise.all(keys.map(async key=>{
         let identifier,blocked;try{identifier=sourceIdentifier(account,key);}catch(error){blocked=error.message;}
-        if(key==='blackflag' && identifier && !/^\d{8}$/.test(identifier)) blocked='Blackflag coverage is numeric England and Wales company numbers only.';
+        const model=accountModel(account);
+        if(model==='english_local_authority' && key!=='local_authority') blocked='Company source: not applicable to an English council.';
+        if(model==='company' && key==='local_authority') blocked='Council source: not applicable to a company.';
+        if(key==='blackflag' && identifier && !/^\d{8}$/.test(identifier)) blocked='Blackflag public coverage is numeric company numbers only; other registrations need an authenticated provider connection.';
         if(account.name.startsWith('ASE Demo')) blocked='Fictional Accounts cannot use real source checks.';
         if(blocked) return {key,name:sourceNames[key],blocked};
         const query={account_id:account.id,source_key:key,identifier};
@@ -65,7 +69,9 @@ export default async function(req: Request): Promise<Response> {
     if(latest.items[0] && Date.now()-Date.parse(latest.items[0].refreshed_at)<60000) return Response.json({error:'Please wait one minute between checks for this source.'},{status:429});
     if(input.requesterVat!=null && (typeof input.requesterVat!=='string' || input.requesterVat.length>20)) return Response.json({error:'Invalid requester VAT number.'},{status:400});
     attempt=await base44.entities.ASESourceRefresh.create({...query,requested_by:user.id,refreshed_at:new Date().toISOString(),status:'pending'});
-    const providers={blackflag:retrieveBlackflag,gazette:retrieveGazette,hmrc:retrieveHmrc,local_authority:retrieveLocalAuthority};
+    const model=accountModel(account);
+    if((model==='english_local_authority' && input.source!=='local_authority') || (model==='company' && input.source==='local_authority')) throw new Error('This source does not apply to the Account organisation type.');
+    const providers={accounts:retrieveAccounts,blackflag:retrieveBlackflag,gazette:retrieveGazette,hmrc:retrieveHmrc,local_authority:retrieveLocalAuthority};
     const result=await providers[input.source](account,identifier,attempt,String(input.requesterVat || '').replace(/^GB/i,'').replace(/\s/g,''));
     if(!Array.isArray(result.facts) || result.facts.length>40) throw new Error('Source evidence exceeded its safe record limit.');
     const current=await base44.entities.Account.get(account.id);
