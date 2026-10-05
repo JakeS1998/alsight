@@ -48,7 +48,7 @@ export function calculate(models, model, evidence, now=new Date()) {
     const periodRows = usable.filter(row=>row.reporting_period===period).sort((a,b)=>b.retrieval_date.localeCompare(a.retrieval_date));
     const latest = rule.choices ? periodRows.reduce((a,b)=>!a || scoreEvidence(rule,b)<scoreEvidence(rule,a) ? b : a,null) : periodRows[0];
     const score = latest ? scoreEvidence(rule,latest) : null;
-    return {component:rule.key,component_label:rule.label,weighting:rule.weighting,score,weighted_score:score===null ? null : score*rule.weighting/100,evidence_ids:latest ? [latest.id] : [],metric_value:latest?.value || '',explanation:latest ? `${rule.label}: ${rule.choices ? rule.choices.find(c=>c.value===latest.value).label : `${latest.value} ${rule.unit}`}. Approved rule gives ${score}/5, weighted at ${rule.weighting}%.` : 'Missing or unusable evidence; excluded from the score.',latest};
+    return {component:rule.key,component_label:rule.label,weighting:rule.weighting,score,weighted_score:score===null ? null : score*rule.weighting/100,evidence_ids:latest ? [latest.id] : [],metric_value:latest?.value || '',explanation:latest ? `${rule.label}: ${rule.choices ? rule.choices.find(c=>c.value===latest.value).label : `${latest.value} ${rule.unit}`}. Approved rule gives ${score}/5, weighted at ${rule.weighting}%.${latest.automatic_rule_version==='blackflag-financial-fallback-v1' ? ' Source: Blackflag secondary financial fallback; no verified eligible Companies House equivalent for this component and reporting period.' : ''}` : 'Missing or unusable evidence; excluded from the score.',latest};
   });
   const used = components.filter(row=>row.score !== null && row.weighting>0);
   const coverage = used.reduce((sum,row)=>sum+row.weighting,0);
