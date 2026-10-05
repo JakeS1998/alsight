@@ -78,7 +78,7 @@ export default function ProjectDetail() {
         setSupplierOrders(orders);
 
         const map = {};
-        accounts.forEach((a) => { if (a.dataverse_id) map[a.dataverse_id] = a; });
+        accounts.forEach((a) => { map[a.dataverse_id || a.id] = a; });
         setAccountMap(map);
       } finally {
         setLoading(false);
@@ -111,7 +111,7 @@ export default function ProjectDetail() {
           <ProjectWorkspaceHeader project={project} user={user} isSupplier={isSupplier} />
         </ProjectStickyHeader>
         <TabsContent value="general" className="ws-content space-y-6">
-          <ProjectGeneralTab project={project} singleTask={frameworkAgreementRoute(legalDocs, dmas, project.project_number).route === 'single_task'} accountMap={accountMap} onProjectUpdated={updated => setProject(current => ({ ...current, ...updated }))} />
+          <ProjectGeneralTab project={project} singleTask={frameworkAgreementRoute(legalDocs, dmas, project.project_number).route === 'single_task'} accountMap={accountMap} legalDocs={legalDocs} jcts={jcts} onProjectUpdated={updated => setProject(current => ({ ...current, ...updated }))} />
           {INTERNAL_ROLES.includes(user?.role) && <ProjectChanges key={project.id} project={project} legalDocs={legalDocs} dmas={dmas} jcts={jcts} />}
         </TabsContent>
         <TabsContent value="timeline" className="ws-content mt-6 space-y-6">

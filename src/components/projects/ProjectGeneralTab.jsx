@@ -12,6 +12,7 @@ import ProjectWorkspaceFields from '@/components/projects/ProjectWorkspaceFields
 import ProjectWorkspaceDates from '@/components/projects/ProjectWorkspaceDates';
 import ProjectBriefHistory from '@/components/projects/ProjectBriefHistory';
 import { projectStaffName } from '@/components/projects/projectStaffName';
+import useProjectTeamAssignments from '@/components/projects/useProjectTeamAssignments';
 import { formatDate, formatCurrency, regionName, INTERNAL_ROLES } from "@/lib/portal";
 import { ExternalLink } from "lucide-react";
 
@@ -27,8 +28,9 @@ function fromDateInput(d) {
   return new Date(d + "T00:00:00").toISOString();
 }
 
-export function ProjectGeneralTab({ project, accountMap, onProjectUpdated, singleTask = false }) {
+export function ProjectGeneralTab({ project, accountMap, onProjectUpdated, singleTask = false, legalDocs = [], jcts = [] }) {
   const { user } = useAuth();
+  const teamAssignments = useProjectTeamAssignments({ project, accountMap, legalDocs, jcts });
   const role = user?.role || "client";
   const canEdit = ["admin", "director", "bdm", "project_manager"].includes(role) || (role === 'supplier' && !!project.can_submit_valuation);
 
@@ -129,8 +131,9 @@ export function ProjectGeneralTab({ project, accountMap, onProjectUpdated, singl
           ['BDM', projectStaffName(project.bdm_aad_id, staff.byAad)],
           ['BSM', projectStaffName(project.bsm_aad_id, staff.byAad) || (project.bsm_aad_id ? 'Assigned BSM not identified' : null)],
           ['Director', directorName],
-          ['Project Manager', staff.byDv[project.project_manager_id]],
+          ['Project Manager', staff.byDv[project.project_manager_id] || teamAssignments.names['Project Manager']],
           ['Client Representative', staff.byDv[project.client_rep_id]],
+          ...teamAssignments.assignments,
         ]}
         details={[
           { title: 'Commercial', fields: [
