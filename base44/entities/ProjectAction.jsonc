@@ -58,6 +58,9 @@
     "read": {
       "$or": [
         {
+          "data.owner_id": "{{user.id}}"
+        },
+        {
           "data.client_account_id": "{{user.data.account_id}}"
         },
         {
