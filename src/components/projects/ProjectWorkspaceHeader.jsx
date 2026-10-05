@@ -13,7 +13,7 @@ export default function ProjectWorkspaceHeader({ project, user, isSupplier }) {
   return <>
     <div className="ws-topline"><Link to="/projects" className="ws-back"><ArrowLeft size={18} /> Back to Projects</Link></div>
     <header className="ws-hero">
-      {photo.data?.url && <Image className="ws-heroimg" src={photo.data.url} alt={photo.data.caption || `${project.name} — UKLF project photograph`} />}
+      {photo.data?.url && <Image className="ws-heroimg" src={photo.data.url} alt={photo.data.caption || `${project.name} project photograph`} />}
       {photo.isLoading && <span role="status" className="ws-image-status">Loading project image…</span>}
       <div className="ws-herotext">
         <div className="ws-eyebrow">{project.project_number}</div>
