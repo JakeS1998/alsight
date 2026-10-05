@@ -1,0 +1,160 @@
+{
+  "name": "ASEEvidence",
+  "type": "object",
+  "properties": {
+    "account_id": {
+      "type": "string"
+    },
+    "assessment_id": {
+      "type": "string"
+    },
+    "component": {
+      "type": "string"
+    },
+    "source": {
+      "type": "string",
+      "maxLength": 200
+    },
+    "evidence_type": {
+      "type": "string",
+      "enum": [
+        "financial",
+        "compliance",
+        "event",
+        "governance"
+      ]
+    },
+    "title": {
+      "type": "string",
+      "maxLength": 200
+    },
+    "value": {
+      "type": "string",
+      "maxLength": 200
+    },
+    "previous_value": {
+      "type": "string",
+      "maxLength": 200
+    },
+    "reporting_period": {
+      "type": "string",
+      "format": "date"
+    },
+    "source_date": {
+      "type": "string",
+      "format": "date"
+    },
+    "retrieval_date": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "severity": {
+      "type": "string",
+      "enum": [
+        "none",
+        "minor",
+        "moderate",
+        "material",
+        "serious"
+      ]
+    },
+    "confidence": {
+      "type": "string",
+      "enum": [
+        "High",
+        "Medium",
+        "Low"
+      ]
+    },
+    "source_reference": {
+      "type": "string",
+      "maxLength": 1000
+    },
+    "notes": {
+      "type": "string",
+      "maxLength": 1000
+    },
+    "currency": {
+      "type": "string",
+      "enum": [
+        "GBP"
+      ]
+    },
+    "period_months": {
+      "type": "integer",
+      "minimum": 1,
+      "maximum": 24
+    },
+    "is_demo": {
+      "type": "boolean"
+    }
+  },
+  "required": [
+    "account_id",
+    "component",
+    "source",
+    "evidence_type",
+    "title",
+    "value",
+    "reporting_period",
+    "source_date",
+    "retrieval_date",
+    "severity",
+    "confidence",
+    "source_reference"
+  ],
+  "rls": {
+    "read": {
+      "$or": [
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        },
+        {
+          "user_condition": {
+            "role": "director"
+          }
+        },
+        {
+          "user_condition": {
+            "role": "regional_director"
+          }
+        },
+        {
+          "user_condition": {
+            "role": "bsm"
+          }
+        },
+        {
+          "user_condition": {
+            "role": "bdm"
+          }
+        },
+        {
+          "user_condition": {
+            "role": "finance"
+          }
+        }
+      ]
+    },
+    "create": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "update": {
+      "$and": [
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        },
+        {
+          "data.assessment_id": null
+        }
+      ]
+    },
+    "delete": false
+  }
+}

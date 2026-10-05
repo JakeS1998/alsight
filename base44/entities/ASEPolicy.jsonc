@@ -1,0 +1,68 @@
+{
+  "name": "ASEPolicy",
+  "type": "object",
+  "properties": {
+    "version": {
+      "type": "string"
+    },
+    "models": {
+      "type": "object",
+      "additionalProperties": true
+    },
+    "approved_by": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "version",
+    "models",
+    "approved_by"
+  ],
+  "rls": {
+    "read": {
+      "$or": [
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        },
+        {
+          "user_condition": {
+            "role": "director"
+          }
+        },
+        {
+          "user_condition": {
+            "role": "regional_director"
+          }
+        },
+        {
+          "user_condition": {
+            "role": "bsm"
+          }
+        },
+        {
+          "user_condition": {
+            "role": "bdm"
+          }
+        },
+        {
+          "user_condition": {
+            "role": "finance"
+          }
+        }
+      ]
+    },
+    "create": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "update": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "delete": false
+  }
+}

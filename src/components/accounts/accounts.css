@@ -15,7 +15,7 @@
 .account-card-facts { display: grid; grid-template-columns: repeat(2,minmax(0,1fr)); gap: 14px; }
 .account-card-facts dt, .account-key-info dt { font-size: 12px; color: hsl(var(--muted-foreground)); }
 .account-card-facts dd, .account-key-info dd { margin-top: 4px; font-size: 13px; font-weight: 650; overflow-wrap: anywhere; }
-.account-card-bottom { display: flex; justify-content: space-between; gap: 12px; align-items: center; margin-top: auto; padding-top: 15px; border-top: 1px solid hsl(var(--border)); }
+.account-card-bottom { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 12px; align-items: center; margin-top: auto; padding-top: 15px; border-top: 1px solid hsl(var(--border)); }
 .account-card-bottom > span { max-width: 45%; color: hsl(var(--muted-foreground)); font-size: 11px; overflow-wrap: anywhere; }
 .ase-rating { display: flex; align-items: center; gap: 20px; color: hsl(var(--als-navy)); }
 .ase-rating svg { width: 160px; flex-shrink: 0; }

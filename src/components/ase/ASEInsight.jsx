@@ -1,0 +1,8 @@
+import React from 'react';
+import { useMutation } from '@tanstack/react-query';
+import { Button } from '@/components/ui/button';
+import { aseRequest,aseError } from '@/components/ase/aseClient';
+export default function ASEInsight({accountId,assessment}) {
+  const result=useMutation({mutationFn:()=>aseRequest('explain',{accountId,assessmentId:assessment.id})});
+  return <section className="rounded-xl bg-muted p-4"><div className="flex flex-wrap items-center justify-between gap-3"><h3 className="font-semibold">ALICE · Why this rating?</h3><Button variant="outline" disabled={result.isPending} onClick={()=>result.mutate()}>{result.isPending ? 'Reading stored evidence…' : 'Explain this assessment'}</Button></div><p className="mt-2 text-xs text-muted-foreground">ALICE selects stored evidence; every displayed statement is built from its recorded values and cites its source. AI never changes the score.</p>{result.error && <p role="alert" className="mt-3 text-sm text-destructive">{aseError(result.error)}</p>}{result.data && <div className="mt-4 grid gap-4 md:grid-cols-2">{[['why','Why this rating?'],['positive','Positive signals'],['watch','Watch items'],['changed','What changed?']].map(([key,label])=><div key={key}><h4 className="mb-2 text-sm font-semibold">{label}</h4>{result.data.insight[key]?.length ? <ul className="space-y-2 text-sm">{result.data.insight[key].map(item=><li key={item.evidence_id}>{item.text} <a className="text-xs underline" href={`#ase-evidence-${item.evidence_id}`}>Evidence</a></li>)}</ul> : <p className="text-sm text-muted-foreground">{key==='changed' && !assessment.previous_assessment_id ? 'No previous assessment exists.' : 'No supported statement selected.'}</p>}</div>)}</div>}</section>;
+}

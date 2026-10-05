@@ -40,6 +40,7 @@
     --destructive: 0 84.2% 60.2%;
     --success: 152 69% 31%;
     --risk-low: 142 71% 35%;
+    --ase-light-green: 142 64% 64%;
     --risk-moderate: 48 96% 53%;
     --risk-elevated: 38 92% 50%;
     --risk-high: 24 95% 53%;
@@ -92,6 +93,7 @@
     --destructive: 0 62.8% 30.6%;
     --success: 152 64% 60%;
     --risk-low: 142 69% 58%;
+    --ase-light-green: 142 64% 70%;
     --risk-moderate: 48 96% 60%;
     --risk-elevated: 38 92% 60%;
     --risk-high: 24 95% 63%;

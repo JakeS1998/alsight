@@ -1,4 +1,5 @@
 import { createClientFromRequest } from 'npm:@base44/sdk@0.8.52';
+import { internalRoles } from '../../shared/asePolicy.ts';
 const signalCache = new Map();
 export default async function(req: Request): Promise<Response> {
   try {
@@ -19,8 +20,15 @@ export default async function(req: Request): Promise<Response> {
     if (filters.region) clauses.push({ region: filters.region });
     if (filters.owner) clauses.push({ account_manager_aad_id: filters.owner });
     if (filters.status) clauses.push({ status: filters.status });
-    if (filters.ase === 'unassessed') clauses.push({ $or: [{ ase_score: { $exists: false } }, { ase_score: null }] });
-    else if (/^[1-5]$/.test(filters.ase || '')) clauses.push({ ase_score: Number(filters.ase) });
+    const internal = internalRoles.includes(user.role);
+    let aseIds = null;
+    if (filters.ase) {
+      if (!internal) return Response.json({error:'ASE is internal-only.'},{status:403});
+      if (filters.ase !== 'unassessed' && !/^[1-5]$/.test(filters.ase)) return Response.json({error:'Invalid ASE rating.'},{status:400});
+      const rated = await base44.entities.ASECurrentRating.filter({displayed_rating:filters.ase==='unassessed' ? {$gte:1} : Number(filters.ase)},{limit:1000,fields:['account_id']});
+      if (rated.has_more) return Response.json({error:'ASE filter exceeds the reporting limit.'},{status:422});
+      aseIds = rated.items.map(row=>row.account_id);
+    }
     const visibleMoney = ['admin','director','regional_director','bsm','finance','bdm','client'].includes(user.role);
     const liveQuery = { status: { $ne: 'inactive' }, live_project: true, approval_status: { $nin: ['complete','completed'] }, $or: [{ practical_completion_date: { $exists: false } }, { practical_completion_date: { $in: [null,''] } }, { practical_completion_date: { $gte: new Date().toISOString() } }] };
     const cacheKey = JSON.stringify([user.id,user.role,user.account_id,user.data?.account_id,user.region,user.data?.region,user.delegate_of,user.data?.delegate_of,user.delegate_region,user.data?.delegate_region,user.staff_aad_id,user.data?.staff_aad_id,Number.isSafeInteger(input.revision) ? input.revision : 0]);
@@ -60,14 +68,18 @@ export default async function(req: Request): Promise<Response> {
         return (!filters.live || hasLive === (filters.live === 'yes')) && (!filters.opportunities || hasOpen === (filters.opportunities === 'yes'));
       }).map(row => row.id);
     }
-    const query = { ...(clauses.length ? { $and: clauses } : {}), ...(matchingIds ? { id: { $in: matchingIds } } : {}), ...(input.accountId ? { id: { $in: [input.accountId] } } : {}) };
+    if (matchingIds && aseIds) matchingIds = matchingIds.filter(id=>filters.ase==='unassessed' ? !aseIds.includes(id) : aseIds.includes(id));
+    const query = { ...(clauses.length ? { $and: clauses } : {}), ...(matchingIds ? { id: { $in: matchingIds } } : aseIds ? {id:{[filters.ase==='unassessed' ? '$nin' : '$in']:aseIds}} : {}), ...(input.accountId ? { id: { $in: [input.accountId] } } : {}) };
     const [page, total] = await Promise.all([
-      input.accountId ? base44.entities.Account.get(input.accountId).then(account => ({ items: account ? [account] : [], next_cursor: null, has_more: false })) : base44.entities.Account.filter(query, { ...(!matchingIds ? { sort: 'name' } : {}), limit: 30, ...(typeof input.cursor === 'string' ? { cursor: input.cursor } : {}) }),
+      input.accountId ? base44.entities.Account.get(input.accountId).then(account => ({ items: account ? [account] : [], next_cursor: null, has_more: false })) : base44.entities.Account.filter(query, { ...(!query.id ? { sort: 'name' } : {}), limit: 30, ...(typeof input.cursor === 'string' ? { cursor: input.cursor } : {}) }),
       base44.entities.Account.count(query),
     ]);
     const ownerIds = [...new Set(page.items.map(account => account.account_manager_aad_id).filter(Boolean))];
     const owners = ownerIds.length ? await base44.entities.Contact.filter({ $or: [{ aad_id: { $in: ownerIds } }, { dataverse_id: { $in: ownerIds } }, { id: { $in: ownerIds } }] }, { limit: 100, fields: ['full_name','aad_id','dataverse_id'] }) : { items: [] };
-    const items = page.items.map(account => {
+    const ratings = internal && page.items.length ? await base44.entities.ASECurrentRating.filter({account_id:{$in:page.items.map(a=>a.id)}},{limit:30}) : {items:[]};
+    const items = page.items.map(rawAccount => {
+      const {ase_score,ase_reason,ase_assessed_at,...safeAccount}=rawAccount;
+      const account = internal ? {...safeAccount,_ase:ratings.items.find(r=>r.account_id===rawAccount.id) || null} : safeAccount;
       const keys = [account.id,account.dataverse_id].filter(Boolean);
       const related = groupedProjects.filter(row => row.accountKeys.some(key => keys.includes(key)));
       const open = opportunities.rows.filter(row => keys.includes(row.account_id));

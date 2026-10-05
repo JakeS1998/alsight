@@ -1,0 +1,21 @@
+import React, { useState } from 'react';
+import { useMutation } from '@tanstack/react-query';
+import { Button } from '@/components/ui/button';
+import { aseRequest,aseError } from '@/components/ase/aseClient';
+export default function ASEEvidenceForm({accountId,rules,onSaved}) {
+  const [draft,setDraft]=useState({component:rules[0].key,source:'',title:'',value:'',previous_value:'',reporting_period:'',source_date:'',source_reference:'',notes:'',severity:'none',confidence:'Medium',period_months:12});
+  const rule=rules.find(r=>r.key===draft.component);
+  const set=(key,value)=>setDraft(old=>({...old,[key]:value,...(key==='component' ? {value:''} : {})}));
+  const save=useMutation({mutationFn:()=>aseRequest('addEvidence',{accountId,evidence:draft}),onSuccess:()=>{onSaved();setDraft(old=>({...old,title:'',value:'',previous_value:'',notes:''}));}});
+  const inputClass='mt-1 w-full rounded-md border border-input bg-background p-2 text-sm';
+  return <form onSubmit={event=>{event.preventDefault();save.mutate();}} className="mt-4 space-y-4 rounded-lg border border-border p-4"><h4 className="font-semibold">Add verified source evidence</h4><p className="text-xs text-muted-foreground">Enter source-backed normalised metrics, not an overall rating. Undefined ratios stay missing. Revenue growth must use equivalent 12-month GBP periods; council reserves exclude restricted, capital, schools and HRA balances.</p><div className="grid gap-3 md:grid-cols-2">
+    <label className="text-sm">Component<select className={inputClass} value={draft.component} onChange={e=>set('component',e.target.value)}>{rules.map(r=><option value={r.key} key={r.key}>{r.label}</option>)}</select></label>
+    <label className="text-sm">{rule.choices ? 'Verified classification' : `Normalised value (${rule.unit})`}{rule.choices ? <select required className={inputClass} value={draft.value} onChange={e=>set('value',e.target.value)}><option value="">Choose a verified condition</option>{rule.choices.map(c=><option key={c.value} value={c.value}>{c.label}</option>)}</select> : <input required type="number" step="any" className={inputClass} value={draft.value} onChange={e=>set('value',e.target.value)}/>}</label>
+    {[['title','Evidence title',200],['source','Source / publisher',200],['source_reference','Source URL or document reference',1000]].map(([key,label,max])=><label className="text-sm" key={key}>{label}<input required maxLength={max} className={inputClass} value={draft[key]} onChange={e=>set(key,e.target.value)}/></label>)}
+    <label className="text-sm">Previous value, if evidenced<input maxLength={200} className={inputClass} value={draft.previous_value} onChange={e=>set('previous_value',e.target.value)}/></label>
+    {[['reporting_period','Reporting period end / check date'],['source_date','Source publication date']].map(([key,label])=><label className="text-sm" key={key}>{label}<input required type="date" max={new Date().toISOString().slice(0,10)} className={inputClass} value={draft[key]} onChange={e=>set(key,e.target.value)}/></label>)}
+    <label className="text-sm">Severity<select className={inputClass} value={draft.severity} onChange={e=>set('severity',e.target.value)}>{['none','minor','moderate','material','serious'].map(value=><option key={value}>{value}</option>)}</select></label>
+    <label className="text-sm">Evidence confidence<select className={inputClass} value={draft.confidence} onChange={e=>set('confidence',e.target.value)}>{['High','Medium','Low'].map(value=><option key={value}>{value}</option>)}</select></label>
+    {!rule.choices && <label className="text-sm">Reporting period length (months)<input type="number" min="1" max="24" required className={inputClass} value={draft.period_months} onChange={e=>set('period_months',Number(e.target.value))}/></label>}
+  </div><label className="block text-sm">Evidence notes<textarea maxLength={1000} className={inputClass} value={draft.notes} onChange={e=>set('notes',e.target.value)}/></label>{save.error && <p role="alert" className="text-sm text-destructive">{aseError(save.error)}</p>}<Button type="submit" disabled={save.isPending}>{save.isPending ? 'Saving evidence…' : 'Save evidence'}</Button></form>;
+}

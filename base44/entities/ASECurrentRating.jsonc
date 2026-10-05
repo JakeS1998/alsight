@@ -1,0 +1,104 @@
+{
+  "name": "ASECurrentRating",
+  "type": "object",
+  "properties": {
+    "account_id": {
+      "type": "string"
+    },
+    "assessment_id": {
+      "type": "string"
+    },
+    "displayed_rating": {
+      "type": "integer",
+      "minimum": 1,
+      "maximum": 5
+    },
+    "precise_score": {
+      "type": "number"
+    },
+    "rating_label": {
+      "type": "string"
+    },
+    "previous_rating": {
+      "type": "integer"
+    },
+    "change": {
+      "type": "integer"
+    },
+    "data_confidence": {
+      "type": "string",
+      "enum": [
+        "High",
+        "Medium",
+        "Low"
+      ]
+    },
+    "assessment_date": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "explanation": {
+      "type": "string"
+    },
+    "is_demo": {
+      "type": "boolean"
+    }
+  },
+  "required": [
+    "account_id",
+    "assessment_id",
+    "data_confidence",
+    "assessment_date"
+  ],
+  "rls": {
+    "read": {
+      "$or": [
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        },
+        {
+          "user_condition": {
+            "role": "director"
+          }
+        },
+        {
+          "user_condition": {
+            "role": "regional_director"
+          }
+        },
+        {
+          "user_condition": {
+            "role": "bsm"
+          }
+        },
+        {
+          "user_condition": {
+            "role": "bdm"
+          }
+        },
+        {
+          "user_condition": {
+            "role": "finance"
+          }
+        }
+      ]
+    },
+    "create": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "update": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "delete": {
+      "user_condition": {
+        "role": "admin"
+      }
+    }
+  }
+}

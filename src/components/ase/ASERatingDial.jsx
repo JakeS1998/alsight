@@ -1,0 +1,18 @@
+import React, { useState } from 'react';
+import { useQuery } from '@tanstack/react-query';
+import { useAuth } from '@/lib/AuthContext';
+import ASEGauge from '@/components/ase/ASEGauge';
+import ASEDetailDialog from '@/components/ase/ASEDetailDialog';
+import { aseRequest,aseRoles,aseError } from '@/components/ase/aseClient';
+export default function ASERatingDial({account,compact=false}) {
+  const {user}=useAuth(); const [open,setOpen]=useState(false);
+  const allowed=aseRoles.includes(user?.role);
+  const query=useQuery({queryKey:['ase','summary',account.id,user?.id,user?.role],enabled:allowed && account._ase===undefined,queryFn:()=>aseRequest('summary',{accountId:account.id}),staleTime:60000});
+  if (!allowed) return null;
+  const current=account._ase===undefined ? query.data?.current : account._ase;
+  const change=current?.change;
+  return <><button type="button" aria-haspopup="dialog" aria-label={`Open All Seeing Eye for ${account.name}`} onClick={event=>{event.preventDefault();event.stopPropagation();setOpen(true);}} className={`flex items-center gap-4 rounded-xl border border-border bg-card p-3 text-left hover:border-primary focus-visible:outline focus-visible:outline-primary ${compact ? 'max-w-80' : 'w-full'}`}>
+    <div className={compact ? 'w-24 shrink-0' : 'w-36 shrink-0'}><ASEGauge rating={current?.displayed_rating} precise={current?.precise_score}/></div>
+    <div><p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">ASE Rating</p><p className="text-xl font-bold">{current?.displayed_rating ? `${current.displayed_rating} / 5` : '—'}</p><p className="text-sm font-semibold">{query.isFetching && account._ase===undefined && !query.data ? 'Loading…' : query.error ? 'Unavailable' : current?.rating_label || 'Not assessed'}</p>{current?.previous_rating!=null && <p className="text-xs text-muted-foreground">{change>0 ? '↑' : change<0 ? '↓' : '↔'} from {current.previous_rating}</p>}<p className="mt-1 text-xs text-muted-foreground">Data confidence: {current?.data_confidence || 'Not assessed'}</p>{current?.is_demo && <p className="text-xs font-semibold text-primary">Fictional demo</p>}</div>
+  </button>{query.error && <p className="text-xs text-destructive">{aseError(query.error)}</p>}{open && <ASEDetailDialog account={account} open={open} onOpenChange={setOpen}/>}</>;
+}

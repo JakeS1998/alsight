@@ -44,6 +44,7 @@ module.exports = {
   				foreground: 'hsl(var(--destructive-foreground))'
   			},
   			success: 'hsl(var(--success))',
+            'ase-light-green': 'hsl(var(--ase-light-green))',
             risk: {
                 low: 'hsl(var(--risk-low))',
                 moderate: 'hsl(var(--risk-moderate))',

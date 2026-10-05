@@ -1,0 +1,109 @@
+{
+  "name": "ASEComponentScore",
+  "type": "object",
+  "properties": {
+    "account_id": {
+      "type": "string"
+    },
+    "assessment_id": {
+      "type": "string"
+    },
+    "component": {
+      "type": "string"
+    },
+    "component_label": {
+      "type": "string"
+    },
+    "score": {
+      "type": "integer",
+      "minimum": 1,
+      "maximum": 5
+    },
+    "weighting": {
+      "type": "number",
+      "minimum": 0,
+      "maximum": 100
+    },
+    "weighted_score": {
+      "type": "number"
+    },
+    "explanation": {
+      "type": "string"
+    },
+    "evidence_ids": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "metric_value": {
+      "type": "string"
+    },
+    "sealed": {
+      "type": "boolean",
+      "default": true
+    }
+  },
+  "required": [
+    "account_id",
+    "assessment_id",
+    "component",
+    "weighting",
+    "explanation",
+    "sealed"
+  ],
+  "rls": {
+    "read": {
+      "$or": [
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        },
+        {
+          "user_condition": {
+            "role": "director"
+          }
+        },
+        {
+          "user_condition": {
+            "role": "regional_director"
+          }
+        },
+        {
+          "user_condition": {
+            "role": "bsm"
+          }
+        },
+        {
+          "user_condition": {
+            "role": "bdm"
+          }
+        },
+        {
+          "user_condition": {
+            "role": "finance"
+          }
+        }
+      ]
+    },
+    "create": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "update": {
+      "$and": [
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        },
+        {
+          "data.sealed": false
+        }
+      ]
+    },
+    "delete": false
+  }
+}
