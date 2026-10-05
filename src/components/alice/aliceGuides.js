@@ -1,7 +1,10 @@
 import { base44 } from '@/api/base44Client';
 import { createCRMOpportunity } from '@/components/crm/crm';
+import projectTaskGuides from '@/components/alice/aliceProjectTaskGuides';
+import saveAliceProjectTask from '@/components/alice/saveAliceProjectTask';
 
 export const GUIDES = {
+  ...projectTaskGuides,
   opportunity: { label: 'I have a new opportunity to log', roles: ['admin', 'director', 'bdm', 'bsm'], steps: [
     { key: 'title', question: 'What should we call this opportunity?' },
     { key: 'account_id', type: 'client', question: 'Which client is this for?' },
@@ -30,6 +33,7 @@ export const GUIDES = {
 };
 
 export async function saveGuide(type, answers, user) {
+  if (['action', 'decision'].includes(type)) return saveAliceProjectTask(type, answers, user);
   if (type === 'opportunity') {
     const record = await createCRMOpportunity({ title: answers.title, account_id: answers.account_id.id, project_details: answers.project_details || '', location: answers.location || '', ...(answers.budget ? { budget: Number(answers.budget) } : {}) }, user);
     return { message: `Opportunity “${record.title}” created.`, path: `/opportunities/${record.id}`, link: 'Open opportunity' };

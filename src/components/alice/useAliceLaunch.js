@@ -24,4 +24,5 @@ export default function useAliceLaunch({ user, guide, open, busy, restoring, sen
     setPending(null);
     send(pending);
   }, [pending, open, restoring, busy, guide, send]);
+  return () => setPending(null);
 }

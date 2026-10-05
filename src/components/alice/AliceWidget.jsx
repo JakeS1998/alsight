@@ -6,6 +6,7 @@ import AliceWelcome from '@/components/alice/AliceWelcome';
 import AliceGuidedChat from '@/components/alice/AliceGuidedChat';
 import useAliceGuide from '@/components/alice/useAliceGuide';
 import { GUIDES } from '@/components/alice/aliceGuides';
+import useAliceLaunch from '@/components/alice/useAliceLaunch';
 import { useAuth } from '@/lib/AuthContext';
 import aliceAccessKey from '@/components/alice/aliceAccessKey';
 const AGENT = 'alice';
@@ -14,15 +15,7 @@ export default function AliceWidget() {
   const storageKey = aliceAccessKey(user);
   const { guide, start, cancel, next, back, confirm } = useAliceGuide(user);
   const [open, setOpen] = useState(false);
-  useEffect(() => {
-    const launch = event => {
-      setOpen(true);
-      if (event.detail?.task && GUIDES[event.detail.task]?.roles.includes(user?.role)) start(event.detail.task);
-      else if (typeof event.detail?.prompt === 'string') setText(event.detail.prompt);
-    };
-    window.addEventListener('alsight-open-alice', launch);
-    return () => window.removeEventListener('alsight-open-alice', launch);
-  }, [user?.role, start]);
+
   const [conversation, setConversation] = useState(null);
   const [messages, setMessages] = useState([]);
   const [text, setText] = useState('');
@@ -78,7 +71,7 @@ export default function AliceWidget() {
   const send = async (value, draft = false) => {
     if (!value.trim() || busy || restoring) return;
     if (!draft) {
-      const intent = value.trim().match(/\b(?:new|add|create|log|record)\b.{0,45}\b(opportunity|project|risk|comment)\b|\b(opportunity|project|risk|comment)\b.{0,30}\b(?:log|add|create|record)\b/i);
+      const intent = value.trim().match(/\b(?:new|add|create|log|record)\b.{0,45}\b(opportunity|project|risk|comment|action|decision|valuation)\b|\b(opportunity|project|risk|comment|action|decision|valuation)\b.{0,30}\b(?:log|add|create|record)\b/i);
       const type = intent?.[1]?.toLowerCase() || intent?.[2]?.toLowerCase();
       if (type && GUIDES[type].roles.includes(user?.role)) { start(type); setText(''); return; }
     }
@@ -96,7 +89,9 @@ export default function AliceWidget() {
       await base44.agents.addMessage(chat, { role: 'user', content });
     } catch (e) { if (currentSession === session.current) { setBusy(false); setError(e.message || 'Unable to reach ALICE. Please try again.'); } }
   };
+  const clearPendingLaunch = useAliceLaunch({ user, guide, open, busy, restoring, send, start, cancel, setOpen, setText, setRestoring });
   const endChat = () => {
+    clearPendingLaunch();
     session.current += 1;
     sessionStorage.removeItem(storageKey);
     setConversation(null);
@@ -125,7 +120,7 @@ export default function AliceWidget() {
     el.focus(); setDraftMode(false); setOpen(false);
   };
   return <div data-alice-widget className="fixed bottom-4 right-4 z-50 sm:bottom-6 sm:right-6">
-    {open && <section role="dialog" aria-label="Chat with ALICE" className="mb-3 flex h-[min(710px,calc(100dvh-110px))] w-[min(500px,calc(100vw-32px))] flex-col overflow-hidden rounded-3xl border border-border bg-card text-foreground shadow-2xl">
+    {open && <section role="dialog" aria-label="Chat with ALICE" className={`mb-3 flex h-[min(710px,calc(100dvh-110px))] ${guide?.type === 'valuation' && guide.step > 0 ? 'w-[min(1100px,calc(100vw-32px))]' : 'w-[min(500px,calc(100vw-32px))]'} flex-col overflow-hidden rounded-3xl border border-border bg-card text-foreground shadow-2xl`}>
       <header className="flex items-center gap-3 border-b border-border bg-card px-5 py-4"><span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-assistant text-white"><Bot className="h-6 w-6" /></span><div className="min-w-0 flex-1"><strong className="font-heading text-base font-semibold">ALICE</strong><p className="text-xs leading-tight text-muted-foreground">Alliance Leisure Intelligence &amp; Construction Expert</p></div>{(conversation || messages.length > 0 || guide) && <button type="button" onClick={endChat} disabled={restoring || guide?.saving} className="shrink-0 rounded-lg px-2 py-1 text-xs font-medium text-assistant hover:bg-muted disabled:opacity-50">End chat</button>}<button type="button" aria-label="Close ALICE" onClick={() => setOpen(false)} className="shrink-0 rounded-lg p-1 text-muted-foreground hover:bg-muted hover:text-foreground"><X className="h-5 w-5" /></button></header>
       {guide ? <AliceGuidedChat guide={guide} onNext={next} onBack={back} onConfirm={confirm} onCancel={cancel} /> : <>
         {!messages.length && !busy ? <AliceWelcome role={user?.role} disabled={restoring} onStart={start} /> : <>
