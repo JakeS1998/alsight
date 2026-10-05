@@ -1,6 +1,7 @@
 import {normaliseCompanyNumber} from './companiesHouseData.ts';
 import {blackflagTurnover} from './aseBlackflagSnapshot.ts';
 import {readSourceResponse} from './aseSourceCommon.ts';
+import {vatIdentifier} from './aseVatIdentifier.ts';
 export async function commercialTurnover(base44,account,now=new Date()) {
   const reported=await blackflagTurnover(base44,account,now);
   if(reported.status==='available') return reported;
@@ -33,11 +34,11 @@ export async function filedCommercialTurnover(base44,account,now=new Date()) {
   } catch(error) {return {status:'unavailable',reason:'Stored turnover evidence could not be verified: '+String(error.message).slice(0,200)};}
 }
 export async function hmrcStatus(base44,account) {
-  const vat=String(account.vat_number || '').replace(/^GB/i,'').replace(/\s/g,'');
-  if(!/^(?:\d{9}|\d{12})$/.test(vat)) return {status:'Not available',reason:'A valid UK VAT number is not recorded. No registration result is inferred.'};
+  const identifier=await vatIdentifier(base44,account),vat=identifier.vat_number;
+  if(!vat) return {status:'Not available',reason:identifier.reason};
   const page=await base44.entities.ASESourceRefresh.filter({account_id:account.id,source_key:'hmrc',identifier:vat},{sort:'-refreshed_at',limit:1});
   const audit=page.items[0];
-  if(!audit) return {status:'Not checked',reason:'No stored HMRC verification is available. Production credentials and Check a UK VAT Number v2 access are required.'};
+  if(!audit) return {...identifier,status:'Not checked',reason:`A VAT number is available from ${identifier.vat_source}, but no stored HMRC verification is available. Production credentials and Check a UK VAT Number v2 access are required.`};
   const blocked=audit.status==='failed';
-  return {status:blocked ? 'Blocked / unavailable' : audit.status==='pending' ? 'Pending' : 'Recorded check',checked_at:audit.refreshed_at,reason:blocked ? (audit.error || 'HMRC verification failed; registration remains unknown.') : audit.status==='pending' ? 'Verification has not completed.' : audit.summary?.identity_matched ? 'A company-matched result was recorded. This is a dated VAT check, not a financial-health conclusion.' : 'A result was recorded, but company identity or registration needs review.',refresh_id:audit.id};
+  return {...identifier,status:blocked ? 'Blocked / unavailable' : audit.status==='pending' ? 'Pending' : 'Recorded check',checked_at:audit.refreshed_at,reason:blocked ? (audit.error || 'HMRC verification failed; registration remains unknown.') : audit.status==='pending' ? 'Verification has not completed.' : audit.summary?.identity_matched ? 'A company-matched result was recorded. This is a dated VAT check, not a financial-health conclusion.' : 'A result was recorded, but company identity or registration needs review.',refresh_id:audit.id};
 }
