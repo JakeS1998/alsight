@@ -3,13 +3,16 @@ import { useQuery } from '@tanstack/react-query';
 import { Link } from 'react-router-dom';
 import { base44 } from '@/api/base44Client';
 import { useAuth } from '@/lib/AuthContext';
+import { aseRoles } from '@/components/ase/aseClient';
+import CorporateStructureCard from '@/components/accounts/CorporateStructureCard';
 
 export default function AccountStructure({ account }) {
   const { user } = useAuth();
-  const parent = useQuery({ queryKey: ['account-parent',account.parent_account_id,user?.id,user?.role], enabled: !!account.parent_account_id, queryFn: async () => {
+  const parent = useQuery({ queryKey: ['account-parent',account.parent_account_id,user?.id,user?.role], enabled: !!account.parent_account_id && !aseRoles.includes(user?.role), queryFn: async () => {
     if (/^[a-f0-9]{24}$/i.test(account.parent_account_id)) return base44.entities.Account.get(account.parent_account_id);
     const page = await base44.entities.Account.filter({ dataverse_id: account.parent_account_id }, { limit: 1,fields: ['name'] }); return page.items[0] || null;
   } });
+  if (aseRoles.includes(user?.role)) return <CorporateStructureCard account={account}/>;
   if (!account.parent_account_id) return null;
   return <section className="account-panel"><h2>Organisation Structure</h2>{parent.isFetching ? <p role="status" className="text-sm">Loading recorded parent organisation…</p> : parent.error ? <p role="alert" className="text-sm text-destructive">Recorded parent details are unavailable.</p> : parent.data ? <div className="account-structure-tree"><div className="account-structure-node"><p className="mb-1 text-xs text-muted-foreground">Recorded parent organisation</p><Link className="text-sm font-semibold hover:underline" to={`/accounts/${parent.data.id}`}>{parent.data.name}</Link></div><div className="account-structure-connector" aria-hidden="true" /><div className="account-structure-node"><p className="text-sm font-semibold">{account.name}</p><p className="mt-1 text-xs text-muted-foreground">This account</p></div></div> : <p className="text-sm text-muted-foreground">The recorded parent organisation is not available to view.</p>}</section>;
 }

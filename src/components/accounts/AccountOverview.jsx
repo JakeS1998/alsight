@@ -11,6 +11,7 @@ import AccountInsightCard from '@/components/accounts/AccountInsightCard';
 import { INTERNAL_ROLES } from '@/lib/portal';
 import { hasCompanyRegistry } from '@/components/accounts/accountSections';
 import { aseRoles } from '@/components/ase/aseClient';
+import ASECommercialConcentration from '@/components/ase/ASECommercialConcentration';
 export default function AccountOverview({ account, contacts, projects, signals, user, summaryLoading, summaryError, onAccountEnriched }) {
   const showCompaniesHouse = hasCompanyRegistry(account) && aseRoles.includes(user?.role);
   return <div className="account-overview-grid">
@@ -19,6 +20,7 @@ export default function AccountOverview({ account, contacts, projects, signals, 
     <AccountRelationshipSummary account={account} signals={signals} loading={summaryLoading} error={summaryError} />
     <AccountKeyPeople account={account} />
     <AccountStructure account={account} />
+    {showCompaniesHouse && <ASECommercialConcentration key={account.id} account={account} card/>}
     {INTERNAL_ROLES.includes(user?.role) && <AccountInsightCard account={account} />}
     <AccountRecentActivity account={account} />
     <AccountCurrentWork account={account} projects={projects} />

@@ -8,17 +8,32 @@ import {publishASEBatch} from '../../shared/aseBulkPublication.ts';
 import {manageASEAutomation} from '../../shared/aseAutomationApi.ts';
 import {checkBlackflagFallbackRules} from '../../shared/aseBlackflagFallbackChecks.ts';
 import {checkPdfAndProvisionalRules} from '../../shared/asePdfChecks.ts';
+import {commercialInsight} from '../../shared/aseCommercialInsight.ts';
+import {contractCandidates,reviewCommercialTerms} from '../../shared/aseCommercialTerms.ts';
+import {groupStructure} from '../../shared/aseGroupStructure.ts';
+import {hmrcStatus} from '../../shared/aseCommercialTurnover.ts';
 export default async function(req: Request): Promise<Response> {
   try {
     const base44=createClientFromRequest(req), user=await base44.auth.me();
     if (!user || !internalRoles.includes(user.role)) return Response.json({error:'ASE is available to internal staff only.'},{status:403});
     const input=await req.json();
-    const actions=['policy','savePolicy','seed','summary','detail','addEvidence','previewAssessment','assess','bulkPublish','explain','checkRules','automationScope','automationStart','automationStatus','automationPause','automationResume','automationRetry','automationStep','automationDispatch','automationRules'];
+    const actions=['policy','savePolicy','seed','summary','detail','addEvidence','previewAssessment','assess','bulkPublish','explain','checkRules','automationScope','automationStart','automationStatus','automationPause','automationResume','automationRetry','automationStep','automationDispatch','automationRules','commercial','commercialContracts','reviewCommercialTerms','structure','hmrcStatus'];
     if (!actions.includes(input.action)) return Response.json({error:'Invalid ASE operation.'},{status:400});
     if (['savePolicy','seed','addEvidence','previewAssessment','assess','bulkPublish','checkRules'].includes(input.action) && user.role!=='admin') return Response.json({error:'Only administrators can manage ASE evidence, assessments and policy.'},{status:403});
     if(input.action.startsWith('automation')) {
       if(user.role!=='admin') return Response.json({error:'ASE automation is administrator-only.'},{status:403});
       return Response.json(await manageASEAutomation(base44,user,input));
+    }
+    if(['commercial','commercialContracts','reviewCommercialTerms','structure','hmrcStatus'].includes(input.action)) {
+      if(typeof input.accountId!=='string' || !/^[a-zA-Z0-9_-]{1,64}$/.test(input.accountId)) return Response.json({error:'Valid Account is required.'},{status:400});
+      if(input.cursor!=null && (typeof input.cursor!=='string' || input.cursor.length>4096)) return Response.json({error:'Invalid cursor.'},{status:400});
+      const account=await base44.entities.Account.get(input.accountId);
+      if(!account) return Response.json({error:'Account unavailable.'},{status:404});
+      if(input.action==='commercial') return Response.json(await commercialInsight(base44,account,{cursor:input.cursor}));
+      if(input.action==='commercialContracts') return Response.json(await contractCandidates(base44,account,input.cursor));
+      if(input.action==='reviewCommercialTerms') return Response.json(await reviewCommercialTerms(base44,account,input,user));
+      if(input.action==='structure') return Response.json(await groupStructure(base44,account));
+      return Response.json(await hmrcStatus(base44,account));
     }
     const policy=await getPolicy(base44);
     if (input.action==='policy') return Response.json({policy});
@@ -77,6 +92,7 @@ export default async function(req: Request): Promise<Response> {
       return Response.json({insight:await explainAssessment(base44,assessment,componentPage.items,evidencePage.items,previous.items)});
     }
     const [history,sourceEvidence]=await Promise.all([base44.entities.ASEAssessment.filter({account_id:account.id,status:'published'},{sort:'-assessment_date',limit:20,...(input.cursor ? {cursor:input.cursor} : {})}),base44.entities.ASEEvidence.filter(currentASESourceQuery(account),{limit:100})]);
-    return Response.json({account:{id:account.id,name:account.name},model,policy,current,assessment,components:componentPage.items,evidence:evidencePage.items,history,sourceEvidence:sourceEvidence.items,sourceHasMore:sourceEvidence.has_more});
+    const hmrc=await hmrcStatus(base44,account);
+    return Response.json({account:{id:account.id,name:account.name},model,policy,current,assessment,components:componentPage.items,evidence:evidencePage.items,history,sourceEvidence:sourceEvidence.items,sourceHasMore:sourceEvidence.has_more,hmrc});
   } catch(error) {return Response.json({error:error.message || 'Unable to complete ASE operation.'},{status:400});}
 }

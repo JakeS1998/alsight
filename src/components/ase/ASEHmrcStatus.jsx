@@ -1,0 +1,5 @@
+import React from 'react';
+import { formatDateTime } from '@/lib/portal';
+export default function ASEHmrcStatus({status}) {
+  return <section className="rounded-lg border border-border bg-muted/50 p-3"><h4 className="text-sm font-semibold">HMRC VAT verification · {status?.status || 'Not checked'}</h4><p className="mt-1 text-xs text-muted-foreground">{status?.reason || 'No recorded verification is available.'}</p>{status?.checked_at && <p className="mt-1 text-xs text-muted-foreground">Last recorded attempt: {formatDateTime(status.checked_at)}</p>}<p className="mt-2 text-xs text-muted-foreground">Excluded from ASE scoring and automated collection. A failed check is not a VAT-registration result. Authorisation failures require valid production credentials and approved Check a UK VAT Number v2 access.</p></section>;
+}

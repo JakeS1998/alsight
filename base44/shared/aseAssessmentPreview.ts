@@ -1,6 +1,7 @@
 import {accountModel,calculate,scoreEvidence} from './asePolicy.ts';
 import {currentASESourceQuery} from './aseEvidenceSelection.ts';
 import {selectBlackflagFallback} from './aseBlackflagFallback.ts';
+import {commercialSnapshot} from './aseCommercialSnapshot.ts';
 const canonical=value=>Array.isArray(value) ? value.map(canonical) : value && typeof value==='object' ? Object.fromEntries(Object.keys(value).sort().map(key=>[key,canonical(value[key])])) : value;
 export async function prepareAssessment(base44,account,policy,review,sourceQuery) {
   const model=accountModel(account);
@@ -11,10 +12,11 @@ export async function prepareAssessment(base44,account,policy,review,sourceQuery
   if(sourcePage.has_more) throw new Error('More than 100 source records: narrow the evidence set before assessing.');
   const sourceEvidence=model==='company' ? await selectBlackflagFallback(base44,account,sourcePage.items,new Date(preparedAt)) : sourcePage.items,previous=previousPage.items[0] || null;
   if(sourceEvidence.length>100) throw new Error('More than 100 source records including financial fallback: narrow the evidence set before assessing.');
-  const content=canonical({preparedAt,account:{id:account.id,name:account.name,organisation_type:account.organisation_type || '',company_type:account.company_type || '',company_number:account.company_number || '',vat_number:account.vat_number || '',local_authority_code:account.local_authority_code || ''},policy,previousId:previous?.id || '',evidence:[...sourceEvidence].sort((a,b)=>a.id.localeCompare(b.id))});
+  const commercial_context=await commercialSnapshot(base44,account,preparedAt);
+  const content=canonical({commercial_context,preparedAt,account:{id:account.id,name:account.name,organisation_type:account.organisation_type || '',company_type:account.company_type || '',company_number:account.company_number || '',vat_number:account.vat_number || '',local_authority_code:account.local_authority_code || ''},policy,previousId:previous?.id || '',evidence:[...sourceEvidence].sort((a,b)=>a.id.localeCompare(b.id))});
   const bytes=new TextEncoder().encode(JSON.stringify(content)),previewToken=Array.from(new Uint8Array(await crypto.subtle.digest('SHA-256',bytes))).map(byte=>byte.toString(16).padStart(2,'0')).join('');
   if(review && review.previewToken!==previewToken) throw new Error('Evidence, policy or the latest assessment has changed since this review. Generate a fresh preview before publishing.');
-  return {model,sourceEvidence,previous,result:calculate(policy.models,model,sourceEvidence,new Date(preparedAt)),preparedAt,previewToken};
+  return {model,sourceEvidence,previous,result:{...calculate(policy.models,model,sourceEvidence,new Date(preparedAt)),commercial_context},preparedAt,previewToken};
 }
 export function assessmentPreview(prepared,policy) {
   const {model,result,previous,sourceEvidence,preparedAt,previewToken}=prepared;

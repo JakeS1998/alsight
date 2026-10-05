@@ -63,6 +63,11 @@
       "type": "object",
       "additionalProperties": true
     },
+    "commercial_context": {
+      "type": "object",
+      "additionalProperties": true,
+      "description": "Bounded frozen non-scoring commercial comparison, source provenance and contract input context"
+    },
     "status": {
       "type": "string",
       "enum": [

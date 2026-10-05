@@ -209,6 +209,38 @@
     "dataverse_id": {
       "type": "string",
       "description": "Original Dataverse bss_jctid GUID"
+    },
+    "commercial_value": {
+      "type": "number",
+      "minimum": 0,
+      "description": "Reviewed company-specific GBP signed contract income, excluding VAT"
+    },
+    "commercial_start": {
+      "type": "string",
+      "format": "date"
+    },
+    "commercial_end": {
+      "type": "string",
+      "format": "date"
+    },
+    "commercial_annual_value": {
+      "type": "number",
+      "minimum": 0
+    },
+    "commercial_reference": {
+      "type": "string",
+      "maxLength": 500
+    },
+    "commercial_reviewed": {
+      "type": "boolean",
+      "default": false
+    },
+    "commercial_reviewed_by": {
+      "type": "string"
+    },
+    "commercial_reviewed_at": {
+      "type": "string",
+      "format": "date-time"
     }
   },
   "required": [
