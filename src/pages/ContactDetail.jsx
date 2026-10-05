@@ -12,6 +12,7 @@ import ContactConnections from '@/components/crm/contact360/ContactConnections';
 import ContactKeyDates from '@/components/crm/contact360/ContactKeyDates';
 import ContactOpportunityForm from '@/components/crm/contact360/ContactOpportunityForm';
 import ContactOpportunities from '@/components/crm/ContactOpportunities';
+import { contactBelongsToAccount } from '@/components/accounts/accountContactQuery';
 
 export default function ContactDetail() {
   const { accountId, contactId } = useParams();
@@ -59,8 +60,7 @@ export default function ContactDetail() {
   if (loading) return <p className="p-8 text-muted-foreground">Loading contact…</p>;
   if (error) return <p role="alert" className="p-8 text-destructive">{error}</p>;
   if (!contact || (accountId && !account)) return <p className="p-8 text-muted-foreground">Contact not found.</p>;
-  const token = (account?.name?.split(/\s+/)[0] || '').toLowerCase().replace(/[^a-z]/g, '');
-  const belongs = !accountId || (account.company_number && contact.company_number === account.company_number) || (account.company_name && (contact.company_name || '').toLowerCase() === account.company_name.toLowerCase()) || (token.length > 2 && ((contact.email || '').split('@')[1] || '').toLowerCase().startsWith(token));
+  const belongs = !accountId || contactBelongsToAccount(account,contact);
   if (!belongs) return <p>Contact not linked to this account.</p>;
   if (!internal) return <div className="rounded-xl border border-border bg-card p-6"><h1 className="font-heading text-2xl font-semibold">{contact.full_name}</h1><p>{contact.job_title} · {contact.company_name}</p>{contact.email && <a className="text-primary" href={`mailto:${contact.email}`}>{contact.email}</a>}</div>;
   const owner = staff.find(s => s.id === profile?.relationship_owner_contact_id)?.full_name;

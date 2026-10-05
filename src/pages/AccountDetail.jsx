@@ -1,8 +1,10 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { useParams, Link } from "react-router-dom";
 import { base44 } from "@/api/base44Client";
 import { useAuth } from "@/lib/AuthContext";
-import { listAll, filterAll } from "@/components/data/loadAll";
+import { filterAll } from "@/components/data/loadAll";
+import accountContactQuery from '@/components/accounts/accountContactQuery';
+import { Button } from '@/components/ui/button';
 import { formatDate, formatCurrency } from "@/lib/portal";
 import { DocTypeBadge, ExecutedBadge, WarrantyStatusBadge } from "@/components/StatusBadge";
 import AccountCRM from '@/components/crm/AccountCRM';
@@ -19,12 +21,17 @@ import { Users, FolderKanban, FileText, ShieldCheck, Mail, Gavel } from "lucide-
 
 export default function AccountDetail() {
   const { accountId } = useParams();
+  const currentAccountId = useRef(accountId);
+  currentAccountId.current = accountId;
   const { user } = useAuth();
   const cache = useQueryClient();
   const summary = useAccountsView({ accountId });
   const signals = summary.data?.items.find(row => row.account.id === accountId)?.signals;
   const [account, setAccount] = useState(null);
   const [contacts, setContacts] = useState([]);
+  const [contactPage, setContactPage] = useState(null);
+  const [contactTotal, setContactTotal] = useState(0);
+  const [loadingContacts, setLoadingContacts] = useState(false);
   const [projects, setProjects] = useState([]);
   const [docs, setDocs] = useState([]);
   const [warranties, setWarranties] = useState([]);
@@ -32,34 +39,28 @@ export default function AccountDetail() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
+    let active = true;
+    setLoading(true);
+    setContacts([]);
+    setContactPage(null);
     (async () => {
       try {
         const acc = await base44.entities.Account.get(accountId);
+        if (!active) return;
         setAccount(acc);
         const dvId = acc.dataverse_id;
                  const projectAccountId = dvId || acc.id;
-                 const companyNo = acc.company_number;
 
-        const [allContacts, directProjects, d, w, j] = await Promise.all([
-          listAll(base44.entities.Contact).catch(() => []),
+        const contactQuery = accountContactQuery(acc);
+        const [contactResults, directProjects, d, w, j] = await Promise.all([
+          Promise.all([base44.entities.Contact.filter(contactQuery, {sort:'full_name',limit:50}), base44.entities.Contact.count(contactQuery)]),
           filterAll(base44.entities.Project, { $or: [{ client_account_id: projectAccountId }, { account_id: projectAccountId }], status: { $ne: "inactive" } }).catch(() => []),
           filterAll(base44.entities.LegalDocument, { $or: [{ account_id: dvId }, { client_account_id: dvId }], status: { $in: ["active", "inactive"] } }).catch(() => []),
           filterAll(base44.entities.Warranty, { $or: [{ account_id: dvId }, { supplier_id: dvId }, { client_account_id: dvId }] }).catch(() => []),
           filterAll(base44.entities.JCT, { $or: [{ account_id: dvId }, { contractor_id: dvId }, { client_account_id: dvId }] }).catch(() => []),
         ]);
 
-        // Contacts: match by company number, company name, or email domain derived from account name
-        const token = (acc.name?.split(/\s+/)[0] || "").toLowerCase().replace(/[^a-z]/g, "");
-        const matchesAccount = (c) => {
-          if (companyNo && c.company_number === companyNo) return true;
-          if (acc.company_name && (c.company_name || "").toLowerCase() === acc.company_name.toLowerCase()) return true;
-          if (c.email && token && token.length > 2) {
-            const domain = (c.email.split("@")[1] || "").toLowerCase();
-            if (domain.startsWith(token)) return true;
-          }
-          return false;
-        };
-        const contacts = allContacts.filter(matchesAccount);
+        const [contactsPage, totalContacts] = contactResults;
 
         // Projects: direct account link plus any project referenced by related docs/warranties/JCTs
         const projectIdSet = new Set();
@@ -73,15 +74,19 @@ export default function AccountDetail() {
           projects = Object.values(map);
         }
 
-        setContacts(contacts);
+        if (!active) return;
+        setContacts(contactsPage.items);
+        setContactPage(contactsPage);
+        setContactTotal(totalContacts);
         setProjects(projects);
         setDocs(d);
         setWarranties(w);
         setJcts(j);
       } finally {
-        setLoading(false);
+        if (active) setLoading(false);
       }
     })();
+    return () => { active = false; };
   }, [accountId]);
 
   if (loading) {
@@ -111,7 +116,7 @@ export default function AccountDetail() {
       <TabsContent value="overview"><AccountOverview account={account} contacts={contacts} projects={projects} signals={signals} user={user} summaryLoading={summary.isPending} summaryError={summary.error} onAccountEnriched={updated=>setAccount(current=>({...current,...updated}))} /></TabsContent>
       <TabsContent value="contacts" className="space-y-6">
       {/* Linked Contacts */}
-      <Section icon={Users} title="Linked Contacts" count={contacts.length}>
+      <Section icon={Users} title="Linked Contacts" count={contactTotal}>
         {contacts.length === 0 ? <Empty text="No contacts linked to this account" /> : (
           <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
             {contacts.map((c) => (
@@ -126,6 +131,15 @@ export default function AccountDetail() {
           </div>
         )}
       </Section>
+      {contactPage?.has_more && <Button variant="outline" disabled={loadingContacts} onClick={async () => {
+        setLoadingContacts(true);
+        try {
+          const page = await base44.entities.Contact.filter(accountContactQuery(account), {sort:'full_name',limit:50,cursor:contactPage.next_cursor});
+          if (currentAccountId.current !== account.id) return;
+          setContacts(current => [...current,...page.items]);
+          setContactPage(page);
+        } finally { setLoadingContacts(false); }
+      }}>{loadingContacts ? 'Loading contacts…' : 'Load more contacts'}</Button>}
 
       </TabsContent>
       <TabsContent value="opportunities" className="space-y-6">
