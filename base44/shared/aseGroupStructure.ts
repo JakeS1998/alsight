@@ -1,3 +1,5 @@
+import {blackflagSnapshot} from './aseBlackflagSnapshot.ts';
+import {blackflagStructure} from './aseBlackflagStructure.ts';
 const fields=['name','dataverse_id','parent_account_id','company_number','organisation_type'];
 export async function groupStructure(base44,account) {
   const warnings=[],seen=new Set([account.id]),ancestors=[];
@@ -31,5 +33,7 @@ export async function groupStructure(base44,account) {
     if(depth===19 && frontier.length) warnings.push('Subsidiary discovery reached the 20-level limit.');
   }
   if(!visited.has(account.id)) {nodes.push({id:account.id,name:account.name,company_number:account.company_number,parentId:null});warnings.push('This account could not be connected to the accessible group tree.');}
+  const report=await blackflagSnapshot(base44,account);
+  blackflagStructure(nodes,account.id,report,ancestors,warnings);
   return {nodes,currentId:account.id,ancestorIds:ancestors,warnings:[...new Set(warnings)],checked_at:new Date().toISOString()};
 }

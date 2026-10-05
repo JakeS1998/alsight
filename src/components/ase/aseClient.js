@@ -8,6 +8,7 @@ export async function aseRequest(action,input={}) {
 }
 export function invalidateASE(cache) {
   cache.invalidateQueries({queryKey:['ase']});
+  cache.invalidateQueries({queryKey:['account-group']});
   cache.setQueryData(['accounts-revision'],Date.now());
   cache.invalidateQueries({queryKey:['accounts-view']});
 }

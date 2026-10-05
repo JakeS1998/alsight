@@ -1,6 +1,10 @@
 import {normaliseCompanyNumber} from './companiesHouseData.ts';
+import {blackflagTurnover} from './aseBlackflagSnapshot.ts';
 import {readSourceResponse} from './aseSourceCommon.ts';
 export async function commercialTurnover(base44,account,now=new Date()) {
+  return blackflagTurnover(base44,account,now);
+}
+export async function filedCommercialTurnover(base44,account,now=new Date()) {
   if(!account.company_number) return {status:'unavailable',reason:'No Companies House number is recorded.'};
   if(!/^(?:\d{1,8}|[A-Z]{2}\d{1,6})$/i.test(String(account.company_number).trim())) return {status:'unavailable',reason:'The recorded Companies House number is invalid.'};
   const number=normaliseCompanyNumber(account.company_number);
