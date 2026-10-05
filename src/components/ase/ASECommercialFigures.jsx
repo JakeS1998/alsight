@@ -1,6 +1,22 @@
 import React from 'react';
-import { Link } from 'react-router-dom';
-import { formatCurrency,formatDate,formatDateTime } from '@/lib/portal';
+import { formatCurrency } from '@/lib/portal';
+import ASECommercialEvidence from '@/components/ase/ASECommercialEvidence';
+import '@/components/ase/ase-commercial-figures.css';
+
 export default function ASECommercialFigures({data,historical=false}) {
-  return <div className="space-y-3"><div className="grid gap-3 sm:grid-cols-3"><div><p className="text-xs text-muted-foreground">{data.estimated ? 'Estimated turnover comparison' : 'Indicative turnover comparison'}</p><p className="text-2xl font-bold">{data.percentage==null ? 'Unavailable' : `${data.percentage.toFixed(1)}%`}</p></div><div><p className="text-xs text-muted-foreground">{data.proposal_proxy_count ? 'Annualised contracts / Pathway proposals' : 'Annualised reviewed contracts'}</p><p className="font-semibold">{data.annualised_value==null ? 'Unavailable' : formatCurrency(data.annualised_value)}</p></div><div><p className="text-xs text-muted-foreground">Latest reported turnover</p><p className="font-semibold">{data.turnover?.status==='available' ? formatCurrency(data.turnover.value) : 'Unavailable'}</p></div></div><p className="text-sm">{data.status==='incomplete' && <strong>Incomplete comparison. </strong>}{data.reason}</p>{data.turnover?.status==='unavailable' && <p className="text-xs text-muted-foreground">Turnover unavailable: {data.turnover.reason}</p>}{data.turnover?.status==='available' && <p className="text-xs text-muted-foreground">{data.turnover.period_start ? <>Turnover period: {formatDate(data.turnover.period_start)} to {formatDate(data.turnover.period_end)}.</> : <>Period ending: {formatDate(data.turnover.period_end)}; annual duration unconfirmed.</>} <a href={data.turnover.source_reference} target="_blank" rel="noreferrer" className="underline">{data.turnover.source_label || 'Filed accounts source'}</a>{data.turnover.retrieved_at && <> · Retrieved {formatDateTime(data.turnover.retrieved_at)}</>}</p>}<p className="text-xs text-muted-foreground">{data.included_count ?? 0} included · {data.excluded_count ?? 0} excluded accessible signed contracts. {historical ? 'Frozen at assessment publication' : 'Calculated'}: {formatDateTime(data.checked_at)}</p>{data.warnings?.map(text=><p key={text} className="text-xs text-muted-foreground">{text}</p>)}<details className="text-xs"><summary className="cursor-pointer font-semibold">Calculation and contract evidence</summary><p className="mt-2 text-muted-foreground">{data.method}</p><ul className="mt-3 space-y-3">{data.contracts?.map(row=><li key={row.id} className="rounded-lg border border-border p-3"><p className="font-semibold">{row.project_name || row.document_id} · {row.document_id}</p><p className="mt-1 text-muted-foreground">{row.value_basis==='pathway_proposal' ? `Pathway fee proposal R${row.fee_proposal_revision || 1} · ${row.fee_proposal_status || 'Status not recorded'} · Estimated value` : 'Reviewed signed contract value'}</p>{row.value_source && <p className="mt-1 text-muted-foreground">{row.value_source}</p>}<p>{formatCurrency(row.commercial_value)} · {formatDate(row.commercial_start)} to {formatDate(row.commercial_end)}</p><p className="text-xs text-muted-foreground">{row.commercial_date_basis==='project_programme' ? `Estimated dates: project programme proxy · ${row.commercial_date_source || 'Recorded project programme'}` : 'Confirmed contract dates'}</p><p>Annualised: {formatCurrency(row.commercial_annual_value)}{row.commercial_reviewed_at && <> · Reviewed {formatDateTime(row.commercial_reviewed_at)}</>}</p><Link className="underline" to={row.project_record_id ? `/projects/${row.project_record_id}` : '/documents'}>{row.value_basis==='pathway_proposal' ? 'View Pathway fee proposal' : 'View project / contract'}</Link></li>)}</ul></details></div>;
+  const available = Number.isFinite(data.percentage);
+  const position = available ? Math.min(100,Math.max(0,data.percentage)) : 0;
+  return <div className="space-y-3">
+    <div className="ase-concentration" aria-label={`${historical ? 'Historical' : 'Current'} indicative commercial concentration${data.estimated ? ', estimated' : ''}${data.status==='incomplete' ? ', incomplete comparison' : ''}`}>
+      <p className="percentage">{available ? `${data.percentage.toFixed(1)}%` : 'Unavailable'}</p>
+      <div className="track" role="img" aria-label={available ? `${data.percentage.toFixed(1)} percent of reported turnover, shown on a 0 to 100 percent scale` : 'Concentration unavailable'}>
+        {available && <><div className="fill" style={{width:`${position}%`}}/><span className="marker" style={{left:`${position}%`}}/></>}
+      </div>
+      <div className="amounts">
+        <span aria-label="Annualised contract value">{data.annualised_value==null ? 'Unavailable' : formatCurrency(data.annualised_value)}</span>
+        <span aria-label="Latest reported turnover">{data.turnover?.status==='available' ? formatCurrency(data.turnover.value) : 'Unavailable'}</span>
+      </div>
+    </div>
+    <ASECommercialEvidence data={data}/>
+  </div>;
 }
