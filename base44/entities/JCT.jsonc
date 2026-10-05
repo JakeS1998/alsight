@@ -241,6 +241,21 @@
     "commercial_reviewed_at": {
       "type": "string",
       "format": "date-time"
+    },
+    "commercial_date_basis": {
+      "type": "string",
+      "enum": [
+        "contract_dates",
+        "project_programme"
+      ],
+      "description": "Whether the annualisation dates were confirmed contract dates or a project-programme proxy"
+    },
+    "commercial_date_source": {
+      "type": "string",
+      "maxLength": 500
+    },
+    "commercial_programme_record_id": {
+      "type": "string"
     }
   },
   "required": [

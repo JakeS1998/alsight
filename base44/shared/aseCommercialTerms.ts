@@ -16,13 +16,21 @@ export async function reviewCommercialTerms(base44,account,input,user) {
   const page=await base44.entities.JCT.filter({...contractQuery(account),id:input.contractId},{limit:1});
   const contract=page.items[0];if(!contract) throw new Error('An executed contractor-side contract linked to this account is required.');
   if(input.confirmed!==true || typeof input.reference!=='string' || !input.reference.trim() || input.reference.length>500) throw new Error('Confirm the company-specific GBP value and provide the signed contract reference.');
-  const terms=annualiseTerms(input.value,input.start,input.end),reference=input.reference.trim();
+  const basis=input.dateBasis ?? (input.start && input.end ? 'contract_dates' : 'project_programme');
+  if(!['contract_dates','project_programme'].includes(basis)) throw new Error('Choose confirmed contract dates or the project programme.');
+  let start=input.start,end=input.end,source='Confirmed contract dates',programmeId='';
+  if(basis==='project_programme') {
+    const [linked]=await contractProjectTerms(base44,[contract]),programme=linked.recorded_terms;
+    if(!programme?.start || !programme?.end) throw new Error('No complete recorded project programme is available. This contract remains excluded from annualisation until programme or contract dates are recorded.');
+    start=programme.start;end=programme.end;source=programme.date_source;programmeId=programme.programme_record_id;
+  }
+  const terms=annualiseTerms(input.value,start,end),reference=input.reference.trim();
   const duplicate=await base44.entities.JCT.count({...contractQuery(account),commercial_reviewed:true,commercial_reference:reference,id:{$ne:contract.id}});
   if(duplicate) throw new Error('This signed contract reference is already included for this account. Use one record per contract.');
-  await base44.entities.JCT.update(contract.id,{commercial_value:input.value,commercial_start:input.start,commercial_end:input.end,commercial_annual_value:terms.annual_value,commercial_reference:reference,commercial_reviewed:true,commercial_reviewed_by:user.id,commercial_reviewed_at:new Date().toISOString()});
+  await base44.entities.JCT.update(contract.id,{commercial_value:input.value,commercial_start:start,commercial_end:end,commercial_date_basis:basis,commercial_date_source:source,commercial_programme_record_id:programmeId,commercial_annual_value:terms.annual_value,commercial_reference:reference,commercial_reviewed:true,commercial_reviewed_by:user.id,commercial_reviewed_at:new Date().toISOString()});
   return {saved:true};
 }
 export async function contractCandidates(base44,account,cursor) {
-  const page=await base44.entities.JCT.filter(contractQuery(account),{sort:'document_id',limit:20,...(cursor ? {cursor} : {}),fields:['document_id','project_id','status','date_of_execution','link_to_file','commercial_value','commercial_start','commercial_end','commercial_reference','commercial_reviewed','commercial_reviewed_at']});
+  const page=await base44.entities.JCT.filter(contractQuery(account),{sort:'document_id',limit:20,...(cursor ? {cursor} : {}),fields:['document_id','project_id','status','date_of_execution','link_to_file','commercial_value','commercial_start','commercial_end','commercial_reference','commercial_reviewed','commercial_reviewed_at','commercial_date_basis','commercial_date_source']});
   return {...page,items:await contractProjectTerms(base44,page.items)};
 }

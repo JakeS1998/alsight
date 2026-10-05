@@ -11,6 +11,6 @@ export async function contractProjectTerms(base44,contracts) {
     const matches=projects.filter(row=>row.id===contract.project_id || row.dataverse_id===contract.project_id);
     if(matches.length!==1) return contract;
     const project=matches[0],terms=delivery.items.filter(row=>[project.id,project.dataverse_id].includes(row.project_id));
-    return {...contract,project_name:project.name,project_record_id:project.id,...(terms.length===1 ? {recorded_terms:{value:terms[0].contract_sum,start:terms[0].contract_start,end:terms[0].forecast_pc || terms[0].original_pc,source:'Recorded project delivery contract sum and programme; verify against the signed JCT before including.'}} : {})};
+    return {...contract,project_name:project.name,project_record_id:project.id,...(terms.length===1 ? {recorded_terms:{value:terms[0].contract_sum,start:terms[0].contract_start,end:terms[0].forecast_pc || terms[0].original_pc,programme_record_id:terms[0].id,date_source:terms[0].forecast_pc ? 'Project delivery: contract start to forecast practical completion' : 'Project delivery: contract start to original practical completion',source:'Recorded project contract sum requires company-specific value review; programme dates may be used as an explicitly labelled proxy when contract dates are unknown.'}} : {})};
   });
 }
