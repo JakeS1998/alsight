@@ -5,7 +5,8 @@ export async function seedDemo(base44,policy) {
   for (const example of examples) {
     const {values,before,...fields}=example;
     const existing=await base44.entities.Account.filter({name:example.name},{limit:1});
-    const account=existing.items[0] || await base44.entities.Account.create({...fields,status:'active',relationship_summary:'Fictional ASE demonstration only. Not a real organisation or financial assessment.'});
+    let account=existing.items[0] || await base44.entities.Account.create({...fields,dataverse_id:crypto.randomUUID(),status:'active',relationship_summary:'Fictional ASE demonstration only. Not a real organisation or financial assessment.'});
+    if (!account.dataverse_id) account=await base44.entities.Account.update(account.id,{dataverse_id:crypto.randomUUID()});
     const model=example.company_type ? 'company' : 'english_local_authority';
     if (!await base44.entities.ASEAssessment.count({account_id:account.id,status:'published'})) {
       if (!await base44.entities.ASEEvidence.count({account_id:account.id,assessment_id:null})) {

@@ -25,6 +25,8 @@ export function validateEvidence(input, rules) {
   if (!['none','minor','moderate','material','serious'].includes(input.severity) || !['High','Medium','Low'].includes(input.confidence)) throw new Error('Choose severity and evidence confidence.');
   if (input.previous_value && (typeof input.previous_value!=='string' || input.previous_value.length>200)) throw new Error('Invalid previous value.');
   if (input.notes && (typeof input.notes!=='string' || input.notes.length>1000)) throw new Error('Notes are limited to 1,000 characters.');
+  if (['liquidity','borrowing'].includes(rule.key) && Number(input.value)<0) throw new Error('This ratio cannot be negative. Leave undefined or invalid ratios missing.');
+  if (rule.choices && Number(input.value)<=2 && !['material','serious'].includes(input.severity)) throw new Error('A serious or material event classification must be flagged with material or serious severity.');
   if (input.period_months!=null && (!Number.isInteger(input.period_months) || input.period_months<1 || input.period_months>24)) throw new Error('Period length must be 1–24 months.');
   return {component:input.component,source:input.source.trim(),title:input.title.trim(),value:input.value,previous_value:input.previous_value || '',source_reference:input.source_reference.trim(),notes:input.notes || '',reporting_period:input.reporting_period,source_date:input.source_date,severity:input.severity,confidence:input.confidence,period_months:input.period_months || 12,currency:'GBP',evidence_type:rule.type,retrieval_date:new Date().toISOString(),assessment_id:null};
 }
