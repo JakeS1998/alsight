@@ -1,4 +1,4 @@
-.ase-concentration{box-sizing:border-box;width:342px;max-width:100%;padding:18px 20px 16px;border:1px solid #d6e3d8;border-radius:14px;background:#f3f7f1;color:#24483e;font-family:system-ui,-apple-system,"Segoe UI",sans-serif;box-shadow:0 5px 16px rgba(36,117,99,.08)}
+.ase-concentration{box-sizing:border-box;width:100%;padding:18px 20px 16px;border:1px solid #d6e3d8;border-radius:14px;background:#f3f7f1;color:#24483e;font-family:system-ui,-apple-system,"Segoe UI",sans-serif;box-shadow:0 5px 16px rgba(36,117,99,.08)}
 .ase-concentration .percentage{margin:0 0 15px;font-size:30px;line-height:1;font-weight:750;letter-spacing:-1.1px;font-variant-numeric:tabular-nums}
 .ase-concentration .track{height:8px;margin-bottom:16px;border-radius:999px;background:#d6e3d8;position:relative}
 .ase-concentration .fill{height:100%;border-radius:999px;background:#247563;transform-origin:left center;animation:ase-concentration-reveal .8s cubic-bezier(.2,.75,.25,1) both}
