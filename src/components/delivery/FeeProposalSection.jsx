@@ -13,6 +13,7 @@ import { additionalFeeTotal } from '@/components/delivery/additionalFeeStages';
 import SupplierFeeTable from '@/components/delivery/SupplierFeeTable';
 import FeePdfOptionsDialog from '@/components/delivery/FeePdfOptionsDialog';
 import { useAuth } from '@/lib/AuthContext';
+import { useQueryClient } from '@tanstack/react-query';
 import useSupplierFsf from '@/components/delivery/useSupplierFsf';
 import SupplierFsfSummary from '@/components/delivery/SupplierFsfSummary';
 import { supplierFsfTotals } from '@/components/delivery/supplierFsf';
@@ -75,6 +76,7 @@ export function FeeProposalSection({ projectId, project, onChanged, deliveryTeam
   const [exportKind, setExportKind] = useState(null);
   const [saveError, setSaveError] = useState('');
   const { user } = useAuth();
+  const queryCache = useQueryClient();
   const fsf = useSupplierFsf(user, selectedId, projectId);
   const agreement = frameworkAgreementRoute(legalDocs, dmas, project.project_number);
   const singleTask = agreement.route === 'single_task';
@@ -172,6 +174,8 @@ export function FeeProposalSection({ projectId, project, onChanged, deliveryTeam
         ohp_surveys_fixed: Number(ohpSurveysFixed) || 0,
         ohp_riba57_pct: Number(ohpRiba57Pct) || 0,
       });
+      queryCache.invalidateQueries({ queryKey: ['ase', 'commercial'] });
+      queryCache.invalidateQueries({ queryKey: ['ase', 'commercial-contracts'] });
       load();
     } catch (error) { setSaveError(error.message || 'Unable to save the builder. Please try again.'); }
     finally { setSavingBuilder(false); }

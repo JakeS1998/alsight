@@ -32,5 +32,5 @@ export async function reviewCommercialTerms(base44,account,input,user) {
 }
 export async function contractCandidates(base44,account,cursor) {
   const page=await base44.entities.JCT.filter(contractQuery(account),{sort:'document_id',limit:20,...(cursor ? {cursor} : {}),fields:['document_id','project_id','status','date_of_execution','link_to_file','commercial_value','commercial_start','commercial_end','commercial_reference','commercial_reviewed','commercial_reviewed_at','commercial_date_basis','commercial_date_source']});
-  return {...page,items:await contractProjectTerms(base44,page.items)};
+  return {...page,items:await contractProjectTerms(base44,page.items,account)};
 }

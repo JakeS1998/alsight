@@ -256,6 +256,43 @@
     },
     "commercial_programme_record_id": {
       "type": "string"
+    },
+    "commercial_effective_value": {
+      "type": "number",
+      "minimum": 0
+    },
+    "commercial_effective_annual_value": {
+      "type": "number",
+      "minimum": 0
+    },
+    "commercial_effective_start": {
+      "type": "string"
+    },
+    "commercial_effective_end": {
+      "type": "string"
+    },
+    "commercial_effective_reference": {
+      "type": "string"
+    },
+    "commercial_effective_date_basis": {
+      "type": "string",
+      "enum": [
+        "",
+        "contract_dates",
+        "project_programme"
+      ]
+    },
+    "commercial_effective_mode": {
+      "type": "string",
+      "enum": [
+        "unavailable",
+        "reviewed",
+        "pathway_proposal"
+      ]
+    },
+    "commercial_effective_source": {
+      "type": "object",
+      "additionalProperties": true
     }
   },
   "required": [
