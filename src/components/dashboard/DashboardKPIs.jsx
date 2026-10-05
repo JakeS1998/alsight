@@ -15,11 +15,11 @@ export function DashboardKPIs({ projects, hideValues = false }) {
   ];
 
   return (
-    <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
+    <div className="grid grid-cols-1 gap-3 md:grid-cols-2 lg:grid-cols-4">
       {kpis.filter(k => !hideValues || (k.label !== 'Pipeline Value' && k.label !== 'Avg Project Value')).map((k) => {
         const Icon = k.icon;
         return (
-          <div key={k.label} className="rounded-2xl border border-slate-200 bg-white p-5">
+          <div key={k.label} className="min-w-0 rounded-xl border border-border bg-card p-4">
             <div className={`mb-3 inline-flex h-9 w-9 items-center justify-center rounded-lg ${k.accent}`}>
               <Icon className="h-4 w-4" />
             </div>

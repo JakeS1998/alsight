@@ -67,7 +67,7 @@ export default function LegalDocuments() {
           <p className="mt-3 text-sm text-slate-500">No documents match this filter.</p>
         </div>
       ) : (
-        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+        <div className="portal-card-grid">
           {filtered.map((d) => {
             const project = projectMap[d.project_id];
             return (

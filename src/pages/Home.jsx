@@ -18,6 +18,7 @@ import DashboardAttention from "@/components/dashboard/DashboardAttention";
 import { projectStage } from "@/components/dashboard/pipelineStage";
 import projectScope from '@/components/projects/projectScope';
 import DashboardSkeleton from '@/components/dashboard/DashboardSkeleton';
+import HomeJourneyHero from '@/components/dashboard/HomeJourneyHero';
 
 export default function Home() {
   const { user } = useAuth();
@@ -96,8 +97,9 @@ export default function Home() {
   }
 
   return (
-    <div className="space-y-8">
-      <div>
+    <div className="home-dashboard w-full min-w-0 space-y-4">
+      <HomeJourneyHero />
+      <div className="rounded-xl border border-border bg-card px-5 py-4">
         <p className="text-sm text-slate-500">{greeting()},</p>
         <h1 className="font-heading text-2xl font-semibold tracking-tight text-slate-900">
           {user?.full_name?.trim().split(/\s+/)[0] || user?.email}
@@ -117,13 +119,14 @@ export default function Home() {
 
       {internal && !extrasError && !extrasLoading && <PipelineTimeline projects={portfolio.pipeline} accountMap={accountMap} />}
 
-      {internal && !extrasError && !extrasLoading ? <div className="grid gap-6 lg:grid-cols-2">
+      {internal && !extrasError && !extrasLoading ? <div className="grid gap-4 lg:grid-cols-2">
         <DashboardAttention portfolio={portfolio} riskExpanded={riskExpanded} onRiskExpandedChange={setRiskExpanded} />
         <RegionBreakdown projects={filteredProjects} confirmedAmounts={confirmedAmounts} invoicesLoading={invoicesLoading} invoicesError={invoicesError} />
       </div> : role !== 'supplier' && <RegionBreakdown projects={filteredProjects} confirmedAmounts={confirmedAmounts} invoicesLoading={invoicesLoading} invoicesError={invoicesError} />}
 
-      <div className="rounded-2xl border border-slate-200 bg-white p-5">
-        <div className="mb-4 flex items-center gap-2">
+      <div className="home-bottom-grid">
+      <div className="min-w-0 rounded-xl border border-border bg-card p-4">
+        <div className="mb-4 flex flex-wrap items-center gap-2">
           <MapPin className="h-4 w-4 text-primary" />
           <h2 className="font-heading text-base font-semibold text-slate-900">Project Map</h2>
           <span className="text-xs text-slate-400">Click a marker for details</span>
@@ -131,8 +134,8 @@ export default function Home() {
         <ProjectMap projects={filteredProjects} showValues={role !== 'supplier'} />
       </div>
 
-      <div className="rounded-2xl border border-slate-200 bg-white">
-        <div className="flex items-center justify-between border-b border-slate-100 px-5 py-4">
+      <div className="min-w-0 rounded-xl border border-border bg-card">
+        <div className="flex flex-wrap items-center justify-between gap-2 border-b border-border px-4 py-4">
           <h2 className="font-heading text-base font-semibold text-slate-900">Recent Projects</h2>
           <Link to="/projects" className="text-xs font-medium text-slate-500 hover:text-slate-900">View all</Link>
         </div>
@@ -141,7 +144,7 @@ export default function Home() {
             <p className="px-5 py-8 text-center text-sm text-slate-400">No projects to show.</p>
           ) : (
             filteredProjects.slice(0, 8).map((p) => (
-              <Link key={p.id} to={`/projects/${p.id}`} className="flex items-center justify-between px-5 py-3.5 hover:bg-slate-50">
+              <Link key={p.id} to={`/projects/${p.id}`} className="flex items-center justify-between gap-3 px-4 py-3 hover:bg-muted/50">
                 <div className="min-w-0">
                   <p className="truncate text-sm font-medium text-slate-900">{p.name}</p>
                   <p className="truncate text-xs text-slate-500">{[p.project_number, projectStage(p), regionName(p.department_id)].filter(Boolean).join(' · ') || '—'}</p>
@@ -151,6 +154,7 @@ export default function Home() {
             ))
           )}
         </div>
+      </div>
       </div>
     </div>
   );

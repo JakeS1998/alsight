@@ -79,7 +79,7 @@ export default function AccountProfile() {
   }
 
   return (
-    <div className="max-w-2xl space-y-6">
+    <div className="w-full max-w-none space-y-6">
       <div>
         <h1 className="font-heading text-2xl font-semibold tracking-tight text-slate-900">My Account</h1>
         <p className="mt-1 text-sm text-slate-500">Keep your contact details up to date — these are visible to the legal team.</p>

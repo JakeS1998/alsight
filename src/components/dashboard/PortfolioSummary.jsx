@@ -13,15 +13,12 @@ export default function PortfolioSummary({ metrics, onRiskClick }) {
     { label: "Purchase orders (net)", value: formatCurrency(metrics.poNet), detail: "Linked to active projects", icon: Receipt, tone: "bg-chart-5/30 text-als-navy", help: "The sum of net values for active purchase orders linked by project reference to projects in the active pipeline.", href: 'https://alslive.crm11.dynamics.com/main.aspx?appid=3631f3af-18b0-f011-bbd3-6045bd0e7165' },
     { label: "Recorded contract sums", value: formatCurrency(metrics.contractValue), detail: "Delivery records", icon: Activity, tone: "bg-chart-4/30 text-als-navy", help: "The sum of contract amounts from the latest delivery record for each active pipeline project." },
   ];
-  return <div className="space-y-3">
-    <div className="grid grid-cols-2 gap-4 xl:grid-cols-4">{cards.slice(0, 4).map((card) => <SummaryCard key={card.label} card={card} />)}</div>
-    <div className="grid grid-cols-2 gap-3">{cards.slice(4).map((card) => <SummaryCard key={card.label} card={card} secondary />)}</div>
-  </div>;
+  return <div className="portfolio-kpis">{cards.map(card => <SummaryCard key={card.label} card={card} />)}</div>;
 }
 
-function SummaryCard({ card, secondary = false }) {
+function SummaryCard({ card }) {
   const { label, value, detail, icon: Icon, tone, help, path, href, onClick } = card;
-  const content = <><div className={`mb-3 inline-flex h-9 w-9 items-center justify-center rounded-lg ${tone}`}><Icon className="h-4 w-4" /></div><p className={`break-words font-semibold tracking-tight text-slate-900 ${secondary ? 'text-lg sm:text-xl' : 'text-xl sm:text-2xl'}`}>{value}</p><p className="mt-1 text-sm font-medium text-slate-700">{label}</p><p className="text-xs text-slate-500">{detail}</p></>;
-  const className = `block rounded-2xl border bg-white text-left ${secondary ? 'border-slate-200 p-3 sm:p-4' : card.onClick ? 'border-rose-200 p-4 hover:border-rose-400 sm:p-5' : 'border-slate-200 p-4 sm:p-5'} ${path || href ? 'hover:border-primary' : ''}`;
+  const content = <div className="flex items-start gap-3"><div className={`inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-lg ${tone}`}><Icon className="h-4 w-4" /></div><div className="min-w-0 pr-2"><p className="break-words text-xl font-semibold tracking-tight text-foreground">{value}</p><p className="mt-1 text-sm font-medium text-foreground">{label}</p><p className="mt-1 pr-3 text-xs text-muted-foreground">{detail}</p></div></div>;
+  const className = `block h-full rounded-xl border bg-card p-4 text-left ${card.onClick ? 'border-destructive/25 hover:border-destructive/50' : 'border-border'} ${path || href ? 'hover:border-primary' : ''}`;
   return <div className="relative min-w-0">{href ? <a href={href} target="_blank" rel="noopener noreferrer" className={className} aria-label={`${label} — open Dynamics in a new tab`}>{content}</a> : path ? <Link to={path} className={className}>{content}</Link> : onClick ? <button type="button" onClick={onClick} className={`w-full ${className}`}>{content}</button> : <div className={className}>{content}</div>}<span className="absolute bottom-3 right-3"><DashboardInfoTooltip label={label}>{help}</DashboardInfoTooltip></span></div>;
 }

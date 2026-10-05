@@ -11,7 +11,7 @@ export default function ProjectListView({ projects, accountMap, staffMap, role, 
   const cell = comfortable ? 'px-4 py-5 align-middle' : 'px-4 py-2.5 align-middle';
   const showValues = !['supplier', 'project_manager'].includes(role);
   const sortColumn = value => onSort(value === 'number' ? 'number' : sortBy === `${value}_asc` ? `${value}_desc` : `${value}_asc`);
-  return <div className="overflow-x-auto rounded-xl border border-border bg-card">
+  return <div className="min-w-0 w-full max-w-full overflow-x-auto rounded-xl border border-border bg-card">
     <table className="w-full text-left text-sm">
       <caption className="sr-only">Projects in {density} list view. Select a project to open its details.</caption>
       <thead className="border-b border-border bg-muted/50 text-xs text-muted-foreground"><tr>{columns.filter(column => !column.financial || showValues).map(column => {

@@ -224,7 +224,7 @@ export default function Projects() {
       ) : view === 'list' ? (
         <ProjectListView projects={filtered} accountMap={accountMap} staffMap={staffMap} role={role} density={density} sortBy={sortBy} onSort={setSortBy} />
       ) : (
-        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+        <div className="portal-card-grid">
           {filtered.map((p) => {
             const client = accountMap[p.client_account_id];
             return (

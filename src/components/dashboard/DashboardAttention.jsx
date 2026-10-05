@@ -12,7 +12,7 @@ export default function DashboardAttention({ portfolio, riskExpanded, onRiskExpa
   const cutoff = Date.now() - 14 * 86400000;
   const projectIds = new Set(portfolio.pipeline.map(p => p.id));
   const alerts = portfolio.fees.filter(f => projectIds.has(f.project_id) && ['sent', 'internal_review'].includes(f.status) && f.updated_date && new Date(f.updated_date).getTime() < cutoff).map(f => ({ id: `fee-${f.id}`, projectId: f.project_id, title: portfolio.pipeline.find(p => p.id === f.project_id)?.name || 'Fee proposal', reason: `Fee proposal ${f.status === 'sent' ? 'awaiting client response' : 'awaiting internal review'} for over 14 days`, priority: 1 }));
-  return <section className="rounded-2xl border border-slate-200 bg-white p-5" id="dashboard-attention">
+  return <section className="min-w-0 rounded-xl border border-border bg-card p-4" id="dashboard-attention">
     <h2 className="font-heading text-base font-semibold text-als-navy">Attention required</h2>
     {portfolio.atRisk.length > 0 && <div className="mt-4"><ProjectRiskTracker atRisk={portfolio.atRisk} expanded={riskExpanded} onExpandedChange={onRiskExpandedChange} /></div>}
     <h3 className="mt-4 text-sm font-medium text-foreground">Assigned to me{tasks.total ? ` (${tasks.total})` : ''}</h3>

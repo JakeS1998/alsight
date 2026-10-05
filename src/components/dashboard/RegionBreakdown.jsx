@@ -21,7 +21,7 @@ export function RegionBreakdown({ projects, confirmedAmounts = {}, invoicesLoadi
   }, [projects, confirmedAmounts]);
 
   return (
-    <div className="rounded-2xl border border-slate-200 bg-white p-5">
+    <div className="min-w-0 rounded-xl border border-border bg-card p-4">
       <div className="mb-4">
         <h3 className="text-sm font-semibold text-slate-900">Project Value by Region</h3>
         <p className="text-xs text-slate-500">Paid invoices versus total project value by operating region</p>

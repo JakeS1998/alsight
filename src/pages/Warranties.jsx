@@ -64,8 +64,8 @@ export default function Warranties() {
           <p className="mt-3 text-sm text-slate-500">No warranties to show.</p>
         </div>
       ) : (
-        <div className="overflow-hidden rounded-2xl border border-slate-200 bg-white">
-          <table className="w-full">
+        <div className="min-w-0 w-full max-w-full overflow-x-auto rounded-2xl border border-slate-200 bg-white">
+          <table className="w-full min-w-[640px]">
             <thead>
               <tr className="border-b border-slate-100 bg-slate-50 text-left text-xs font-medium uppercase tracking-wide text-slate-500">
                 <th className="px-4 py-3">Supplier</th>

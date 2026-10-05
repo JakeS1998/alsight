@@ -100,7 +100,7 @@ export default function Delegation() {
   const covering = user?.data?.delegate_of;
 
   return (
-    <div className="max-w-3xl space-y-6">
+    <div className="w-full max-w-none space-y-6">
       <div>
         <h1 className="font-heading text-2xl font-semibold tracking-tight text-slate-900">Delegation</h1>
         <p className="mt-1 text-sm text-slate-500">

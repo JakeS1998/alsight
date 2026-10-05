@@ -126,7 +126,7 @@ export default function Accounts() {
           )}
         </div>
       ) : (
-        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+        <div className="portal-card-grid">
           {filtered.map((a) => (
             <Link key={a.id} to={`/accounts/${a.id}`} className="flex flex-col rounded-2xl border border-slate-200 bg-white p-5 transition-shadow hover:shadow-md">
               <div className="flex items-start justify-between gap-2">
