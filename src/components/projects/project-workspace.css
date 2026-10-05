@@ -23,8 +23,9 @@
 .project-workspace .ws-back:active { color: var(--ws-orange); }
 .project-workspace .ws-back:focus-visible { outline: 3px solid var(--ws-orange); outline-offset: 3px; }
 .project-workspace .ws-hero { position: relative; isolation: isolate; min-height: 280px; border-radius: 22px; overflow: hidden; display: grid; grid-template-columns: 1fr 42%; align-items: center; background: var(--ws-navy); box-shadow: 0 18px 42px #183b5a20; animation: enter .7s ease-out .08s both; }
-.project-workspace .ws-hero:before { content: ""; position: absolute; inset: 0; z-index: -1; background: linear-gradient(90deg, #102743 0%, #102743f2 45%, #10274348 100%); }
-.project-workspace .ws-heroimg { position: absolute; z-index: -2; inset: 0 0 0 52%; width: 48%; height: 100%; object-fit: cover; }
+.project-workspace .ws-hero:before { content: ""; position: absolute; inset: 0; z-index: -1; background: linear-gradient(90deg, var(--ws-navy) 0%, var(--ws-navy) 30%, #102743ed 42%, #10274399 58%, #10274333 78%, #10274314 100%); }
+.project-workspace .ws-heroimg { position: absolute; z-index: -2; inset: 0 0 0 30%; width: 70%; height: 100%; object-fit: cover; mask-image: linear-gradient(90deg, transparent 0%, #0006 18%, #000 42%); -webkit-mask-image: linear-gradient(90deg, transparent 0%, #0006 18%, #000 42%); }
+.project-workspace .ws-image-status { position: absolute; right: 24px; bottom: 20px; color: #bbd1e4; font-size: 13px; }
 .project-workspace .ws-herotext { padding: 35px 42px; color: #fff; }
 .project-workspace .ws-eyebrow { font-size: 13px; text-transform: uppercase; letter-spacing: .11em; color: #bbd1e4; font-weight: 750; }
 .project-workspace .ws-title { font-family: inherit; font-size: 40px; line-height: 1.08; letter-spacing: 0; font-weight: 760; margin: 13px 0 17px; }
