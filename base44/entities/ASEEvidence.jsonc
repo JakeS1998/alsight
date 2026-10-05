@@ -103,6 +103,64 @@
     "score_eligible": {
       "type": "boolean",
       "default": true
+    },
+    "governance_review": {
+      "type": "object",
+      "properties": {
+        "council_code": {
+          "type": "string"
+        },
+        "identity_confirmed": {
+          "type": "boolean"
+        },
+        "primary_document_checked": {
+          "type": "boolean"
+        },
+        "primary_reference": {
+          "type": "string",
+          "maxLength": 1000
+        },
+        "document_status": {
+          "type": "string",
+          "enum": [
+            "current",
+            "resolved",
+            "historic"
+          ]
+        },
+        "audit_basis": {
+          "type": "string",
+          "enum": [
+            "substantive",
+            "mixed",
+            "backstop_only",
+            "not_applicable"
+          ]
+        },
+        "operative_from": {
+          "type": "string"
+        },
+        "operative_to": {
+          "type": "string"
+        },
+        "material_findings_confirmed": {
+          "type": "boolean"
+        },
+        "verified_by": {
+          "type": "string"
+        },
+        "verified_name": {
+          "type": "string"
+        },
+        "verified_at": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "discovery_reference": {
+          "type": "string",
+          "maxLength": 1000
+        }
+      }
     }
   },
   "required": [

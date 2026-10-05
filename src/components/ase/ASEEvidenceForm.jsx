@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { useMutation } from '@tanstack/react-query';
 import { Button } from '@/components/ui/button';
 import { aseRequest,aseError } from '@/components/ase/aseClient';
-export default function ASEEvidenceForm({accountId,rules,onSaved,initialEvidence,submitEvidence}) {
+export default function ASEEvidenceForm({accountId,rules,onSaved,initialEvidence,submitEvidence,children}) {
   const candidate=initialEvidence && rules.find(rule=>rule.key===initialEvidence.component);
   const [draft,setDraft]=useState({component:candidate?.key || rules[0].key,source:initialEvidence?.source || '',title:initialEvidence?.title || '',value:candidate && !candidate.choices ? initialEvidence.value : initialEvidence?.score_eligible ? initialEvidence.value : '',previous_value:initialEvidence?.previous_value || '',reporting_period:initialEvidence?.reporting_period || '',source_date:initialEvidence?.source_date || '',source_reference:initialEvidence?.source_reference || '',notes:initialEvidence?.notes || '',severity:initialEvidence?.severity || 'none',confidence:initialEvidence?.confidence || 'Medium',period_months:initialEvidence?.period_months || 12});
   const rule=rules.find(r=>r.key===draft.component);
@@ -18,5 +18,5 @@ export default function ASEEvidenceForm({accountId,rules,onSaved,initialEvidence
     <label className="text-sm">Severity<select className={inputClass} value={draft.severity} onChange={e=>set('severity',e.target.value)}>{['none','minor','moderate','material','serious'].map(value=><option key={value}>{value}</option>)}</select></label>
     <label className="text-sm">Evidence confidence<select className={inputClass} value={draft.confidence} onChange={e=>set('confidence',e.target.value)}>{['High','Medium','Low'].map(value=><option key={value}>{value}</option>)}</select></label>
     {!rule.choices && <label className="text-sm">Reporting period length (months)<input type="number" min="1" max="24" required className={inputClass} value={draft.period_months} onChange={e=>set('period_months',Number(e.target.value))}/></label>}
-  </div><label className="block text-sm">Evidence notes<textarea maxLength={1000} className={inputClass} value={draft.notes} onChange={e=>set('notes',e.target.value)}/></label>{save.error && <p role="alert" className="text-sm text-destructive">{aseError(save.error)}</p>}<Button type="submit" disabled={save.isPending}>{save.isPending ? 'Saving evidence…' : 'Save evidence'}</Button></form>;
+  </div><label className="block text-sm">Evidence notes<textarea maxLength={1000} className={inputClass} value={draft.notes} onChange={e=>set('notes',e.target.value)}/></label>{children}{save.error && <p role="alert" className="text-sm text-destructive">{aseError(save.error)}</p>}<Button type="submit" disabled={save.isPending}>{save.isPending ? 'Saving evidence…' : 'Save evidence'}</Button></form>;
 }

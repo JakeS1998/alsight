@@ -1,0 +1,7 @@
+import React from 'react';
+import {formatDateTime} from '@/lib/portal';
+export default function ASEGovernanceProof({evidence}) {
+  const proof=evidence.governance_review;
+  if(!proof?.verified_at) return null;
+  return <dl className="mt-3 grid gap-2 rounded-md bg-muted p-3 text-xs sm:grid-cols-2"><div><dt className="font-semibold">Verified council</dt><dd>{proof.council_code} · identity confirmed</dd></div><div><dt className="font-semibold">Documented position</dt><dd>{proof.document_status}{proof.audit_basis!=='not_applicable' && ` · ${proof.audit_basis.replaceAll('_',' ')}`}</dd></div>{(proof.operative_from || proof.operative_to) && <div><dt className="font-semibold">Operative dates</dt><dd>{proof.operative_from || 'Not recorded'} → {proof.operative_to || 'No ending date recorded'}</dd></div>}<div><dt className="font-semibold">Verification</dt><dd>{proof.verified_name} · {formatDateTime(proof.verified_at)}</dd></div>{proof.discovery_reference && <div className="sm:col-span-2"><dt className="font-semibold">Original discovery source</dt><dd><a href={proof.discovery_reference} target="_blank" rel="noreferrer" className="break-all underline">{proof.discovery_reference}</a></dd></div>}{proof.audit_basis==='backstop_only' && <div className="sm:col-span-2"><dt className="font-semibold">Context only</dt><dd>A statutory-backstop limitation is not scored as substantive governance failure.</dd></div>}</dl>;
+}

@@ -5,8 +5,8 @@ export default function ASESourceCoverage({model}) {
     ['MHCLG Revenue Outturn','Automated collection','Official ODS financial facts matched by ONS authority code; normalisation requires review.'],
     ['MHCLG Revenue Budget','Automated collection','Latest official RA estimates matched by ONS code; forecasts remain distinct from completed outturn evidence.'],
     ['Exceptional Financial Support','Automated collection','Published support-list matches require confirmation of year and decision status.'],
-    ['Statutory intervention / assurance','Document discovery only','Official search candidates are not verified intervention classifications.'],
-    ['Local Audit / backstop','Manual evidence required','No automatic authority-level audit opinion or backstop compliance check.'],
+    ['Statutory intervention / Section 114','Register collection and verified review','Current inspections, interventions and historic entries are kept distinct; administrator checks the primary notice and operative dates.'],
+    ['Local Audit / backstop','Published-list collection and opinion review','Exact council rows are retrieved from GOV.UK; the signed audit opinion needs administrator verification. Backstop-only disclaimers are context, not scored failure.'],
     ['PWLB / Debt Management Office','Not yet connected','No automatic loan or maturity data retrieval.'],
     ['CIPFA Resilience Index','Benchmark only','Not connected; no benchmark is substituted for primary financial evidence.']
   ] : [

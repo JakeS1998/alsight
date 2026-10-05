@@ -1,8 +1,8 @@
 import { normaliseCompanyNumber } from './companiesHouseData.ts';
-export const sourceNames={accounts:'Companies House filed accounts',blackflag:'Blackflag Alert',gazette:'The Gazette',hmrc:'HMRC VAT',local_authority:'MHCLG / GOV.UK'};
+export const sourceNames={accounts:'Companies House filed accounts',blackflag:'Blackflag Alert',gazette:'The Gazette',hmrc:'HMRC VAT',local_authority:'MHCLG / GOV.UK',council_governance:'Council audit and intervention · GOV.UK'};
 export function sourceIdentifier(account,key) {
   if(key==='hmrc') { const vat=String(account.vat_number || '').replace(/^GB/i,'').replace(/\s/g,''); if(!/^(?:\d{9}|\d{12})$/.test(vat)) throw new Error('Record a valid UK VAT number in this Account first.'); return vat; }
-  if(key==='local_authority') { const code=String(account.local_authority_code || '').trim().toUpperCase(); if(!/^E\d{8}$/.test(code)) throw new Error('Record the council’s nine-character ONS authority code first (for example E08000032).'); return code; }
+  if(['local_authority','council_governance'].includes(key)) { const code=String(account.local_authority_code || '').trim().toUpperCase(); if(!/^E\d{8}$/.test(code)) throw new Error('Record the council’s nine-character ONS authority code first (for example E08000032).'); return code; }
   return normaliseCompanyNumber(account.company_number);
 }
 export function evidencePrefix(account,key,identifier) { return `ase-source:${account.id}:${key}:${identifier}:`; }

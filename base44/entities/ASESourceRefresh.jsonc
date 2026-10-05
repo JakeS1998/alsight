@@ -12,7 +12,8 @@
         "blackflag",
         "gazette",
         "hmrc",
-        "local_authority"
+        "local_authority",
+        "council_governance"
       ]
     },
     "identifier": {
