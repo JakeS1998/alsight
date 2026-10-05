@@ -1,9 +1,22 @@
-import {useEffect,useState} from 'react';
-export default function useReviewSession(user) {
- const key=`alsight-project-review:${user?.id}`;
- const [session,setSession]=useState(()=>JSON.parse(sessionStorage.getItem(key)||'null') || {id:crypto.randomUUID(),reviewed:[],actions:0,completed:0,notes:0});
- useEffect(()=>{sessionStorage.setItem(key,JSON.stringify(session));},[key,session]);
- const reviewed=id=>setSession(s=>({...s,reviewed:s.reviewed.includes(id) ? s.reviewed : [...s.reviewed,id]}));
- const record=kind=>setSession(s=>({...s,[kind]:(s[kind]||0)+1}));
- return {session,reviewed,record};
+import {useState,useEffect} from 'react';
+import {useQuery,useQueryClient} from '@tanstack/react-query';
+import {base44} from '@/api/base44Client';
+import useMeetingSessionData from '@/components/projects/workspace/useMeetingSessionData';
+import {appendMeetingActivity,meetingKey,meetingSummaryText,meetingWriter} from '@/components/projects/workspace/meetingSessionActivity';
+export default function useReviewSession(user,projectIds=[]) {
+ const storageKey=`alsight-active-meeting:${user.id}`,cache=useQueryClient();
+ const [id,setId]=useState(()=>localStorage.getItem(storageKey)),[busy,setBusy]=useState(false),[error,setError]=useState(''),[operations,setOperations]=useState(0),[pendingRecords,setPendingRecords]=useState(()=>JSON.parse(localStorage.getItem(`${storageKey}:pending`) || '[]'));
+ useEffect(()=>{localStorage.setItem(`${storageKey}:pending`,JSON.stringify(pendingRecords));},[storageKey,pendingRecords]);
+ const operationContext={begin:()=>setOperations(n=>n+1),finish:()=>setOperations(n=>Math.max(0,n-1))};
+ const current=useQuery({queryKey:['meeting-session',user.id,id],enabled:!!id,queryFn:()=>base44.entities.CRMActivity.get(id)});
+ const session=current.data?.next_action==='meeting_start' ? current.data : null,data=useMeetingSessionData(session,user,projectIds);
+ const setSession=s=>{setId(s?.id || null);if(s)localStorage.setItem(storageKey,s.id);else localStorage.removeItem(storageKey);};
+ const refresh=()=>{cache.invalidateQueries({queryKey:['meeting-session-data']});cache.invalidateQueries({queryKey:['meeting-session-marks']});cache.invalidateQueries({queryKey:['meeting-history']});cache.invalidateQueries({queryKey:['meeting-session-events']});cache.invalidateQueries({queryKey:['project-meeting-history']});};
+ const run=async task=>{setBusy(true);setError('');try{return await task();}catch(e){setError(e.message || 'Unable to save the meeting.');return null;}finally{setBusy(false);}};
+ const start=name=>run(async()=>{if(!meetingWriter(user))throw new Error('Your role cannot start a meeting.');const row=await appendMeetingActivity(user,{subject:name.trim().slice(0,120),key_points:meetingKey(crypto.randomUUID())},'meeting_start',{text:'Named project review meeting started.'});cache.setQueryData(['meeting-session',user.id,row.id],row);setSession(row);refresh();return row;});
+ const resume=s=>{cache.setQueryData(['meeting-session',user.id,s.id],s);setSession(s);setError('');};
+ const record=async(kind,project,action)=>{const result=await run(async()=>{if(kind==='notes'){refresh();return true;}if(!session || session.owner_id!==user.id || data.ended)return;const events={reviewed:'meeting_review',actions:'meeting_action',completed:'meeting_completed'};if(!events[kind])return;const text=kind==='reviewed' ? `${project.name} marked reviewed.` : `${project.name}: ${action?.action || 'Project action'}${kind==='actions' ? ` · Owner: ${action?.owner || 'Unassigned'} · Due: ${action?.due_date || 'Not set'}` : ' completed.'}`;if(action){const previous=await base44.entities.CRMActivity.filter({key_points:session.key_points,next_action:events[kind],commitments:action.id},{limit:1});if(previous.items[0]){refresh();return previous.items[0];}}const row=await appendMeetingActivity(user,session,events[kind],{project,action,text});refresh();return row;});if(action)setPendingRecords(items=>result ? items.filter(item=>item.kind!==kind || item.action.id!==action.id) : [...items.filter(item=>item.kind!==kind || item.action.id!==action.id),{kind,project,action}]);return result;};
+ const reviewed=project=>record('reviewed',project);
+ const end=()=>run(async()=>{const result=await data.query.refetch();if(result.error)throw result.error;if(result.data.end){refresh();return result.data.end;}const row=await appendMeetingActivity(user,session,'meeting_end',{text:meetingSummaryText(session,result.data.counts,{occurred_at:new Date().toISOString()})});refresh();return row;});
+ return {session,current,...data,busy,error,operations,operationContext,pendingRecords,retryRecords:async()=>{for(const item of pendingRecords)await record(item.kind,item.project,item.action);},start,resume,record,reviewedProject:reviewed,end,clear:()=>setSession(null),refresh,active:!!session && !data.ended && !data.query.isPending && !data.query.error && session.owner_id===user.id && meetingWriter(user)};
 }
