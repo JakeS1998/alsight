@@ -1,0 +1,13 @@
+export const commercialScoringVersion='commercial-scoring-v1';
+export const commercialRule={key:'commercial_concentration',label:'Commercial concentration',weighting:10,unit:'% annualised contract value / reported turnover',thresholds:[10,25,50,75],descending:true,strict:false,type:'financial'};
+export function withCommercialModel(models) {
+  if(!models.company || models.company.some(rule=>rule.key===commercialRule.key)) return models;
+  const total=models.company.reduce((sum,rule)=>sum+rule.weighting,0);
+  return {...models,company:[...models.company.map(rule=>({...rule,weighting:total ? rule.weighting*90/total : 0})),{...commercialRule}]};
+}
+export function commercialEvidence(account,data,at) {
+  const turnover=data?.turnover;
+  if(!['available','incomplete'].includes(data?.status) || !Number.isFinite(data.percentage) || data.percentage<0 || !(data.included_count>0) || turnover?.status!=='available' || !Number.isFinite(turnover.value) || turnover.value<=0 || turnover.currency!=='GBP') return null;
+  const provisional=!!data.estimated || data.status==='incomplete' || turnover.annual_verified===false || !turnover.period_start || !!turnover.limitation;
+  return {id:`commercial:${account.id}`,account_id:account.id,component:commercialRule.key,source:'ASE deterministic commercial calculation',evidence_type:'financial',title:'Annualised contract concentration against reported turnover',value:String(data.percentage),reporting_period:at.slice(0,10),source_date:at.slice(0,10),retrieval_date:at,severity:data.percentage>=75 ? 'serious' : data.percentage>=50 ? 'material' : 'none',confidence:provisional ? 'Low' : 'Medium',source_reference:String(turnover.source_reference || `ASE commercial snapshot for ${account.id}`).slice(0,1000),notes:`${data.included_count} included contract(s); ${data.excluded_count || 0} excluded. Annualised GBP ${data.annualised_value} / reported turnover GBP ${turnover.value}, period ending ${turnover.period_end || 'unknown'}. ${provisional ? 'Provisional: estimated inputs, incomplete coverage or reported/unconfirmed turnover. ' : ''}Current contract activity is compared with historical turnover, not realised income or time-matched market share. Contract inputs and turnover provenance are frozen in commercial_context.`,score_eligible:true,automatic_eligible:true,automatic_reason:'Derived from the frozen accessible contract and turnover comparison using approved numeric thresholds.',automatic_rule_version:commercialScoringVersion,is_demo:!!account.name?.startsWith('ASE Demo')};
+}

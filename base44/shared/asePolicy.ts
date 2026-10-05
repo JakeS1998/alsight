@@ -1,3 +1,4 @@
+import {commercialRule,commercialScoringVersion,withCommercialModel} from './aseCommercialScoring.ts';
 export const internalRoles = ['admin','director','regional_director','bsm','bdm','finance'];
 export const labels = ['Not assessed','Serious Concern','Weak','Stable / Monitor','Good','Strong'];
 export const ratingPolicy = {version:'provisional-v1',standard_minimum_coverage:60,standard_minimum_components:3,provisional_minimum_components:1,no_evidence:'not_assessed',low_confidence_evidence:'provisional',missing_components:'exclude_and_renormalise'};
@@ -6,12 +7,13 @@ const numeric = (key,label,weighting,unit,thresholds,descending=false,strict=fal
 const category = (key,label,weighting,type,choices) => ({key,label,weighting,type,choices:choices.map((label,i)=>({value:String(5-i),label,score:5-i}))});
 export const defaultModels = {
   company: [
-    numeric('financial_strength','Financial strength',30,'% net assets / total assets',[0,10,25,40]),
-    numeric('financial_trend','Financial trend',20,'% annual revenue change',[-10,0,5,10]),
-    numeric('liquidity','Liquidity',15,'current ratio',[0.75,1,1.25,2]),
-    numeric('debt','Debt position',15,'% net interest-bearing debt / total assets',[10,25,40,60],true),
-    category('compliance','Filing / corporate compliance',10,'compliance',['Current and timely filings','Current; confirmed late filing in preceding three years','Worst filing 1–30 days overdue','Worst filing 31–90 days overdue','Worst filing >90 days overdue or active strike-off']),
-    category('adverse','Adverse events',10,'event',['Verified absence of relevant events','Resolved event within 24 months','Unresolved non-material event','Unresolved material default or enforcement','Confirmed insolvency or winding-up']),
+    numeric('financial_strength','Financial strength',27,'% net assets / total assets',[0,10,25,40]),
+    numeric('financial_trend','Financial trend',18,'% annual revenue change',[-10,0,5,10]),
+    numeric('liquidity','Liquidity',13.5,'current ratio',[0.75,1,1.25,2]),
+    numeric('debt','Debt position',13.5,'% net interest-bearing debt / total assets',[10,25,40,60],true),
+    category('compliance','Filing / corporate compliance',9,'compliance',['Current and timely filings','Current; confirmed late filing in preceding three years','Worst filing 1–30 days overdue','Worst filing 31–90 days overdue','Worst filing >90 days overdue or active strike-off']),
+    category('adverse','Adverse events',9,'event',['Verified absence of relevant events','Resolved event within 24 months','Unresolved non-material event','Unresolved material default or enforcement','Confirmed insolvency or winding-up']),
+    {...commercialRule},
   ],
   english_local_authority: [
     numeric('reserves','Reserves position',20,'% usable General Fund reserves / net revenue expenditure',[5,10,20,30]),
@@ -32,7 +34,8 @@ export function accountModel(account) {
 export async function getPolicy(base44) {
   const page = await base44.entities.ASEPolicy.filter({}, {sort:'-created_date',limit:1});
   const policy=page.items[0] || {version:'approved-v1',models:defaultModels};
-  return {...policy,version:`${policy.version}|${ratingPolicy.version}`,rating_policy:ratingPolicy};
+  const models=withCommercialModel(policy.models);
+  return {...policy,models,version:`${policy.version}|${commercialScoringVersion}|${ratingPolicy.version}`,rating_policy:ratingPolicy};
 }
 export function scoreEvidence(rule, evidence) {
   if (evidence.score_eligible === false) return null;
@@ -51,14 +54,14 @@ export function calculate(models, model, evidence, now=new Date()) {
     const periodRows = usable.filter(row=>row.reporting_period===period).sort((a,b)=>b.retrieval_date.localeCompare(a.retrieval_date));
     const latest = rule.choices ? periodRows.reduce((a,b)=>!a || scoreEvidence(rule,b)<scoreEvidence(rule,a) ? b : a,null) : periodRows[0];
     const score = latest ? scoreEvidence(rule,latest) : null;
-    return {component:rule.key,component_label:rule.label,weighting:rule.weighting,score,weighted_score:score===null ? null : score*rule.weighting/100,evidence_ids:latest ? [latest.id] : [],metric_value:latest?.value || '',explanation:latest ? `${rule.label}: ${rule.choices ? rule.choices.find(c=>c.value===latest.value).label : `${latest.value} ${rule.unit}`}. Approved rule gives ${score}/5, weighted at ${rule.weighting}%.${latest.automatic_rule_version==='blackflag-financial-fallback-v1' ? ' Source: Blackflag secondary financial fallback; no verified eligible Companies House equivalent for this component and reporting period.' : ''}` : 'Missing or unusable evidence; excluded from the score.',latest};
+    return {component:rule.key,component_label:rule.label,weighting:rule.weighting,score,weighted_score:score===null ? null : score*rule.weighting/100,evidence_ids:latest ? [latest.id] : [],metric_value:latest?.value || '',explanation:latest ? `${rule.label}: ${rule.choices ? rule.choices.find(c=>c.value===latest.value).label : `${latest.value} ${rule.unit}`}. Approved rule gives ${score}/5, weighted at ${rule.weighting}%.${latest.automatic_rule_version==='blackflag-financial-fallback-v1' ? ' Source: Blackflag secondary financial fallback; no verified eligible Companies House equivalent for this component and reporting period.' : ''}${rule.key===commercialRule.key ? ' '+latest.notes : ''}` : 'Missing or unusable evidence; excluded from the score.',latest};
   });
   const used = components.filter(row=>row.score !== null && row.weighting>0);
   const coverage = used.reduce((sum,row)=>sum+row.weighting,0);
   const rated = coverage>0 && used.length>0;
   const provisional = rated && (coverage<ratingPolicy.standard_minimum_coverage || used.length<ratingPolicy.standard_minimum_components || used.some(row=>row.latest.confidence==='Low'));
   const precise = rated ? used.reduce((sum,row)=>sum+row.score*row.weighting,0)/coverage : null;
-  const financial = used.filter(row=>models[model].find(rule=>rule.key===row.component).type==='financial');
+  const financial = used.filter(row=>row.component!==commercialRule.key && models[model].find(rule=>rule.key===row.component).type==='financial');
   const periods = financial.length ? Math.min(...financial.map(c=>new Set(evidence.filter(row=>row.component===c.component && scoreEvidence(models[model].find(r=>r.key===c.component),row)!==null && row.period_months===12).map(row=>row.reporting_period)).size)) : 0;
   const monthsOld = date => (now.getTime()-new Date(date).getTime())/86400000/30.4375;
   const financialAge = financial.length ? Math.max(...financial.map(c=>monthsOld(c.latest.reporting_period))) : Infinity;

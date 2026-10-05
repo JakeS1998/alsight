@@ -3,6 +3,7 @@ import { useMutation } from '@tanstack/react-query';
 import { Button } from '@/components/ui/button';
 import { aseRequest,aseError } from '@/components/ase/aseClient';
 export default function ASEEvidenceForm({accountId,rules,onSaved,initialEvidence,submitEvidence,children}) {
+  rules=rules.filter(rule=>rule.key!=='commercial_concentration');
   const candidate=initialEvidence && rules.find(rule=>rule.key===initialEvidence.component);
   const [draft,setDraft]=useState({component:candidate?.key || rules[0].key,source:initialEvidence?.source || '',title:initialEvidence?.title || '',value:candidate && !candidate.choices ? initialEvidence.value : initialEvidence?.score_eligible ? initialEvidence.value : '',previous_value:initialEvidence?.previous_value || '',reporting_period:initialEvidence?.reporting_period || '',source_date:initialEvidence?.source_date || '',source_reference:initialEvidence?.source_reference || '',notes:initialEvidence?.notes || '',severity:initialEvidence?.severity || 'none',confidence:initialEvidence?.confidence || 'Medium',period_months:initialEvidence?.period_months || 12});
   const rule=rules.find(r=>r.key===draft.component);

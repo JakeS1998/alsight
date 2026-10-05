@@ -11,6 +11,7 @@ export async function createAssessment(base44, account, policy, review, publishe
 export function validateEvidence(input, rules) {
   const rule=rules.find(r=>r.key===input.component);
   if (!rule) throw new Error('Choose a component in this organisation model.');
+  if(rule.key==='commercial_concentration') throw new Error('Commercial concentration is calculated from contract and turnover inputs; review those inputs rather than entering a manual score.');
   for (const [key,max] of [['source',200],['title',200],['value',200],['source_reference',1000]]) if (typeof input[key]!=='string' || !input[key].trim() || input[key].length>max) throw new Error(`Valid ${key.replaceAll('_',' ')} is required.`);
   if (rule.choices ? !rule.choices.some(c=>c.value===input.value) : !/^-?(?:\d+\.?\d*|\.\d+)$/.test(input.value)) throw new Error('Enter a valid metric or verified event classification.');
   for (const field of ['reporting_period','source_date']) if (!/^\d{4}-\d{2}-\d{2}$/.test(input[field] || '') || !Number.isFinite(Date.parse(input[field])) || Date.parse(input[field])>Date.now()) throw new Error('Provide valid, non-future source and reporting dates.');

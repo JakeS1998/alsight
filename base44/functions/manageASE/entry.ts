@@ -8,6 +8,7 @@ import {publishASEBatch} from '../../shared/aseBulkPublication.ts';
 import {manageASEAutomation} from '../../shared/aseAutomationApi.ts';
 import {checkBlackflagFallbackRules} from '../../shared/aseBlackflagFallbackChecks.ts';
 import {checkPdfAndProvisionalRules} from '../../shared/asePdfChecks.ts';
+import {checkCommercialScoringRules} from '../../shared/aseCommercialScoringChecks.ts';
 import {commercialInsight} from '../../shared/aseCommercialInsight.ts';
 import {contractCandidates,reviewCommercialTerms} from '../../shared/aseCommercialTerms.ts';
 import {groupStructure} from '../../shared/aseGroupStructure.ts';
@@ -53,12 +54,12 @@ export default async function(req: Request): Promise<Response> {
     if (input.action==='seed') return Response.json({accounts:await seedDemo(base44,policy)});
     if (input.action==='checkRules') {
       const make=(component,value,period='2026-03-31')=>({id:component+period,component,value:String(value),period_months:12,currency:'GBP',reporting_period:period,source_date:'2026-09-30',retrieval_date:'2026-10-05T00:00:00Z'});
-      const full=defaultModels.company.map((r,i)=>make(r.key,[30,6,1.5,18,'5','5'][i]));
+      const full=defaultModels.company.filter(r=>r.key!=='commercial_concentration').map((r,i)=>make(r.key,[30,6,1.5,18,'5','5'][i]));
       const a=calculate(defaultModels,'company',full,new Date('2026-10-05'));
       const b=calculate(defaultModels,'company',full.filter(r=>r.component!=='adverse'),new Date('2026-10-05'));
       const c=calculate(defaultModels,'company',full.slice(0,1),new Date('2026-10-05'));
       const d=calculate(defaultModels,'english_local_authority',defaultModels.english_local_authority.map((r,i)=>make(r.key,[25,1,8,0.5,'5','4','5'][i])),new Date('2026-10-05'));
-      const checks={company:a.precise_score===4.2 && a.displayed_rating===4,missingRenormalised:Math.abs(b.precise_score-37/9)<0.00001,insufficientProvisional:c.displayed_rating===4 && c.data_confidence==='Low' && c.rating_label.startsWith('Provisional'),council:Math.abs(d.precise_score-4.2)<0.00001,...checkBlackflagFallbackRules(),...checkPdfAndProvisionalRules()};
+      const checks={company:a.precise_score===4.2 && a.displayed_rating===4,missingRenormalised:Math.abs(b.precise_score-37/9)<0.00001,insufficientProvisional:c.displayed_rating===4 && c.data_confidence==='Low' && c.rating_label.startsWith('Provisional'),council:Math.abs(d.precise_score-4.2)<0.00001,...checkBlackflagFallbackRules(),...checkPdfAndProvisionalRules(),...checkCommercialScoringRules()};
       return Response.json({checks,passed:Object.values(checks).every(Boolean)});
     }
     if (typeof input.accountId!=='string' || !/^[a-zA-Z0-9_-]{1,64}$/.test(input.accountId)) return Response.json({error:'Valid Account is required.'},{status:400});
