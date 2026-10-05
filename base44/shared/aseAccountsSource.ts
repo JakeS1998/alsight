@@ -39,7 +39,7 @@ export async function retrieveAccounts(account,number,refresh,base44) {
     } catch(error) {warnings.push(`Accounts filed ${filing.date}: ${error.message}`);retrieved.push({filing_date:filing.date,scan_failed:true,error:String(error.message).slice(0,400)});}
   }
   const periods=[...periodMap.values()].sort((a,b)=>b.end.localeCompare(a.end)).slice(0,3);
-  if(!retrieved.length) throw new Error('No account document could be retrieved. '+warnings.join(' ').slice(0,600));
+  if(!retrieved.some(row=>!row.scan_failed && !row.unsupported)) throw new Error('No account document could be retrieved. '+warnings.join(' ').slice(0,600));
   const facts=accountsEvidence(account,number,refresh,periods);
   warnings.push('Exact-entity, non-dimensional GBP tagged metrics are automatically validated. ALICE PDF extraction is a Low-confidence provisional fallback, not independently verified accounting evidence. Missing disclosures, unreadable figures and ambiguous borrowing definitions remain unscored.');
   if(history.total_count>100) warnings.push('Filing discovery is limited to the latest 100 account filings and three documents.');
