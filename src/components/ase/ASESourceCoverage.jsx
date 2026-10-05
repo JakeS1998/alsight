@@ -3,7 +3,7 @@ export default function ASESourceCoverage({model}) {
   const council=model==='english_local_authority';
   const entries=council ? [
     ['MHCLG Revenue Outturn','Automated collection','Official ODS financial facts matched by ONS authority code; normalisation requires review.'],
-    ['MHCLG Revenue Budget','Not yet connected','Budget figures are not currently retrieved automatically.'],
+    ['MHCLG Revenue Budget','Automated collection','Latest official RA estimates matched by ONS code; forecasts remain distinct from completed outturn evidence.'],
     ['Exceptional Financial Support','Automated collection','Published support-list matches require confirmation of year and decision status.'],
     ['Statutory intervention / assurance','Document discovery only','Official search candidates are not verified intervention classifications.'],
     ['Local Audit / backstop','Manual evidence required','No automatic authority-level audit opinion or backstop compliance check.'],
