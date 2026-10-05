@@ -1,5 +1,7 @@
 .account-directory, .account-profile { width: 100%; min-width: 0; }
 .account-heading-icon { display: none; }
+.account-panel.account-insight-card { background: radial-gradient(ellipse at 100% 0%,hsl(var(--chart-2)),transparent 55%),hsl(var(--als-navy)); color: hsl(var(--sidebar-foreground)); }
+.account-panel.account-insight-card header h2 { margin: 0; font-size: 16px; font-weight: 800; }
 .account-assessment-panel { grid-column: span 2; }
 .account-registry-section { grid-column: 1 / -1; min-width: 0; }
 .account-assessment-button { display: block; border-radius: var(--radius); }
@@ -44,7 +46,7 @@
   .account-profile .account-key-info dd { margin-top: 0; font-weight: 500; }
   .account-profile .account-people { gap: 18px; }
   .account-profile .account-people a { font-size: 13px; }
-  .account-profile .account-insight-card { background: linear-gradient(135deg,hsl(var(--card)),hsl(var(--primary) / .035)); }
+  .account-profile .account-insight-card { background: radial-gradient(ellipse at 100% 0%,hsl(var(--chart-2)),transparent 55%),hsl(var(--als-navy)); }
 }
 @media (max-width: 767px) { .account-assessment-panel { grid-column: auto; } .account-assessment-content { grid-template-columns: minmax(0,1fr); gap: 18px; } }
 .account-page-title { display: flex; flex-wrap: wrap; align-items: end; justify-content: space-between; gap: 16px; }
