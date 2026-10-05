@@ -21,7 +21,7 @@ export function parseFiledAccounts(xml,number) {
     if(local(tag)==='unit' && node?.['@_id']) units.set(node['@_id'],text(child(node,'measure')).trim());
   });
   walk(tree,(tag,node)=>{
-    if(!node || typeof node!=='object' || !node['@_contextRef'] || node['@_nil']==='true' || node['@_nil']==='1') return;
+    if(!node || typeof node!=='object' || !node['@_contextRef'] || ['true','1'].includes(node['@_xsi:nil'] || node['@_nil'])) return;
     const context=contexts.get(node['@_contextRef']),name=local(node['@_name'] || tag),metric=Object.keys(concepts).find(key=>concepts[key].includes(name));
     if(!context || !metric || (metric!=='employees' && !/(?:^|:)GBP$/.test(units.get(node['@_unitRef']) || ''))) return;
     if(['revenue','profit','employees'].includes(metric) && !context.start) return;

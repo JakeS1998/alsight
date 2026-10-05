@@ -83,7 +83,7 @@ export default async function(req: Request): Promise<Response> {
     const hash=Array.from(new Uint8Array(await crypto.subtle.digest('SHA-256',bytes))).map(byte=>byte.toString(16).padStart(2,'0')).join('');
     const {file_uri}=await base44.integrations.Core.UploadPrivateFile({file:new File([bytes],`ase-${input.source}-${attempt.id}.json`,{type:'application/json'})});
     for(let batch=0;batch<4;batch++){const retired=await base44.entities.ASEEvidence.updateMany({account_id:account.id,assessment_id:null,source:sourceNames[input.source],external_key:{$exists:true},score_eligible:{$ne:false}},{$set:{score_eligible:false}});if(!retired.has_more) break;}
-    await base44.entities.ASEEvidence.upsert(result.facts.map(row=>({...row,raw_file_uri:file_uri})),{key:'external_key'});
+    if(result.facts.length) await base44.entities.ASEEvidence.upsert(result.facts.map(row=>({...row,raw_file_uri:file_uri})),{key:'external_key'});
     const completed=await base44.entities.ASESourceRefresh.update(attempt.id,{status:result.warnings.length ? 'partial' : 'completed',summary:{...result.summary,evidence_count:result.facts.length},warnings:result.warnings,raw_file_uri:file_uri,raw_sha256:hash});
     return Response.json({audit:completed,evidenceCount:result.facts.length});
   } catch(error) {
