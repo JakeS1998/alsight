@@ -1,0 +1,49 @@
+{
+  "trigger": {
+    "condition": null,
+    "config": {
+      "trigger_type": "scheduled",
+      "events": [],
+      "schedule_mode": "recurring",
+      "cron_expression": "15 21 * * *",
+      "one_time_date": null,
+      "timezone": "Europe/London",
+      "interval_value": null,
+      "interval_unit": null,
+      "interval_anchor": null,
+      "ends_type": "never",
+      "ends_on_date": null,
+      "ends_after_count": null
+    }
+  },
+  "definition": {
+    "document": {
+      "dsl": "1.0.0",
+      "name": "nightly_ase_update",
+      "version": "1.0",
+      "namespace": "base44"
+    },
+    "do": [
+      {
+        "start_portfolio_update": {
+          "call": "invoke_backend_function",
+          "with": {
+            "function_name": "manageASE",
+            "args": {
+              "action": "automationStart",
+              "confirmed": true,
+              "scheduled": true
+            }
+          },
+          "then": "end",
+          "x-base44": {
+            "title": "Start nightly ASE update",
+            "description": "All supported live Accounts; no overlapping run"
+          }
+        }
+      }
+    ]
+  },
+  "description": "At 21:15 Europe/London each night, starts the existing resumable ASE portfolio refresh and automatic publication for supported live Accounts. Includes permitted connected evidence sources and governance web discovery. Demos and HMRC are excluded; unavailable providers are reported as blockers. Existing active ASE work is not duplicated.",
+  "name": "Nightly ASE Update"
+}

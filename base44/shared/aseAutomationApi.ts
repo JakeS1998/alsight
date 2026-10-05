@@ -17,11 +17,18 @@ export async function manageASEAutomation(base44,user,input) {
     if(input.confirmed!==true) throw new Error('Confirm automatic source refresh and publication.');
     const result=await withASEAutomationLease(base44,async()=>{
       const active=await base44.entities.ASEAutomationRun.filter({status:{$in:['queued','running']}},{limit:1});
-      if(active.items.length) throw new Error('An ASE run is already active. Pause it or wait for completion before starting another.');
+      if(active.items.length) {
+        if(input.scheduled===true) return {skipped:true,reason:'An ASE refresh is already active; no overlapping nightly run was started.',runId:active.items[0].id};
+        throw new Error('An ASE run is already active. Pause it or wait for completion before starting another.');
+      }
       const scope=await aseAutomationScope(base44,input.accountId);
       return {run:await base44.entities.ASEAutomationRun.create({...scope,status:scope.eligible_count ? 'queued' : 'completed',requested_by:user.id,requested_by_name:user.full_name || user.id,processed_count:0,cursor:'',active_job_id:'',finished_listing:false,last_activity:new Date().toISOString()})};
     });
-    if(result.busy) throw new Error('Another ASE operation is in progress; please wait.');return result;
+    if(result.busy) {
+      if(input.scheduled===true) return {skipped:true,reason:'An ASE source operation is in progress; no overlapping nightly run was started.'};
+      throw new Error('Another ASE operation is in progress; please wait.');
+    }
+    return result;
   }
   if(input.runId!=null && !validASEId(input.runId)) throw new Error('Valid ASE run required.');
   if(input.action==='automationStatus') {
