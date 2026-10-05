@@ -3,6 +3,7 @@ import { MapContainer, TileLayer, CircleMarker, Popup } from "react-leaflet";
 import "leaflet/dist/leaflet.css";
 import { Link } from "react-router-dom";
 import { formatCurrency, regionName } from "@/lib/portal";
+import MapResizeObserver from '@/components/dashboard/MapResizeObserver';
 
 const REGION_PALETTE = [
   "hsl(var(--chart-1))",
@@ -12,7 +13,7 @@ const REGION_PALETTE = [
   "hsl(var(--chart-5))",
 ];
 
-export function ProjectMap({ projects, showValues = true }) {
+export function ProjectMap({ projects, showValues = true, resizeAware = false }) {
   const validProjects = projects.filter((p) => p.status !== "inactive" && p.latitude && p.longitude);
 
   const { regionColors, legend } = useMemo(() => {
@@ -47,6 +48,7 @@ export function ProjectMap({ projects, showValues = true }) {
         className="rounded-xl overflow-hidden"
         scrollWheelZoom={false}
       >
+        {resizeAware && <MapResizeObserver />}
         <TileLayer
           url="https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png?key=cb1_3xkp_1_d4c84e7c5c7a1eee6ccca93b"
           attribution='&copy; OpenStreetMap contributors &copy; CARTO'
