@@ -9,7 +9,7 @@ export async function createAssessment(base44, account, policy) {
   const importedPrefixes=[];
   for(const key of ['blackflag','gazette','hmrc','local_authority']) {try {importedPrefixes.push(evidencePrefix(account,key,sourceIdentifier(account,key)));}catch { /* Missing identifiers exclude old imported evidence. */ }}
   const importedPattern=importedPrefixes.length ? `^(?:${importedPrefixes.map(prefix=>prefix.replace(/[.*+?^${}()|[\]\\]/g,'\\$&')).join('|')})` : '^no-current-source:';
-  const sourcePage = await base44.entities.ASEEvidence.filter({account_id:account.id,assessment_id:null,$or:[{source:'Companies House',company_number:companyNumber || '__unmatched__'},{source:{$ne:'Companies House'},external_key:{$exists:false}},{source:{$ne:'Companies House'},external_key:{$regex:importedPattern}}]},{limit:100});
+  const sourcePage = await base44.entities.ASEEvidence.filter({account_id:account.id,assessment_id:null,$or:[{source:'Companies House',company_number:companyNumber || '__unmatched__'},{source:{$ne:'Companies House'},external_key:{$exists:false}},{source:{$ne:'Companies House'},external_key:null},{source:{$ne:'Companies House'},external_key:{$regex:importedPattern}}]},{limit:100});
   if (sourcePage.has_more) throw new Error('More than 100 source records: narrow the evidence set before assessing.');
   const previousPage = await base44.entities.ASEAssessment.filter({account_id:account.id,status:'published'},{sort:'-assessment_date',limit:1});
   const previous = previousPage.items[0];

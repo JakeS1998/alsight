@@ -1,7 +1,7 @@
 import { sourceJson,sourceFetch,sourceText,makeSourceFact } from './aseSourceCommon.ts';
 export async function retrieveGazette(account,number,refresh) {
-  const url=`https://www.thegazette.co.uk/insolvency/notice/data.json?text=${encodeURIComponent(number)}&results-page-size=10&sort-by=latest-date`;
-  const raw=await sourceJson(url),entries=Array.isArray(raw.entry) ? raw.entry : raw.entry ? [raw.entry] : [],total=Number(raw['f:total']);
+  const url=`https://www.thegazette.co.uk/all-notices/notice/data.json?text=${encodeURIComponent(number)}&categorycode=24&results-page-size=10&sort-by=latest-date`;
+  const raw=await sourceJson(url,{headers:{Accept:'application/json','User-Agent':'ALSight ASE source collector (+https://alsight.base44.app)'}}),entries=Array.isArray(raw.entry) ? raw.entry : raw.entry ? [raw.entry] : [],total=Number(raw['f:total']);
   if(!Number.isFinite(total)) throw new Error('Gazette result format was not recognised.');
   const notices=await Promise.all(entries.slice(0,10).map(async entry=>{
     const id=String(entry.id || '').match(/\/notice\/([A-Za-z0-9-]+)$/)?.[1];

@@ -44,7 +44,7 @@ export default async function(req: Request): Promise<Response> {
       if(input.source==='hmrc' || row.component==='external_risk_score') return Response.json({error:'VAT checks and external ratings are context only; they cannot be approved as an ASE component.'},{status:400});
       if(!model) return Response.json({error:'Set a supported Account organisation type before approving evidence.'},{status:400});
       const policy=await getPolicy(base44),verified=validateEvidence({...input.evidence,source:row.source,source_reference:row.source_reference},policy.models[model]);
-      verified.notes=(verified.notes+` Reviewed by ${user.full_name || user.id} at ${new Date().toISOString()}. Source refresh ${audit.id}.`).slice(0,1000);
+      verified.notes=(`Reviewed by ${user.full_name || user.id} at ${new Date().toISOString()}. Source refresh ${audit.id}. `+verified.notes).slice(0,1000);
       const saved=await base44.entities.ASEEvidence.update(row.id,{...verified,score_eligible:true});
       return Response.json({evidence:saved});
     }
