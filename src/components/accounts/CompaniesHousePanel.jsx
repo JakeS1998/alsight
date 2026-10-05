@@ -11,7 +11,7 @@ export default function CompaniesHousePanel({account,onUpdated}) {
   const {user}=useAuth(),cache=useQueryClient(),allowed=aseRoles.includes(user?.role);
   const key=['companies-house',account.id,user?.id,account.company_number];
   const query=useQuery({queryKey:key,enabled:allowed && !!account.company_number,queryFn:async()=>(await base44.functions.invoke('manageCompaniesHouse',{action:'read',accountId:account.id})).data});
-  const refresh=useMutation({mutationFn:async()=>(await base44.functions.invoke('manageCompaniesHouse',{action:'refresh',accountId:account.id})).data,onSuccess:data=>{onUpdated?.(data.accountPatch);cache.invalidateQueries({queryKey:['companies-house',account.id]});invalidateASE(cache);}});
+  const refresh=useMutation({mutationFn:async()=>(await base44.functions.invoke('manageCompaniesHouse',{action:'refresh',accountId:account.id})).data,onSuccess:data=>{onUpdated?.(data.accountPatch);cache.invalidateQueries({queryKey:['companies-house',account.id]});cache.invalidateQueries({queryKey:['accounts-view']});invalidateASE(cache);}});
   const download=useMutation({mutationFn:async()=>{const {signed_url}=await base44.integrations.Core.CreateFileSignedUrl({file_uri:query.data.audit.raw_file_uri});window.open(signed_url,'_blank','noopener,noreferrer');}});
   if(!allowed) return null;
   const audit=query.data?.audit, lastAttempt=query.data?.lastAttempt;

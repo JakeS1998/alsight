@@ -2,7 +2,8 @@ const origin='https://api.company-information.service.gov.uk';
 export const publicOrigin='https://find-and-update.company-information.service.gov.uk';
 export function normaliseCompanyNumber(value) {
   const number=String(value || '').trim().toUpperCase();
-  const normal=/^\d{1,8}$/.test(number) ? number.padStart(8,'0') : number;
+  const prefixed=number.match(/^([A-Z]{2})(\d{1,6})$/);
+  const normal=/^\d{1,8}$/.test(number) ? number.padStart(8,'0') : prefixed ? prefixed[1]+prefixed[2].padStart(6,'0') : number;
   if (!/^(?:\d{8}|[A-Z]{2}\d{6})$/.test(normal)) throw new Error('Enter a valid Companies House Company Number on this Account first.');
   return normal;
 }

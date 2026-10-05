@@ -1,8 +1,11 @@
 import { accountModel, calculate } from './asePolicy.ts';
+import { normaliseCompanyNumber } from './companiesHouseData.ts';
 export async function createAssessment(base44, account, policy) {
   const model = accountModel(account);
   if (!model) throw new Error('Set organisation type to UK Limited Company, UK PLC or English Local Authority before assessing.');
-  const sourcePage = await base44.entities.ASEEvidence.filter({account_id:account.id,assessment_id:null},{limit:100});
+  let companyNumber=null;
+  try {companyNumber=normaliseCompanyNumber(account.company_number);} catch { /* Unmatched registry evidence cannot contribute to this assessment. */ }
+  const sourcePage = await base44.entities.ASEEvidence.filter({account_id:account.id,assessment_id:null,$or:[{source:{$ne:'Companies House'}},...(companyNumber ? [{source:'Companies House',company_number:companyNumber}] : [])]},{limit:100});
   if (sourcePage.has_more) throw new Error('More than 100 source records: narrow the evidence set before assessing.');
   const previousPage = await base44.entities.ASEAssessment.filter({account_id:account.id,status:'published'},{sort:'-assessment_date',limit:1});
   const previous = previousPage.items[0];
