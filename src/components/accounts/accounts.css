@@ -1,4 +1,50 @@
 .account-directory, .account-profile { width: 100%; min-width: 0; }
+.account-heading-icon { display: none; }
+.account-assessment-panel { grid-column: span 2; }
+.account-registry-section { grid-column: 1 / -1; min-width: 0; }
+.account-assessment-button { display: block; border-radius: var(--radius); }
+.account-assessment-content { display: grid; grid-template-columns: minmax(150px,.7fr) minmax(0,1.3fr); align-items: center; gap: 24px; }
+.account-assessment-dial { text-align: center; }
+.account-assessment-dial svg { width: 100%; max-width: 225px; margin-inline: auto; }
+.account-assessment-explanation { padding: 18px; border-radius: var(--radius); background: hsl(var(--primary) / .07); }
+.account-panel .account-assessment-explanation h3 { margin: 0 0 8px; font-size: 13px; }
+.account-assessment-explanation p { font-size: 13px; color: hsl(var(--muted-foreground)); }
+.account-relationship-totals { display: grid; grid-template-columns: repeat(2,minmax(0,1fr)); gap: 14px; margin-top: 20px; padding-top: 18px; border-top: 1px solid hsl(var(--border)); }
+.account-relationship-totals dt { font-size: 11px; color: hsl(var(--muted-foreground)); }
+.account-relationship-totals dd { margin-top: 5px; font-size: 15px; font-weight: 700; }
+.account-person-row { display: flex; align-items: start; gap: 12px; }
+.account-person-avatar { display: flex; flex-shrink: 0; align-items: center; justify-content: center; width: 38px; height: 38px; border-radius: 50%; background: hsl(var(--secondary)); color: hsl(var(--foreground)); font-size: 12px; font-weight: 700; }
+.account-structure-tree { display: flex; flex-direction: column; align-items: center; padding-block: 8px; }
+.account-structure-node { width: 100%; padding: 16px; border: 1px solid hsl(var(--border)); border-radius: var(--radius); background: hsl(var(--muted)); text-align: center; }
+.account-structure-connector { width: 1px; height: 28px; background: hsl(var(--border)); }
+@media (min-width: 1200px) {
+  .account-profile { row-gap: 18px; }
+  .account-profile .account-sticky-header { padding-top: 0; padding-bottom: 0; }
+  .account-profile .account-sticky-header > a { margin-bottom: 12px; font-size: 12px; }
+  .account-profile .account-hero { min-height: 156px; border: 1px solid hsl(var(--border)); border-radius: var(--panel-radius); background: hsl(var(--card)); color: hsl(var(--foreground)); }
+  .account-profile .account-hero::before { background: linear-gradient(90deg,hsl(var(--card)) 52%,hsl(var(--card) / .95) 72%,hsl(var(--card) / .8) 100%); }
+  .account-profile .account-hero-photo { inset: 0 0 0 65%; width: 35%; opacity: .3; }
+  .account-profile .account-hero-copy { max-width: 100%; padding: 24px 28px; }
+  .account-profile .account-hero-copy > p { display: none; }
+  .account-profile .account-hero h1 { color: hsl(var(--foreground)); font-size: 28px; line-height: 1.25; }
+  .account-profile .account-heading-icon { display: flex; align-items: center; justify-content: center; width: 52px; height: 52px; flex-shrink: 0; border: 1px solid hsl(var(--border)); border-radius: var(--radius); background: hsl(var(--secondary)); color: hsl(var(--als-navy-light)); }
+  .account-profile .account-badges { margin-left: 68px; margin-top: 5px; }
+  .account-profile .account-hero .account-badges span { color: hsl(var(--foreground)); background: hsl(var(--muted)); border-color: hsl(var(--border)); }
+  .account-profile .account-hero-identifiers { margin-top: 12px; margin-left: 68px; color: hsl(var(--muted-foreground)); }
+  .account-profile .account-tabs { gap: 18px; margin-top: 12px; padding: 0 12px; border-bottom: 1px solid hsl(var(--border)); border-radius: 0; background: transparent; }
+  .account-profile .account-tabs > button { padding: 13px 6px; border-radius: 0; border-bottom: 2px solid transparent; color: hsl(var(--muted-foreground)); font-size: 13px; box-shadow: none; }
+  .account-profile .account-tabs > button[data-state="active"] { border-bottom-color: hsl(var(--primary)); background: transparent; color: hsl(var(--foreground)); }
+  .account-profile .account-overview-grid { grid-template-columns: repeat(3,minmax(0,1fr)); gap: 16px; align-items: start; }
+  .account-profile .account-panel { padding: 22px; border-radius: var(--radius); box-shadow: var(--surface-shadow); }
+  .account-profile .account-panel h2 { margin-bottom: 18px; font-size: 15px; line-height: 1.4; }
+  .account-profile .account-key-info { gap: 10px; }
+  .account-profile .account-key-info > div { display: grid; grid-template-columns: minmax(100px,.8fr) minmax(0,1.2fr); gap: 14px; padding-bottom: 10px; }
+  .account-profile .account-key-info dd { margin-top: 0; font-weight: 500; }
+  .account-profile .account-people { gap: 18px; }
+  .account-profile .account-people a { font-size: 13px; }
+  .account-profile .account-insight-card { background: linear-gradient(135deg,hsl(var(--card)),hsl(var(--primary) / .035)); }
+}
+@media (max-width: 767px) { .account-assessment-panel { grid-column: auto; } .account-assessment-content { grid-template-columns: minmax(0,1fr); gap: 18px; } }
 .account-page-title { display: flex; flex-wrap: wrap; align-items: end; justify-content: space-between; gap: 16px; }
 .account-page-title p { margin-top: 8px; color: hsl(var(--muted-foreground)); font-size: 14px; }
 .account-filters { display: grid; grid-template-columns: repeat(4,minmax(0,1fr)); gap: 14px; padding: 20px; border: 1px solid hsl(var(--border)); border-radius: var(--panel-radius); background: hsl(var(--card)); }
