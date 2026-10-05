@@ -1,0 +1,23 @@
+.portal-shell { background: hsl(var(--background)); font-family: var(--font-body); }
+.portal-main h1 { font-weight: 760; letter-spacing: 0; line-height: 1.12; }
+.portal-main > :not(.project-workspace) h1 { font-size: clamp(1.75rem, 2vw, 2.5rem); }
+.portal-main :is(h2, h3, h4) { font-family: var(--font-heading); letter-spacing: 0; }
+.portal-main :is(.text-slate-900, .text-slate-800, .text-slate-700) { color: hsl(var(--foreground)); }
+.portal-main :is(.text-slate-600, .text-slate-500, .text-slate-400) { color: hsl(var(--muted-foreground)); }
+.portal-main :is(.border-slate-200, .border-slate-300) { border-color: hsl(var(--border)); }
+.portal-main .bg-white { background-color: hsl(var(--card)); }
+.portal-main :is(.bg-slate-50, .bg-slate-100) { background-color: hsl(var(--muted)); }
+.portal-main :is(.bg-slate-900, .bg-slate-800) { background-color: hsl(var(--als-navy)); }
+.portal-main :is(section, article, div, header, a, form).border:is(.bg-white, .bg-card):is(.rounded-lg, .rounded-xl, .rounded-2xl) { border-radius: var(--panel-radius); box-shadow: var(--surface-shadow); }
+.portal-main :is(input:not([type=checkbox]):not([type=radio]):not([type=range]):not([type=file]), textarea, select) { border-color: hsl(var(--input)); border-radius: var(--radius); background-color: hsl(var(--card)); color: hsl(var(--foreground)); }
+.portal-main :is(input, textarea)::placeholder { color: hsl(var(--muted-foreground)); }
+.portal-main [role=tablist]:not(.ws-railnav) { background: hsl(var(--als-navy)); border-color: hsl(var(--sidebar-border)); border-radius: var(--panel-radius); padding: 6px; gap: 6px; }
+.portal-main [role=tablist]:not(.ws-railnav) > [role=tab] { border-radius: var(--radius); color: hsl(var(--sidebar-foreground) / .8); }
+.portal-main [role=tablist]:not(.ws-railnav) > [role=tab]:is([data-state=active], [aria-selected=true]) { background: hsl(var(--primary)); color: hsl(var(--primary-foreground)); box-shadow: 0 5px 14px hsl(var(--primary) / .2); }
+.portal-main [role=tablist]:not(.ws-railnav) > [role=tab]:focus-visible { outline: 2px solid hsl(var(--ring)); outline-offset: 2px; }
+.portal-main table th { color: hsl(var(--muted-foreground)); font-weight: 700; }
+.portal-main table :is(th, td) { border-color: hsl(var(--border)); }
+.portal-shell .dashboard-panel { border-color: hsl(var(--border)); border-radius: var(--panel-radius); box-shadow: var(--surface-shadow); }
+.portal-shell .home-reference .home-hero { border-radius: var(--hero-radius); }
+.portal-shell .pipeline-navigation { padding: 10px; border-radius: var(--panel-radius); background: hsl(var(--als-navy)); box-shadow: var(--surface-shadow); }
+@media (min-width: 1024px) { .portal-shell .dashboard-panel { padding: 24px 27px; } }

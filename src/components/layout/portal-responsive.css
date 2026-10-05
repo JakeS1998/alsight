@@ -1,5 +1,5 @@
 .portal-shell { width: 100%; min-width: 0; --portal-header-height: 4rem; }
-.portal-main { width: 100%; max-width: 2200px; min-width: 0; margin-inline: auto; padding: 20px 16px; }
+.portal-main { width: 100%; max-width: none; min-width: 0; margin-inline: auto; padding: 20px 16px; }
 .portal-main > *, .portal-main .grid > *, .portal-main .flex > * { min-width: 0; }
 .portal-main .overflow-x-auto, .portal-main .overflow-auto { min-width: 0; max-width: 100%; }
 .portal-main [role="tablist"]:not(.grid) { max-width: 100%; flex-wrap: nowrap; justify-content: flex-start; overflow-x: auto; }
@@ -33,7 +33,7 @@
   .portal-main table th, .portal-main table td { padding-left: 8px; padding-right: 8px; }
 }
 @media (min-width: 1280px) {
-  .portal-main { padding: 24px 32px; }
+  .portal-main { padding: 34px 48px; }
   .portal-topbar { padding-inline: 32px; gap: 12px; }
   .portfolio-kpis { grid-template-columns: repeat(4, minmax(0, 1fr)); }
   .portfolio-kpis > :nth-last-child(-n+2) { grid-column: span 2; }

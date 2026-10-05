@@ -1,10 +1,10 @@
 .project-workspace {
-  --ws-navy: #102743; --ws-canvas: #EAF4FB; --ws-card: #FFFFFF; --ws-orange: #F59A28;
-  --ws-border: #d5e4ee; --ws-muted: #71889a;
+  --ws-navy: hsl(var(--als-navy)); --ws-canvas: hsl(var(--background)); --ws-card: hsl(var(--card)); --ws-orange: hsl(var(--primary));
+  --ws-border: hsl(var(--border)); --ws-muted: hsl(var(--muted-foreground));
   width: 100%; min-height: calc(100vh - var(--portal-header-height, 64px)); box-sizing: border-box;
   display: grid; grid-template-columns: 280px minmax(0, 1fr); background: var(--ws-canvas);
   overflow: clip; animation: enter .7s ease-out both;
-  font-family: system-ui, -apple-system, "Arial Narrow", Arial, sans-serif; color: var(--ws-navy);
+  font-family: var(--font-body); color: var(--ws-navy);
 }
 .portal-main:has(> .project-workspace) { max-width: none; padding: 0; }
 .project-workspace .ws-rail { background: var(--ws-navy); color: #f4f9fd; padding: 38px 22px; display: flex; flex-direction: column; gap: 36px; box-shadow: 12px 0 35px #10274320; }
