@@ -37,6 +37,7 @@
 .account-hero { position: relative; isolation: isolate; min-height: 240px; overflow: hidden; border-radius: var(--hero-radius); background: hsl(var(--als-navy)); color: hsl(var(--sidebar-foreground)); }
 .account-hero-photo { position: absolute; z-index: -2; inset: 0 0 0 35%; width: 65%; height: 100%; object-fit: cover; }
 .account-hero::before { content: ''; position: absolute; z-index: -1; inset: 0; background: linear-gradient(90deg,hsl(var(--als-navy)) 25%,hsl(var(--als-navy) / .9) 45%,hsl(var(--als-navy) / .4) 100%); }
+@media (min-width: 1200px) { .account-hero-photo { opacity: .45; } }
 .account-hero-copy { padding: 28px 36px; max-width: 85%; }
 .account-hero h1 { color: hsl(var(--sidebar-foreground)); }
 .account-hero .account-badges span { color: hsl(var(--sidebar-foreground)); background: hsl(var(--sidebar-foreground) / .08); border-color: hsl(var(--sidebar-foreground) / .25); }
