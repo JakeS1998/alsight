@@ -47,7 +47,7 @@ export async function collectASESource(base44,account,source,user) {
     const rows=automaticEvidence(source,canonical,result);
     if(rows.length) await base44.entities.ASEEvidence.upsert(rows.map(row=>({...row,raw_file_uri:file_uri})),{key:'external_key'});
     const eligibleCount=rows.filter(row=>row.automatic_eligible).length;
-    const audit=await base44.entities.ASESourceRefresh.update(attempt.id,{status:result.warnings.length ? 'partial' : 'completed',summary:{...result.summary,evidence_count:rows.length,automatic_eligible_count:eligibleCount,verification_status:'Deterministic automatic validation; ambiguous evidence remains context'},warnings:result.warnings,raw_file_uri:file_uri,raw_sha256:sha});
+    const audit=await base44.entities.ASESourceRefresh.update(attempt.id,{status:result.warnings.length ? 'partial' : 'completed',summary:{...result.summary,evidence_count:rows.length,automatic_eligible_count:eligibleCount,verification_status:result.summary.pdf_documents_scanned ? 'Tagged figures use deterministic validation; ALICE PDF transcription is provisional, Low confidence and not independently verified' : 'Deterministic automatic validation; ambiguous evidence remains context'},warnings:result.warnings,raw_file_uri:file_uri,raw_sha256:sha});
     return {audit,evidenceCount:rows.length,eligibleCount};
   } catch(error) {
     await base44.entities.ASESourceRefresh.update(attempt.id,{status:'failed',error:String(error.message).slice(0,1000)});throw error;
