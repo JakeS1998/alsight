@@ -3,7 +3,7 @@
   --ws-border: #d5e4ee; --ws-muted: #71889a;
   width: 100%; min-height: calc(100vh - var(--portal-header-height, 64px)); box-sizing: border-box;
   display: grid; grid-template-columns: 280px minmax(0, 1fr); background: var(--ws-canvas);
-  overflow: hidden; animation: enter .7s ease-out both;
+  overflow: clip; animation: enter .7s ease-out both;
   font-family: system-ui, -apple-system, "Arial Narrow", Arial, sans-serif; color: var(--ws-navy);
 }
 .portal-main:has(> .project-workspace) { max-width: none; padding: 0; }
@@ -17,6 +17,9 @@
 .project-workspace .ws-navitem:focus-visible { outline: 3px solid var(--ws-orange); outline-offset: 2px; --tw-ring-shadow: 0 0 #0000; --tw-ring-offset-shadow: 0 0 #0000; }
 .project-workspace .ws-navitem[data-state="active"] { background: var(--ws-orange); color: var(--ws-navy); box-shadow: 0 8px 20px #f59a2840; }
 .project-workspace .ws-main { min-width: 0; padding: 34px 48px 70px; display: grid; align-content: start; gap: 27px; }
+.project-workspace .ws-sticky-header { display: grid; gap: 27px; padding: 0; background: var(--ws-canvas); }
+.project-workspace .ws-sticky-header > :not([hidden]) ~ :not([hidden]) { margin-top: 0; }
+@media (max-width: 767px) { .project-workspace .ws-sticky-header { gap: 20px; } }
 .project-workspace .ws-topline { display: flex; align-items: center; gap: 20px; color: #557086; font-size: 15px; font-weight: 650; }
 .project-workspace .ws-back { color: #557086; cursor: pointer; transition: color .18s; display: inline-flex; align-items: center; gap: 12px; }
 .project-workspace .ws-back:hover { color: var(--ws-navy); }

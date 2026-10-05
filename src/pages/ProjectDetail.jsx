@@ -11,6 +11,7 @@ import { Tabs, TabsContent } from "@/components/ui/tabs";
 import { ProjectGeneralTab } from "@/components/projects/ProjectGeneralTab";
 
 import ProjectWorkspaceHeader from '@/components/projects/ProjectWorkspaceHeader';
+import ProjectStickyHeader from '@/components/projects/ProjectStickyHeader';
 import ProjectWorkspaceNav from '@/components/projects/ProjectWorkspaceNav';
 import '@/components/projects/project-workspace.css';
 
@@ -106,7 +107,9 @@ export default function ProjectDetail() {
     <Tabs className="project-workspace" orientation="vertical" value={activeTab} onValueChange={tab => { setActiveTab(tab); setEditUKLFKpis(false); }}>
       <ProjectWorkspaceNav user={user} project={project} isSupplier={isSupplier} isExternalPM={isExternalPM} canSeeValuations={canSeeValuations} />
       <main className="ws-main">
-        <ProjectWorkspaceHeader project={project} user={user} isSupplier={isSupplier} />
+        <ProjectStickyHeader className="ws-sticky-header">
+          <ProjectWorkspaceHeader project={project} user={user} isSupplier={isSupplier} />
+        </ProjectStickyHeader>
         <TabsContent value="general" className="ws-content space-y-6">
           <ProjectGeneralTab project={project} singleTask={frameworkAgreementRoute(legalDocs, dmas, project.project_number).route === 'single_task'} accountMap={accountMap} onProjectUpdated={updated => setProject(current => ({ ...current, ...updated }))} />
           {INTERNAL_ROLES.includes(user?.role) && <ProjectChanges key={project.id} project={project} legalDocs={legalDocs} dmas={dmas} jcts={jcts} />}
