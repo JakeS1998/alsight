@@ -15,7 +15,7 @@ import ASECommercialConcentration from '@/components/ase/ASECommercialConcentrat
 export default function AccountOverview({ account, contacts, projects, signals, user, summaryLoading, summaryError, onAccountEnriched }) {
   const showCompaniesHouse = hasCompanyRegistry(account) && aseRoles.includes(user?.role);
   return <div className="account-overview-grid">
-    {INTERNAL_ROLES.includes(user?.role) && <section className="account-panel account-assessment-panel"><h2>ALSight ASE · All Seeing Eye</h2><ASERating account={account} expanded /><p className="mt-4 text-xs text-muted-foreground">Select the assessment to explore components, evidence, confidence and assessment history.</p></section>}
+    {INTERNAL_ROLES.includes(user?.role) && <section className="account-panel account-assessment-panel" aria-label="All Seeing Eye assessment"><ASERating account={account} expanded /></section>}
     <AccountRelationshipSummary account={account} signals={signals} loading={summaryLoading} error={summaryError} />
     <AccountKeyPeople account={account} />
     <AccountRecentActivity account={account} />
