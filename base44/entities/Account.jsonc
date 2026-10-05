@@ -74,6 +74,20 @@
       "type": "string",
       "format": "date-time"
     },
+    "company_registered_office": {
+      "type": "object",
+      "additionalProperties": true
+    },
+    "ch_last_refreshed": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "ch_refresh_id": {
+      "type": "string"
+    },
+    "ch_company_number": {
+      "type": "string"
+    },
     "uklf_approved": {
       "type": "boolean",
       "default": false

@@ -32,6 +32,7 @@ export async function getPolicy(base44) {
   return page.items[0] || {version:'approved-v1',models:defaultModels};
 }
 export function scoreEvidence(rule, evidence) {
+  if (evidence.score_eligible === false) return null;
   if (rule.choices) return rule.choices.find(choice=>choice.value === evidence.value)?.score ?? null;
   if (!/^-?(?:\d+\.?\d*|\.\d+)$/.test(evidence.value)) return null;
   const value = Number(evidence.value);

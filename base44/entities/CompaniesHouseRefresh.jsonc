@@ -1,0 +1,108 @@
+{
+  "name": "CompaniesHouseRefresh",
+  "type": "object",
+  "properties": {
+    "account_id": {
+      "type": "string"
+    },
+    "company_number": {
+      "type": "string"
+    },
+    "requested_by": {
+      "type": "string"
+    },
+    "refreshed_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "pending",
+        "completed",
+        "partial",
+        "failed"
+      ]
+    },
+    "raw_file_uri": {
+      "type": "string"
+    },
+    "raw_sha256": {
+      "type": "string"
+    },
+    "summary": {
+      "type": "object",
+      "additionalProperties": true
+    },
+    "warnings": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "error": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "account_id",
+    "company_number",
+    "requested_by",
+    "refreshed_at",
+    "status"
+  ],
+  "rls": {
+    "read": {
+      "$or": [
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        },
+        {
+          "user_condition": {
+            "role": "director"
+          }
+        },
+        {
+          "user_condition": {
+            "role": "regional_director"
+          }
+        },
+        {
+          "user_condition": {
+            "role": "bsm"
+          }
+        },
+        {
+          "user_condition": {
+            "role": "bdm"
+          }
+        },
+        {
+          "user_condition": {
+            "role": "finance"
+          }
+        }
+      ]
+    },
+    "create": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "update": {
+      "$and": [
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        },
+        {
+          "data.status": "pending"
+        }
+      ]
+    },
+    "delete": false
+  }
+}

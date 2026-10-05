@@ -87,6 +87,22 @@
     },
     "is_demo": {
       "type": "boolean"
+    },
+    "external_key": {
+      "type": "string"
+    },
+    "company_number": {
+      "type": "string"
+    },
+    "raw_file_uri": {
+      "type": "string"
+    },
+    "source_refresh_id": {
+      "type": "string"
+    },
+    "score_eligible": {
+      "type": "boolean",
+      "default": true
     }
   },
   "required": [

@@ -9,7 +9,7 @@ export async function createAssessment(base44, account, policy) {
   const result = calculate(policy.models,model,sourcePage.items);
   const {components,...summary} = result;
   const assessment = await base44.entities.ASEAssessment.create({...summary,account_id:account.id,organisation_type:account.organisation_type || account.company_type,model,assessment_date:new Date().toISOString(),previous_rating:previous?.displayed_rating ?? null,previous_assessment_id:previous?.id || '',change:summary.displayed_rating!==null && previous?.displayed_rating!=null ? summary.displayed_rating-previous.displayed_rating : null,policy_version:policy.version,policy_snapshot:policy.models,status:'building',is_demo:account.name.startsWith('ASE Demo')});
-  const snapshots = sourcePage.items.length ? await base44.entities.ASEEvidence.bulkCreate(sourcePage.items.map(row=>{const {id,created_date,updated_date,created_by_id,...data}=row;return {...data,assessment_id:assessment.id};})) : [];
+  const snapshots = sourcePage.items.length ? await base44.entities.ASEEvidence.bulkCreate(sourcePage.items.map(row=>{const {id,created_date,updated_date,created_by_id,...data}=row;return {...data,external_key:undefined,assessment_id:assessment.id};})) : [];
   const snapshotIds = new Map(sourcePage.items.map((row,i)=>[row.id,snapshots[i]?.id]));
   await base44.entities.ASEComponentScore.bulkCreate(components.map(({latest,...component})=>({...component,sealed:true,evidence_ids:component.evidence_ids.map(id=>snapshotIds.get(id)).filter(Boolean),account_id:account.id,assessment_id:assessment.id})));
   const published = await base44.entities.ASEAssessment.update(assessment.id,{status:'published'});

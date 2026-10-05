@@ -108,7 +108,7 @@ export default function AccountDetail() {
           {['Overview','Contacts','Projects','Opportunities','Financials','Activity','Documents'].map(title => <TabsTrigger key={title} value={title.toLowerCase()}>{title}</TabsTrigger>)}
         </TabsList>
       </div>
-      <TabsContent value="overview"><AccountOverview account={account} contacts={contacts} projects={projects} signals={signals} user={user} summaryLoading={summary.isPending} summaryError={summary.error} /></TabsContent>
+      <TabsContent value="overview"><AccountOverview account={account} contacts={contacts} projects={projects} signals={signals} user={user} summaryLoading={summary.isPending} summaryError={summary.error} onAccountEnriched={updated=>setAccount(current=>({...current,...updated}))} /></TabsContent>
       <TabsContent value="contacts" className="space-y-6">
       {/* Linked Contacts */}
       <Section icon={Users} title="Linked Contacts" count={contacts.length}>
