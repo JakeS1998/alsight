@@ -36,7 +36,7 @@ export async function collectASESource(base44,account,source,user) {
   }
   const attempt=await base44.entities.ASESourceRefresh.create({...query,requested_by:user.id,refreshed_at:new Date().toISOString(),status:'pending'});
   try {
-    const result=await providers[source](canonical,identifier,attempt,source==='council_governance' ? base44 : undefined);
+    const result=await providers[source](canonical,identifier,attempt,base44);
     if(!Array.isArray(result.facts) || result.facts.length>40) throw new Error('Source exceeded the safe evidence limit.');
     const current=await base44.entities.Account.get(account.id);if(sourceIdentifier(current,source)!==identifier) throw new Error('Account source identifier changed during collection.');
     const newer=await base44.entities.ASESourceRefresh.filter({...query,status:{$in:['completed','partial']},refreshed_at:{$gt:attempt.refreshed_at}},{limit:1});if(newer.items.length) throw new Error('A newer refresh completed; this response was not applied.');

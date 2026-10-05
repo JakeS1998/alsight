@@ -1,7 +1,11 @@
 import { makeSourceFact } from './aseSourceCommon.ts';
 export function accountsEvidence(account,number,refresh,periods) {
   const facts=[];
-  const add=(period,slug,data)=>facts.push(makeSourceFact(account,'accounts',number,refresh,`${period.end}-${slug}`,{source_reference:period.source_url,source_date:period.filed_at,reporting_period:period.end,evidence_type:'financial',currency:'GBP',confidence:'High',...data}));
+  const add=(period,slug,data)=>{
+    const pdf=period.origin==='pdf',needed={strength:['net_assets','assets','current_assets','fixed_assets'],liquidity:['current_assets','current_liabilities'],debt:['borrowings','cash','assets','current_assets','fixed_assets'],trend:['revenue']}[slug] || [slug];
+    const citations=pdf ? Object.entries(period.metrics).filter(([key])=>needed.includes(key)).map(([key,row])=>`${key} p.${row.page} (units ×${row.multiplier}): ${row.quote.slice(0,170)}`).join('; ').slice(0,650) : '';
+    facts.push(makeSourceFact(account,'accounts',number,refresh,`${period.end}-${slug}`,{source_reference:period.source_url,source_date:period.filed_at,reporting_period:period.end,evidence_type:'financial',currency:'GBP',...data,confidence:pdf ? 'Low' : 'High',notes:pdf ? `ALICE PDF extraction: provisional, not independently verified. Company ${number}; GBP; ${period.end}. ${citations}. ${data.notes}` : data.notes}));
+  };
   for(const period of periods) {
     const m=period.metrics,value=key=>m[key]?.value,defined=key=>Number.isFinite(value(key));
     for(const [key,row] of Object.entries(m).filter(([key])=>key!=='fixed_assets' || !defined('assets'))) add(period,key,{component:'filed_financials',title:`Filed ${key.replaceAll('_',' ')} · ${period.end}`,value:key==='employees' ? String(row.value) : `GBP ${row.value}`,notes:`Primary Companies House tagged accounts. Concept ${row.concept}; company ${number}; ${row.start ? 'period '+row.start+' to '+row.end : 'balance at '+row.end}. Non-dimensional matching entity context only. Missing or conflicting facts are excluded. Automatic validation checks entity, currency, dates and supported definitions.`,...(row.annual ? {period_months:12} : {})});

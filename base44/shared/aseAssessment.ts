@@ -1,10 +1,11 @@
 import {prepareAssessment} from './aseAssessmentPreview.ts';
 import {finishASEPublication} from './asePublication.ts';
+import {policySnapshot} from './asePolicy.ts';
 export {currentASESourceQuery} from './aseEvidenceSelection.ts';
 export async function createAssessment(base44, account, policy, review, publisher) {
   const {model,sourceEvidence,previous,result,preparedAt}=await prepareAssessment(base44,account,policy,review);
   const {components,...summary} = result;
-  const assessment = await base44.entities.ASEAssessment.create({...summary,account_id:account.id,organisation_type:account.organisation_type || account.company_type,model,assessment_date:new Date().toISOString(),previous_rating:previous?.displayed_rating ?? null,previous_assessment_id:previous?.id || '',change:summary.displayed_rating!==null && previous?.displayed_rating!=null ? summary.displayed_rating-previous.displayed_rating : null,policy_version:policy.version,policy_snapshot:policy.models,status:'building',is_demo:account.name.startsWith('ASE Demo'),...(publisher ? {published_by_id:publisher.id,published_by_name:publisher.full_name || publisher.id,reviewed_at:preparedAt,publication_note:review?.note?.trim() || '',snapshot_evidence_count:sourceEvidence.length,selected_evidence_count:new Set(components.flatMap(component=>component.evidence_ids)).size} : {})});
+  const assessment = await base44.entities.ASEAssessment.create({...summary,account_id:account.id,organisation_type:account.organisation_type || account.company_type,model,assessment_date:new Date().toISOString(),previous_rating:previous?.displayed_rating ?? null,previous_assessment_id:previous?.id || '',change:summary.displayed_rating!==null && previous?.displayed_rating!=null ? summary.displayed_rating-previous.displayed_rating : null,policy_version:policy.version,policy_snapshot:policySnapshot(policy),status:'building',is_demo:account.name.startsWith('ASE Demo'),...(publisher ? {published_by_id:publisher.id,published_by_name:publisher.full_name || publisher.id,reviewed_at:preparedAt,publication_note:review?.note?.trim() || '',snapshot_evidence_count:sourceEvidence.length,selected_evidence_count:new Set(components.flatMap(component=>component.evidence_ids)).size} : {})});
   return finishASEPublication(base44,assessment,sourceEvidence,components);
 }
 export function validateEvidence(input, rules) {

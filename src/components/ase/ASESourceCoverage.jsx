@@ -10,7 +10,7 @@ export default function ASESourceCoverage({model}) {
     ['PWLB / CIPFA','Not connected','No loan or benchmark is substituted for primary financial evidence.']
   ] : [
     ['Companies House registry','Automatic statutory rules','Exact company identity; explicit filing breaches and current insolvency legal status. No inferred clean adverse-event score.'],
-    ['Companies House accounts','Automatic tagged metrics','Supported GBP XML/iXBRL facts; unsupported taxonomies, ambiguous definitions and PDF-only disclosures remain unscored.'],
+    ['Companies House accounts','Tagged metrics + ALICE PDF fallback','Supported GBP XML/iXBRL facts take precedence. ALICE scans PDF-only accounts for company-only GBP figures with page citations; PDF-derived scores are provisional and Low confidence. Missing or ambiguous figures remain unscored.'],
     ['Blackflag','Authenticated API required','Public-page systematic extraction is prohibited by provider terms. No proprietary R-Score is converted to ASE.'],
     ['The Gazette','Overnight primary context','Exact company-number notice matching between 21:00 and 07:00 UK, respecting robots and crawl limits; historical notices never imply current insolvency.']
   ];
