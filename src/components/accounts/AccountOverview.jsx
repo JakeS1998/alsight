@@ -19,11 +19,9 @@ export default function AccountOverview({ account, contacts, projects, signals, 
     <AccountKeyInformation account={account} showRegistryDetails={!showCompaniesHouse} />
     <AccountRelationshipSummary account={account} signals={signals} loading={summaryLoading} error={summaryError} />
     <AccountKeyPeople account={account} />
-    <AccountStructure account={account} />
-    {showCompaniesHouse && <ASECommercialConcentration key={account.id} account={account} card/>}
-    {INTERNAL_ROLES.includes(user?.role) && <AccountInsightCard account={account} />}
+    {showCompaniesHouse ? <div className="account-commercial-row"><AccountStructure account={account}/><ASECommercialConcentration key={account.id} account={account} card/></div> : <AccountStructure account={account}/>}
+    <div className="account-work-row"><AccountCurrentWork account={account} projects={projects}/>{INTERNAL_ROLES.includes(user?.role) && <AccountInsightCard account={account}/>}</div>
     <AccountRecentActivity account={account} />
-    <AccountCurrentWork account={account} projects={projects} />
     {showCompaniesHouse && <div className="account-registry-section"><CompaniesHousePanel account={account} onUpdated={onAccountEnriched}/></div>}
   </div>;
 }
