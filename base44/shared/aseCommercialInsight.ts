@@ -6,7 +6,7 @@ export async function commercialInsight(base44,account,options={}) {
   const now=options.at ? new Date(options.at) : new Date(),date=now.toISOString().slice(0,10);
   if(accountModel(account)!=='company') return {status:'not_applicable',reason:'Turnover concentration applies to supported company accounts, not local-authority spending.',checked_at:now.toISOString()};
   const ids=await syncCommercialInputs(base44,account);
-     const candidateQuery={...contractQuery(account),id:{$in:ids}};
+     const candidateQuery={id:{$in:ids}}; // IDs were already scoped to accessible executed contractor-side contracts during synchronisation.
      const eligible={...candidateQuery,commercial_effective_value:{$gt:0},commercial_effective_annual_value:{$gt:0},commercial_effective_reference:{$exists:true,$nin:['',null]},commercial_effective_start:{$lte:date},commercial_effective_end:{$gte:date}};
   const duplicates=await base44.entities.JCT.aggregate({query:eligible,groupBy:'commercial_effective_reference',having:{count:{$gt:1}},limit:100});
   if(duplicates.truncated) return {status:'unavailable',reason:'Duplicate contract references exceed the validation limit.',checked_at:now.toISOString()};
@@ -14,7 +14,7 @@ export async function commercialInsight(base44,account,options={}) {
      if(duplicateRefs.length) eligible.commercial_effective_reference={$exists:true,$nin:['',null,...duplicateRefs]};
   const [total,allCount,turnover,contracts,hmrc]=await Promise.all([
     base44.entities.JCT.aggregate({query:eligible,groupBy:['commercial_effective_date_basis','commercial_effective_mode'],sum:'commercial_effective_annual_value'}),base44.entities.JCT.count(candidateQuery),commercialTurnover(base44,account,now),
-    base44.entities.JCT.filter(eligible,{sort:'document_id',limit:20,...(options.cursor ? {cursor:options.cursor} : {}),fields:['document_id','project_id','commercial_reviewed_at','commercial_reviewed_by','commercial_effective_value','commercial_effective_start','commercial_effective_end','commercial_effective_annual_value','commercial_effective_reference','commercial_effective_date_basis','commercial_effective_mode','commercial_effective_source']}),hmrcStatus(base44,account)
+    base44.entities.JCT.filter(eligible,{limit:20,...(options.cursor ? {cursor:options.cursor} : {}),fields:['document_id','project_id','commercial_reviewed_at','commercial_reviewed_by','commercial_effective_value','commercial_effective_start','commercial_effective_end','commercial_effective_annual_value','commercial_effective_reference','commercial_effective_date_basis','commercial_effective_mode','commercial_effective_source']}),hmrcStatus(base44,account)
   ]);
   const included=total.rows.reduce((sum,row)=>sum+row.count,0),annual=included ? total.rows.reduce((sum,row)=>sum+row.sum_commercial_effective_annual_value,0) : null,excluded=allCount-included;
   const programmeCount=total.rows.filter(row=>row.commercial_effective_date_basis==='project_programme').reduce((sum,row)=>sum+row.count,0);
@@ -23,7 +23,7 @@ export async function commercialInsight(base44,account,options={}) {
   const warnings=[];
   if(turnover.limitation) warnings.push(turnover.limitation);
    if(proposalCount) warnings.push(`${proposalCount} included contract(s) use the current Pathway fee proposal's company-matched contractor build-up including OHP, excluding VAT, ALS and other direct suppliers' fees. These are proposal estimates, not verified signed-contract income.`);
-  if(programmeCount) warnings.push(`${programmeCount} included contract(s) use a recorded project programme as a date proxy, not confirmed contract dates; the comparison is estimated. Programme changes require a new review.`);
+  if(programmeCount) warnings.push(`${programmeCount} included contract(s) use a recorded project programme as a date proxy, not confirmed contract dates; the comparison is estimated. Saved programme changes refresh Pathway estimates; reviewed signed terms remain fixed until reviewed again.`);
   if(excluded) warnings.push(`${excluded} accessible signed contract record(s) excluded: no usable company-matched Pathway proposal and programme or reviewed terms, outside the current term, or duplicate reference.`);
   if(duplicateRefs.length) warnings.push('All records sharing a duplicate signed-contract reference are excluded, not double counted.');
   if(contracts.has_more && options.snapshot) warnings.push('This historical context retains the first 20 contract inputs; the aggregate includes all eligible accessible contracts.');
