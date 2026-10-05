@@ -1,5 +1,6 @@
 import {commercialRule,commercialScoringVersion,withCommercialModel} from './aseCommercialScoring.ts';
 import {ratingExplanation} from './aseRatingExplanation.ts';
+import {hasCouncilName} from './aseCouncilName.ts';
 export const internalRoles = ['admin','director','regional_director','bsm','bdm','finance'];
 export const labels = ['Not assessed','Serious Concern','Weak','Stable / Monitor','Good','Strong'];
 export const ratingPolicy = {version:'provisional-v1',standard_minimum_coverage:60,standard_minimum_components:3,provisional_minimum_components:1,no_evidence:'not_assessed',low_confidence_evidence:'provisional',missing_components:'exclude_and_renormalise'};
@@ -27,6 +28,7 @@ export const defaultModels = {
   ],
 };
 export function accountModel(account) {
+  if (hasCouncilName(account)) return 'english_local_authority';
   const type = (account.organisation_type || '').toLowerCase().replaceAll(' ','_');
   if (type === 'english_local_authority') return 'english_local_authority';
   if (['uk_limited_company','uk_plc','limited_company','plc','ltd'].includes(type) || (!type && ['ltd','plc'].includes(account.company_type))) return 'company';

@@ -1,6 +1,7 @@
 import {prepareAssessment} from './aseAssessmentPreview.ts';
 import {createAssessment} from './aseAssessment.ts';
-export const bulkASEAccountQuery={name:{$regex:'^(?!ASE Demo)'},$or:[{organisation_type:{$regex:'^(english[ _]local[ _]authority|uk[ _]limited[ _]company|uk[ _]plc|limited[ _]company|plc|ltd)$',$options:'i'}},{$and:[{organisation_type:{$in:[null,'']}},{company_type:{$in:['ltd','plc']}}]}]};
+import {councilNameQuery} from './aseCouncilName.ts';
+export const bulkASEAccountQuery={name:{$regex:'^(?!ASE Demo)'},$or:[councilNameQuery,{organisation_type:{$regex:'^(english[ _]local[ _]authority|uk[ _]limited[ _]company|uk[ _]plc|limited[ _]company|plc|ltd)$',$options:'i'}},{$and:[{organisation_type:{$in:[null,'']}},{company_type:{$in:['ltd','plc']}}]}]};
 export async function publishASEBatch(base44,policy,user,input) {
   if(input.confirmBulk!==true || typeof input.runId!=='string' || !/^[a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12}$/i.test(input.runId)) throw new Error('Confirm bulk publication and supply a valid launch reference.');
   if(input.cursor!=null && (typeof input.cursor!=='string' || input.cursor.length>4096)) throw new Error('Invalid account cursor.');
