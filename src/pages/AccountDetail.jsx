@@ -110,7 +110,7 @@ export default function AccountDetail() {
       <div className="account-sticky-header">
         <AccountHeader account={account} owner={summary.isPending ? 'Loading…' : signals?.owner || (account.account_manager_aad_id ? 'Assigned owner' : 'Not assigned')} actions={<AccountClassification account={account} user={user} onSaved={updated => setAccount(current => ({ ...current,...updated }))} />} />
         <TabsList className="account-tabs mt-4" aria-label="Account sections">
-          {['Overview','Contacts','Projects','Opportunities','Financials','Activity','Documents'].map(title => <TabsTrigger key={title} value={title.toLowerCase()}>{title}</TabsTrigger>)}
+          {['Overview','Contacts','Projects',...(['admin','director','regional_director','bsm','finance','bdm'].includes(user?.role) ? ['Opportunities'] : []),...(['admin','director','regional_director','bsm','finance','bdm','client'].includes(user?.role) ? ['Financials'] : []),'Activity','Documents'].map(title => <TabsTrigger key={title} value={title.toLowerCase()}>{title}</TabsTrigger>)}
         </TabsList>
       </div>
       <TabsContent value="overview"><AccountOverview account={account} contacts={contacts} projects={projects} signals={signals} user={user} summaryLoading={summary.isPending} summaryError={summary.error} onAccountEnriched={updated=>setAccount(current=>({...current,...updated}))} /></TabsContent>
