@@ -60,6 +60,14 @@
     "error": {
       "type": "string",
       "maxLength": 1000
+    },
+    "dispatch_token": {
+      "type": "string",
+      "default": ""
+    },
+    "pause_requested": {
+      "type": "boolean",
+      "default": false
     }
   },
   "required": [

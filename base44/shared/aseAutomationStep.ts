@@ -2,12 +2,13 @@ import {supportedASEQuery} from './aseAutomationScope.ts';
 import {accountModel} from './asePolicy.ts';
 import {withASEAutomationLease} from './aseAutomationLease.ts';
 import {advanceASEAccount} from './aseAutomationAccountStep.ts';
+import {aseContinuationTicket} from './aseAutomationDispatch.ts';
 export async function advanceASEAutomation(base44,runId,user) {
-  return withASEAutomationLease(base44,async assertLease=>{
+  const result=await withASEAutomationLease(base44,async assertLease=>{
     const db=base44.entities,run=await db.ASEAutomationRun.get(runId);
-    if(!run || !['queued','running'].includes(run.status)) return {continue:false,waitFor:'PT15S'};
+    if(!run || run.pause_requested || !['queued','running'].includes(run.status)) return {continue:false,waitFor:'PT15S'};
     try {
-      await db.ASEAutomationRun.updateMany({id:run.id,status:{$in:['queued','running']}},{$set:{status:'running',last_activity:new Date().toISOString(),waiting_until:'',error:''}});
+      await db.ASEAutomationRun.updateMany({id:run.id,status:{$in:['queued','running']}},{$set:{status:'running',dispatch_token:'',last_activity:new Date().toISOString(),waiting_until:'',error:''}});
       let job=run.active_job_id ? await db.ASEAutomationAccount.get(run.active_job_id) : null;
       if(!job) {
         let account,page;
@@ -25,8 +26,8 @@ export async function advanceASEAutomation(base44,runId,user) {
         const processed=await db.ASEAutomationAccount.count({run_id:run.id,outcome:{$ne:'processing'}});
         await db.ASEAutomationRun.updateMany({id:run.id,status:{$in:['queued','running']}},{$set:{active_job_id:'',processed_count:processed,last_activity:new Date().toISOString(),...(run.finished_listing ? {status:'completed',completed_at:new Date().toISOString()} : {})}});
       } else if(progress.waitingUntil) await db.ASEAutomationRun.update(run.id,{waiting_until:progress.waitingUntil});
-      const current=await db.ASEAutomationRun.get(run.id);
-      return {continue:['queued','running'].includes(current.status),waitFor:progress.waitFor || 'PT15S'};
+      return aseContinuationTicket(base44,run.id,progress.waitFor || 'PT15S');
     } catch(error) {await db.ASEAutomationRun.update(run.id,{status:'paused',error:String(error.message).slice(0,1000),last_activity:new Date().toISOString()});return {continue:false,waitFor:'PT15S',error:String(error.message)};}
   });
+  return result.busy ? aseContinuationTicket(base44,runId,'PT30S',true) : result;
 }

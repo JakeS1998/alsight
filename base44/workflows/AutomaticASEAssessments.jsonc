@@ -1,0 +1,88 @@
+{
+  "name": "Automatic ASE Assessments",
+  "description": "Finite resumable source-collection steps and deterministic automatic publication. Each saved continuation starts a fresh finite workflow. HMRC excluded; Gazette respects its overnight window.",
+  "trigger": {
+    "config": {
+      "trigger_type": "entity",
+      "entity_name": "ASEAutomationRun",
+      "events": [
+        "create",
+        "update"
+      ]
+    },
+    "condition": "${ .trigger.data.status == \"queued\" and (.trigger.old_data.status // \"\") != \"queued\" and (.trigger.data.pause_requested // false) == false }"
+  },
+  "definition": {
+    "document": {
+      "dsl": "1.0.0",
+      "name": "automatic_ase_assessments",
+      "version": "1.0",
+      "namespace": "base44"
+    },
+    "do": [
+      {
+        "advance_account": {
+          "call": "invoke_backend_function",
+          "with": {
+            "function_name": "manageASE",
+            "args": {
+              "action": "automationStep",
+              "runId": "${ .trigger.entity_id }"
+            }
+          },
+          "then": "check_progress",
+          "x-base44": {
+            "title": "Collect or publish next step",
+            "description": "Saved progress, isolated failures"
+          }
+        }
+      },
+      {
+        "check_progress": {
+          "switch": [
+            {
+              "when": "${ .advance_account.continue == true }",
+              "then": "respect_source_window"
+            },
+            {
+              "when": "${ true }",
+              "then": "end"
+            }
+          ],
+          "x-base44": {
+            "title": "More work remaining?",
+            "description": "Stops when completed or paused"
+          }
+        }
+      },
+      {
+        "respect_source_window": {
+          "wait": "${ .advance_account.waitFor }",
+          "then": "queue_next_step",
+          "x-base44": {
+            "title": "Respect source limits",
+            "description": "Durable delay or overnight window"
+          }
+        }
+      },
+      {
+        "queue_next_step": {
+          "call": "invoke_backend_function",
+          "with": {
+            "function_name": "manageASE",
+            "args": {
+              "action": "automationDispatch",
+              "runId": "${ .trigger.entity_id }",
+              "dispatchToken": "${ .advance_account.dispatchToken }"
+            }
+          },
+          "then": "end",
+          "x-base44": {
+            "title": "Queue saved continuation",
+            "description": "Old or paused tickets are ignored"
+          }
+        }
+      }
+    ]
+  }
+}

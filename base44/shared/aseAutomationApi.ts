@@ -2,6 +2,7 @@ import {aseAutomationScope,validASEId} from './aseAutomationScope.ts';
 import {withASEAutomationLease} from './aseAutomationLease.ts';
 import {advanceASEAutomation} from './aseAutomationStep.ts';
 import {automaticEvidence} from './aseAutomaticEvidence.ts';
+import {dispatchASEContinuation} from './aseAutomationDispatch.ts';
 export async function manageASEAutomation(base44,user,input) {
   if(input.action==='automationRules') {
     const now=new Date('2026-10-05T12:00:00Z'),account={company_number:'12345678',local_authority_code:'E08000032'};
@@ -37,8 +38,9 @@ export async function manageASEAutomation(base44,user,input) {
   }
   if(!input.runId) throw new Error('Choose an ASE run.');
   if(input.action==='automationStep') return advanceASEAutomation(base44,input.runId,user);
+  if(input.action==='automationDispatch') return dispatchASEContinuation(base44,input);
   const run=await base44.entities.ASEAutomationRun.get(input.runId);if(!run) throw new Error('ASE run unavailable.');
-  if(input.action==='automationPause') {if(run.status==='completed') throw new Error('This run has completed.');return {run:await base44.entities.ASEAutomationRun.update(run.id,{status:'paused'})};}
+  if(input.action==='automationPause') {if(run.status==='completed') throw new Error('This run has completed.');return {run:await base44.entities.ASEAutomationRun.update(run.id,{status:'paused',pause_requested:true,dispatch_token:''})};}
   if(input.action==='automationResume' || input.action==='automationRetry') {
     if(input.action==='automationRetry') {
       if(!validASEId(input.jobId)) throw new Error('Valid failed Account required.');
@@ -51,7 +53,7 @@ export async function manageASEAutomation(base44,user,input) {
     const active=await base44.entities.ASEAutomationRun.filter({status:{$in:['queued','running']}},{limit:10,fields:['id']});
     if(active.items.some(item=>item.id!==run.id)) throw new Error('Another ASE run is active. Pause it before resuming this run.');
     if(run.status==='running') await base44.entities.ASEAutomationRun.update(run.id,{status:'paused'});
-    return {run:await base44.entities.ASEAutomationRun.update(run.id,{status:'queued',error:'',waiting_until:'',completed_at:''})};
+    return {run:await base44.entities.ASEAutomationRun.update(run.id,{status:'queued',pause_requested:false,dispatch_token:'',error:'',waiting_until:'',completed_at:''})};
   }
   throw new Error('Invalid ASE automation operation.');
 }
