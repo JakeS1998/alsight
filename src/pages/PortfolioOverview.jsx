@@ -32,7 +32,7 @@ export default function PortfolioOverview() {
     {error ? <div role="alert" className="dashboard-panel text-sm text-destructive">{error}<button onClick={dashboard.refresh} className="ml-3 underline">Try again</button></div> : dashboard.loading || !data ? <DashboardSkeleton internal /> : <>
       <OverviewKpis metrics={metrics} onRisk={() => document.getElementById('overview-attention')?.scrollIntoView({behavior:'smooth',block:'center'})} />
       <div className="overview-journey-row"><PipelineTimeline projects={dashboard.portfolio.pipeline} accountMap={dashboard.accountMap} stageSummary={data.stages} opportunitySummary={opportunities} /><OverviewHealth metrics={metrics} /></div>
-      <div className="overview-middle"><OverviewAttention portfolio={dashboard.portfolio} user={dashboard.user} /><OverviewCommercial rows={data.opportunities} /><OverviewReadiness data={data} metrics={metrics} fees={dashboard.portfolio.fees} /></div>
+      <div className="overview-middle"><OverviewAttention portfolio={dashboard.portfolio} user={dashboard.user} /><OverviewCommercial rows={data.opportunities} poNet={metrics.poNet} /><OverviewReadiness data={data} metrics={metrics} fees={dashboard.portfolio.fees} /></div>
       <div className="overview-bottom"><OverviewRegions rows={data.regions} /><DashboardPanel title="Project locations" link="/projects" linkLabel="View projects" className="overview-map"><ProjectMap projects={dashboard.portfolio.pipeline} /></DashboardPanel><OverviewUpdates rows={data.recent} since={since} /><DashboardAliceCard portfolio /></div>
     </>}
   </div>;

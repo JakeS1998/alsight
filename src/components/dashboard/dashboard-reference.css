@@ -16,7 +16,7 @@
 .overview-funnel { clip-path: polygon(0 0,100% 0,82% 100%,18% 100%); border-radius: 4px; height: 28px; margin: 2px auto; }
 .readiness-bars { display: flex; align-items: end; justify-content: space-between; height: 160px; gap: 8px; }
 .readiness-bars > div { min-width: 0; flex: 1; text-align: center; }
-.overview-map .leaflet-container { height: 220px !important; }
+.overview-map .leaflet-container, .overview-map .h-\[400px\] { height: 220px !important; }
 .portfolio-reference .overview-journey-row > section:first-child > div:first-child { padding: 16px 18px 0; }
 .portfolio-reference .overview-journey-row > section:first-child > div:nth-child(2) { padding: 14px 18px; }
 @media (max-width: 1599px) { .overview-journey-row { grid-template-columns: minmax(0, 2.2fr) minmax(0, 1fr); } .overview-bottom { grid-template-columns: repeat(2,minmax(0,1fr)); } .overview-kpis { grid-template-columns: repeat(3,minmax(0,1fr)); } .home-journey { flex-wrap: wrap; justify-content: flex-start; } .home-journey > a { flex: 1 1 180px; } .journey-arrow { display: none; } }

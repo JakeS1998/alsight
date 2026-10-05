@@ -22,8 +22,8 @@ export default async function(req) {
       base44.entities.ProjectAction.aggregate({ query: related, groupBy: 'status' }),
       base44.entities.ProjectDecision.aggregate({ query: related, groupBy: 'status' }),
       base44.entities.ProjectRisk.aggregate({ query: related, groupBy: 'status' }),
-      base44.entities.Project.filter({ $and: [query, ...(typeof input.since === 'string' && !isNaN(Date.parse(input.since)) ? [{ updated_date: { $gt: input.since } }] : [])] }, { sort: '-updated_date', limit: 4 }),
-      base44.entities.Project.filter({ $and: [query, { practical_completion_date: { $gte: now } }] }, { sort: 'practical_completion_date', limit: 4 }),
+      base44.entities.Project.filter({ ...query, ...(typeof input.since === 'string' && !isNaN(Date.parse(input.since)) ? { updated_date: { $gt: input.since } } : {}) }, { sort: '-updated_date', limit: 4 }),
+      base44.entities.Project.filter({ ...query, practical_completion_date: { $gte: now } }, { sort: 'practical_completion_date', limit: 4 }),
       Promise.all(['description','pq_approval_date','riba3_end','practical_completion_date'].map(field => base44.entities.Project.count({ $and: [query, { [field]: { $exists: true, $nin: ['',null] } }] })))
     ]);
     return Response.json({ stages: stages.reverse(), projects: projects.rows, regions: regions.rows, opportunities: opportunities.rows, delivery: delivery.rows, actions: actions.rows, decisions: decisions.rows, risks: risks.rows, recent: recent.items, milestones: milestones.items, coverage, refreshedAt: now });
