@@ -13,6 +13,7 @@ import {commercialInsight} from '../../shared/aseCommercialInsight.ts';
 import {contractCandidates,reviewCommercialTerms} from '../../shared/aseCommercialTerms.ts';
 import {groupStructure} from '../../shared/aseGroupStructure.ts';
 import {hmrcStatus} from '../../shared/aseCommercialTurnover.ts';
+import {ratingExplanation,publishedRatingExplanation} from '../../shared/aseRatingExplanation.ts';
 export default async function(req: Request): Promise<Response> {
   try {
     const base44=createClientFromRequest(req), user=await base44.auth.me();
@@ -68,7 +69,7 @@ export default async function(req: Request): Promise<Response> {
     const model=accountModel(account);
     const currentPage=await base44.entities.ASECurrentRating.filter({account_id:account.id},{limit:1});
     const current=currentPage.items[0] || null;
-    if (input.action==='summary') return Response.json({current,model});
+    if (input.action==='summary') return Response.json({current:await publishedRatingExplanation(base44,current),model});
     if (input.action==='addEvidence') {
       if (!model) return Response.json({error:'Select a supported organisation type in Account details first.'},{status:400});
       const data=validateEvidence(input.evidence || {},policy.models[model]);
@@ -94,6 +95,7 @@ export default async function(req: Request): Promise<Response> {
     }
     const [history,sourceEvidence]=await Promise.all([base44.entities.ASEAssessment.filter({account_id:account.id,status:'published'},{sort:'-assessment_date',limit:20,...(input.cursor ? {cursor:input.cursor} : {})}),base44.entities.ASEEvidence.filter(currentASESourceQuery(account),{limit:100})]);
     const hmrc=await hmrcStatus(base44,account);
-    return Response.json({account:{id:account.id,name:account.name},model,policy,current,assessment,components:componentPage.items,evidence:evidencePage.items,history,sourceEvidence:sourceEvidence.items,sourceHasMore:sourceEvidence.has_more,hmrc});
+    const displayedAssessment=assessment ? {...assessment,explanation:ratingExplanation(componentPage.items,assessment.policy_snapshot?.[assessment.model] || [],assessment.precise_score,assessment.displayed_rating,evidencePage.items)} : null;
+    return Response.json({account:{id:account.id,name:account.name},model,policy,current,assessment:displayedAssessment,components:componentPage.items,evidence:evidencePage.items,history,sourceEvidence:sourceEvidence.items,sourceHasMore:sourceEvidence.has_more,hmrc});
   } catch(error) {return Response.json({error:error.message || 'Unable to complete ASE operation.'},{status:400});}
 }

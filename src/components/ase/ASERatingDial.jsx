@@ -7,12 +7,12 @@ import ASEDetailDialog from '@/components/ase/ASEDetailDialog';
 import { aseRequest,aseRoles,aseError } from '@/components/ase/aseClient';
 export default function ASERatingDial({account,compact=false,expanded=false}) {
   const {user}=useAuth(); const [open,setOpen]=useState(false);
-  const allowed=aseRoles.includes(user?.role);
-  const query=useQuery({queryKey:['ase','summary',account.id,user?.id,user?.role],enabled:allowed && account._ase===undefined,queryFn:()=>aseRequest('summary',{accountId:account.id}),staleTime:60000});
+  const allowed=aseRoles.includes(user?.role),needsSummary=expanded || account._ase===undefined;
+  const query=useQuery({queryKey:['ase','summary',account.id,'analysed-evidence-v1',user?.id,user?.role],enabled:allowed && needsSummary,queryFn:()=>aseRequest('summary',{accountId:account.id}),staleTime:60000});
   if (!allowed) return null;
-  const current=account._ase===undefined ? query.data?.current : account._ase;
+  const current=needsSummary ? query.data?.current : account._ase;
   const change=current?.change;
-  const loading=query.isFetching && account._ase===undefined && !query.data;
+  const loading=query.isFetching && needsSummary && !query.data;
   return <><button type="button" aria-haspopup="dialog" aria-label={`Open All Seeing Eye for ${account.name}`} onClick={event=>{event.preventDefault();event.stopPropagation();setOpen(true);}} className={expanded ? 'account-assessment-button w-full text-left focus-visible:outline focus-visible:outline-primary' : `flex items-center gap-4 rounded-xl border border-border bg-card p-3 text-left hover:border-primary focus-visible:outline focus-visible:outline-primary ${compact ? 'max-w-80' : 'w-full'}`}>
     {expanded ? <ASEOverviewContent current={current} loading={loading} error={query.error} /> : <>
       <div className={compact ? 'w-24 shrink-0' : 'w-36 shrink-0'}><ASEGauge rating={current?.displayed_rating} precise={current?.precise_score}/></div>
