@@ -1,0 +1,10 @@
+import React,{useEffect,useState} from 'react';
+import {useQuery} from '@tanstack/react-query';
+import {base44} from '@/api/base44Client';
+import {Input} from '@/components/ui/input';
+export default function MeetingPersonPicker({kind='assignee',selected,onSelect,disabled=false}) {
+ const [search,setSearch]=useState(''),[term,setTerm]=useState('');
+ useEffect(()=>{const timer=setTimeout(()=>setTerm(search.trim()),250);return ()=>clearTimeout(timer);},[search]);
+ const query=useQuery({queryKey:['meeting-people-search',kind,term],enabled:term.length>=2,queryFn:async()=>{const {data}=await base44.functions.invoke('manageMeetingPeople',{action:'search',kind,search:term});if(data.error)throw new Error(data.error);return data.people;}});
+ return <div className="space-y-2">{selected && <p className="text-xs text-muted-foreground">Selected: {selected.name}</p>}<Input aria-label={`Search ${kind}`} placeholder="Search registered ALSight staff" value={search} maxLength={100} disabled={disabled} onChange={e=>setSearch(e.target.value)}/>{term.length>=2 && <div className="space-y-1 rounded-lg border border-border bg-card p-2">{query.isFetching ? <p role="status" className="text-xs text-muted-foreground">Searching staff…</p> : query.error ? <p role="alert" className="text-xs text-destructive">{query.error.message} <button type="button" className="underline" onClick={()=>query.refetch()}>Retry</button></p> : query.data?.length ? query.data.map(person=><button type="button" key={person.id} disabled={disabled} className="block w-full rounded-md p-2 text-left text-sm hover:bg-muted" onClick={()=>{onSelect(person);setSearch('');setTerm('');}}>{person.name}<span className="ml-2 text-xs text-muted-foreground">{person.role.replaceAll('_',' ')}</span></button>) : <p className="text-xs text-muted-foreground">No matching registered staff. Try a more specific name.</p>}</div>}</div>;
+}
