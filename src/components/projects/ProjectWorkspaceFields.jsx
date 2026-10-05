@@ -1,5 +1,6 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
+import ProjectDetailGroups from '@/components/projects/ProjectDetailGroups';
 
 export default function ProjectWorkspaceFields({ summary, assignments, details }) {
   return <>
@@ -17,7 +18,7 @@ export default function ProjectWorkspaceFields({ summary, assignments, details }
       </section>
       <section className="ws-card ws-panel">
         <div className="ws-panelhead"><h3 className="ws-sectiontitle">Additional Details</h3></div>
-        <div className="ws-details">{details.map(([label, value]) => <div className="ws-field" key={label}><div className="ws-label">{label}</div><div className="ws-value">{value || '—'}</div></div>)}</div>
+        <ProjectDetailGroups groups={details} />
       </section>
     </div>
   </>;

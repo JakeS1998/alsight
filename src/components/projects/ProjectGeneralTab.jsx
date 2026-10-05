@@ -133,13 +133,20 @@ export function ProjectGeneralTab({ project, accountMap, onProjectUpdated, singl
           ['Client Representative', staff.byDv[project.client_rep_id]],
         ]}
         details={[
-          ['Procurement Route', project.procurement_route === true ? 'Framework' : project.procurement_route === false ? 'Direct' : '—'],
-          ['Live Project', project.live_project ? 'Yes' : 'No'],
-          ['Approval Status', project.approval_status || '—'],
-          ['AA Executed', formatDate(project.aa_executed_date)],
-          ['PQ Approval', formatDate(project.pq_approval_date)],
-          ['Construction Term', project.construction_term_weeks ? `${project.construction_term_weeks} weeks` : '—'],
-          ...(role !== 'supplier' && role !== 'project_manager' ? [['IE Value', formatCurrency(project.ie_value)], ['IE Commencement', formatDate(project.ie_commencement_date)], ['Payment Type', project.payment_type || '—']] : []),
+          { title: 'Commercial', fields: [
+            ['Procurement Route', project.procurement_route === true ? 'Framework' : project.procurement_route === false ? 'Direct' : '—'],
+            ...(role !== 'supplier' && role !== 'project_manager' ? [['IE Value', formatCurrency(project.ie_value)], ['Payment Type', project.payment_type || '—']] : []),
+          ] },
+          { title: 'Programme', fields: [
+            ['Construction Term', project.construction_term_weeks ? `${project.construction_term_weeks} weeks` : '—'],
+            ...(role !== 'supplier' && role !== 'project_manager' ? [['IE Commencement', formatDate(project.ie_commencement_date)]] : []),
+            ['Live Project', project.live_project ? 'Yes' : 'No'],
+          ] },
+          { title: 'Governance', fields: [
+            ['Approval Status', project.approval_status || '—'],
+            ['AA Executed', formatDate(project.aa_executed_date)],
+            ['PQ Approval', formatDate(project.pq_approval_date)],
+          ] },
         ]}
       />
       <ProjectWorkspaceDates project={project} singleTask={singleTask} ribaRows={ribaRows} expectedDates={expectedDates} ribaDates={ribaDates} setRibaDates={setRibaDates} canEdit={canEdit} saving={saving} saved={saved} saveError={saveError} onSave={handleSave} />

@@ -7,6 +7,7 @@ import FrameworkVersionBadge from '@/components/projects/FrameworkVersionBadge';
 import SourceOpportunityLink from '@/components/crm/SourceOpportunityLink';
 import { INTERNAL_ROLES } from '@/lib/portal';
 import useProjectHeroPhoto from '@/components/projects/useProjectHeroPhoto';
+import ProjectHeroPosition from '@/components/projects/ProjectHeroPosition';
 
 export default function ProjectWorkspaceHeader({ project, user, isSupplier }) {
   const photo = useProjectHeroPhoto(project, user);
@@ -26,6 +27,7 @@ export default function ProjectWorkspaceHeader({ project, user, isSupplier }) {
         </div>
         {!isSupplier && project.description && <p className="ws-description">{project.description}</p>}
         {INTERNAL_ROLES.includes(user?.role) && <SourceOpportunityLink projectId={project.id} />}
+        <ProjectHeroPosition project={project} />
       </div>
     </header>
   </>;
