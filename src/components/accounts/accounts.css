@@ -1,0 +1,57 @@
+.account-directory, .account-profile { width: 100%; min-width: 0; }
+.account-page-title { display: flex; flex-wrap: wrap; align-items: end; justify-content: space-between; gap: 16px; }
+.account-page-title p { margin-top: 8px; color: hsl(var(--muted-foreground)); font-size: 14px; }
+.account-filters { display: grid; grid-template-columns: repeat(4,minmax(0,1fr)); gap: 14px; padding: 20px; border: 1px solid hsl(var(--border)); border-radius: var(--panel-radius); background: hsl(var(--card)); }
+.account-filters > input { grid-column: 1 / -1; min-height: 40px; padding: 10px 14px; border: 1px solid hsl(var(--input)); font-size: 14px; }
+.account-filters label { min-width: 0; display: grid; gap: 6px; font-size: 12px; color: hsl(var(--muted-foreground)); }
+.account-filters select { width: 100%; min-width: 0; padding: 8px 10px; border: 1px solid hsl(var(--input)); font-size: 13px; }
+.account-card-grid { display: grid; grid-template-columns: repeat(auto-fill,minmax(min(100%,350px),1fr)); gap: 20px; }
+.account-card { display: flex; flex-direction: column; gap: 18px; min-width: 0; padding: 24px; border: 1px solid hsl(var(--border)); border-radius: var(--panel-radius); background: hsl(var(--card)); color: hsl(var(--foreground)); }
+.account-card:hover { border-color: hsl(var(--als-navy-light) / .5); }
+.account-card:focus-visible { outline: 2px solid hsl(var(--ring)); outline-offset: 3px; }
+.account-card h2 { font-size: 18px; line-height: 1.35; font-weight: 750; }
+.account-badges { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 10px; }
+.account-badges span { padding: 4px 9px; border: 1px solid hsl(var(--border)); border-radius: 999px; background: hsl(var(--muted)); font-size: 11px; line-height: 1.2; font-weight: 650; text-transform: capitalize; }
+.account-card-facts { display: grid; grid-template-columns: repeat(2,minmax(0,1fr)); gap: 14px; }
+.account-card-facts dt, .account-key-info dt { font-size: 12px; color: hsl(var(--muted-foreground)); }
+.account-card-facts dd, .account-key-info dd { margin-top: 4px; font-size: 13px; font-weight: 650; overflow-wrap: anywhere; }
+.account-card-bottom { display: flex; justify-content: space-between; gap: 12px; align-items: center; margin-top: auto; padding-top: 15px; border-top: 1px solid hsl(var(--border)); }
+.account-card-bottom > span { max-width: 45%; color: hsl(var(--muted-foreground)); font-size: 11px; overflow-wrap: anywhere; }
+.ase-rating { display: flex; align-items: center; gap: 20px; color: hsl(var(--als-navy)); }
+.ase-rating svg { width: 160px; flex-shrink: 0; }
+.ase-track { color: hsl(var(--border)); }
+.ase-progress { color: hsl(var(--success)); }
+.ase-caption { font-size: 12px; color: hsl(var(--muted-foreground)); }
+.ase-value { margin-top: 4px; font-size: 30px; font-weight: 750; }
+.ase-label { margin-top: 2px; font-size: 13px; font-weight: 650; }
+.ase-compact { gap: 8px; }
+.ase-compact svg { width: 62px; }
+.ase-compact .ase-value { font-size: 15px; }
+.ase-compact .ase-caption, .ase-compact .ase-label { font-size: 10px; }
+.account-list { overflow-x: auto; border: 1px solid hsl(var(--border)); border-radius: var(--panel-radius); background: hsl(var(--card)); }
+.account-list table { min-width: 950px; width: 100%; border-collapse: collapse; text-align: left; }
+.account-list th, .account-list td { padding: 15px; border-bottom: 1px solid hsl(var(--border)); font-size: 13px; }
+.account-list th { background: hsl(var(--muted)); font-size: 12px; }
+.account-hero { position: relative; isolation: isolate; min-height: 240px; overflow: hidden; border-radius: var(--hero-radius); background: hsl(var(--als-navy)); color: hsl(var(--sidebar-foreground)); }
+.account-hero-photo { position: absolute; z-index: -2; inset: 0 0 0 35%; width: 65%; height: 100%; object-fit: cover; }
+.account-hero::before { content: ''; position: absolute; z-index: -1; inset: 0; background: linear-gradient(90deg,hsl(var(--als-navy)) 25%,hsl(var(--als-navy) / .9) 45%,hsl(var(--als-navy) / .4) 100%); }
+.account-hero-copy { padding: 28px 36px; max-width: 85%; }
+.account-hero h1 { color: hsl(var(--sidebar-foreground)); }
+.account-hero .account-badges span { color: hsl(var(--sidebar-foreground)); background: hsl(var(--sidebar-foreground) / .08); border-color: hsl(var(--sidebar-foreground) / .25); }
+.account-hero-identifiers { display: flex; flex-wrap: wrap; gap: 10px 20px; margin-top: 18px; font-size: 12px; color: hsl(var(--sidebar-foreground) / .8); }
+.account-hero-identifiers a { text-decoration: underline; text-underline-offset: 3px; }
+.account-sticky-header { position: sticky; top: var(--portal-header-height,64px); z-index: 20; padding-block: 12px; background: hsl(var(--background)); }
+.account-tabs { display: flex; flex-wrap: wrap; width: 100%; height: auto; justify-content: flex-start; gap: 6px; }
+.account-overview-grid { display: grid; grid-template-columns: minmax(0,1.4fr) minmax(0,1fr) minmax(0,1fr); gap: 20px; }
+.account-panel { min-width: 0; padding: 24px; border: 1px solid hsl(var(--border)); border-radius: var(--panel-radius); background: hsl(var(--card)); }
+.account-panel h2 { margin-bottom: 18px; font-size: 17px; font-weight: 750; }
+.account-panel h3 { margin-top: 20px; font-size: 13px; font-weight: 750; }
+.account-panel p { line-height: 1.6; }
+.account-key-info { display: grid; gap: 12px; }
+.account-key-info > div { border-bottom: 1px solid hsl(var(--border)); padding-bottom: 10px; }
+.account-overview-wide { grid-column: span 2; }
+.account-people { display: grid; gap: 15px; }
+.account-people a { font-size: 14px; font-weight: 700; }
+.account-people p { font-size: 12px; color: hsl(var(--muted-foreground)); }
+@media (max-width: 1199px) { .account-overview-grid { grid-template-columns: repeat(2,minmax(0,1fr)); } .account-filters { grid-template-columns: repeat(2,minmax(0,1fr)); } }
+@media (max-width: 767px) { .account-overview-grid, .account-filters { grid-template-columns: minmax(0,1fr); } .account-overview-wide { grid-column: auto; } .account-sticky-header { position: static; } .account-hero-copy { padding: 24px; max-width: 100%; } .account-panel, .account-card { padding: 20px; } .ase-rating svg { width: 120px; } .ase-compact svg { width: 62px; } }

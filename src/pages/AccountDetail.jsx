@@ -6,11 +6,21 @@ import { listAll, filterAll } from "@/components/data/loadAll";
 import { formatDate, formatCurrency, regionName } from "@/lib/portal";
 import { DocTypeBadge, ExecutedBadge, WarrantyStatusBadge } from "@/components/StatusBadge";
 import AccountCRM from '@/components/crm/AccountCRM';
+import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
+import AccountHeader from '@/components/accounts/AccountHeader';
+import AccountClassification from '@/components/accounts/AccountClassification';
+import AccountOverview from '@/components/accounts/AccountOverview';
+import AccountFinancials from '@/components/accounts/AccountFinancials';
+import AccountActivity from '@/components/accounts/AccountActivity';
+import useAccountsView from '@/components/accounts/useAccountsView';
+import '@/components/accounts/accounts.css';
 import { ArrowLeft, MapPin, ExternalLink, Users, FolderKanban, FileText, ShieldCheck, Mail, Phone, Gavel } from "lucide-react";
 
 export default function AccountDetail() {
   const { accountId } = useParams();
   const { user } = useAuth();
+  const summary = useAccountsView({ accountId });
+  const signals = summary.data?.items.find(row => row.account.id === accountId)?.signals;
   const [account, setAccount] = useState(null);
   const [contacts, setContacts] = useState([]);
   const [projects, setProjects] = useState([]);
@@ -89,47 +99,15 @@ export default function AccountDetail() {
   projects.forEach((p) => { if (p.dataverse_id) projectByDv[p.dataverse_id] = p; });
 
   return (
-    <div className="space-y-6">
-      <Link to="/accounts" className="inline-flex items-center gap-1 text-sm text-slate-500 hover:text-slate-900">
-        <ArrowLeft className="h-4 w-4" /> Back to Accounts
-      </Link>
-
-      {/* Account header */}
-      <div className="rounded-2xl border border-slate-200 bg-white p-6">
-        <div className="flex flex-wrap items-start justify-between gap-3">
-          <div className="flex items-center gap-4">
-            <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-slate-900 text-lg font-semibold text-white">
-              {account.name?.charAt(0).toUpperCase()}
-            </div>
-            <div>
-              <h1 className="font-heading text-2xl font-semibold tracking-tight text-slate-900">{account.name}</h1>
-              <span className="text-sm uppercase tracking-wide text-slate-400">{account.account_type}</span>
-            </div>
-          </div>
-          {account.uklf_approved && (
-            <span className="rounded-full bg-emerald-50 px-3 py-1 text-xs font-medium text-emerald-700 border border-emerald-200">UKLF Approved</span>
-          )}
-        </div>
-        <div className="mt-4 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-          <Detail label="Company Number" value={account.company_number} />
-          <Detail label="Company Status" value={account.company_status} />
-          <Detail label="Incorporated" value={formatDate(account.date_of_incorporation)} />
-          <Detail label="Region" value={regionName(account.region)} />
-        </div>
-        {account.address_postcode && (
-          <div className="mt-3 flex items-center gap-1.5 text-sm text-slate-500">
-            <MapPin className="h-4 w-4" />
-            {[account.address_line1, account.address_city, account.address_county, account.address_postcode].filter(Boolean).join(", ")}
-          </div>
-        )}
-        <div className="mt-3 flex flex-wrap items-center gap-4">
-          {account.email && <a href={`mailto:${account.email}`} className="flex items-center gap-1 text-sm text-blue-600 hover:underline"><Mail className="h-4 w-4" /> {account.email}</a>}
-          {account.phone && <span className="flex items-center gap-1 text-sm text-slate-500"><Phone className="h-4 w-4" /> {account.phone}</span>}
-          {account.ch_links_self && <a href={account.ch_links_self} target="_blank" rel="noreferrer" className="flex items-center gap-1 text-sm text-blue-600 hover:underline"><ExternalLink className="h-4 w-4" /> Companies House</a>}
-          {account.sharepoint_folder && <a href={account.sharepoint_folder} target="_blank" rel="noreferrer" className="flex items-center gap-1 text-sm text-blue-600 hover:underline"><ExternalLink className="h-4 w-4" /> SharePoint</a>}
-        </div>
+    <Tabs defaultValue="overview" className="account-profile space-y-6">
+      <div className="account-sticky-header">
+        <AccountHeader account={account} owner={summary.isPending ? 'Loading…' : signals?.owner || (account.account_manager_aad_id ? 'Assigned owner' : 'Not assigned')} actions={<AccountClassification account={account} user={user} onSaved={updated => setAccount(current => ({ ...current,...updated }))} />} />
+        <TabsList className="account-tabs mt-4" aria-label="Account sections">
+          {['Overview','Contacts','Projects','Opportunities','Financials','Activity','Documents'].map(title => <TabsTrigger key={title} value={title.toLowerCase()}>{title}</TabsTrigger>)}
+        </TabsList>
       </div>
-
+      <TabsContent value="overview"><AccountOverview account={account} contacts={contacts} projects={projects} signals={signals} user={user} summaryLoading={summary.isPending} summaryError={summary.error} /></TabsContent>
+      <TabsContent value="contacts" className="space-y-6">
       {/* Linked Contacts */}
       <Section icon={Users} title="Linked Contacts" count={contacts.length}>
         {contacts.length === 0 ? <Empty text="No contacts linked to this account" /> : (
@@ -147,8 +125,13 @@ export default function AccountDetail() {
         )}
       </Section>
 
-      {account.account_type === 'client' && ['admin','director','regional_director','bsm','finance','bdm'].includes(user?.role) && <AccountCRM account={account} contacts={contacts} user={user} />}
-
+      </TabsContent>
+      <TabsContent value="opportunities" className="space-y-6">
+        {['admin','director','regional_director','bsm','finance','bdm'].includes(user?.role) ? <AccountCRM account={account} contacts={contacts} user={user} showConversation={false} /> : <p className="account-panel text-sm text-muted-foreground">CRM opportunities are available to your internal account team.</p>}
+      </TabsContent>
+      <TabsContent value="financials"><AccountFinancials account={account} projects={projects} user={user} signals={signals} /></TabsContent>
+      <TabsContent value="activity"><AccountActivity account={account} contacts={contacts} user={user} /></TabsContent>
+      <TabsContent value="projects" className="space-y-6">
       {/* Related Projects */}
       <Section icon={FolderKanban} title="Related Projects" count={projects.length}>
         {projects.length === 0 ? <Empty text="No projects linked to this account" /> : (
@@ -167,6 +150,9 @@ export default function AccountDetail() {
         )}
       </Section>
 
+      </TabsContent>
+      <TabsContent value="documents" className="space-y-6">
+      {account.sharepoint_folder && <a className="inline-block text-sm font-semibold underline" href={account.sharepoint_folder} target="_blank" rel="noreferrer">Open SharePoint document folder ↗</a>}
       {/* Legal Documents */}
       <Section icon={FileText} title="Legal Documents" count={docs.length}>
         {docs.length === 0 ? <Empty text="No legal documents for this account" /> : (
@@ -252,7 +238,8 @@ export default function AccountDetail() {
           )}
         </Section>
       </div>
-    </div>
+      </TabsContent>
+    </Tabs>
   );
 }
 

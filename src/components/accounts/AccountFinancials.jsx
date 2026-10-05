@@ -1,0 +1,17 @@
+import React, { useState } from 'react';
+import { useQuery } from '@tanstack/react-query';
+import { Link } from 'react-router-dom';
+import { base44 } from '@/api/base44Client';
+import { formatCurrency, formatDate } from '@/lib/portal';
+import { Button } from '@/components/ui/button';
+export default function AccountFinancials({ account, projects, user, signals }) {
+  const allowed = ['admin','director','regional_director','bsm','finance','bdm','client'].includes(user?.role);
+  const [cursor,setCursor] = useState(null), [history,setHistory] = useState([]);
+  const query = useQuery({ queryKey: ['account-financials',account.id,user?.id,user?.role,cursor,projects.map(row => row.id).join(',')], enabled: allowed, queryFn: async () => {
+    const scope = { project_id: { $in: projects.map(row => row.id) } };
+    const [invoices,totals] = await Promise.all([base44.entities.Invoice.filter(scope,{ sort: '-issue_date',limit: 30,...(cursor ? { cursor } : {}) }),base44.entities.Invoice.aggregate({ query: scope,groupBy: 'status',sum: 'amount' })]);
+    return { invoices,totals: totals.rows };
+  } });
+  if (!allowed) return <p className="account-panel text-sm text-muted-foreground">Account financial information is not available for your role.</p>;
+  return <section className="account-panel"><h2>Project Financials</h2><p className="text-sm text-muted-foreground">Visible linked-project invoices, not corporate accounts or public-body expenditure.</p>{signals?.liveValue != null && <p className="mt-4 text-sm">Live project value: <strong>{formatCurrency(signals.liveValue)}</strong></p>}{query.isPending ? <p role="status" className="mt-4 text-sm">Loading financials…</p> : query.error ? <p role="alert" className="mt-4 text-sm text-destructive">Unable to load account financials.</p> : <><div className="mt-5 flex flex-wrap gap-5">{query.data.totals.map(row => <div key={row.status}><p className="text-xs capitalize text-muted-foreground">{row.status} invoices ({row.count})</p><p className="font-semibold">{formatCurrency(row.sum_amount)}</p></div>)}</div>{!query.data.invoices.items.length ? <p className="mt-5 text-sm text-muted-foreground">No linked-project invoices are visible.</p> : <div className="account-list mt-5"><table><thead><tr><th>Invoice</th><th>Project</th><th>Issued</th><th>Status</th><th>Amount</th></tr></thead><tbody>{query.data.invoices.items.map(invoice => <tr key={invoice.id}><td>{invoice.invoice_number}</td><td><Link className="hover:underline" to={`/projects/${invoice.project_id}?tab=finance`}>{projects.find(row => row.id === invoice.project_id)?.name || 'Project'}</Link></td><td>{formatDate(invoice.issue_date)}</td><td className="capitalize">{invoice.status}</td><td>{formatCurrency(invoice.amount)}</td></tr>)}</tbody></table></div>}<div className="mt-5 flex justify-between"><Button variant="outline" disabled={!history.length || query.isFetching} onClick={() => { setCursor(history.at(-1)); setHistory(old => old.slice(0,-1)); }}>Previous</Button><Button variant="outline" disabled={!query.data.invoices.has_more || query.isFetching} onClick={() => { setHistory(old => [...old,cursor]); setCursor(query.data.invoices.next_cursor); }}>Next</Button></div></>}</section>;
+}

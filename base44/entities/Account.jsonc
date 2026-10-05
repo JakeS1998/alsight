@@ -13,6 +13,47 @@
       ],
       "description": "760820000=client, 760820001=supplier"
     },
+    "relationship_types": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "enum": [
+          "client",
+          "supplier",
+          "consultant",
+          "contractor",
+          "local_authority",
+          "other"
+        ]
+      }
+    },
+    "organisation_type": {
+      "type": "string"
+    },
+    "vat_number": {
+      "type": "string"
+    },
+    "local_authority_code": {
+      "type": "string"
+    },
+    "public_body_identifier": {
+      "type": "string"
+    },
+    "relationship_summary": {
+      "type": "string"
+    },
+    "ase_score": {
+      "type": "number",
+      "minimum": 1,
+      "maximum": 5
+    },
+    "ase_reason": {
+      "type": "string"
+    },
+    "ase_assessed_at": {
+      "type": "string",
+      "format": "date-time"
+    },
     "company_number": {
       "type": "string",
       "description": "Companies House registration number"

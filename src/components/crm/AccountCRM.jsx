@@ -6,7 +6,7 @@ import OpportunityCard from '@/components/crm/OpportunityCard';
 import ConversationTimeline from '@/components/crm/ConversationTimeline';
 import { createCRMOpportunity, STAGES } from '@/components/crm/crm';
 
-export default function AccountCRM({ account, contacts, user }) {
+export default function AccountCRM({ account, contacts, user, showConversation = true }) {
   const canEdit = ['admin','director','bdm','bsm'].includes(user?.role);
   const canConvert = ['admin','director','bdm'].includes(user?.role);
   const [opportunities, setOpportunities] = useState([]);
@@ -47,6 +47,6 @@ export default function AccountCRM({ account, contacts, user }) {
     {error && <p role="alert" className="text-sm text-destructive">{error}</p>}
     {loading && !opportunities.length ? <p className="text-sm text-muted-foreground">Loading opportunities…</p> : opportunities.length ? <div className="grid gap-3 sm:grid-cols-2">{opportunities.map(item => <OpportunityCard key={item.id} item={item} account={account} contacts={contacts} canEdit={canEdit} canConvert={canConvert} user={user} onUpdated={() => load()} />)}</div> : <p className="text-sm text-muted-foreground">No opportunities yet.</p>}
     {hasMore && <Button variant="outline" disabled={loading} onClick={() => load(cursor)}>{loading ? 'Loading…' : 'Load more opportunities'}</Button>}
-    <ConversationTimeline accountId={account.id} contacts={contacts} opportunities={opportunities} user={user} canEdit={canEdit} />
+    {showConversation && <ConversationTimeline accountId={account.id} contacts={contacts} opportunities={opportunities} user={user} canEdit={canEdit} />}
   </section>;
 }

@@ -1,0 +1,6 @@
+export const RELATIONSHIPS = [['client','Client'],['supplier','Supplier'],['consultant','Consultant'],['contractor','Contractor'],['local_authority','Local Authority'],['other','Other']];
+export const relationshipLabels = account => [...new Set([account.account_type,...(account.relationship_types || [])].filter(Boolean))].map(type => RELATIONSHIPS.find(row => row[0] === type)?.[1] || type);
+export const organisationLabel = account => account.organisation_type?.replaceAll('_',' ') || account.company_type?.replaceAll('_',' ') || 'Organisation type not recorded';
+export const isPublicBody = account => account.organisation_type === 'local_authority' || account.relationship_types?.includes('local_authority') || !!account.local_authority_code || /council|local authority|borough/i.test(account.name || '');
+export const websiteUrl = value => { if (!value) return null; const url = /^https?:\/\//i.test(value) ? value : `https://${value}`; return /^https?:\/\//i.test(url) ? url : null; };
+export const aseLabel = score => ({ 1: 'At risk', 2: 'Watch', 3: 'Stable / Monitor', 4: 'Good', 5: 'Strong' }[Math.round(score)] || 'Not assessed');

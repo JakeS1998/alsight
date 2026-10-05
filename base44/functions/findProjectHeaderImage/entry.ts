@@ -1,5 +1,5 @@
 import { createClientFromRequest } from 'npm:@base44/sdk@0.8.52';
-import { secrets } from 'base44:runtime';
+import { searchHeaderPhoto } from '../../shared/searchHeaderPhoto.ts';
 
 export default async function(req: Request): Promise<Response> {
   try {
@@ -25,25 +25,8 @@ export default async function(req: Request): Promise<Response> {
         .then(response => response.ok ? response.json() : null).catch(() => null);
       location = postcodeData?.result?.admin_district || postcodeData?.result?.region || postcode.replace(/\s*\d[A-Z]{2}$/, '');
     }
-    const params = new URLSearchParams({
-      engine: 'google_images', q: `"${venueName}" ${location}`.trim(),
-      api_key: await secrets.get('SERPAPI_API_KEY'), google_domain: 'google.co.uk', gl: 'uk', hl: 'en', safe: 'active',
-    });
-    // SerpAPI's default cache remains enabled; never request a paid fresh search on each visit.
-    const response = await fetch(`https://serpapi.com/search.json?${params}`, { signal: AbortSignal.timeout(20000) });
-    const result = await response.json();
-    if (!response.ok || result.error) {
-      const message = String(result.error || '');
-      const reason = /invalid.*key|key.*invalid|api.?key/i.test(message) ? 'Image search credentials were rejected'
-        : /run out|credit|limit|quota|exceed|plan/i.test(message) ? 'Image search allowance unavailable'
-        : /hasn.t returned|no results|empty/i.test(message) ? 'No matching project image found' : 'Image search is temporarily unavailable';
-      if (reason === 'No matching project image found') return Response.json({ url: null });
-      console.warn('Project image search failed', { status: response.status, reason });
-      return Response.json({ error: reason }, { status: 502 });
-    }
-    const images = (result.images_results || []).slice(0, 20);
-    const photo = images.find(image => /^https:\/\//i.test(image.original || '') && !/(?:fbsbx|fbcdn|cdninstagram|pinterest)\./i.test(image.original) && !image.unsafe && !image.is_product && image.original_width >= 600 && image.original_width > image.original_height);
-    return Response.json(photo ? { url: photo.original, caption: photo.title || `${venueName} project photograph`, sourceUrl: /^https:\/\//i.test(photo.link || '') ? photo.link : null } : { url: null });
+    const result = await searchHeaderPhoto(`"${venueName}" ${location}`.trim(), `${venueName} project photograph`);
+    return Response.json(result.body, { status: result.status });
   } catch {
     // Never include provider request URLs or credentials in errors or logs.
     return Response.json({ error: 'Unable to find a project photograph' }, { status: 500 });

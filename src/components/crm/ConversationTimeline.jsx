@@ -4,7 +4,7 @@ import { formatDateTime } from '@/lib/portal';
 import { Button } from '@/components/ui/button';
 import SearchableSelect from '@/components/forms/SearchableSelect';
 
-export default function ConversationTimeline({ accountId, contactId, defaultContactId, contacts = [], opportunities = [], user, canEdit, opportunityId }) {
+export default function ConversationTimeline({ accountId, contactId, defaultContactId, contacts = [], opportunities = [], user, canEdit, opportunityId, onChanged }) {
   const [items, setItems] = useState([]);
   const [cursor, setCursor] = useState(null);
   const [hasMore, setHasMore] = useState(false);
@@ -31,6 +31,7 @@ export default function ConversationTimeline({ accountId, contactId, defaultCont
            await base44.entities.Conversation.create({ account_id: accountId, contact_id: contactId || form.contact_id, ...((opportunityId || form.opportunity_id) ? { opportunity_id: opportunityId || form.opportunity_id } : {}), occurred_at: new Date(form.occurred_at).toISOString(), channel: form.channel, summary: form.summary.trim(), next_step: form.next_step.trim(), author_name: user?.full_name || user?.email || 'Team member', owner_id: currentUser.id, line_manager_id: currentUser.data?.line_manager_id || currentUser.line_manager_id || '' });
       setForm(f => ({ ...f, summary: '', next_step: '' }));
       await load();
+      onChanged?.();
     } catch (e) { setError(e.message || 'Unable to save conversation.'); }
     finally { setSaving(false); }
   };
