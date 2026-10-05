@@ -1,0 +1,7 @@
+import React from 'react';
+import DashboardPanel from '@/components/dashboard/DashboardPanel';
+import { formatCurrency, regionName } from '@/lib/portal';
+export default function OverviewRegions({ rows = [] }) {
+  const largest = Math.max(1,...rows.map(r => r.sum_estimated_value || 0));
+  return <DashboardPanel title="Portfolio by region" subtitle="Estimated project value and project count" link="/projects">{!rows.length ? <p className="py-4 text-xs text-muted-foreground">No regional records available.</p> : <ul className="space-y-4">{rows.map(r => <li key={r.department_id || 'none'} className="flex items-center gap-3 text-[10px]"><span className="w-28 shrink-0 truncate" title={regionName(r.department_id) || 'Unassigned'}>{regionName(r.department_id) || 'Unassigned'}</span><span className="h-2.5 flex-1 overflow-hidden rounded-sm bg-muted"><span className="block h-full rounded-sm bg-als-navy-light" style={{width:`${Math.max(2,(r.sum_estimated_value || 0)/largest*100)}%`}} /></span><strong className="w-20 shrink-0 text-right">{formatCurrency(r.sum_estimated_value)}</strong><span className="shrink-0 text-muted-foreground">{r.count} projects</span></li>)}</ul>}</DashboardPanel>;
+}

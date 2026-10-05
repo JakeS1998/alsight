@@ -1,0 +1,8 @@
+import React from 'react';
+import { Link } from 'react-router-dom';
+import { AlertTriangle, FileText, CalendarClock } from 'lucide-react';
+import DashboardPanel from '@/components/dashboard/DashboardPanel';
+import { formatDate } from '@/lib/portal';
+export default function HomeAttention({ tasks }) {
+  return <DashboardPanel title={`Your attention${tasks.total ? ` (${tasks.total})` : ''}`} link="/crm/tasks">{tasks.error ? <p role="alert" className="text-xs text-destructive">Unable to load your actions.</p> : tasks.loading ? <p role="status" className="text-xs">Loading your actions…</p> : !tasks.rows.length ? <p className="py-4 text-xs text-muted-foreground">No due or overdue actions assigned to you.</p> : <ul className="divide-y divide-border/60">{tasks.rows.slice(0,4).map(task => { const overdue = task.due && Date.parse(task.due) < Date.now(); const Icon = overdue ? AlertTriangle : task.source === 'Project action' ? FileText : CalendarClock; return <li key={task.key}><Link to={task.to} className="flex items-center gap-3 py-3 hover:bg-muted/40"><Icon className={`h-5 w-5 shrink-0 ${overdue ? 'text-destructive' : 'text-primary'}`} /><div className="min-w-0 flex-1"><p className="truncate text-xs font-semibold">{task.title}</p><p className="mt-1 text-[10px] text-muted-foreground">{task.source}</p></div><span className={`text-[10px] ${overdue ? 'text-destructive' : 'text-muted-foreground'}`}>{formatDate(task.due)}</span></Link></li>; })}</ul>}</DashboardPanel>;
+}

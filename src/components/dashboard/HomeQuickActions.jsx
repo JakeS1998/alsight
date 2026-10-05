@@ -1,0 +1,9 @@
+import React from 'react';
+import { Link } from 'react-router-dom';
+import { Plus, FileText, CheckSquare, MessageSquare, PoundSterling } from 'lucide-react';
+const actions = [['Add opportunity',Plus,'bg-chart-4/15 text-chart-2','opportunity'],['Request project',FileText,'bg-primary/10 text-primary','project'],['Add action',CheckSquare,'bg-success/10 text-success','action'],['Record decision',MessageSquare,'bg-chart-2/10 text-chart-2','decision'],['Submit valuation',PoundSterling,'bg-destructive/10 text-destructive','valuation']];
+export default function HomeQuickActions({ project, role }) {
+  const canWrite = ['admin','director','bdm','bsm'].includes(role);
+  const url = type => `/projects/${project.id}?tab=${type === 'valuation' ? 'valuations' : 'delivery'}${type === 'action' ? '&stage=6' : type === 'decision' ? '&stage=7' : ''}`;
+  return <section className="dashboard-panel"><h2 className="mb-3 text-sm font-extrabold">Quick actions</h2><div className="home-quick-actions">{actions.filter(a => (a[3] !== 'opportunity' || canWrite) && (a[3] !== 'project' || ['admin','director','bdm'].includes(role))).map(([label,Icon,tone,type]) => type === 'opportunity' || type === 'project' ? <button key={type} onClick={() => window.dispatchEvent(new CustomEvent('alsight-open-alice',{ detail: { task: type } }))} className={`flex flex-col items-center justify-center gap-2 rounded-xl p-4 text-xs font-semibold ${tone}`}><Icon className="h-6 w-6" />{label}</button> : <Link key={type} to={project ? url(type) : '/projects'} className={`flex flex-col items-center justify-center gap-2 rounded-xl p-4 text-xs font-semibold ${tone}`}><Icon className="h-6 w-6" />{label}</Link>)}</div></section>;
+}
