@@ -5,6 +5,8 @@ import agreementNames from '@/components/projects/agreementNames';
 import frameworkAgreementRoute from '@/components/delivery/frameworkAgreementRoute';
 import { projectCompletionDates } from '@/components/projects/projectCompletionDates';
 import ProjectEmptyState from '@/components/projects/ProjectEmptyState';
+import ProjectActivityHistory from '@/components/projects/workspace/ProjectActivityHistory';
+import {useAuth} from '@/lib/AuthContext';
 import { legalDocumentName, dmaName, jctName, warrantyName } from "@/components/documents/documentNames";
 import {
   Building2, FileText, FileCheck, Gavel, ShieldCheck, Receipt, Calendar, PoundSterling,
@@ -113,6 +115,7 @@ function DateLabel({ date }) {
 }
 
 export function ProjectTimelineTab({ project, legalDocs, dmas, jcts, warranties, accountMap, supplierOnly = false, supplierCompanyNumber, supplierOrders = null }) {
+  const {user}=useAuth();
   const categories = supplierOnly ? Object.entries(CATEGORIES).filter(([key]) => ['legal', 'jct', 'warranty', 'po'].includes(key)) : Object.entries(CATEGORIES);
   const [pos, setPos] = useState([]);
   const [valuations, setValuations] = useState([]);
@@ -193,6 +196,7 @@ export function ProjectTimelineTab({ project, legalDocs, dmas, jcts, warranties,
       </div>
 
 
+      {!supplierOnly && user && <ProjectActivityHistory project={project} user={user}/>}
       {/* Chronological timeline */}
       {events.length === 0 ? (
         <ProjectEmptyState icon={Calendar} title={allEvents.length ? 'No events match these categories.' : supplierOnly ? 'No dated events linked to your supplier account yet.' : 'No dated events for this project yet.'} description={allEvents.length ? 'Select more categories to see the project history.' : 'Dated milestones and document progress will appear here when recorded.'} {...(allEvents.length ? { onAction: () => setActive(categories.map(([key]) => key)), action: 'Show all categories' } : { to: `/projects/${project.id}?tab=general`, action: 'View project details' })} />

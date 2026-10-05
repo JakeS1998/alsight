@@ -13,12 +13,12 @@ import { LayoutDashboard, FolderKanban, Building2, UserCircle, Menu, X, Users, B
 const ALL_ROLES = ['admin', 'director', 'regional_director', 'bsm', 'finance', 'bdm', 'client', 'supplier', 'project_manager'];
 const NAV_ITEMS = [
   { label: 'Home', path: '/', icon: House, roles: INTERNAL_ROLES.concat(['client', 'supplier']) },
-  { label: 'Portfolio Overview', path: '/portfolio-overview', icon: LayoutDashboard, roles: INTERNAL_ROLES },
+  { label: 'Portfolio', path: '/portfolio-overview', icon: LayoutDashboard, roles: INTERNAL_ROLES },
   { label: 'Projects', path: '/projects', icon: FolderKanban, roles: ALL_ROLES },
-  { label: 'UKLF', path: '/framework-reports', icon: UKLFIcon, roles: INTERNAL_ROLES.concat(['framework_stakeholder']) },
+  { label: 'Framework', path: '/framework-reports', icon: UKLFIcon, roles: INTERNAL_ROLES.concat(['framework_stakeholder']) },
   { label: 'Pipeline', path: '/crm', icon: BriefcaseBusiness, roles: INTERNAL_ROLES },
   { label: 'My Account', path: '/account', icon: UserCircle, roles: ['client'] },
-  { label: 'Accounts', path: '/accounts', icon: Building2, roles: ALL_ROLES.filter(role => role !== 'supplier') },
+  { label: 'Relationships', path: '/accounts', icon: Building2, roles: ALL_ROLES.filter(role => role !== 'supplier') },
   { label: 'Contacts', path: '/contacts', icon: Users, roles: ['admin'] },
   { label: 'Help', path: '/help', icon: CircleHelp, roles: ALL_ROLES.concat(['framework_stakeholder']) },
 ];
@@ -30,7 +30,7 @@ export default function PortalHeader() {
   const navigate = useNavigate();
   const [menuOpen, setMenuOpen] = useState(false);
   const role = user?.role || 'client';
-  const items = NAV_ITEMS.filter(item => item.roles.includes(role));
+  const items = NAV_ITEMS.filter(item => item.roles.includes(role) && !['/account','/contacts','/help'].includes(item.path));
   const signOut = () => { setMenuOpen(false); logout(false); navigate('/login'); };
   const nav = (compact = false) => items.map(item => {
     const Icon = item.icon;

@@ -1,0 +1,10 @@
+.project-operations { display:grid; gap:16px; align-items:start; }
+.project-operations-list { border:1px solid hsl(var(--border)); background:hsl(var(--card)); border-radius:var(--panel-radius); overflow:auto; max-height:420px; overscroll-behavior:contain; }
+.project-operations-detail { border:1px solid hsl(var(--border)); background:hsl(var(--card)); border-radius:var(--panel-radius); overflow:auto; min-height:460px; }
+.project-operations-detail .leaflet-container { height:520px; }
+@media(min-width:1024px) {
+ .project-operations { grid-template-columns:minmax(0,.38fr) minmax(0,.62fr); }
+ .project-operations-list { height:calc(100dvh - var(--portal-header-height) - 235px); min-height:440px; max-height:none; }
+ .project-operations-detail { position:sticky; top:calc(var(--portal-header-height) + 16px); height:calc(100dvh - var(--portal-header-height) - 235px); min-height:440px; }
+ .project-operations-detail .leaflet-container { height:calc(100dvh - var(--portal-header-height) - 310px); min-height:365px; }
+}

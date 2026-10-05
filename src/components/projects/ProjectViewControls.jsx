@@ -1,6 +1,6 @@
 import React from 'react';
 import { LayoutGrid, List, Map } from 'lucide-react';
-const views = [{ value: 'cards', label: 'Cards', icon: LayoutGrid }, { value: 'list', label: 'List', icon: List }, { value: 'map', label: 'Map', icon: Map }];
+const views = [{ value: 'workspace', label: 'Workspace', icon: Map }, { value: 'cards', label: 'Cards', icon: LayoutGrid }, { value: 'list', label: 'List', icon: List }, { value: 'map', label: 'Map', icon: Map }];
 const selected = 'bg-primary text-primary-foreground shadow-sm';
 const unselected = 'text-muted-foreground hover:bg-muted hover:text-foreground';
 export default function ProjectViewControls({ view, onViewChange, density, onDensityChange }) {

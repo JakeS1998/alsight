@@ -12,6 +12,8 @@ import ProjectViewControls from '@/components/projects/ProjectViewControls';
 import ProjectListView from '@/components/projects/ProjectListView';
 import useProjectView from '@/components/projects/useProjectView';
 import { projectStaffName } from "@/components/projects/projectStaffName";
+import ProjectsOperationalWorkspace from '@/components/projects/workspace/ProjectsOperationalWorkspace';
+import ProjectWorkspaceFilters from '@/components/projects/workspace/ProjectWorkspaceFilters';
 import { FilterSelect } from "@/components/FilterSelect";
 import { Button } from "@/components/ui/button";
 import { Plus, Building2, PoundSterling, Calendar, Users, ArrowRight, FolderKanban, Search, X } from "lucide-react";
@@ -46,14 +48,16 @@ export default function Projects() {
   const [bsmFilter, setBsmFilter] = useState("");
   const [regionFilter, setRegionFilter] = useState("");
   const [statusFilter, setStatusFilter] = useState("");
+  const [meeting,setMeeting]=useState(false);
+  const [extraFilters,setExtraFilters]=useState({scope:'',pm:'',client:''});
   const serverPaging = !['supplier', 'project_manager'].includes(role);
   const [cursor, setCursor] = useState(null);
   const [previousCursors, setPreviousCursors] = useState([]);
   const [refreshKey, setRefreshKey] = useState(0);
   const [searchTerm, setSearchTerm] = useState('');
   useEffect(() => { const timer = setTimeout(() => setSearchTerm(search), 300); return () => clearTimeout(timer); }, [search]);
-  useEffect(() => { setCursor(null); setPreviousCursors([]); }, [searchTerm, sortBy, bdmFilter, bsmFilter, regionFilter, statusFilter]);
-  const projectPage = useProjectPage(user, { search: searchTerm, sort: sortBy, bdm: bdmFilter, bsm: bsmFilter, region: regionFilter, status: statusFilter }, cursor, serverPaging, refreshKey);
+  useEffect(() => { setCursor(null); setPreviousCursors([]); }, [searchTerm, sortBy, bdmFilter, bsmFilter, regionFilter, statusFilter,extraFilters]);
+  const projectPage = useProjectPage(user, { search: searchTerm, sort: sortBy, bdm: bdmFilter, bsm: bsmFilter, region: regionFilter, status: statusFilter,...extraFilters }, cursor, serverPaging, refreshKey);
   const projects = serverPaging ? projectPage.items : externalProjects;
   const loading = metadataLoading || projectPage.loading;
 
@@ -70,11 +74,12 @@ export default function Projects() {
         listAll(base44.entities.Account, "-name").catch(() => []),
         listVisiblePortalUsers().catch(() => []),
         (async () => {
-          const [bdmC, bsmC] = await Promise.all([
+          const [bdmC, bsmC, pmC] = await Promise.all([
             filterAll(base44.entities.Contact, { portal_role: "bdm" }, "-full_name").catch(() => []),
             filterAll(base44.entities.Contact, { portal_role: "bsm" }, "-full_name").catch(() => []),
+            filterAll(base44.entities.Contact, { portal_role: "project_manager" }, "-full_name").catch(() => []),
           ]);
-          return [...bdmC, ...bsmC];
+          return [...bdmC, ...bsmC, ...pmC];
         })(),
       ]);
       setProjects(p);
@@ -96,7 +101,7 @@ export default function Projects() {
 
   const staffMap = useMemo(() => {
     const map = {};
-    contacts.forEach((c) => { if (c.aad_id) map[c.aad_id] = c.full_name; });
+    contacts.forEach((c) => { map[c.id]=c.full_name; if (c.aad_id) map[c.aad_id] = c.full_name; });
     users.forEach((u) => { if (!map[u.id]) map[u.id] = u.full_name || u.email; });
     return map;
   }, [contacts, users]);
@@ -131,6 +136,9 @@ export default function Projects() {
         (accountMap[p.client_account_id]?.name || "").toLowerCase().includes(s)
       );
     }
+    if(extraFilters.pm) result=result.filter(p=>p.project_manager_id===extraFilters.pm);
+    if(extraFilters.client) result=result.filter(p=>p.client_account_id===extraFilters.client);
+    if(extraFilters.scope==='mine') {const ids=[user.id,user.staff_aad_id,user.delegate_of].filter(Boolean);result=result.filter(p=>[p.bdm_aad_id,p.bsm_aad_id,p.project_manager_id].some(id=>ids.includes(id)));}
     if (bdmFilter) result = result.filter((p) => p.bdm_aad_id === bdmFilter);
     if (bsmFilter) result = result.filter((p) => p.bsm_aad_id === bsmFilter);
     if (regionFilter) result = result.filter((p) => regionName(p.department_id) === regionFilter);
@@ -148,11 +156,11 @@ export default function Projects() {
         default: return 0;
       }
     });
-  }, [projects, search, bdmFilter, bsmFilter, regionFilter, statusFilter, sortBy, accountMap, serverPaging]);
+  }, [projects, search, bdmFilter, bsmFilter, regionFilter, statusFilter, sortBy, accountMap, serverPaging,extraFilters,user]);
 
-  const hasFilters = search || bdmFilter || bsmFilter || regionFilter || statusFilter;
+  const hasFilters = search || bdmFilter || bsmFilter || regionFilter || statusFilter || Object.values(extraFilters).some(Boolean);
   const clearFilters = () => {
-    setSearch(""); setBdmFilter(""); setBsmFilter(""); setRegionFilter(""); setStatusFilter("");
+    setSearch(""); setBdmFilter(""); setBsmFilter(""); setRegionFilter(""); setStatusFilter("");setExtraFilters({scope:'',pm:'',client:''});
   };
 
   return (
@@ -164,11 +172,11 @@ export default function Projects() {
             {canRequest ? "All projects across the UK Leisure Framework." : "Projects you're involved in."}
           </p>
         </div>
-        {canRequest && (
+        <div className="flex flex-wrap gap-2"><Button variant={meeting ? 'default' : 'outline'} aria-pressed={meeting} onClick={()=>{setMeeting(v=>!v);setView('workspace');}}>{meeting ? 'Exit Meeting Mode' : 'Meeting Mode'}</Button>{canRequest && (
           <Button onClick={() => setRequestOpen(true)} className="bg-primary hover:bg-primary/90">
             <Plus className="mr-1.5 h-4 w-4" /> Request Project
           </Button>
-        )}
+        )}</div>
       </div>
 
       {(serverPaging || (!loading && projects.length > 0)) && (
@@ -197,7 +205,8 @@ export default function Projects() {
                 <X className="h-3 w-3" /> Clear
               </button>
             )}
-            <ProjectViewControls view={view} onViewChange={setView} density={density} onDensityChange={setDensity} />
+            <ProjectWorkspaceFilters value={extraFilters} onChange={setExtraFilters} options={projectPage.options} projects={projects} serverPaging={serverPaging} staffMap={staffMap} accountMap={accountMap}/>
+            {!meeting && <ProjectViewControls view={view} onViewChange={setView} density={density} onDensityChange={setDensity} />}
           </div>
           <p className="text-xs text-muted-foreground">{serverPaging ? projectPage.counts ? `${projectPage.counts.matching} matching of ${projectPage.counts.total} projects` : 'Loading project totals…' : `${filtered.length} of ${projects.length} projects`}</p>
         </div>
@@ -205,7 +214,7 @@ export default function Projects() {
 
       {!serverPaging && (loading || projects.length === 0) && <div className="flex justify-end"><ProjectViewControls view={view} onViewChange={setView} density={density} onDensityChange={setDensity} /></div>}
       {view !== 'map' && projectPage.error && <p role="alert" className="rounded-lg border border-destructive p-3 text-sm text-destructive">Unable to load projects. <button type="button" className="underline" onClick={() => setRefreshKey(k => k + 1)}>Try again</button></p>}
-      {view === 'map' ? (
+      {view === 'workspace' ? <ProjectsOperationalWorkspace user={user} projects={filtered} accountMap={accountMap} staffMap={staffMap} loading={loading} meeting={meeting} total={serverPaging ? projectPage.counts?.matching : filtered.length} filterKey={JSON.stringify([searchTerm,sortBy,bdmFilter,bsmFilter,regionFilter,statusFilter,extraFilters])} mapProps={{user,query:projectPage.mapQuery,sort:projectPage.mapSort,ready:projectPage.mapReady,scopeError:projectPage.scopeError,retryScope:projectPage.retryScope,serverPaging,refreshKey,portfolio:filtered,externalLoading:metadataLoading}} paging={serverPaging && (previousCursors.length || projectPage.next) ? {previousDisabled:!previousCursors.length || loading,nextDisabled:!projectPage.next || loading,previous:()=>{setCursor(previousCursors.at(-1));setPreviousCursors(v=>v.slice(0,-1));},next:()=>{setPreviousCursors(v=>[...v,cursor]);setCursor(projectPage.next);}} : null}/> : view === 'map' ? (
         <React.Suspense fallback={<div role="status" className="flex min-h-[400px] items-center justify-center text-sm text-muted-foreground">Loading map…</div>}>
           <ProjectMapView user={user} query={projectPage.mapQuery} sort={projectPage.mapSort} ready={projectPage.mapReady} scopeError={projectPage.scopeError} retryScope={projectPage.retryScope} serverPaging={serverPaging} refreshKey={refreshKey} portfolio={filtered} externalLoading={metadataLoading} />
         </React.Suspense>
@@ -260,7 +269,7 @@ export default function Projects() {
         </div>
       )}
 
-      {view !== 'map' && serverPaging && (previousCursors.length > 0 || projectPage.next) && <div className="flex justify-between gap-3"><Button variant="outline" disabled={!previousCursors.length || loading} onClick={() => { setCursor(previousCursors[previousCursors.length - 1]); setPreviousCursors(values => values.slice(0, -1)); }}>Previous page</Button><Button variant="outline" disabled={!projectPage.next || loading} onClick={() => { setPreviousCursors(values => [...values, cursor]); setCursor(projectPage.next); }}>Next page</Button></div>}
+      {view !== 'map' && view !== 'workspace' && serverPaging && (previousCursors.length > 0 || projectPage.next) && <div className="flex justify-between gap-3"><Button variant="outline" disabled={!previousCursors.length || loading} onClick={() => { setCursor(previousCursors[previousCursors.length - 1]); setPreviousCursors(values => values.slice(0, -1)); }}>Previous page</Button><Button variant="outline" disabled={!projectPage.next || loading} onClick={() => { setPreviousCursors(values => [...values, cursor]); setCursor(projectPage.next); }}>Next page</Button></div>}
       <RequestDialog
         open={requestOpen}
         onOpenChange={setRequestOpen}
