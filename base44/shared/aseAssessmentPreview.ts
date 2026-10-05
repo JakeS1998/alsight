@@ -1,12 +1,12 @@
 import {accountModel,calculate,scoreEvidence} from './asePolicy.ts';
 import {currentASESourceQuery} from './aseEvidenceSelection.ts';
 const canonical=value=>Array.isArray(value) ? value.map(canonical) : value && typeof value==='object' ? Object.fromEntries(Object.keys(value).sort().map(key=>[key,canonical(value[key])])) : value;
-export async function prepareAssessment(base44,account,policy,review) {
+export async function prepareAssessment(base44,account,policy,review,sourceQuery) {
   const model=accountModel(account);
   if(!model) throw new Error('Set organisation type to UK Limited Company, UK PLC or English Local Authority before assessing.');
   const preparedAt=review?.preparedAt || new Date().toISOString();
   if(review && (typeof review.preparedAt!=='string' || !Number.isFinite(Date.parse(review.preparedAt)) || Date.parse(review.preparedAt)>Date.now() || Date.now()-Date.parse(review.preparedAt)>900000 || !/^[a-f0-9]{64}$/.test(review.previewToken || ''))) throw new Error('This review has expired or is invalid. Generate a fresh assessment preview.');
-  const [sourcePage,previousPage]=await Promise.all([base44.entities.ASEEvidence.filter(currentASESourceQuery(account),{limit:100}),base44.entities.ASEAssessment.filter({account_id:account.id,status:'published'},{sort:'-assessment_date',limit:1})]);
+  const [sourcePage,previousPage]=await Promise.all([base44.entities.ASEEvidence.filter(sourceQuery || currentASESourceQuery(account),{limit:100}),base44.entities.ASEAssessment.filter({account_id:account.id,status:'published'},{sort:'-assessment_date',limit:1})]);
   if(sourcePage.has_more) throw new Error('More than 100 source records: narrow the evidence set before assessing.');
   const sourceEvidence=sourcePage.items,previous=previousPage.items[0] || null;
   const content=canonical({preparedAt,account:{id:account.id,name:account.name,organisation_type:account.organisation_type || '',company_type:account.company_type || '',company_number:account.company_number || '',vat_number:account.vat_number || '',local_authority_code:account.local_authority_code || ''},policy,previousId:previous?.id || '',evidence:[...sourceEvidence].sort((a,b)=>a.id.localeCompare(b.id))});

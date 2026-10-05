@@ -96,6 +96,25 @@
       "type": "integer",
       "minimum": 0,
       "maximum": 100
+    },
+    "publication_mode": {
+      "type": "string",
+      "enum": [
+        "manual",
+        "automatic"
+      ]
+    },
+    "automation_key": {
+      "type": "string"
+    },
+    "automation_run_id": {
+      "type": "string"
+    },
+    "evidence_manifest_uri": {
+      "type": "string"
+    },
+    "evidence_manifest_sha256": {
+      "type": "string"
     }
   },
   "required": [

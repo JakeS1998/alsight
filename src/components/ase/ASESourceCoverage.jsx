@@ -2,19 +2,17 @@ import React from 'react';
 export default function ASESourceCoverage({model}) {
   const council=model==='english_local_authority';
   const entries=council ? [
-    ['MHCLG Revenue Outturn','Automated collection','Official ODS financial facts matched by ONS authority code; normalisation requires review.'],
-    ['MHCLG Revenue Budget','Automated collection','Latest official RA estimates matched by ONS code; forecasts remain distinct from completed outturn evidence.'],
-    ['Exceptional Financial Support','Automated collection','Published support-list matches require confirmation of year and decision status.'],
-    ['Statutory intervention / Section 114','Register collection and verified review','Current inspections, interventions and historic entries are kept distinct; administrator checks the primary notice and operative dates.'],
-    ['Local Audit / backstop','Published-list collection and opinion review','Exact council rows are retrieved from GOV.UK; the signed audit opinion needs administrator verification. Backstop-only disclaimers are context, not scored failure.'],
-    ['PWLB / Debt Management Office','Not yet connected','No automatic loan or maturity data retrieval.'],
-    ['CIPFA Resilience Index','Benchmark only','Not connected; no benchmark is substituted for primary financial evidence.']
+    ['MHCLG Revenue Outturn','Automatic validation','Exact ONS identity, certified rows and explicit metric definitions. Generic or restricted reserves are never substituted for usable General Fund reserves.'],
+    ['MHCLG Revenue Budget','Comparable periods only','Budget/outturn ratios require matching authority and completed financial year. Forecasts remain context.'],
+    ['Exceptional Financial Support','Explicit decisions only','Support-list matches are context unless approval, period and operative status are unambiguous. No match never proves absence.'],
+    ['Statutory intervention / Section 114','Primary facts only','Current statutory directions can score when exact identity and operative dates are validated. Searches, inspections and historical mentions stay unscored.'],
+    ['Local audit / backstop','Context unless explicit','A missing report or backstop-only disclaimer is not a substantive governance failure. Ambiguous primary documents remain unscored without blocking publication.'],
+    ['PWLB / CIPFA','Not connected','No loan or benchmark is substituted for primary financial evidence.']
   ] : [
-    ['Companies House registry','Automated collection','Identity, compliance and adverse-event facts, using the existing registry connection.'],
-    ['Companies House filed accounts','Automated tagged-document collection','XML/iXBRL facts and ratio candidates where disclosed; PDF-only accounts require manual input.'],
-    ['BlackFlag','Public-data collection','Replaces Experian; the public source is not a licensed commercial API connection. Its R-Score remains contextual.'],
-    ['The Gazette','Automated notice discovery','Exact company-number matches, followed by human review of dates and current status.'],
-    ['HMRC VAT','Production approval pending','Current credentials are sandbox credentials; do not use them for live verification.']
+    ['Companies House registry','Automatic statutory rules','Exact company identity; explicit filing breaches and current insolvency legal status. No inferred clean adverse-event score.'],
+    ['Companies House accounts','Automatic tagged metrics','Supported GBP XML/iXBRL facts; unsupported taxonomies, ambiguous definitions and PDF-only disclosures remain unscored.'],
+    ['Blackflag','Authenticated API required','Public-page systematic extraction is prohibited by provider terms. No proprietary R-Score is converted to ASE.'],
+    ['The Gazette','Overnight primary context','Exact company-number notice matching between 21:00 and 07:00 UK, respecting robots and crawl limits; historical notices never imply current insolvency.']
   ];
-  return <div className="space-y-3"><h4 className="text-sm font-semibold">Source coverage and remaining gaps</h4><p className="text-xs text-muted-foreground">Collection availability is not proof of a successful check. Each source card shows its saved outcome.</p><dl className="divide-y divide-border rounded-lg border border-border">{entries.map(([name,status,detail])=><div key={name} className="grid gap-1 p-3 sm:grid-cols-[1fr_2fr]"><dt className="text-xs font-semibold">{name}</dt><dd className="text-xs"><span className="font-medium">{status}</span><p className="mt-1 text-muted-foreground">{detail}</p></dd></div>)}<div className="grid gap-1 p-3 sm:grid-cols-[1fr_2fr]"><dt className="text-xs font-semibold">Manual ASE evidence</dt><dd className="text-xs text-muted-foreground">Available to administrators through the assessment controls below for missing disclosures and verified exceptional cases.</dd></div></dl></div>;
+  return <div className="space-y-3"><h4 className="text-sm font-semibold">Source coverage and limitations</h4><p className="text-xs text-muted-foreground">Source collection is not proof of a successful or complete check. HMRC is excluded. Missing evidence affects coverage, not component scores.</p><dl className="divide-y divide-border rounded-lg border border-border">{entries.map(([name,status,detail])=><div key={name} className="grid gap-1 p-3 sm:grid-cols-[1fr_2fr]"><dt className="text-xs font-semibold">{name}</dt><dd className="text-xs"><span className="font-medium">{status}</span><p className="mt-1 text-muted-foreground">{detail}</p></dd></div>)}</dl></div>;
 }

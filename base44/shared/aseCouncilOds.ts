@@ -15,7 +15,7 @@ export async function councilReturn(url,code,mode='outturn') {
     const headers=cells(headerRow[1]),values=cells(authority[1]),codeIndex=headers.indexOf('ONS Code');
     if(values[codeIndex]!==code) throw new Error('ONS authority-code match failed.');
     const name=values[headers.indexOf('Local authority')];
-    const facts=headers.map((header,index)=>({header,value:values[index]})).filter(row=>typeof row.value==='number' && (/NET REVENUE EXPENDITURE|Capital financing|unallocated financial reserves level at 31 March|other earmarked financial reserves level at 31 March|budget stabilisation at 31 March|TOTAL SERVICE EXPENDITURE/i.test(row.header))).slice(0,mode==='budget' ? 3 : 8);
+    const facts=headers.map((header,index)=>({header,value:values[index]})).filter(row=>typeof row.value==='number' && (/NET REVENUE EXPENDITURE|Capital financing|usable general fund reserves|general fund usable reserves|unallocated financial reserves level at 31 March|other earmarked financial reserves level at 31 March|budget stabilisation at 31 March|TOTAL SERVICE EXPENDITURE/i.test(row.header))).slice(0,mode==='budget' ? 3 : 8);
     const certification=values[headers.indexOf('Certification')];
     if(!facts.length) throw new Error('This authority has no reported numeric financial figures in the selected return.');
     return {code,name,certification,facts,sheet:table[1]};

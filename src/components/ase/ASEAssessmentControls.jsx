@@ -1,13 +1,6 @@
-import React, { useState } from 'react';
-import { useMutation,useQueryClient } from '@tanstack/react-query';
-import { Button } from '@/components/ui/button';
-import ASEEvidenceForm from '@/components/ase/ASEEvidenceForm';
-import ASEAssessmentReview from '@/components/ase/ASEAssessmentReview';
-import { aseRequest,aseError,invalidateASE } from '@/components/ase/aseClient';
-export default function ASEAssessmentControls({accountId,data,onAssessed}) {
-  const cache=useQueryClient(),[show,setShow]=useState(false),[preview,setPreview]=useState(null);
-  const calculate=useMutation({mutationFn:()=>aseRequest('previewAssessment',{accountId}),onSuccess:result=>setPreview(result.preview)});
-  const publish=useMutation({mutationFn:review=>aseRequest('assess',{accountId,review}),onSuccess:()=>{setPreview(null);calculate.reset();invalidateASE(cache);onAssessed();}});
-  if (!data.model) return <p className="rounded-lg border border-border p-4 text-sm">To assess this organisation, set its organisation type in Account details to UK Limited Company, UK PLC or English Local Authority. Other organisation models are not yet supported.</p>;
-  return <section className="rounded-xl border border-border p-4"><h3 className="font-semibold">Assessment workflow</h3><p className="mt-2 text-xs text-muted-foreground">Add or verify evidence, prepare a rule-based preview, then review and publish. Previewing does not change the current rating. Publication preserves all available evidence, component scores and the policy in history.</p><div className="mt-3 flex flex-wrap gap-2"><Button variant="outline" disabled={publish.isPending} onClick={()=>setShow(old=>!old)}>{show ? 'Close evidence form' : 'Add evidence'}</Button><Button disabled={calculate.isPending || publish.isPending || data.sourceHasMore} onClick={()=>{publish.reset();calculate.mutate();}}>{calculate.isPending ? 'Preparing assessment preview…' : preview ? 'Refresh assessment preview' : 'Prepare assessment preview'}</Button></div>{data.sourceHasMore && <p className="mt-2 text-sm text-destructive">Evidence exceeds the 100-record assessment limit.</p>}{calculate.error && <p role="alert" className="mt-3 text-sm text-destructive">{aseError(calculate.error)}</p>}{publish.isSuccess && <p role="status" className="mt-3 text-sm text-success">Assessment published. The current result and historical snapshot have been updated.</p>}{show && <ASEEvidenceForm accountId={accountId} rules={data.policy.models[data.model]} onSaved={()=>{setPreview(null);publish.reset();invalidateASE(cache);}}/>}{preview && !calculate.isPending && <ASEAssessmentReview key={preview.previewToken} preview={preview} publishing={publish.isPending} error={publish.error ? aseError(publish.error) : null} onPublish={review=>publish.mutate(review)} onCancel={()=>{setPreview(null);publish.reset();}}/>}</section>;
+import React from 'react';
+import ASEAutomationPanel from '@/components/ase/ASEAutomationPanel';
+export default function ASEAssessmentControls({accountId,data}) {
+  if(!data.model) return <p className="rounded-lg border border-border p-4 text-sm">Automatic ASE supports UK Limited Companies, UK PLCs and English Local Authorities. Set a supported organisation type in Account details first.</p>;
+  return <ASEAutomationPanel accountId={accountId}/>;
 }

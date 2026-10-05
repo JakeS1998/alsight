@@ -1,15 +1,11 @@
 import {prepareAssessment} from './aseAssessmentPreview.ts';
+import {finishASEPublication} from './asePublication.ts';
 export {currentASESourceQuery} from './aseEvidenceSelection.ts';
 export async function createAssessment(base44, account, policy, review, publisher) {
   const {model,sourceEvidence,previous,result,preparedAt}=await prepareAssessment(base44,account,policy,review);
   const {components,...summary} = result;
   const assessment = await base44.entities.ASEAssessment.create({...summary,account_id:account.id,organisation_type:account.organisation_type || account.company_type,model,assessment_date:new Date().toISOString(),previous_rating:previous?.displayed_rating ?? null,previous_assessment_id:previous?.id || '',change:summary.displayed_rating!==null && previous?.displayed_rating!=null ? summary.displayed_rating-previous.displayed_rating : null,policy_version:policy.version,policy_snapshot:policy.models,status:'building',is_demo:account.name.startsWith('ASE Demo'),...(publisher ? {published_by_id:publisher.id,published_by_name:publisher.full_name || publisher.id,reviewed_at:preparedAt,publication_note:review?.note?.trim() || '',snapshot_evidence_count:sourceEvidence.length,selected_evidence_count:new Set(components.flatMap(component=>component.evidence_ids)).size} : {})});
-  const snapshots = sourceEvidence.length ? await base44.entities.ASEEvidence.bulkCreate(sourceEvidence.map(row=>{const {id,created_date,updated_date,created_by_id,...data}=row;return {...data,external_key:undefined,assessment_id:assessment.id};})) : [];
-  const snapshotIds = new Map(sourceEvidence.map((row,i)=>[row.id,snapshots[i]?.id]));
-  await base44.entities.ASEComponentScore.bulkCreate(components.map(({latest,...component})=>({...component,sealed:true,evidence_ids:component.evidence_ids.map(id=>snapshotIds.get(id)).filter(Boolean),account_id:account.id,assessment_id:assessment.id})));
-  const published = await base44.entities.ASEAssessment.update(assessment.id,{status:'published'});
-  await base44.entities.ASECurrentRating.upsert([{account_id:account.id,assessment_id:assessment.id,precise_score:assessment.precise_score,displayed_rating:assessment.displayed_rating,rating_label:assessment.rating_label,previous_rating:assessment.previous_rating,change:assessment.change,data_confidence:assessment.data_confidence,assessment_date:assessment.assessment_date,explanation:assessment.explanation,is_demo:assessment.is_demo}],{key:'account_id'});
-  return published;
+  return finishASEPublication(base44,assessment,sourceEvidence,components);
 }
 export function validateEvidence(input, rules) {
   const rule=rules.find(r=>r.key===input.component);

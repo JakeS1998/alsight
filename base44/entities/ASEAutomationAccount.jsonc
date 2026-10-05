@@ -1,0 +1,111 @@
+{
+  "name": "ASEAutomationAccount",
+  "type": "object",
+  "properties": {
+    "job_key": {
+      "type": "string"
+    },
+    "run_id": {
+      "type": "string"
+    },
+    "account_id": {
+      "type": "string"
+    },
+    "account_name": {
+      "type": "string"
+    },
+    "model": {
+      "type": "string"
+    },
+    "outcome": {
+      "type": "string",
+      "enum": [
+        "processing",
+        "rated",
+        "not_assessed",
+        "failed",
+        "skipped"
+      ]
+    },
+    "source_index": {
+      "type": "integer",
+      "default": 0
+    },
+    "sources": {
+      "type": "array",
+      "maxItems": 5,
+      "items": {
+        "type": "object",
+        "additionalProperties": true
+      }
+    },
+    "retry_count": {
+      "type": "integer",
+      "default": 0
+    },
+    "stage": {
+      "type": "string"
+    },
+    "assessment_id": {
+      "type": "string"
+    },
+    "rating": {
+      "type": "integer"
+    },
+    "coverage": {
+      "type": "number"
+    },
+    "blockers": {
+      "type": "array",
+      "maxItems": 25,
+      "items": {
+        "type": "string",
+        "maxLength": 1000
+      }
+    },
+    "missing_identifiers_count": {
+      "type": "integer",
+      "default": 0
+    },
+    "failed_sources_count": {
+      "type": "integer",
+      "default": 0
+    },
+    "blocked_sources_count": {
+      "type": "integer",
+      "default": 0
+    },
+    "unknown_components_count": {
+      "type": "integer",
+      "default": 0
+    },
+    "completed_at": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "job_key",
+    "run_id",
+    "account_id",
+    "account_name",
+    "outcome"
+  ],
+  "rls": {
+    "read": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "create": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "update": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "delete": false
+  }
+}

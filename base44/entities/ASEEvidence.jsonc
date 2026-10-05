@@ -104,6 +104,17 @@
       "type": "boolean",
       "default": true
     },
+    "automatic_eligible": {
+      "type": "boolean",
+      "default": false
+    },
+    "automatic_reason": {
+      "type": "string",
+      "maxLength": 600
+    },
+    "automatic_rule_version": {
+      "type": "string"
+    },
     "governance_review": {
       "type": "object",
       "properties": {
@@ -198,6 +209,11 @@
         {
           "user_condition": {
             "role": "bsm"
+          }
+        },
+        {
+          "user_condition": {
+            "role": "bdm"
           }
         },
         {

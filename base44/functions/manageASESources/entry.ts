@@ -9,12 +9,16 @@ import { retrieveLocalAuthority } from '../../shared/aseLocalAuthoritySource.ts'
 import { retrieveAccounts } from '../../shared/aseAccountsSource.ts';
 import { retrieveCouncilGovernance } from '../../shared/aseCouncilGovernance.ts';
 import { validateGovernanceReview } from '../../shared/aseGovernanceReview.ts';
+import {collectASESource} from '../../shared/aseCollectSource.ts';
+import {publishAutomatically} from '../../shared/aseAutomaticPublication.ts';
+import {withASEAutomationLease} from '../../shared/aseAutomationLease.ts';
+import {blackflagBlock} from '../../shared/aseProviderPolicy.ts';
 export default async function(req: Request): Promise<Response> {
   let base44,attempt;
   try {
     base44=createClientFromRequest(req);const user=await base44.auth.me();
     if(!user || !internalRoles.includes(user.role)) return Response.json({error:'ASE sources are available to internal staff only.'},{status:403});
-    const input=await req.json(),keys=Object.keys(sourceNames);
+    const input=await req.json(),keys=Object.keys(sourceNames).filter(key=>key!=='hmrc');
     if(!['status','refresh','review','analyse','previewCouncil','previewGovernance'].includes(input.action) || typeof input.accountId!=='string' || !/^[a-zA-Z0-9_-]{1,64}$/.test(input.accountId)) return Response.json({error:'Valid Account and source operation required.'},{status:400});
     const account=await base44.entities.Account.get(input.accountId);
     if(!account) return Response.json({error:'Account unavailable.'},{status:404});
@@ -25,7 +29,7 @@ export default async function(req: Request): Promise<Response> {
         if(model==='english_local_authority' && !['local_authority','council_governance'].includes(key)) blocked='Company source: not applicable to an English council.';
         if(model==='company' && ['local_authority','council_governance'].includes(key)) blocked='Council source: not applicable to a company.';
         if(key==='council_governance' && model!=='english_local_authority') blocked='Set organisation type to English Local Authority before collecting council audit and intervention evidence.';
-        if(key==='blackflag' && identifier && !/^\d{8}$/.test(identifier)) blocked='Blackflag public coverage is numeric company numbers only; other registrations need an authenticated provider connection.';
+        if(key==='blackflag') blocked=blackflagBlock;
         if(account.name.startsWith('ASE Demo')) blocked='Fictional Accounts cannot use real source checks.';
         if(blocked) return {key,name:sourceNames[key],blocked};
         const query={account_id:account.id,source_key:key,identifier};
@@ -74,27 +78,15 @@ export default async function(req: Request): Promise<Response> {
       await base44.entities.ASESourceRefresh.update(audit.id,{summary:{...audit.summary,ai_insight:insight}});
       return Response.json({insight});
     }
-    const latest=await base44.entities.ASESourceRefresh.filter({account_id:account.id,source_key:input.source},{sort:'-refreshed_at',limit:1});
-    if(latest.items[0] && Date.now()-Date.parse(latest.items[0].refreshed_at)<60000) return Response.json({error:'Please wait one minute between checks for this source.'},{status:429});
-    if(input.requesterVat!=null && (typeof input.requesterVat!=='string' || input.requesterVat.length>20)) return Response.json({error:'Invalid requester VAT number.'},{status:400});
-    attempt=await base44.entities.ASESourceRefresh.create({...query,requested_by:user.id,refreshed_at:new Date().toISOString(),status:'pending'});
-    const model=accountModel(account);
-    if((model==='english_local_authority' && !['local_authority','council_governance'].includes(input.source)) || (model==='company' && ['local_authority','council_governance'].includes(input.source)) || (input.source==='council_governance' && model!=='english_local_authority')) throw new Error('This source does not apply to the Account organisation type.');
-    const providers={accounts:retrieveAccounts,blackflag:retrieveBlackflag,gazette:retrieveGazette,hmrc:retrieveHmrc,local_authority:retrieveLocalAuthority,council_governance:retrieveCouncilGovernance};
-    const result=await providers[input.source](account,identifier,attempt,input.source==='council_governance' ? base44 : String(input.requesterVat || '').replace(/^GB/i,'').replace(/\s/g,''));
-    if(!Array.isArray(result.facts) || result.facts.length>40) throw new Error('Source evidence exceeded its safe record limit.');
-    const current=await base44.entities.Account.get(account.id);
-    if(sourceIdentifier(current,input.source)!==identifier) throw new Error('Account source identifier changed during collection. No evidence was applied.');
-    const newer=await base44.entities.ASESourceRefresh.filter({...query,status:{$in:['completed','partial']},refreshed_at:{$gt:attempt.refreshed_at}},{limit:1});
-    if(newer.items.length) throw new Error('A newer source refresh already completed.');
-    const bytes=new TextEncoder().encode(JSON.stringify({source:sourceNames[input.source],identifier,retrieved_at:attempt.refreshed_at,data:result.raw}));
-    if(bytes.length>3000000) throw new Error('Audit snapshot exceeds the safe size limit.');
-    const hash=Array.from(new Uint8Array(await crypto.subtle.digest('SHA-256',bytes))).map(byte=>byte.toString(16).padStart(2,'0')).join('');
-    const {file_uri}=await base44.integrations.Core.UploadPrivateFile({file:new File([bytes],`ase-${input.source}-${attempt.id}.json`,{type:'application/json'})});
-    for(let batch=0;batch<4;batch++){const retired=await base44.entities.ASEEvidence.updateMany({account_id:account.id,assessment_id:null,source:sourceNames[input.source],external_key:{$exists:true},score_eligible:{$ne:false}},{$set:{score_eligible:false}});if(!retired.has_more) break;}
-    if(result.facts.length) await base44.entities.ASEEvidence.upsert(result.facts.map(row=>({...row,...(input.source==='council_governance' ? {governance_review:null} : {}),raw_file_uri:file_uri})),{key:'external_key'});
-    const completed=await base44.entities.ASESourceRefresh.update(attempt.id,{status:result.warnings.length ? 'partial' : 'completed',summary:{...result.summary,evidence_count:result.facts.length},warnings:result.warnings,raw_file_uri:file_uri,raw_sha256:hash});
-    return Response.json({audit:completed,evidenceCount:result.facts.length});
+    if(!accountModel(account)) throw new Error('Set a supported Account organisation type before automated ASE collection.');
+    const result=await withASEAutomationLease(base44,async assertLease=>{
+      const collected=await collectASESource(base44,account,input.source,user);await assertLease();
+      const current=await base44.entities.Account.get(account.id),policy=await getPolicy(base44);
+      const assessment=await publishAutomatically(base44,current,policy,user,{job_key:`source:${collected.audit.id}`});
+      return {...collected,assessment};
+    });
+    if(result.busy) return Response.json({error:'An ASE source operation is already running; please wait.'},{status:429});
+    return Response.json(result);
   } catch(error) {
     const message=String(error.message || 'Source operation failed.').slice(0,1000);
     if(base44 && attempt) await base44.entities.ASESourceRefresh.update(attempt.id,{status:'failed',error:message});

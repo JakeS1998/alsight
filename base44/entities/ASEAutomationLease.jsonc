@@ -1,0 +1,38 @@
+{
+  "name": "ASEAutomationLease",
+  "type": "object",
+  "properties": {
+    "key": {
+      "type": "string"
+    },
+    "lease_until": {
+      "type": "string",
+      "default": "1970-01-01T00:00:00.000Z"
+    },
+    "lease_token": {
+      "type": "string",
+      "default": ""
+    }
+  },
+  "required": [
+    "key"
+  ],
+  "rls": {
+    "read": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "create": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "update": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "delete": false
+  }
+}

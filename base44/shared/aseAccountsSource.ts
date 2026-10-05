@@ -38,7 +38,7 @@ export async function retrieveAccounts(account,number,refresh) {
   const periods=[...periodMap.values()].sort((a,b)=>b.end.localeCompare(a.end)).slice(0,3);
   if(!retrieved.length) throw new Error('No account document could be retrieved. '+warnings.join(' ').slice(0,600));
   const facts=accountsEvidence(account,number,refresh,periods);
-  warnings.push('Primary tagged accounts are imported for review, not automatic scoring. Missing disclosures, unsupported taxonomies and dimensional group contexts are excluded. PDF-only filings need manual evidence.');
+  warnings.push('Exact-entity, non-dimensional GBP tagged metrics are automatically validated. Missing disclosures, unsupported taxonomies, ambiguous borrowing definitions and PDF-only filings remain unscored; no manual approval is required.');
   if(history.total_count>100) warnings.push('Filing discovery is limited to the latest 100 account filings and three documents.');
   return {facts,raw:{company_number:number,documents:retrieved,periods},summary:{company_number:number,company_name:profile.company_name,documents_retrieved:retrieved.length,financial_periods:periods.map(row=>row.end),normalised_candidates:facts.filter(row=>row.component!=='filed_financials').length,tagged_financials_available:!!facts.length},warnings};
 }

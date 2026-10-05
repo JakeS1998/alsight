@@ -22,7 +22,8 @@ export async function readSourceResponse(response,maxBytes=3000000) {
   const reader=response.body?.getReader(),chunks=[]; let size=0;
   if(reader) for(;;) { const {done,value}=await reader.read(); if(done) break; size+=value.byteLength; if(size>maxBytes) {await reader.cancel();throw new Error('Source response exceeds its size limit.');} chunks.push(value); }
   const bytes=new Uint8Array(size);let offset=0;for(const chunk of chunks){bytes.set(chunk,offset);offset+=chunk.length;}
-  return {status:response.status,ok:response.ok,text:new TextDecoder().decode(bytes),bytes};
+  const retryHeader=response.headers.get('retry-after'),retryAfter=retryHeader ? Math.max(1,Number(retryHeader) || Math.ceil((Date.parse(retryHeader)-Date.now())/1000)) : 300;
+  return {status:response.status,ok:response.ok,text:new TextDecoder().decode(bytes),bytes,retryAfter:Number.isFinite(retryAfter) ? Math.min(86400,retryAfter) : 300};
 }
-export async function sourceJson(url,options={}) { const response=await sourceFetch(url,options); if(!response.ok) throw new Error(`Source returned HTTP ${response.status}; no clean result has been inferred.`); return JSON.parse(response.text); }
+export async function sourceJson(url,options={}) { const response=await sourceFetch(url,options); if(!response.ok) {const error=new Error(`Source returned HTTP ${response.status}; no clean result has been inferred.`);error.status=response.status;error.retryAfter=response.retryAfter;throw error;} return JSON.parse(response.text); }
 export function sourceText(html) { return String(html).replace(/<script\b[^>]*>[\s\S]*?<\/script>/gi,'').replace(/<style\b[^>]*>[\s\S]*?<\/style>/gi,'').replace(/<[^>]+>/g,' ').replace(/&amp;/g,'&').replace(/&nbsp;/g,' ').replace(/&quot;/g,'"').replace(/&#39;/g,"'").replace(/\s+/g,' ').trim(); }

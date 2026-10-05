@@ -1,0 +1,90 @@
+{
+  "name": "ASEAutomationRun",
+  "type": "object",
+  "properties": {
+    "scope": {
+      "type": "string",
+      "enum": [
+        "portfolio",
+        "account"
+      ]
+    },
+    "account_id": {
+      "type": "string"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "queued",
+        "running",
+        "paused",
+        "completed"
+      ]
+    },
+    "requested_by": {
+      "type": "string"
+    },
+    "requested_by_name": {
+      "type": "string"
+    },
+    "eligible_count": {
+      "type": "integer"
+    },
+    "excluded_count": {
+      "type": "integer"
+    },
+    "processed_count": {
+      "type": "integer",
+      "default": 0
+    },
+    "cursor": {
+      "type": "string"
+    },
+    "finished_listing": {
+      "type": "boolean",
+      "default": false
+    },
+    "active_job_id": {
+      "type": "string"
+    },
+    "waiting_until": {
+      "type": "string"
+    },
+    "last_activity": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "completed_at": {
+      "type": "string"
+    },
+    "error": {
+      "type": "string",
+      "maxLength": 1000
+    }
+  },
+  "required": [
+    "scope",
+    "status",
+    "requested_by",
+    "eligible_count",
+    "excluded_count"
+  ],
+  "rls": {
+    "read": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "create": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "update": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "delete": false
+  }
+}
