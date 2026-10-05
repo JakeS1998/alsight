@@ -128,8 +128,9 @@ export function ProjectDraftingTab({ project, legalDocs, dmas, jcts, accountMap,
   }
 
   return (
-    <div className="space-y-0">
-      {stages.map((stage, i) => {
+    <div className="ws-subsection ws-documents">
+      <div className="ws-panelhead"><h2 className="ws-sectiontitle">Documents</h2></div>
+      <div className="ws-document-grid">{stages.map((stage, i) => {
         let docs = [];
         if (stage.key === 'precon') {
           docs = preConstructionDocs;
@@ -151,7 +152,7 @@ export function ProjectDraftingTab({ project, legalDocs, dmas, jcts, accountMap,
         const Icon = stage.icon;
 
         return (
-          <div key={stage.key} className="flex gap-4">
+          <div key={stage.key} className="ws-document-stage ws-card ws-panel flex gap-4">
             <div className="flex flex-col items-center">
               <div className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-full border-2 transition-colors ${cfg.marker}`}>
                 {status === "complete" ? <Check className="h-5 w-5" /> : status === "in_progress" ? <Clock className="h-4 w-4" /> : <Icon className="h-4 w-4" />}
@@ -208,7 +209,7 @@ export function ProjectDraftingTab({ project, legalDocs, dmas, jcts, accountMap,
             </div>
           </div>
         );
-      })}
+      })}</div>
     </div>
   );
 }

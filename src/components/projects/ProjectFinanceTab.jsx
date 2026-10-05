@@ -87,7 +87,8 @@ export function ProjectFinanceTab({ project }) {
   if (loading || fin.loading) return <Spinner />;
 
   return (
-    <div className="space-y-6">
+    <div className="ws-subsection ws-finance space-y-6">
+      <div className="ws-panelhead"><h2 className="ws-sectiontitle">Finance</h2></div>
       <FinanceInsight project={project} summary={summary} health={health} delivery={delivery} />
       <CommercialSummary summary={summary} health={health} />
 

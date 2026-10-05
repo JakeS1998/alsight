@@ -5,14 +5,15 @@ import { useAuth } from "@/lib/AuthContext";
 import { INTERNAL_ROLES } from '@/lib/portal';
 import ProjectValuationsTab from "@/components/valuations/ProjectValuationsTab";
 import UKLFProjectTab from '@/components/framework/UKLFProjectTab';
-import UKLFIcon from '@/components/framework/UKLFIcon';
-import SourceOpportunityLink from '@/components/crm/SourceOpportunityLink';
+
 import { listAll, filterAll } from "@/components/data/loadAll";
-import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
+import { Tabs, TabsContent } from "@/components/ui/tabs";
 import { ProjectGeneralTab } from "@/components/projects/ProjectGeneralTab";
-import ProjectPOReferences from '@/components/projects/ProjectPOReferences';
-import ProjectStickyHeader from '@/components/projects/ProjectStickyHeader';
-import FrameworkVersionBadge from '@/components/projects/FrameworkVersionBadge';
+
+import ProjectWorkspaceHeader from '@/components/projects/ProjectWorkspaceHeader';
+import ProjectWorkspaceNav from '@/components/projects/ProjectWorkspaceNav';
+import '@/components/projects/project-workspace.css';
+
 import SupplierProjectDocuments from '@/components/projects/SupplierProjectDocuments';
 import SupplierPurchaseOrders from '@/components/projects/SupplierPurchaseOrders';
 import ProjectManagerOverview from '@/components/projects/ProjectManagerOverview';
@@ -26,7 +27,7 @@ import ProjectPathwayAbout from '@/components/delivery/ProjectPathwayAbout';
 import PMProjectPathway from '@/components/delivery/PMProjectPathway';
 import ProjectChanges from '@/components/alice/ProjectChanges';
 import DocumentInsight from '@/components/alice/DocumentInsight';
-import { ArrowLeft, FileText, ShieldCheck, LayoutDashboard, Receipt, Calendar, ClipboardList, ListChecks } from "lucide-react";
+
 
 export default function ProjectDetail() {
   const { projectId } = useParams();
@@ -102,65 +103,39 @@ export default function ProjectDetail() {
   }
 
   return (
-    <div className="space-y-6">
-      <Link to="/projects" className="inline-flex items-center gap-1 text-sm text-slate-500 hover:text-slate-900">
-        <ArrowLeft className="h-4 w-4" /> Back to Projects
-      </Link>
-
-      <Tabs value={activeTab} onValueChange={tab => { setActiveTab(tab); setEditUKLFKpis(false); }}>
-        <ProjectStickyHeader>
-          <div>
-            <div className="flex flex-wrap items-center gap-3">
-              <h1 className="font-heading text-2xl font-semibold tracking-tight text-slate-900">{project.name}</h1>
-              <ProjectPOReferences project={project} />
-              <FrameworkVersionBadge projectNumber={project.project_number} />
-              <span className={project.live_project ? "rounded-full border border-emerald-200 bg-emerald-50 px-2.5 py-0.5 text-xs font-medium text-emerald-700" : "rounded-full border border-orange-200 bg-orange-50 px-2.5 py-0.5 text-xs font-medium text-orange-700"}>{project.live_project ? "Live" : "On Hold"}</span>
-              {typeof project.procurement_route === 'boolean' && <span className="rounded-full bg-primary/10 px-2.5 py-0.5 text-xs font-medium text-primary">{project.procurement_route ? 'Framework' : 'Direct'}</span>}
-            </div>
-            {!isSupplier && project.description && <p className="mt-1 text-sm text-slate-500">{project.description}</p>}
-            {INTERNAL_ROLES.includes(user?.role) && <SourceOpportunityLink projectId={project.id} />}
-          </div>
-          <div className="relative"><div className="snap-x snap-proximity overflow-x-auto pb-2 [scrollbar-width:thin]" aria-label="Scroll to see all project tabs"><TabsList className="h-auto w-max min-w-full flex-nowrap justify-start gap-1 [&>button]:shrink-0 [&>button]:snap-start">
-            <TabsTrigger value="general"><LayoutDashboard className="mr-1.5 h-4 w-4" /> {isSupplier || isExternalPM ? 'Project details' : 'General'}</TabsTrigger>
-            <TabsTrigger value="timeline"><Calendar className="mr-1.5 h-4 w-4" /> Timeline</TabsTrigger>
-            <TabsTrigger value="drafting"><FileText className="mr-1.5 h-4 w-4" /> Documents</TabsTrigger>
-            <TabsTrigger value="warranties"><ShieldCheck className="mr-1.5 h-4 w-4" /> Warranties</TabsTrigger>
-            {isSupplier && <TabsTrigger value="purchase-orders"><Receipt className="mr-1.5 h-4 w-4" /> Purchase orders</TabsTrigger>}
-            {!isExternalPM && !isSupplier && <TabsTrigger value="finance"><Receipt className="mr-1.5 h-4 w-4" /> Finance</TabsTrigger>}
-            {!isSupplier && <TabsTrigger value="delivery"><ClipboardList className="mr-1.5 h-4 w-4" /> Pathway</TabsTrigger>}
-            {canSeeValuations && <TabsTrigger value="valuations"><ListChecks className="mr-1.5 h-4 w-4" /> Valuations</TabsTrigger>}
-            {INTERNAL_ROLES.includes(user?.role) && project.procurement_route !== false && <TabsTrigger value="uklf"><UKLFIcon /> UKLF</TabsTrigger>}
-          </TabsList></div><div aria-hidden="true" className="pointer-events-none absolute inset-y-0 right-0 w-3 bg-gradient-to-l from-secondary to-transparent sm:hidden" /></div>
-        </ProjectStickyHeader>
-        <TabsContent value="general" className="mt-6 space-y-6">
-          {INTERNAL_ROLES.includes(user?.role) && <ProjectChanges key={project.id} project={project} legalDocs={legalDocs} dmas={dmas} jcts={jcts} />}
+    <Tabs className="project-workspace" orientation="vertical" value={activeTab} onValueChange={tab => { setActiveTab(tab); setEditUKLFKpis(false); }}>
+      <ProjectWorkspaceNav user={user} project={project} isSupplier={isSupplier} isExternalPM={isExternalPM} canSeeValuations={canSeeValuations} />
+      <main className="ws-main">
+        <ProjectWorkspaceHeader project={project} user={user} isSupplier={isSupplier} />
+        <TabsContent value="general" className="ws-content space-y-6">
           <ProjectGeneralTab project={project} singleTask={frameworkAgreementRoute(legalDocs, dmas, project.project_number).route === 'single_task'} accountMap={accountMap} onProjectUpdated={updated => setProject(current => ({ ...current, ...updated }))} />
+          {INTERNAL_ROLES.includes(user?.role) && <ProjectChanges key={project.id} project={project} legalDocs={legalDocs} dmas={dmas} jcts={jcts} />}
         </TabsContent>
-        <TabsContent value="timeline" className="mt-6 space-y-6">
+        <TabsContent value="timeline" className="ws-content mt-6 space-y-6">
           {INTERNAL_ROLES.includes(user?.role) && <ProjectChanges key={project.id} project={project} legalDocs={legalDocs} dmas={dmas} jcts={jcts} />}
           <ProjectTimelineTab project={project} legalDocs={isSupplier ? legalDocs.filter(d => supplierAccountId && d.account_id === supplierAccountId) : legalDocs} dmas={isSupplier ? [] : dmas} jcts={isSupplier ? jcts.filter(d => supplierAccountId && (d.account_id === supplierAccountId || d.contractor_id === supplierAccountId)) : jcts} warranties={isSupplier ? warranties.filter(d => supplierAccountId && (d.account_id === supplierAccountId || d.supplier_id === supplierAccountId)) : warranties} accountMap={accountMap} supplierOnly={isSupplier} supplierOrders={supplierOrders} supplierCompanyNumber={supplierAccountId ? accountMap[supplierAccountId]?.company_number : null} />
           {canSeeProjectOverview && <ProjectManagerOverview projectId={project.id} mode="timeline" supplier={isSupplier} />}
         </TabsContent>
-        <TabsContent value="drafting" className="mt-6 space-y-6">
+        <TabsContent value="drafting" className="ws-content mt-6 space-y-6">
           {INTERNAL_ROLES.includes(user?.role) && <DocumentInsight project={project} legalDocs={legalDocs} dmas={dmas} jcts={jcts} warranties={warranties} />}
           {isSupplier ? <SupplierProjectDocuments project={project} legalDocs={legalDocs} jcts={jcts} accountMap={accountMap} /> : isExternalPM ? <ProjectDraftingTab project={project} legalDocs={legalDocs.filter(d => ['access_agreement','pcsa'].includes(d.document_type))} dmas={dmas} jcts={jcts} accountMap={accountMap} onProjectUpdated={updated => setProject(current => ({ ...current, ...updated }))} pmView /> : <ProjectDraftingTab project={project} legalDocs={legalDocs} dmas={dmas} jcts={jcts} accountMap={accountMap} onProjectUpdated={updated => setProject(current => ({ ...current, ...updated }))} />}
         </TabsContent>
-        <TabsContent value="warranties" className="mt-6 space-y-6">
+        <TabsContent value="warranties" className="ws-content mt-6 space-y-6">
           {INTERNAL_ROLES.includes(user?.role) && <DocumentInsight project={project} legalDocs={legalDocs} dmas={dmas} jcts={jcts} warranties={warranties} />}
           <ProjectWarrantiesTab project={project} warranties={warranties} accountMap={accountMap} hideCommentsAndLinks={isSupplier} />
           {canSeeProjectOverview && <ProjectManagerOverview projectId={project.id} mode="warranties" supplier={isSupplier} />}
         </TabsContent>
-        {isSupplier && <TabsContent value="purchase-orders" className="mt-6"><SupplierPurchaseOrders project={project} orders={supplierOrders} /></TabsContent>}
-        {!isExternalPM && !isSupplier && <TabsContent value="finance" className="mt-6">
+        {isSupplier && <TabsContent value="purchase-orders" className="ws-content mt-6"><SupplierPurchaseOrders project={project} orders={supplierOrders} /></TabsContent>}
+        {!isExternalPM && !isSupplier && <TabsContent value="finance" className="ws-content mt-6">
           <ProjectFinanceTab project={project} />
         </TabsContent>}
-        {!isSupplier && <TabsContent value="delivery" className="mt-6">
+        {!isSupplier && <TabsContent value="delivery" className="ws-content mt-6">
           {isExternalPM ? <PMProjectPathway project={project} /> : <ProjectDeliveryTab project={project} legalDocs={legalDocs} dmas={dmas} jcts={jcts} warranties={warranties} accountMap={accountMap} />}
           <ProjectPathwayAbout />
         </TabsContent>}
-        {canSeeValuations && <TabsContent value="valuations" className="mt-6"><ProjectValuationsTab project={project} /></TabsContent>}
-        {INTERNAL_ROLES.includes(user?.role) && project.procurement_route !== false && <TabsContent value="uklf" className="mt-6"><UKLFProjectTab projectId={project.id} startEditing={editUKLFKpis} onEditDone={() => setEditUKLFKpis(false)} /></TabsContent>}
-      </Tabs>
-    </div>
+        {canSeeValuations && <TabsContent value="valuations" className="ws-content mt-6"><ProjectValuationsTab project={project} /></TabsContent>}
+        {INTERNAL_ROLES.includes(user?.role) && project.procurement_route !== false && <TabsContent value="uklf" className="ws-content mt-6"><UKLFProjectTab projectId={project.id} startEditing={editUKLFKpis} onEditDone={() => setEditUKLFKpis(false)} /></TabsContent>}
+      </main>
+    </Tabs>
   );
 }

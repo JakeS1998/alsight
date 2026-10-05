@@ -1,0 +1,24 @@
+import React from 'react';
+import { Link } from 'react-router-dom';
+
+export default function ProjectWorkspaceFields({ summary, assignments, details }) {
+  return <>
+    <section className="ws-overview">
+      <div className="ws-sectionhead"><h2 className="ws-sectiontitle">Project 360</h2></div>
+      <div className="ws-card ws-summary">{summary.map(field => <div className="ws-field" key={field.label}>
+        <div className="ws-label">{field.label}</div>
+        <div className="ws-value">{field.to ? <Link to={field.to}>{field.value}</Link> : field.value}</div>
+      </div>)}</div>
+    </section>
+    <div className="ws-grid2">
+      <section className="ws-card ws-panel">
+        <div className="ws-panelhead"><h3 className="ws-sectiontitle">Team Assignments</h3></div>
+        <div className="ws-teamgrid">{assignments.map(([label, value]) => <div className="ws-teamitem" key={label}><div className="ws-label">{label}</div><div className="ws-value">{value || '—'}</div></div>)}</div>
+      </section>
+      <section className="ws-card ws-panel">
+        <div className="ws-panelhead"><h3 className="ws-sectiontitle">Additional Details</h3></div>
+        <div className="ws-details">{details.map(([label, value]) => <div className="ws-field" key={label}><div className="ws-label">{label}</div><div className="ws-value">{value || '—'}</div></div>)}</div>
+      </section>
+    </div>
+  </>;
+}

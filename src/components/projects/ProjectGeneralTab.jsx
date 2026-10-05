@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { Link } from "react-router-dom";
+
 import { useAuth } from "@/lib/AuthContext";
 import { base44 } from "@/api/base44Client";
 import { listAll } from "@/components/data/loadAll";
@@ -8,12 +8,12 @@ import ValuationSnapshot from '@/components/valuations/ValuationSnapshot';
 import { projectCompletionDates } from '@/components/projects/projectCompletionDates';
 import ProjectDocumentStatuses from '@/components/projects/ProjectDocumentStatuses';
 import Project360Strip from '@/components/projects/Project360Strip';
-import CompletionVariance from '@/components/projects/CompletionVariance';
+import ProjectWorkspaceFields from '@/components/projects/ProjectWorkspaceFields';
+import ProjectWorkspaceDates from '@/components/projects/ProjectWorkspaceDates';
 import ProjectBriefHistory from '@/components/projects/ProjectBriefHistory';
 import { projectStaffName } from '@/components/projects/projectStaffName';
 import { formatDate, formatCurrency, regionName, INTERNAL_ROLES } from "@/lib/portal";
-import { Button } from "@/components/ui/button";
-import { Building2, MapPin, PoundSterling, Calendar, ExternalLink, UserCircle, Save, Loader2, Check } from "lucide-react";
+import { ExternalLink } from "lucide-react";
 
 function toDateInput(d) {
   if (!d) return "";
@@ -116,136 +116,50 @@ export function ProjectGeneralTab({ project, accountMap, onProjectUpdated, singl
   ].filter(l => l.url);
 
   return (
-    <div className="space-y-6">
+    <div className="ws-general">
+      <ProjectWorkspaceFields
+        summary={[
+          { label: 'Client', value: client?.name || project.client_name || '—', to: client ? `/accounts/${client.id}` : undefined },
+          ...(role !== 'supplier' && role !== 'project_manager' ? [{ label: 'Estimated Value', value: formatCurrency(project.estimated_value) }] : []),
+          { label: 'Department', value: regionName(project.department_id) || '—' },
+          { label: singleTask ? 'Task completion' : 'Construction Actual Completion', value: formatDate(project.practical_completion_date) },
+          { label: 'Project postcode', value: project.site_postcode || '—' },
+        ]}
+        assignments={[
+          ['BDM', projectStaffName(project.bdm_aad_id, staff.byAad)],
+          ['BSM', projectStaffName(project.bsm_aad_id, staff.byAad) || (project.bsm_aad_id ? 'Assigned BSM not identified' : null)],
+          ['Director', directorName],
+          ['Project Manager', staff.byDv[project.project_manager_id]],
+          ['Client Representative', staff.byDv[project.client_rep_id]],
+        ]}
+        details={[
+          ['Procurement Route', project.procurement_route === true ? 'Framework' : project.procurement_route === false ? 'Direct' : '—'],
+          ['Live Project', project.live_project ? 'Yes' : 'No'],
+          ['Approval Status', project.approval_status || '—'],
+          ['AA Executed', formatDate(project.aa_executed_date)],
+          ['PQ Approval', formatDate(project.pq_approval_date)],
+          ['Construction Term', project.construction_term_weeks ? `${project.construction_term_weeks} weeks` : '—'],
+          ...(role !== 'supplier' && role !== 'project_manager' ? [['IE Value', formatCurrency(project.ie_value)], ['IE Commencement', formatDate(project.ie_commencement_date)], ['Payment Type', project.payment_type || '—']] : []),
+        ]}
+      />
+      <ProjectWorkspaceDates project={project} singleTask={singleTask} ribaRows={ribaRows} expectedDates={expectedDates} ribaDates={ribaDates} setRibaDates={setRibaDates} canEdit={canEdit} saving={saving} saved={saved} saveError={saveError} onSave={handleSave} />
+
       {INTERNAL_ROLES.includes(role) && <Project360Strip project={project} singleTask={singleTask} />}
       {INTERNAL_ROLES.includes(role) && <ValuationSnapshot project={project} />}
       {INTERNAL_ROLES.includes(role) && project.request_brief_file_uri && <ProjectBriefHistory fileUri={project.request_brief_file_uri} />}
-      {/* Key info cards */}
-      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-        {client ? (
-          <Link to={`/accounts/${client.id}`} className="block">
-            <InfoCard icon={Building2} label="Client" value={client.name} />
-          </Link>
-        ) : (
-          <InfoCard icon={Building2} label="Client" value={project.client_name || '—'} />
-        )}
-        {role !== 'supplier' && role !== 'project_manager' && <InfoCard icon={PoundSterling} label="Estimated Value" value={formatCurrency(project.estimated_value)} />}
-        <InfoCard icon={MapPin} label="Department" value={regionName(project.department_id) || '—'} />
-        <InfoCard icon={Calendar} label={singleTask ? 'Task completion' : 'Construction Actual Completion'} value={formatDate(project.practical_completion_date)} />
-      </div>
-
-      {/* Staff assignments */}
-      <div className="rounded-xl border border-slate-200 bg-white p-5">
-        <h3 className="mb-4 text-sm font-semibold text-slate-900">Team Assignments</h3>
-        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-          <Assignment label="BDM" name={projectStaffName(project.bdm_aad_id, staff.byAad)} />
-          <Assignment label="BSM" name={projectStaffName(project.bsm_aad_id, staff.byAad) || (project.bsm_aad_id ? "Assigned BSM not identified" : null)} />
-          <Assignment label="Director" name={directorName} />
-          <Assignment label="Project postcode" name={project.site_postcode} />
-          <Assignment label="Project Manager" name={staff.byDv[project.project_manager_id]} />
-          <Assignment label="Client Representative" name={staff.byDv[project.client_rep_id]} />
-        </div>
-      </div>
-
-      {/* RIBA timeframe grid */}
-      <div className="rounded-xl border border-slate-200 bg-white p-5">
-        <div className="mb-4 flex items-center justify-between">
-          <h3 className="text-sm font-semibold text-slate-900">{singleTask ? 'Task completion' : 'RIBA Timeframes'}</h3>
-          {canEdit && (
-            <div className="flex items-center gap-3">
-              {saveError && <span role="alert" className="text-xs text-destructive">{saveError}</span>}
-              {saved && <span className="flex items-center gap-1 text-xs text-emerald-600"><Check className="h-3.5 w-3.5" /> Saved</span>}
-              <Button size="sm" onClick={handleSave} disabled={saving} className="bg-primary hover:bg-primary/90">
-                {saving ? <Loader2 className="mr-1.5 h-3.5 w-3.5 animate-spin" /> : <Save className="mr-1.5 h-3.5 w-3.5" />}
-                Save Dates
-              </Button>
-            </div>
-          )}
-        </div>
-        <div className="overflow-x-auto">
-          <table className="w-full text-sm">
-            <thead>
-              <tr className="border-b border-slate-100 text-left text-xs font-medium uppercase tracking-wide text-slate-500">
-                <th className="pb-2 pr-4">{singleTask ? 'Task' : 'Stage'}</th>
-                {!singleTask && <th className="pb-2 pr-4">Term (Weeks)</th>}
-                {!singleTask && <th className="pb-2 pr-4">Expected Completion</th>}
-                <th className="pb-2 pr-4">Actual Completion</th>
-                {!singleTask && <th className="pb-2">Variance</th>}
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-slate-50">
-              {ribaRows.map((r) => (
-                <tr key={r.stage}>
-                  <td className="py-2.5 pr-4 font-medium text-slate-900">{r.stage}</td>
-                  <td className="py-2.5 pr-4 text-slate-600">{r.term || "—"}</td>
-                  <td className="py-2.5 pr-4 text-muted-foreground" title="System date — read only">{formatDate(r.expected)}</td>
-                  <td className="py-2.5">
-                    {canEdit ? (
-                      <input
-                        type="date"
-                        aria-label={`${r.stage} Actual Completion`}
-                        disabled={saving}
-                        value={ribaDates[r.key]}
-                        onChange={(e) => setRibaDates({ ...ribaDates, [r.key]: e.target.value })}
-                        className="h-9 rounded-lg border border-slate-300 bg-white px-2.5 text-sm text-slate-900 focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20"
-                      />
-                    ) : (
-                      <span className="text-slate-600">{formatDate(project[r.key])}</span>
-                    )}
-                  </td>
-                  <td className="py-2.5"><CompletionVariance expected={r.expected} actual={canEdit ? ribaDates[r.key] : project[r.key]} /></td>
-                </tr>
-              ))}
-              <tr className="bg-slate-50">
-                <td className="py-2.5 pr-4 font-medium text-slate-900">{singleTask ? 'Single task' : 'Construction'}</td>
-                {!singleTask && <td className="py-2.5 pr-4 text-slate-600">{project.construction_term_weeks || "—"}</td>}
-                {!singleTask && <td className="py-2.5 pr-4 text-muted-foreground" title="System date — read only">{formatDate(expectedDates.riba5_system_date)}</td>}
-                <td className="py-2.5">
-                  {canEdit ? (
-                    <input
-                      type="date"
-                      aria-label={singleTask ? 'Task completion' : 'Construction Actual Completion'}
-                      disabled={saving}
-                      value={ribaDates.practical_completion_date}
-                      onChange={(e) => setRibaDates({ ...ribaDates, practical_completion_date: e.target.value })}
-                      className="h-9 rounded-lg border border-slate-300 bg-white px-2.5 text-sm text-slate-900 focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20"
-                    />
-                  ) : <span className="text-slate-600">{formatDate(project.practical_completion_date)}</span>}
-                </td>
-                {!singleTask && <td className="py-2.5"><CompletionVariance expected={expectedDates.riba5_system_date} actual={canEdit ? ribaDates.practical_completion_date : project.practical_completion_date} /></td>}
-              </tr>
-            </tbody>
-          </table>
-        </div>
-      </div>
-
       {(role === 'project_manager' || (role === 'supplier' && project.can_submit_valuation)) && <ProjectDocumentStatuses projectId={project.id} projectNumber={project.project_number} />}
 
       {/* Comments, additional details and links */}
-      <div className={role !== 'supplier' && role !== 'project_manager' ? 'grid gap-4 lg:grid-cols-2' : 'space-y-6'}>
+      <div className={role !== 'supplier' && role !== 'project_manager' ? 'ws-grid2' : 'space-y-6'}>
         {role !== 'supplier' && role !== 'project_manager' && project.comments && (
-          <div className="rounded-xl border border-slate-200 bg-white p-5">
-            <h3 className="mb-2 text-sm font-semibold text-slate-900">Comments</h3>
+          <div className="ws-card ws-panel">
+            <h3 className="ws-sectiontitle mb-4">Comments</h3>
             <p className="text-sm text-slate-600 whitespace-pre-line">{project.comments}</p>
           </div>
         )}
-        <div className="rounded-xl border border-slate-200 bg-white p-5">
-          <h3 className="mb-4 text-sm font-semibold text-slate-900">Additional Details</h3>
-          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-            <Detail label="Procurement Route" value={project.procurement_route === true ? "Framework" : project.procurement_route === false ? "Direct" : "—"} />
-            <Detail label="Live Project" value={project.live_project ? "Yes" : "No"} />
-            <Detail label="Approval Status" value={project.approval_status || "—"} />
-            <Detail label="AA Executed" value={formatDate(project.aa_executed_date)} />
-            <Detail label="PQ Approval" value={formatDate(project.pq_approval_date)} />
-            <Detail label="Construction Term" value={project.construction_term_weeks ? `${project.construction_term_weeks} weeks` : "—"} />
-            {role !== 'supplier' && role !== 'project_manager' && <><Detail label="IE Value" value={formatCurrency(project.ie_value)} />
-            <Detail label="IE Commencement" value={formatDate(project.ie_commencement_date)} />
-            <Detail label="Payment Type" value={project.payment_type || "—"} /></>}
-          </div>
-        </div>
         {role !== 'supplier' && role !== 'project_manager' && links.length > 0 && (
-          <div className="rounded-xl border border-slate-200 bg-white p-5 lg:col-span-2">
-            <h3 className="mb-2 text-sm font-semibold text-slate-900">SharePoint Links</h3>
+          <div className="ws-card ws-panel">
+            <h3 className="ws-sectiontitle mb-4">SharePoint Links</h3>
             <div className="space-y-2">
               {links.map((l) => (
                 <a key={l.label} href={l.url} target="_blank" rel="noreferrer"
@@ -257,37 +171,6 @@ export function ProjectGeneralTab({ project, accountMap, onProjectUpdated, singl
           </div>
         )}
       </div>
-    </div>
-  );
-}
-
-function InfoCard({ icon: Icon, label, value }) {
-  return (
-    <div className="rounded-xl border border-slate-200 bg-white p-4">
-      <div className="mb-2 flex h-8 w-8 items-center justify-center rounded-lg bg-slate-100">
-        <Icon className="h-4 w-4 text-slate-600" />
-      </div>
-      <p className="text-xs text-slate-500">{label}</p>
-      <p className="mt-0.5 truncate text-sm font-semibold text-slate-900">{value}</p>
-    </div>
-  );
-}
-function Assignment({ label, name }) {
-  return (
-    <div className="flex items-start gap-2">
-      <UserCircle className="mt-0.5 h-4 w-4 text-slate-400" />
-      <div>
-        <p className="text-xs text-slate-500">{label}</p>
-        <p className="text-sm font-medium text-slate-700">{name || "—"}</p>
-      </div>
-    </div>
-  );
-}
-function Detail({ label, value }) {
-  return (
-    <div>
-      <p className="text-xs text-slate-500">{label}</p>
-      <p className="text-sm font-medium text-slate-700">{value || "—"}</p>
     </div>
   );
 }
