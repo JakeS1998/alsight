@@ -1,5 +1,5 @@
 import React, { useEffect, useRef, useState } from "react";
-import { useParams, Link } from "react-router-dom";
+import { useParams, Link, useSearchParams } from "react-router-dom";
 import { base44 } from "@/api/base44Client";
 import { useAuth } from "@/lib/AuthContext";
 import { filterAll } from "@/components/data/loadAll";
@@ -21,6 +21,7 @@ import { Users, FolderKanban, FileText, ShieldCheck, Mail, Gavel } from "lucide-
 
 export default function AccountDetail() {
   const { accountId } = useParams();
+  const [params,setParams]=useSearchParams();
   const currentAccountId = useRef(accountId);
   currentAccountId.current = accountId;
   const { user } = useAuth();
@@ -106,10 +107,10 @@ export default function AccountDetail() {
   projects.forEach((p) => { if (p.dataverse_id) projectByDv[p.dataverse_id] = p; });
 
   return (
-    <Tabs defaultValue="overview" className="account-profile space-y-6">
+    <Tabs value={['overview','contacts','projects','opportunities','financials','activity','documents'].includes(params.get('tab')) ? params.get('tab') : 'overview'} onValueChange={tab=>setParams(current=>{const next=new URLSearchParams(current);next.set('tab',tab);return next;},{replace:true})} className="account-profile space-y-6">
       <div className="account-sticky-header">
         <AccountHeader account={account} owner={summary.isPending ? 'Loading…' : signals?.owner || (account.account_manager_aad_id ? 'Assigned owner' : 'Not assigned')} actions={<AccountClassification account={account} user={user} onSaved={updated => setAccount(current => ({ ...current,...updated }))} />} />
-        <TabsList className="account-tabs mt-4" aria-label="Account sections">
+        <TabsList className="account-tabs mt-4" aria-label="Relationship sections">
           {['Overview','Contacts','Projects',...(['admin','director','regional_director','bsm','finance','bdm'].includes(user?.role) ? ['Opportunities'] : []),...(['admin','director','regional_director','bsm','finance','bdm','client'].includes(user?.role) ? ['Financials'] : []),'Activity','Documents'].map(title => <TabsTrigger key={title} value={title.toLowerCase()}>{title}</TabsTrigger>)}
         </TabsList>
       </div>

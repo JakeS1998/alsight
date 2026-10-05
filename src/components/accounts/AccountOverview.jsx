@@ -16,12 +16,12 @@ export default function AccountOverview({ account, contacts, projects, signals, 
   const showCompaniesHouse = hasCompanyRegistry(account) && aseRoles.includes(user?.role);
   return <div className="account-overview-grid">
     {INTERNAL_ROLES.includes(user?.role) && <section className="account-panel account-assessment-panel"><h2>ALSight ASE · All Seeing Eye</h2><ASERating account={account} expanded /><p className="mt-4 text-xs text-muted-foreground">Select the assessment to explore components, evidence, confidence and assessment history.</p></section>}
-    <AccountKeyInformation account={account} showRegistryDetails={!showCompaniesHouse} />
     <AccountRelationshipSummary account={account} signals={signals} loading={summaryLoading} error={summaryError} />
     <AccountKeyPeople account={account} />
-    {showCompaniesHouse ? <div className="account-commercial-row"><AccountStructure account={account}/><ASECommercialConcentration key={account.id} account={account} card/></div> : <AccountStructure account={account}/>}
-    <div className="account-work-row"><AccountCurrentWork account={account} projects={projects}/>{INTERNAL_ROLES.includes(user?.role) && <AccountInsightCard account={account}/>}</div>
     <AccountRecentActivity account={account} />
+    <div className="account-work-row"><AccountCurrentWork account={account} projects={projects}/>{INTERNAL_ROLES.includes(user?.role) && <AccountInsightCard account={account}/>}</div>
+    <AccountKeyInformation account={account} showRegistryDetails={!showCompaniesHouse} />
+    {showCompaniesHouse ? <div className="account-commercial-row"><AccountStructure account={account}/><ASECommercialConcentration key={account.id} account={account} card/></div> : <AccountStructure account={account}/>}
     {showCompaniesHouse && <div className="account-registry-section"><CompaniesHousePanel account={account} onUpdated={onAccountEnriched}/></div>}
   </div>;
 }

@@ -1,0 +1,8 @@
+import React from 'react';
+import {Link} from 'react-router-dom';
+import {Button} from '@/components/ui/button';
+const tones={normal:'border-border',information:'border-border',attention:'border-primary/50',urgent:'border-destructive/50'};
+const labels={normal:'Normal',information:'Information',attention:'Attention',urgent:'Urgent'};
+export default function AlsightAttention({title,explanation,severity='attention',actions=[]}) {
+ return <article className={`rounded-lg border-l-2 bg-muted/50 p-3 ${tones[severity] || tones.attention}`}><div className="flex flex-wrap items-baseline justify-between gap-2"><h3 className="text-sm font-semibold">{title}</h3><span className={`text-[10px] font-semibold ${severity==='urgent' ? 'text-destructive' : severity==='attention' ? 'text-primary' : 'text-muted-foreground'}`}>{labels[severity] || labels.attention}</span></div><p className="mt-1 text-xs leading-relaxed text-muted-foreground">{explanation}</p>{actions.length>0 && <div className="mt-2 flex flex-wrap gap-2" aria-label="Actions within ALSight">{actions.map(action=>action.to?.startsWith('/') && !action.to.startsWith('//') ? <Button key={action.label} asChild size="sm" variant="outline"><Link to={action.to}>{action.label}</Link></Button> : action.onClick ? <Button key={action.label} type="button" size="sm" variant="outline" onClick={action.onClick} disabled={action.disabled}>{action.label}</Button> : null)}</div>}</article>;
+}

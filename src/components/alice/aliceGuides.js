@@ -24,7 +24,7 @@ export const GUIDES = {
     { key: 'title', question: 'What is the risk or issue?' },
     { key: 'probability', type: 'level', question: 'How likely is it?', optional: true },
     { key: 'impact', type: 'level', question: 'How significant would the impact be?', optional: true },
-    { key: 'mitigation', question: 'How could the team manage it?', optional: true },
+    { key: 'mitigation', question: 'What mitigation or decision has the responsible person already recorded? I will save your wording, not give technical advice.', optional: true },
   ] },
   comment: { label: 'I want to add a project comment', roles: ['admin', 'director', 'bdm'], steps: [
     { key: 'project_id', type: 'project', question: 'Which project should I add the comment to?' },

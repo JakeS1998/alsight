@@ -1,7 +1,9 @@
 import React from 'react';
 import ReactMarkdown from 'react-markdown';
+import AliceRecordLink from '@/components/alice/AliceRecordLink';
 
 const markdownComponents = {
+  a: AliceRecordLink,
   p: ({ children }) => <p className="mb-3 last:mb-0">{children}</p>,
   ul: ({ children }) => <ul className="mb-3 list-disc space-y-1 pl-5">{children}</ul>,
   ol: ({ children }) => <ol className="mb-3 list-decimal space-y-1 pl-5">{children}</ol>,
@@ -11,7 +13,7 @@ const markdownComponents = {
 };
 const cells = line => line.trim().replace(/^\|/, '').replace(/\|$/, '').split('|').map(cell => cell.trim());
 const divider = line => cells(line).every(cell => /^:?-{3,}:?$/.test(cell));
-const inline = { p: ({ children }) => <>{children}</> };
+const inline = { p: ({ children }) => <>{children}</>, a: AliceRecordLink };
 
 export default function AliceReply({ content }) {
   const lines = String(content || '').split(/\r?\n/);

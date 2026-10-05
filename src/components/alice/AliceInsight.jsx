@@ -16,6 +16,6 @@ export default function AliceInsight({ title = 'ALICE Insight', statements = [],
     </div>
     {expanded && <p className="mt-2 text-sm text-muted-foreground">{detail}</p>}
     {sources && <div className="mt-3 rounded-lg bg-muted p-3"><h3 className="text-xs font-semibold">Evidence</h3><ul className="mt-1 space-y-1 text-xs">{evidence.map((s, i) => <li key={i}>{s.to ? <Link to={s.to} className="hover:underline">{s.text}</Link> : s.text}</li>)}</ul></div>}
-    <p className="mt-3 text-[10px] text-muted-foreground">ALICE helps you understand the project. You decide what happens next.</p>
+    <p className="mt-3 text-[10px] text-muted-foreground">ALICE explains ALSight information and points to in-platform workflows. Humans decide and undertake real-world activities.</p>
   </section>;
 }

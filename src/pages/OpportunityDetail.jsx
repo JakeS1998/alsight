@@ -1,5 +1,7 @@
 import React, { useEffect, useState } from 'react';
-import { Link, useParams } from 'react-router-dom';
+import { Link, useParams, useSearchParams } from 'react-router-dom';
+import {useQueryClient} from '@tanstack/react-query';
+import OpportunityAttention from '@/components/crm/OpportunityAttention';
 import { base44 } from '@/api/base44Client';
 import { useAuth } from '@/lib/AuthContext';
 import OpportunityHeader from '@/components/crm/OpportunityHeader';
@@ -16,6 +18,8 @@ import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
 
 export default function OpportunityDetail() {
   const { opportunityId } = useParams();
+  const [params,setParams]=useSearchParams(),cache=useQueryClient();
+  const setTab=tab=>setParams(current=>{const next=new URLSearchParams(current);next.set('tab',tab);return next;},{replace:true});
   const { user } = useAuth();
   const [item, setItem] = useState(null);
   const [account, setAccount] = useState(null);
@@ -32,6 +36,7 @@ export default function OpportunityDetail() {
     try {
       const updated = await updateCRMOpportunity(item, patch, user);
       setItem(updated);
+      cache.invalidateQueries({queryKey:['opportunity-attention',item.id]});
       setSaved(true);
       return true;
     } catch (e) { setPlanError(e.message || 'Unable to save opportunity planning.'); return false; }
@@ -74,10 +79,11 @@ export default function OpportunityDetail() {
   const canEdit = ['admin', 'director', 'bdm', 'bsm'].includes(user?.role);
   return <div className="min-w-0 space-y-6">
     <Link to="/crm/opportunities" className="text-sm text-primary hover:underline">← All opportunities</Link>
-    <OpportunityHeader key={item.id} item={item} account={account} contacts={contacts} canEdit={canEdit} canConvert={['admin','director','bdm'].includes(user?.role)} busy={saving} onSave={savePlan} onStage={changeStage} onOutcome={setOutcome} onConvert={() => setReviewOpen(true)} />
+    <OpportunityHeader key={item.id} item={item} account={account} contacts={contacts} canEdit={canEdit} canConvert={['admin','director','bdm'].includes(user?.role)} busy={saving} onSave={savePlan} onStage={changeStage} onOutcome={setOutcome} onConvert={() => setReviewOpen(true)} onActivity={()=>setTab('activity')} />
     {planError && <p role="alert" className="text-sm text-destructive">{planError}</p>}
     {saved && <p role="status" className="text-sm text-emerald-700">Planning saved.</p>}
-    <Tabs defaultValue="overview" className="space-y-4">
+    <OpportunityAttention item={item} user={user} canEdit={canEdit} onActivity={()=>setTab('activity')} onReview={()=>document.getElementById('opportunity-context')?.scrollIntoView({block:'start'})}/>
+    <Tabs value={['overview','activity','brief','team','fees','handover'].includes(params.get('tab')) ? params.get('tab') : 'overview'} onValueChange={setTab} className="space-y-4">
       <TabsList className="flex h-auto flex-wrap justify-start gap-1">
         <TabsTrigger value="overview">Overview</TabsTrigger><TabsTrigger value="activity">Activity</TabsTrigger><TabsTrigger value="brief">Opportunity &amp; Scoping</TabsTrigger><TabsTrigger value="team">Design Team</TabsTrigger><TabsTrigger value="fees">Fee Proposal</TabsTrigger><TabsTrigger value="handover">Handover</TabsTrigger>
       </TabsList>

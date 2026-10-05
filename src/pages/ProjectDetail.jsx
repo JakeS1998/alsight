@@ -28,6 +28,7 @@ import ProjectPathwayAbout from '@/components/delivery/ProjectPathwayAbout';
 import PMProjectPathway from '@/components/delivery/PMProjectPathway';
 import ProjectChanges from '@/components/alice/ProjectChanges';
 import DocumentInsight from '@/components/alice/DocumentInsight';
+import ProjectAttention from '@/components/projects/ProjectAttention';
 
 
 export default function ProjectDetail() {
@@ -108,11 +109,12 @@ export default function ProjectDetail() {
       <ProjectWorkspaceNav user={user} project={project} isSupplier={isSupplier} isExternalPM={isExternalPM} canSeeValuations={canSeeValuations} />
       <main className="ws-main">
         <ProjectStickyHeader className="ws-sticky-header">
-          <ProjectWorkspaceHeader project={project} user={user} isSupplier={isSupplier} />
+          <ProjectWorkspaceHeader project={project} user={user} isSupplier={isSupplier} client={accountMap[project.client_account_id]} />
         </ProjectStickyHeader>
         <TabsContent value="general" className="ws-content space-y-6">
-          <ProjectGeneralTab project={project} singleTask={frameworkAgreementRoute(legalDocs, dmas, project.project_number).route === 'single_task'} accountMap={accountMap} legalDocs={legalDocs} jcts={jcts} onProjectUpdated={updated => setProject(current => ({ ...current, ...updated }))} />
+          {INTERNAL_ROLES.includes(user?.role) && <ProjectAttention project={project}/>}
           {INTERNAL_ROLES.includes(user?.role) && <ProjectChanges key={project.id} project={project} legalDocs={legalDocs} dmas={dmas} jcts={jcts} />}
+          <ProjectGeneralTab project={project} singleTask={frameworkAgreementRoute(legalDocs, dmas, project.project_number).route === 'single_task'} accountMap={accountMap} legalDocs={legalDocs} jcts={jcts} onProjectUpdated={updated => setProject(current => ({ ...current, ...updated }))} />
         </TabsContent>
         <TabsContent value="timeline" className="ws-content mt-6 space-y-6">
           {INTERNAL_ROLES.includes(user?.role) && <ProjectChanges key={project.id} project={project} legalDocs={legalDocs} dmas={dmas} jcts={jcts} />}
