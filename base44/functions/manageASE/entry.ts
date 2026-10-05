@@ -2,15 +2,16 @@ import { createClientFromRequest } from 'npm:@base44/sdk@0.8.52';
 import { internalRoles,defaultModels,accountModel,getPolicy,calculate } from '../../shared/asePolicy.ts';
 import { createAssessment,validateEvidence,currentASESourceQuery } from '../../shared/aseAssessment.ts';
 import { seedDemo } from '../../shared/aseDemo.ts';
+import {prepareAssessment,assessmentPreview} from '../../shared/aseAssessmentPreview.ts';
 import { explainAssessment } from '../../shared/aseInsight.ts';
 export default async function(req: Request): Promise<Response> {
   try {
     const base44=createClientFromRequest(req), user=await base44.auth.me();
     if (!user || !internalRoles.includes(user.role)) return Response.json({error:'ASE is available to internal staff only.'},{status:403});
     const input=await req.json();
-    const actions=['policy','savePolicy','seed','summary','detail','addEvidence','assess','explain','checkRules'];
+    const actions=['policy','savePolicy','seed','summary','detail','addEvidence','previewAssessment','assess','explain','checkRules'];
     if (!actions.includes(input.action)) return Response.json({error:'Invalid ASE operation.'},{status:400});
-    if (['savePolicy','seed','addEvidence','assess','checkRules'].includes(input.action) && user.role!=='admin') return Response.json({error:'Only administrators can manage ASE evidence, assessments and policy.'},{status:403});
+    if (['savePolicy','seed','addEvidence','previewAssessment','assess','checkRules'].includes(input.action) && user.role!=='admin') return Response.json({error:'Only administrators can manage ASE evidence, assessments and policy.'},{status:403});
     const policy=await getPolicy(base44);
     if (input.action==='policy') return Response.json({policy});
     if (input.action==='savePolicy') {
@@ -49,7 +50,12 @@ export default async function(req: Request): Promise<Response> {
       const evidence=await base44.entities.ASEEvidence.create({...data,account_id:account.id,is_demo:account.name.startsWith('ASE Demo')});
       return Response.json({evidence});
     }
-    if (input.action==='assess') return Response.json({assessment:await createAssessment(base44,account,policy)});
+    if (input.action==='previewAssessment') return Response.json({preview:assessmentPreview(await prepareAssessment(base44,account,policy),policy)});
+    if (input.action==='assess') {
+      if(input.review?.confirmed!==true) return Response.json({error:'Review an assessment preview and confirm it before publishing.'},{status:400});
+      if(input.review.note!=null && (typeof input.review.note!=='string' || input.review.note.length>1000)) return Response.json({error:'Publication notes are limited to 1,000 characters.'},{status:400});
+      return Response.json({assessment:await createAssessment(base44,account,policy,input.review,user)});
+    }
     if (input.cursor!=null && (typeof input.cursor!=='string' || input.cursor.length>4096)) return Response.json({error:'Invalid history cursor.'},{status:400});
     if (input.assessmentId!=null && (typeof input.assessmentId!=='string' || !/^[a-zA-Z0-9_-]{1,64}$/.test(input.assessmentId))) return Response.json({error:'Invalid assessment.'},{status:400});
     const selectedId=input.assessmentId || current?.assessment_id;

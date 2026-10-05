@@ -1,26 +1,11 @@
-import { accountModel, calculate } from './asePolicy.ts';
-import { normaliseCompanyNumber } from './companiesHouseData.ts';
-import { sourceIdentifier,evidencePrefix } from './aseSourceCommon.ts';
-export function currentASESourceQuery(account) {
-  let companyNumber=null;
-  try {companyNumber=normaliseCompanyNumber(account.company_number);} catch { /* Unmatched registry evidence cannot contribute to this assessment. */ }
-  const importedPrefixes=[];
-  for(const key of ['accounts','blackflag','gazette','hmrc','local_authority','council_governance']) {try {importedPrefixes.push(evidencePrefix(account,key,sourceIdentifier(account,key)));}catch { /* Missing identifiers exclude old imported evidence. */ }}
-  const importedPattern=importedPrefixes.length ? `^(?:${importedPrefixes.map(prefix=>prefix.replace(/[.*+?^${}()|[\]\\]/g,'\\$&')).join('|')})` : '^no-current-source:';
-  return {account_id:account.id,assessment_id:null,$or:[{source:'Companies House',company_number:companyNumber || '__unmatched__'},{source:{$ne:'Companies House'},external_key:{$exists:false}},{source:{$ne:'Companies House'},external_key:null},{source:{$ne:'Companies House'},external_key:{$regex:importedPattern}}]};
-}
-export async function createAssessment(base44, account, policy) {
-  const model = accountModel(account);
-  if (!model) throw new Error('Set organisation type to UK Limited Company, UK PLC or English Local Authority before assessing.');
-  const sourcePage = await base44.entities.ASEEvidence.filter(currentASESourceQuery(account),{limit:100});
-  if (sourcePage.has_more) throw new Error('More than 100 source records: narrow the evidence set before assessing.');
-  const previousPage = await base44.entities.ASEAssessment.filter({account_id:account.id,status:'published'},{sort:'-assessment_date',limit:1});
-  const previous = previousPage.items[0];
-  const result = calculate(policy.models,model,sourcePage.items);
+import {prepareAssessment} from './aseAssessmentPreview.ts';
+export {currentASESourceQuery} from './aseEvidenceSelection.ts';
+export async function createAssessment(base44, account, policy, review, publisher) {
+  const {model,sourceEvidence,previous,result,preparedAt}=await prepareAssessment(base44,account,policy,review);
   const {components,...summary} = result;
-  const assessment = await base44.entities.ASEAssessment.create({...summary,account_id:account.id,organisation_type:account.organisation_type || account.company_type,model,assessment_date:new Date().toISOString(),previous_rating:previous?.displayed_rating ?? null,previous_assessment_id:previous?.id || '',change:summary.displayed_rating!==null && previous?.displayed_rating!=null ? summary.displayed_rating-previous.displayed_rating : null,policy_version:policy.version,policy_snapshot:policy.models,status:'building',is_demo:account.name.startsWith('ASE Demo')});
-  const snapshots = sourcePage.items.length ? await base44.entities.ASEEvidence.bulkCreate(sourcePage.items.map(row=>{const {id,created_date,updated_date,created_by_id,...data}=row;return {...data,external_key:undefined,assessment_id:assessment.id};})) : [];
-  const snapshotIds = new Map(sourcePage.items.map((row,i)=>[row.id,snapshots[i]?.id]));
+  const assessment = await base44.entities.ASEAssessment.create({...summary,account_id:account.id,organisation_type:account.organisation_type || account.company_type,model,assessment_date:new Date().toISOString(),previous_rating:previous?.displayed_rating ?? null,previous_assessment_id:previous?.id || '',change:summary.displayed_rating!==null && previous?.displayed_rating!=null ? summary.displayed_rating-previous.displayed_rating : null,policy_version:policy.version,policy_snapshot:policy.models,status:'building',is_demo:account.name.startsWith('ASE Demo'),...(publisher ? {published_by_id:publisher.id,published_by_name:publisher.full_name || publisher.id,reviewed_at:preparedAt,publication_note:review?.note?.trim() || '',snapshot_evidence_count:sourceEvidence.length,selected_evidence_count:new Set(components.flatMap(component=>component.evidence_ids)).size} : {})});
+  const snapshots = sourceEvidence.length ? await base44.entities.ASEEvidence.bulkCreate(sourceEvidence.map(row=>{const {id,created_date,updated_date,created_by_id,...data}=row;return {...data,external_key:undefined,assessment_id:assessment.id};})) : [];
+  const snapshotIds = new Map(sourceEvidence.map((row,i)=>[row.id,snapshots[i]?.id]));
   await base44.entities.ASEComponentScore.bulkCreate(components.map(({latest,...component})=>({...component,sealed:true,evidence_ids:component.evidence_ids.map(id=>snapshotIds.get(id)).filter(Boolean),account_id:account.id,assessment_id:assessment.id})));
   const published = await base44.entities.ASEAssessment.update(assessment.id,{status:'published'});
   await base44.entities.ASECurrentRating.upsert([{account_id:account.id,assessment_id:assessment.id,precise_score:assessment.precise_score,displayed_rating:assessment.displayed_rating,rating_label:assessment.rating_label,previous_rating:assessment.previous_rating,change:assessment.change,data_confidence:assessment.data_confidence,assessment_date:assessment.assessment_date,explanation:assessment.explanation,is_demo:assessment.is_demo}],{key:'account_id'});
