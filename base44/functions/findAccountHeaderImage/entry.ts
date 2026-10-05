@@ -1,5 +1,6 @@
 import { createClientFromRequest } from 'npm:@base44/sdk@0.8.52';
 import { searchHeaderPhoto } from '../../shared/searchHeaderPhoto.ts';
+import { cachedHeaderPhoto } from '../../shared/cachedHeaderPhoto.ts';
 export default async function(req: Request): Promise<Response> {
   try {
     const base44 = createClientFromRequest(req);
@@ -12,7 +13,7 @@ export default async function(req: Request): Promise<Response> {
     const name = String(account.name || '').replace(/["\r\n]/g, ' ').slice(0,160);
     const location = String(account.address_city || account.address_postcode || '').replace(/["\r\n]/g,' ').slice(0,80);
     const subject = /council|local authority|borough/i.test(name) ? 'council offices building' : 'headquarters building';
-    const result = await searchHeaderPhoto(`"${name}" ${location} ${subject}`, `${name} organisation photograph`);
+    const result = await cachedHeaderPhoto(base44, 'account', account.id, () => searchHeaderPhoto(`"${name}" ${location} ${subject}`, `${name} organisation photograph`));
     return Response.json(result.body, { status: result.status });
   } catch { return Response.json({ error: 'Unable to find an account photograph' }, { status: 500 }); }
 }

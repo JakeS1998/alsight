@@ -1,0 +1,22 @@
+{
+  "name": "HeaderImageCache",
+  "type": "object",
+  "properties": {
+    "cache_key": {
+      "type": "string"
+    },
+    "result": {
+      "type": "object",
+      "additionalProperties": true
+    },
+    "searched_at": {
+      "type": "string",
+      "format": "date-time"
+    }
+  },
+  "required": [
+    "cache_key",
+    "result",
+    "searched_at"
+  ]
+}

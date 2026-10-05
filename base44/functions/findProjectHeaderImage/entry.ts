@@ -1,5 +1,6 @@
 import { createClientFromRequest } from 'npm:@base44/sdk@0.8.52';
 import { searchHeaderPhoto } from '../../shared/searchHeaderPhoto.ts';
+import { cachedHeaderPhoto } from '../../shared/cachedHeaderPhoto.ts';
 
 export default async function(req: Request): Promise<Response> {
   try {
@@ -15,8 +16,9 @@ export default async function(req: Request): Promise<Response> {
       ? (await base44.functions.invoke('supplierProjectAccess', { action: 'project', projectId })).data?.project
       : await base44.entities.Project.get(projectId).catch(() => null);
     if (!project) return Response.json({ error: 'Project not available' }, { status: 403 });
+    const result = await cachedHeaderPhoto(base44, 'project', project.id, async () => {
     const name = String(project.name || '').replace(/\s*\([^)]*\)\s*$/, '').replace(/\s+(refurbishment|refurb|redevelopment|renovation|extension|upgrade)\b.*$/i, '').replace(/["\r\n]/g, ' ').trim().slice(0, 160);
-    if (!name) return Response.json({ url: null });
+    if (!name) return { body: { url: null }, status: 200 };
     const venueName = /\b(leisure|sports?|swimming|pool|baths?|lido|gym|fitness|spa|arena|stadium|golf|tennis|aquatic)\b/i.test(name) ? name : `${name} Leisure Centre`;
     const postcode = String(project.site_postcode || '').trim().toUpperCase();
     let location = '';
@@ -25,7 +27,8 @@ export default async function(req: Request): Promise<Response> {
         .then(response => response.ok ? response.json() : null).catch(() => null);
       location = postcodeData?.result?.admin_district || postcodeData?.result?.region || postcode.replace(/\s*\d[A-Z]{2}$/, '');
     }
-    const result = await searchHeaderPhoto(`"${venueName}" ${location}`.trim(), `${venueName} project photograph`);
+    return await searchHeaderPhoto(`"${venueName}" ${location}`.trim(), `${venueName} project photograph`);
+    });
     return Response.json(result.body, { status: result.status });
   } catch {
     // Never include provider request URLs or credentials in errors or logs.
