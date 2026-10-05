@@ -23,7 +23,7 @@ export default async function(req: Request): Promise<Response> {
     else if (/^[1-5]$/.test(filters.ase || '')) clauses.push({ ase_score: Number(filters.ase) });
     const visibleMoney = ['admin','director','regional_director','bsm','finance','bdm','client'].includes(user.role);
     const liveQuery = { status: { $ne: 'inactive' }, live_project: true, approval_status: { $nin: ['complete','completed'] }, $or: [{ practical_completion_date: { $exists: false } }, { practical_completion_date: { $in: [null,''] } }, { practical_completion_date: { $gte: new Date().toISOString() } }] };
-    const cacheKey = JSON.stringify([user.id,user.role,user.account_id,user.data?.account_id,user.region,user.data?.region,user.delegate_of,user.data?.delegate_of,user.staff_aad_id,user.data?.staff_aad_id,Number.isSafeInteger(input.revision) ? input.revision : 0]);
+    const cacheKey = JSON.stringify([user.id,user.role,user.account_id,user.data?.account_id,user.region,user.data?.region,user.delegate_of,user.data?.delegate_of,user.delegate_region,user.data?.delegate_region,user.staff_aad_id,user.data?.staff_aad_id,Number.isSafeInteger(input.revision) ? input.revision : 0]);
     const cached = signalCache.get(cacheKey);
     const reports = cached && cached.expires > Date.now() ? cached.reports : await Promise.all([
       base44.entities.Project.aggregate({ query: liveQuery, groupBy: ['id','dataverse_id','client_account_id','account_id'], ...(visibleMoney ? { sum: 'estimated_value' } : {}), limit: 1000 }),

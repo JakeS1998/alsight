@@ -3,7 +3,7 @@ import { useParams, Link } from "react-router-dom";
 import { base44 } from "@/api/base44Client";
 import { useAuth } from "@/lib/AuthContext";
 import { listAll, filterAll } from "@/components/data/loadAll";
-import { formatDate, formatCurrency, regionName } from "@/lib/portal";
+import { formatDate, formatCurrency } from "@/lib/portal";
 import { DocTypeBadge, ExecutedBadge, WarrantyStatusBadge } from "@/components/StatusBadge";
 import AccountCRM from '@/components/crm/AccountCRM';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
@@ -15,7 +15,7 @@ import AccountFinancials from '@/components/accounts/AccountFinancials';
 import AccountActivity from '@/components/accounts/AccountActivity';
 import useAccountsView from '@/components/accounts/useAccountsView';
 import '@/components/accounts/accounts.css';
-import { ArrowLeft, MapPin, ExternalLink, Users, FolderKanban, FileText, ShieldCheck, Mail, Phone, Gavel } from "lucide-react";
+import { Users, FolderKanban, FileText, ShieldCheck, Mail, Gavel } from "lucide-react";
 
 export default function AccountDetail() {
   const { accountId } = useParams();
@@ -249,7 +249,7 @@ function Section({ icon: Icon, title, count, children }) {
   return (
     <div>
       <div className="mb-3 flex items-center gap-2">
-        <Icon className="h-4 w-4 text-primary" />
+        <Icon className="h-4 w-4 text-muted-foreground" />
         <h3 className="text-sm font-semibold text-slate-900">{title}</h3>
         <span className="rounded-full bg-slate-100 px-2 py-0.5 text-xs font-medium text-slate-600">{count}</span>
       </div>
