@@ -1,6 +1,6 @@
 import { createClientFromRequest } from 'npm:@base44/sdk@0.8.52';
 import { internalRoles,defaultModels,accountModel,getPolicy,calculate } from '../../shared/asePolicy.ts';
-import { createAssessment,validateEvidence } from '../../shared/aseAssessment.ts';
+import { createAssessment,validateEvidence,currentASESourceQuery } from '../../shared/aseAssessment.ts';
 import { seedDemo } from '../../shared/aseDemo.ts';
 import { explainAssessment } from '../../shared/aseInsight.ts';
 export default async function(req: Request): Promise<Response> {
@@ -61,7 +61,7 @@ export default async function(req: Request): Promise<Response> {
       const previous=assessment.previous_assessment_id ? await base44.entities.ASEEvidence.filter({assessment_id:assessment.previous_assessment_id},{limit:100}) : {items:[]};
       return Response.json({insight:await explainAssessment(base44,assessment,componentPage.items,evidencePage.items,previous.items)});
     }
-    const [history,sourceEvidence]=await Promise.all([base44.entities.ASEAssessment.filter({account_id:account.id,status:'published'},{sort:'-assessment_date',limit:20,...(input.cursor ? {cursor:input.cursor} : {})}),base44.entities.ASEEvidence.filter({account_id:account.id,assessment_id:null},{limit:100})]);
+    const [history,sourceEvidence]=await Promise.all([base44.entities.ASEAssessment.filter({account_id:account.id,status:'published'},{sort:'-assessment_date',limit:20,...(input.cursor ? {cursor:input.cursor} : {})}),base44.entities.ASEEvidence.filter(currentASESourceQuery(account),{limit:100})]);
     return Response.json({account:{id:account.id,name:account.name},model,policy,current,assessment,components:componentPage.items,evidence:evidencePage.items,history,sourceEvidence:sourceEvidence.items,sourceHasMore:sourceEvidence.has_more});
   } catch(error) {return Response.json({error:error.message || 'Unable to complete ASE operation.'},{status:400});}
 }
