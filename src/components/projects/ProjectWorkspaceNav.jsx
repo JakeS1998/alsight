@@ -6,6 +6,7 @@ import { FileText, ShieldCheck, LayoutDashboard, Receipt, Calendar, ClipboardLis
 
 export default function ProjectWorkspaceNav({ user, project, isSupplier, isExternalPM, canSeeValuations }) {
   return <aside className="ws-rail">
+    <div className="ws-rail-menu">
     <div className="ws-railmark" aria-hidden="true" />
     <TabsList className="ws-railnav" aria-label="Project navigation">
       <TabsTrigger className="ws-navitem" value="general"><LayoutDashboard />{isSupplier || isExternalPM ? 'Project details' : 'General'}</TabsTrigger>
@@ -18,5 +19,6 @@ export default function ProjectWorkspaceNav({ user, project, isSupplier, isExter
       {canSeeValuations && <TabsTrigger className="ws-navitem" value="valuations"><ListChecks />Valuations</TabsTrigger>}
       {INTERNAL_ROLES.includes(user?.role) && project.procurement_route !== false && <TabsTrigger className="ws-navitem" value="uklf"><UKLFIcon />UKLF</TabsTrigger>}
     </TabsList>
+    </div>
   </aside>;
 }

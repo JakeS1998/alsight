@@ -9,6 +9,13 @@
 .portal-main:has(> .project-workspace) { max-width: none; padding: 0; }
 .project-workspace .ws-rail { background: var(--ws-navy); color: #f4f9fd; padding: 38px 22px; display: flex; flex-direction: column; gap: 36px; box-shadow: 12px 0 35px #10274320; }
 .project-workspace .ws-railmark { height: 5px; width: 42px; background: var(--ws-orange); border-radius: 4px; }
+.project-workspace .ws-rail-menu { display: contents; }
+@media (min-width: 1024px) {
+  .project-workspace { grid-template-columns: 220px minmax(0, 1fr); }
+  .project-workspace .ws-rail { padding-inline: 16px; }
+  .project-workspace .ws-rail-menu { display: flex; flex-direction: column; gap: 36px; position: sticky; top: calc(var(--portal-header-height, 64px) + 24px); max-height: calc(100dvh - var(--portal-header-height, 64px) - 48px); overflow-y: auto; flex-shrink: 0; }
+}
+@media (min-width: 1024px) and (max-width: 1599px) { .project-workspace.project-workspace { grid-template-columns: 200px minmax(0, 1fr); } }
 .project-workspace .ws-railnav[role="tablist"] { display: grid; gap: 9px; height: auto; padding: 0; background: transparent; border-radius: 0; overflow: visible; }
 .project-workspace .ws-navitem { min-height: 52px; display: flex; justify-content: flex-start; align-items: center; padding: 0 17px; border-radius: 11px; color: #c8d8e7; font-size: 16px; font-weight: 650; letter-spacing: .01em; transition: background .18s, color .18s, box-shadow .18s; cursor: pointer; box-shadow: none; outline: none; gap: 12px; white-space: normal; text-align: left; }
 .project-workspace .ws-navitem svg { width: 18px; height: 18px; flex-shrink: 0; }
