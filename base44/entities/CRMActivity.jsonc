@@ -83,6 +83,51 @@
     },
     "next_action": {
       "type": "string"
+    },
+    "meeting_hosts": {
+      "type": "array",
+      "maxItems": 10,
+      "items": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "name"
+        ]
+      }
+    },
+    "meeting_attendees": {
+      "type": "array",
+      "maxItems": 50,
+      "items": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "name"
+        ]
+      }
+    },
+    "meeting_member_ids": {
+      "type": "array",
+      "maxItems": 61,
+      "items": {
+        "type": "string"
+      }
     }
   },
   "required": [
@@ -98,6 +143,9 @@
         },
         {
           "data.line_manager_id": "{{user.id}}"
+        },
+        {
+          "data.meeting_member_ids": "{{user.id}}"
         }
       ]
     },
