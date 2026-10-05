@@ -4,16 +4,18 @@ import { createAssessment,validateEvidence,currentASESourceQuery } from '../../s
 import { seedDemo } from '../../shared/aseDemo.ts';
 import {prepareAssessment,assessmentPreview} from '../../shared/aseAssessmentPreview.ts';
 import { explainAssessment } from '../../shared/aseInsight.ts';
+import {publishASEBatch} from '../../shared/aseBulkPublication.ts';
 export default async function(req: Request): Promise<Response> {
   try {
     const base44=createClientFromRequest(req), user=await base44.auth.me();
     if (!user || !internalRoles.includes(user.role)) return Response.json({error:'ASE is available to internal staff only.'},{status:403});
     const input=await req.json();
-    const actions=['policy','savePolicy','seed','summary','detail','addEvidence','previewAssessment','assess','explain','checkRules'];
+    const actions=['policy','savePolicy','seed','summary','detail','addEvidence','previewAssessment','assess','bulkPublish','explain','checkRules'];
     if (!actions.includes(input.action)) return Response.json({error:'Invalid ASE operation.'},{status:400});
-    if (['savePolicy','seed','addEvidence','previewAssessment','assess','checkRules'].includes(input.action) && user.role!=='admin') return Response.json({error:'Only administrators can manage ASE evidence, assessments and policy.'},{status:403});
+    if (['savePolicy','seed','addEvidence','previewAssessment','assess','bulkPublish','checkRules'].includes(input.action) && user.role!=='admin') return Response.json({error:'Only administrators can manage ASE evidence, assessments and policy.'},{status:403});
     const policy=await getPolicy(base44);
     if (input.action==='policy') return Response.json({policy});
+    if (input.action==='bulkPublish') return Response.json(await publishASEBatch(base44,policy,user,input));
     if (input.action==='savePolicy') {
       const models={};
       for (const [model,rules] of Object.entries(defaultModels)) {
