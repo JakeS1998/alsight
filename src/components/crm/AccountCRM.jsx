@@ -6,7 +6,7 @@ import OpportunityCard from '@/components/crm/OpportunityCard';
 import ConversationTimeline from '@/components/crm/ConversationTimeline';
 import { createCRMOpportunity, STAGES } from '@/components/crm/crm';
 
-export default function AccountCRM({ account, contacts, user, showConversation = true }) {
+export default function AccountCRM({ account, contacts, user, showConversation = true, onChanged }) {
   const canEdit = ['admin','director','bdm','bsm'].includes(user?.role);
   const canConvert = ['admin','director','bdm'].includes(user?.role);
   const [opportunities, setOpportunities] = useState([]);
@@ -32,6 +32,7 @@ export default function AccountCRM({ account, contacts, user, showConversation =
       await createCRMOpportunity({ account_id: account.id, title: form.title, contact_id: form.contact_id, ...(form.budget !== '' ? { budget: Number(form.budget) } : {}), project_details: form.project_details.trim(), location: form.location, stage: form.stage, expected_decision_date: form.expected_decision_date }, user);
       setForm({ title: '', contact_id: '', budget: '', project_details: '', location: '', stage: 'lead', expected_decision_date: '' });
       await load();
+      onChanged?.();
     } catch (e) { setError(e.message || 'Unable to save opportunity.'); }
     finally { setSaving(false); }
   };
@@ -45,7 +46,7 @@ export default function AccountCRM({ account, contacts, user, showConversation =
       <Button disabled={saving || !form.title.trim()}>{saving ? 'Saving…' : 'Add opportunity'}</Button>
     </form>}
     {error && <p role="alert" className="text-sm text-destructive">{error}</p>}
-    {loading && !opportunities.length ? <p className="text-sm text-muted-foreground">Loading opportunities…</p> : opportunities.length ? <div className="grid gap-3 sm:grid-cols-2">{opportunities.map(item => <OpportunityCard key={item.id} item={item} account={account} contacts={contacts} canEdit={canEdit} canConvert={canConvert} user={user} onUpdated={() => load()} />)}</div> : <p className="text-sm text-muted-foreground">No opportunities yet.</p>}
+    {loading && !opportunities.length ? <p className="text-sm text-muted-foreground">Loading opportunities…</p> : opportunities.length ? <div className="grid gap-3 sm:grid-cols-2">{opportunities.map(item => <OpportunityCard key={item.id} item={item} account={account} contacts={contacts} canEdit={canEdit} canConvert={canConvert} user={user} onUpdated={() => { load(); onChanged?.(); }} />)}</div> : <p className="text-sm text-muted-foreground">No opportunities yet.</p>}
     {hasMore && <Button variant="outline" disabled={loading} onClick={() => load(cursor)}>{loading ? 'Loading…' : 'Load more opportunities'}</Button>}
     {showConversation && <ConversationTimeline accountId={account.id} contacts={contacts} opportunities={opportunities} user={user} canEdit={canEdit} />}
   </section>;

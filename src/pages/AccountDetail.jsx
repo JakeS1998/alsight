@@ -7,6 +7,7 @@ import { formatDate, formatCurrency, regionName } from "@/lib/portal";
 import { DocTypeBadge, ExecutedBadge, WarrantyStatusBadge } from "@/components/StatusBadge";
 import AccountCRM from '@/components/crm/AccountCRM';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
+import { useQueryClient } from '@tanstack/react-query';
 import AccountHeader from '@/components/accounts/AccountHeader';
 import AccountClassification from '@/components/accounts/AccountClassification';
 import AccountOverview from '@/components/accounts/AccountOverview';
@@ -19,6 +20,7 @@ import { ArrowLeft, MapPin, ExternalLink, Users, FolderKanban, FileText, ShieldC
 export default function AccountDetail() {
   const { accountId } = useParams();
   const { user } = useAuth();
+  const cache = useQueryClient();
   const summary = useAccountsView({ accountId });
   const signals = summary.data?.items.find(row => row.account.id === accountId)?.signals;
   const [account, setAccount] = useState(null);
@@ -127,7 +129,7 @@ export default function AccountDetail() {
 
       </TabsContent>
       <TabsContent value="opportunities" className="space-y-6">
-        {['admin','director','regional_director','bsm','finance','bdm'].includes(user?.role) ? <AccountCRM account={account} contacts={contacts} user={user} showConversation={false} /> : <p className="account-panel text-sm text-muted-foreground">CRM opportunities are available to your internal account team.</p>}
+        {['admin','director','regional_director','bsm','finance','bdm'].includes(user?.role) ? <AccountCRM account={account} contacts={contacts} user={user} showConversation={false} onChanged={() => { cache.setQueryData(['accounts-revision'],Date.now()); cache.invalidateQueries({ queryKey: ['accounts-view'] }); cache.invalidateQueries({ queryKey: ['account-current-work',account.id] }); cache.invalidateQueries({ queryKey: ['account-recent-activity',account.id] }); cache.invalidateQueries({ queryKey: ['account-activity-opportunities',account.id] }); }} /> : <p className="account-panel text-sm text-muted-foreground">CRM opportunities are available to your internal account team.</p>}
       </TabsContent>
       <TabsContent value="financials"><AccountFinancials account={account} projects={projects} user={user} signals={signals} /></TabsContent>
       <TabsContent value="activity"><AccountActivity account={account} contacts={contacts} user={user} /></TabsContent>

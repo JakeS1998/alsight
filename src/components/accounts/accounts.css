@@ -20,7 +20,9 @@
 .ase-rating { display: flex; align-items: center; gap: 20px; color: hsl(var(--als-navy)); }
 .ase-rating svg { width: 160px; flex-shrink: 0; }
 .ase-track { color: hsl(var(--border)); }
-.ase-progress { color: hsl(var(--success)); }
+.ase-progress.text-destructive { color: hsl(var(--destructive)); }
+.ase-progress.text-risk-moderate { color: hsl(var(--risk-moderate)); }
+.ase-progress.text-success { color: hsl(var(--success)); }
 .ase-caption { font-size: 12px; color: hsl(var(--muted-foreground)); }
 .ase-value { margin-top: 4px; font-size: 30px; font-weight: 750; }
 .ase-label { margin-top: 2px; font-size: 13px; font-weight: 650; }
