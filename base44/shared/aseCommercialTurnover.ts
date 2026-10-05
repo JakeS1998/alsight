@@ -2,7 +2,10 @@ import {normaliseCompanyNumber} from './companiesHouseData.ts';
 import {blackflagTurnover} from './aseBlackflagSnapshot.ts';
 import {readSourceResponse} from './aseSourceCommon.ts';
 export async function commercialTurnover(base44,account,now=new Date()) {
-  return blackflagTurnover(base44,account,now);
+  const reported=await blackflagTurnover(base44,account,now);
+  if(reported.status==='available') return reported;
+  const filed=await filedCommercialTurnover(base44,account,now);
+  return filed.status==='available' ? {...filed,source_label:'Companies House filed accounts'} : {status:'unavailable',reason:`Blackflag: ${reported.reason} Companies House: ${filed.reason}`};
 }
 export async function filedCommercialTurnover(base44,account,now=new Date()) {
   if(!account.company_number) return {status:'unavailable',reason:'No Companies House number is recorded.'};

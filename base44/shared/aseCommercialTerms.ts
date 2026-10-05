@@ -1,6 +1,7 @@
+import {contractProjectTerms} from './aseContractProjectTerms.ts';
 export const contractQuery=account=>{
   const ids=[account.id,account.dataverse_id].filter(Boolean),supplier=account.account_type==='supplier' || account.relationship_types?.some(type=>['supplier','contractor','consultant'].includes(type));
-  return {status:'active',executed:'yes',$or:[{contractor_id:{$in:ids}},...(supplier ? [{$and:[{account_id:{$in:ids}},{client_account_id:{$nin:ids}},{contractor_id:{$in:['',null]}}]}] : [])]};
+  return {executed:'yes',$or:[{contractor_id:{$in:ids}},...(supplier ? [{$and:[{account_id:{$in:ids}},{client_account_id:{$nin:ids}}]}] : [])]};
 };
 export function annualiseTerms(value,start,end) {
   if(typeof value!=='number' || !Number.isFinite(value) || value<=0 || value>1e12) throw new Error('A positive GBP contract value is required.');
@@ -13,7 +14,7 @@ export async function reviewCommercialTerms(base44,account,input,user) {
   if(user.role!=='admin') throw new Error('Only administrators can verify contract terms.');
   if(typeof input.contractId!=='string' || !/^[a-zA-Z0-9_-]{1,64}$/.test(input.contractId)) throw new Error('Choose an accessible contract.');
   const page=await base44.entities.JCT.filter({...contractQuery(account),id:input.contractId},{limit:1});
-  const contract=page.items[0];if(!contract) throw new Error('An active, executed contractor-side contract linked to this account is required.');
+  const contract=page.items[0];if(!contract) throw new Error('An executed contractor-side contract linked to this account is required.');
   if(input.confirmed!==true || typeof input.reference!=='string' || !input.reference.trim() || input.reference.length>500) throw new Error('Confirm the company-specific GBP value and provide the signed contract reference.');
   const terms=annualiseTerms(input.value,input.start,input.end),reference=input.reference.trim();
   const duplicate=await base44.entities.JCT.count({...contractQuery(account),commercial_reviewed:true,commercial_reference:reference,id:{$ne:contract.id}});
@@ -22,6 +23,6 @@ export async function reviewCommercialTerms(base44,account,input,user) {
   return {saved:true};
 }
 export async function contractCandidates(base44,account,cursor) {
-  const page=await base44.entities.JCT.filter(contractQuery(account),{sort:'document_id',limit:20,...(cursor ? {cursor} : {}),fields:['document_id','project_id','commercial_value','commercial_start','commercial_end','commercial_reference','commercial_reviewed','commercial_reviewed_at']});
-  return page;
+  const page=await base44.entities.JCT.filter(contractQuery(account),{sort:'document_id',limit:20,...(cursor ? {cursor} : {}),fields:['document_id','project_id','status','date_of_execution','link_to_file','commercial_value','commercial_start','commercial_end','commercial_reference','commercial_reviewed','commercial_reviewed_at']});
+  return {...page,items:await contractProjectTerms(base44,page.items)};
 }
