@@ -41,10 +41,14 @@
   .project-workspace .ws-hero { min-height: 240px; }
   .project-workspace .ws-herotext { padding: 30px 36px; }
 }
-.project-workspace .ws-hero-position { position: absolute; top: 50%; right: 36px; transform: translateY(-50%); margin: 0; padding: 16px 20px; max-width: 30%; border: 1px solid hsl(var(--sidebar-foreground) / .22); border-radius: var(--radius); background: hsl(var(--als-navy) / .88); color: hsl(var(--sidebar-foreground)); }
-.project-workspace .ws-hero-position dt { font-size: 12px; font-weight: 650; color: hsl(var(--sidebar-foreground) / .75); }
-.project-workspace .ws-hero-position dd { margin: 6px 0 0; font-size: 20px; font-weight: 750; line-height: 1.25; }
-.project-workspace .ws-hero-stage-reference { margin-top: 5px; font-size: 12px; color: hsl(var(--sidebar-foreground) / .75); }
+.project-workspace .ws-hero-position { position: absolute; bottom: 0; right: 36px; margin: 0; padding: 18px 20px; width: 300px; max-width: 30%; border: 1px solid var(--ws-border); border-bottom: 0; border-top: 3px solid var(--ws-orange); border-radius: var(--panel-radius) var(--panel-radius) 0 0; background: var(--ws-card); color: hsl(var(--card-foreground)); box-shadow: 0 -8px 28px hsl(var(--als-navy) / .16); }
+.project-workspace .ws-hero-position dt { font-size: 11px; font-weight: 650; color: var(--ws-muted); }
+.project-workspace .ws-hero-position dd { margin: 5px 0 0; font-size: 20px; font-weight: 750; line-height: 1.25; }
+.project-workspace .ws-hero-stage-heading { display: flex; align-items: flex-start; justify-content: space-between; gap: 12px; }
+.project-workspace .ws-hero-stage-reference { margin-top: 2px; padding: 4px 7px; border-radius: var(--radius); font-size: 11px; white-space: nowrap; background: hsl(var(--secondary)); color: hsl(var(--secondary-foreground)); }
+.project-workspace .ws-hero-stage-dates { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px 16px; margin-top: 14px; padding-top: 12px; border-top: 1px solid var(--ws-border); }
+.project-workspace .ws-hero-stage-dates dd { font-size: 12px; font-weight: 650; }
+@media (max-width: 767px) { .project-workspace .ws-hero-position { width: auto; color: hsl(var(--sidebar-foreground)); box-shadow: none; } .project-workspace .ws-hero-position dt { color: hsl(var(--sidebar-foreground) / .75); } .project-workspace .ws-hero-stage-dates { border-color: hsl(var(--sidebar-foreground) / .22); } .project-workspace .ws-hero-position .ws-hero-stage-dates dd { font-size: 12px; } }
 @media (max-width: 767px) { .project-workspace .ws-hero-position { position: static; transform: none; max-width: none; margin-top: 16px; padding: 0 0 0 12px; border: 0; border-left: 3px solid var(--ws-orange); border-radius: 0; background: transparent; } .project-workspace .ws-hero-position dd { font-size: 16px; } }
 .project-workspace .ws-eyebrow { font-size: 13px; text-transform: uppercase; letter-spacing: .11em; color: #bbd1e4; font-weight: 750; }
 .project-workspace .ws-title { font-family: inherit; font-size: 40px; line-height: 1.08; letter-spacing: 0; font-weight: 760; margin: 13px 0 17px; }
