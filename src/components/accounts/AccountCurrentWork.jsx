@@ -7,7 +7,7 @@ export default function AccountCurrentWork({ account, projects }) {
   const { user } = useAuth();
   const query = useQuery({ queryKey: ['account-current-work',account.id,user?.id,user?.role,projects.map(row => row.id).join(',')], queryFn: async () => {
     const [live,open] = await Promise.all([
-      projects.length ? base44.entities.Project.filter({ id: { $in: projects.map(row => row.id) }, status: { $ne: 'inactive' },live_project: true, approval_status: { $nin: ['complete','completed'] }, $or: [{ practical_completion_date: { $exists: false } },{ practical_completion_date: { $in: [null,''] } },{ practical_completion_date: { $gte: new Date().toISOString() } }] },{ limit: 5,sort: '-updated_date',fields: ['name','project_number'] }) : { items: [] },
+      projects.length ? base44.entities.Project.filter({ id: { $in: projects.map(row => row.id) }, status: { $ne: 'inactive' },live_project: true, approval_status: { $nin: ['complete','completed'] }, $or: [{ practical_completion_date: { $exists: false } },{ practical_completion_date: { $in: [null,''] } },{ practical_completion_date: { $gte: new Date().toISOString() } }] },{ limit: 5,fields: ['name','project_number'] }) : { items: [] },
       base44.entities.Opportunity.filter({ account_id: { $in: [account.id,account.dataverse_id].filter(Boolean) },status: 'open' },{ limit: 5,sort: '-updated_date',fields: ['title','stage'] }),
     ]); return { live: live.items,open: open.items };
   } });

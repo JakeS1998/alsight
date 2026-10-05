@@ -62,7 +62,7 @@ export default async function(req: Request): Promise<Response> {
     }
     const query = { ...(clauses.length ? { $and: clauses } : {}), ...(matchingIds ? { id: { $in: matchingIds } } : {}), ...(input.accountId ? { id: { $in: [input.accountId] } } : {}) };
     const [page, total] = await Promise.all([
-      input.accountId ? base44.entities.Account.get(input.accountId).then(account => ({ items: account ? [account] : [], next_cursor: null, has_more: false })) : base44.entities.Account.filter(query, { sort: 'name', limit: 30, ...(typeof input.cursor === 'string' ? { cursor: input.cursor } : {}) }),
+      input.accountId ? base44.entities.Account.get(input.accountId).then(account => ({ items: account ? [account] : [], next_cursor: null, has_more: false })) : base44.entities.Account.filter(query, { ...(!matchingIds ? { sort: 'name' } : {}), limit: 30, ...(typeof input.cursor === 'string' ? { cursor: input.cursor } : {}) }),
       base44.entities.Account.count(query),
     ]);
     const ownerIds = [...new Set(page.items.map(account => account.account_manager_aad_id).filter(Boolean))];
