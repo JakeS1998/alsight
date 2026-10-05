@@ -7,7 +7,7 @@ export default function useProjectHeroPhoto(project, user) {
   const queryClient = useQueryClient();
   const enabled = !!project?.id && !!user?.id;
   const canReadUploads = project?.procurement_route !== false && INTERNAL_ROLES.includes(user?.role);
-  const queryKey = ['project-hero-photo', project?.id, user?.id, user?.role];
+  const queryKey = ['project-hero-photo', project?.id, user?.id, user?.role, 'leisure-location-v2'];
   const query = useQuery({
     queryKey, enabled, staleTime: 10 * 60 * 1000, refetchInterval: 10 * 60 * 1000,
     queryFn: async () => {
@@ -25,7 +25,7 @@ export default function useProjectHeroPhoto(project, user) {
         }
       }
       const image = await queryClient.fetchQuery({
-        queryKey: ['project-google-image', project.id, project.name, project.site_postcode, user.id, user.role],
+        queryKey: ['project-google-image', project.id, project.name, project.site_postcode, user.id, user.role, 'leisure-location-v2'],
         staleTime: 24 * 60 * 60 * 1000,
         queryFn: async () => (await base44.functions.invoke('findProjectHeaderImage', { projectId: project.id })).data,
       });

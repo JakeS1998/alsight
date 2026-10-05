@@ -17,8 +17,16 @@ export default async function(req: Request): Promise<Response> {
     if (!project) return Response.json({ error: 'Project not available' }, { status: 403 });
     const name = String(project.name || '').replace(/\s*\([^)]*\)\s*$/, '').replace(/\s+(refurbishment|refurb|redevelopment|renovation|extension|upgrade)\b.*$/i, '').replace(/["\r\n]/g, ' ').trim().slice(0, 160);
     if (!name) return Response.json({ url: null });
+    const venueName = /\b(leisure|sports?|swimming|pool|baths?|lido|gym|fitness|spa|arena|stadium|golf|tennis|aquatic)\b/i.test(name) ? name : `${name} Leisure Centre`;
+    const postcode = String(project.site_postcode || '').trim().toUpperCase();
+    let location = '';
+    if (/^[A-Z]{1,2}\d[A-Z\d]?\s*\d[A-Z]{2}$/.test(postcode)) {
+      const postcodeData = await fetch(`https://api.postcodes.io/postcodes/${encodeURIComponent(postcode)}`, { signal: AbortSignal.timeout(5000) })
+        .then(response => response.ok ? response.json() : null).catch(() => null);
+      location = postcodeData?.result?.admin_district || postcodeData?.result?.region || postcode.replace(/\s*\d[A-Z]{2}$/, '');
+    }
     const params = new URLSearchParams({
-      engine: 'google_images', q: `"${name}"`,
+      engine: 'google_images', q: `"${venueName}" ${location}`.trim(),
       api_key: await secrets.get('SERPAPI_API_KEY'), google_domain: 'google.co.uk', gl: 'uk', hl: 'en', safe: 'active',
     });
     // SerpAPI's default cache remains enabled; never request a paid fresh search on each visit.
@@ -35,7 +43,7 @@ export default async function(req: Request): Promise<Response> {
     }
     const images = (result.images_results || []).slice(0, 20);
     const photo = images.find(image => /^https:\/\//i.test(image.original || '') && !/(?:fbsbx|fbcdn|cdninstagram|pinterest)\./i.test(image.original) && !image.unsafe && !image.is_product && image.original_width >= 600 && image.original_width > image.original_height);
-    return Response.json(photo ? { url: photo.original, caption: photo.title || `${name} project photograph`, sourceUrl: /^https:\/\//i.test(photo.link || '') ? photo.link : null } : { url: null });
+    return Response.json(photo ? { url: photo.original, caption: photo.title || `${venueName} project photograph`, sourceUrl: /^https:\/\//i.test(photo.link || '') ? photo.link : null } : { url: null });
   } catch {
     // Never include provider request URLs or credentials in errors or logs.
     return Response.json({ error: 'Unable to find a project photograph' }, { status: 500 });
