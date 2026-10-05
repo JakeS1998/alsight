@@ -7,8 +7,8 @@ export default async function(req) {
     if (!['admin','director','regional_director','bsm','finance','bdm','client','supplier'].includes(user.role)) return Response.json({ error: 'Forbidden' }, { status: 403 });
     const input = await req.json();
     if (!Array.isArray(input.projectIds) || input.projectIds.length > 2000 || input.projectIds.some(id => typeof id !== 'string' || id.length > 100)) return Response.json({ error: 'Invalid portfolio selection' }, { status: 400 });
-    const query = { id: { $in: input.projectIds.length ? input.projectIds : ['__empty_portfolio__'] } };
-    const related = { project_id: { $in: input.projectIds.length ? input.projectIds : ['__empty_portfolio__'] } };
+    const query = { id: { $in: input.projectIds.length ? input.projectIds : ['000000000000000000000000'] } };
+    const related = { project_id: { $in: input.projectIds.length ? input.projectIds : ['000000000000000000000000'] } };
     const now = new Date().toISOString();
     const p5 = { $or: [{ riba5_system_date: { $gt: '', $lte: now } }, { riba4_end: { $gt: '', $lt: now } }] };
     const next = [p5, { riba3_end: { $gt: '', $lt: now } }, { riba2_end: { $gt: '', $lt: now } }, { riba1_end: { $gt: '', $lt: now } }];

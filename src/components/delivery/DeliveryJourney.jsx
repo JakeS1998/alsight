@@ -14,7 +14,8 @@ export default function DeliveryJourney({ project, delivery, feeProposals, legal
   const stages = deliveryJourneyProgress({ project, delivery: delivery || {}, feeProposals, legalDocs, dmas, jcts, warranties, registers, suppliers, accountMap });
   const riba = projectStage(project);
   const key = `als-delivery-selection:v1:${user?.id}:${project.id}`;
-  const saved = Number(localStorage.getItem(key));
+  const requested = Number(new URLSearchParams(window.location.search).get('stage'));
+  const saved = stages.some(stage => stage.id === requested) ? requested : Number(localStorage.getItem(key));
   const defaultStage = ({ 'RIBA 1': 1, 'RIBA 2': 3, 'RIBA 3': 4, 'RIBA 4': 4, 'RIBA 5–7': 9 })[riba] || stages.find(stage => !stage.complete)?.id || 10;
   const [selected, setSelected] = useState(() => stages.some(stage => stage.id === saved) ? saved : defaultStage);
   const [visited, setVisited] = useState(() => new Set([selected, 2]));

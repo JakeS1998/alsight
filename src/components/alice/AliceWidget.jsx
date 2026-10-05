@@ -14,6 +14,15 @@ export default function AliceWidget() {
   const storageKey = aliceAccessKey(user);
   const { guide, start, cancel, next, back, confirm } = useAliceGuide(user);
   const [open, setOpen] = useState(false);
+  useEffect(() => {
+    const launch = event => {
+      setOpen(true);
+      if (event.detail?.task && GUIDES[event.detail.task]?.roles.includes(user?.role)) start(event.detail.task);
+      else if (typeof event.detail?.prompt === 'string') setText(event.detail.prompt);
+    };
+    window.addEventListener('alsight-open-alice', launch);
+    return () => window.removeEventListener('alsight-open-alice', launch);
+  }, [user?.role, start]);
   const [conversation, setConversation] = useState(null);
   const [messages, setMessages] = useState([]);
   const [text, setText] = useState('');

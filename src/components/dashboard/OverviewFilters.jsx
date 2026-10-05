@@ -1,0 +1,11 @@
+import React from 'react';
+import { useQuery } from '@tanstack/react-query';
+import { RefreshCw } from 'lucide-react';
+import { base44 } from '@/api/base44Client';
+import { REGION_OPTIONS } from '@/lib/portal';
+import projectScope from '@/components/projects/projectScope';
+export default function OverviewFilters({ user, filters, onChange, onRefresh, loading, refreshedAt }) {
+  const options = useQuery({ queryKey: ['overview-bdms',user?.id,user?.role], enabled: !!user?.id, staleTime:300000, queryFn: async () => { const ids = (await base44.entities.Project.filter(projectScope(user), { distinct:'bdm_aad_id',limit:100 })).items.filter(Boolean); const contacts = ids.length ? (await base44.entities.Contact.filter({aad_id:{$in:ids}},{limit:100,fields:['aad_id','full_name']})).items : []; return ids.map(id => ({id,name:contacts.find(c=>c.aad_id===id)?.full_name || 'Assigned BDM'})); } });
+  const field = (key,placeholder,rows) => <select aria-label={placeholder} value={filters[key] || ''} onChange={e => onChange({...filters,[key]:e.target.value})} className="h-9 min-w-32 rounded-lg border border-border bg-card px-3 text-xs"><option value="">{placeholder}</option>{rows.map(([value,label]) => <option key={value} value={value}>{label}</option>)}</select>;
+  return <div className="flex flex-wrap items-center justify-end gap-2">{field('region','All regions',REGION_OPTIONS.map(r=>[r.value,r.label]))}{field('bdm','All BDMs',(options.data || []).map(r=>[r.id,r.name]))}{field('status','Live + On hold',[['live','Live'],['on_hold','On hold']])}{field('period','All time',[['current','This financial year'],['previous','Previous financial year']])}<span className="mx-2 text-[10px] text-muted-foreground">Last updated<br />{refreshedAt ? new Date(refreshedAt).toLocaleString('en-GB',{dateStyle:'short',timeStyle:'short'}) : 'Loading…'}</span><button onClick={onRefresh} disabled={loading} className="flex h-9 items-center gap-2 rounded-lg border border-border bg-card px-3 text-xs disabled:opacity-50"><RefreshCw className={`h-3 w-3 ${loading ? 'animate-spin' : ''}`} />Refresh</button></div>;
+}

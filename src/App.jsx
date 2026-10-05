@@ -18,6 +18,7 @@ const Register = lazy(() => import('@/pages/Register'));
 const ForgotPassword = lazy(() => import('@/pages/ForgotPassword'));
 const ResetPassword = lazy(() => import('@/pages/ResetPassword'));
 const Home = lazy(() => import('@/pages/Home'));
+const PortfolioOverview = lazy(() => import('@/pages/PortfolioOverview'));
 const Projects = lazy(() => import('@/pages/Projects'));
 const FrameworkReports = lazy(() => import('@/pages/UKLFReports'));
 const FrameworkProjectDetail = lazy(() => import('@/pages/FrameworkProjectDetail'));
@@ -81,6 +82,7 @@ const AuthenticatedApp = () => {
           <Route path="/help" element={<Help />} />
           <Route element={<StakeholderRoute />}>
           <Route path="/" element={<Home />} />
+          <Route path="/portfolio-overview" element={<PortfolioOverview />} />
           <Route path="/projects" element={<Projects />} />
           <Route path="/documents" element={<LegalDocuments />} />
           <Route path="/warranties" element={<Warranties />} />

@@ -7,24 +7,25 @@ import PipelineTimelineDetail from '@/components/dashboard/PipelineTimelineDetai
 import PipelineOpportunityDetail from '@/components/dashboard/PipelineOpportunityDetail';
 import PipelineStageArtwork from '@/components/dashboard/PipelineStageArtwork';
 
-export default function PipelineTimeline({ projects, accountMap }) {
+export default function PipelineTimeline({ projects, accountMap, stageSummary, opportunitySummary }) {
   const [selected, setSelected] = useState(null);
   const [opportunities, setOpportunities] = useState(null);
   const [opportunityError, setOpportunityError] = useState('');
   useEffect(() => {
+    if (opportunitySummary) { setOpportunities(opportunitySummary); return; }
     let active = true;
     base44.entities.Opportunity.aggregate({ query: { status: 'open', stage: { $nin: ['on_hold', 'won', 'lost'] } }, groupBy: 'stage', sum: 'budget' })
       .then(result => { if (active) setOpportunities({ count: (result.rows || []).reduce((total, row) => total + row.count, 0), value: (result.rows || []).reduce((total, row) => total + (row.sum_budget || 0), 0) }); })
       .catch(e => { if (active) setOpportunityError(e.message || 'Could not load opportunities.'); });
     return () => { active = false; };
-  }, []);
-  const summary = useMemo(() => STAGES.map(stage => {
+  }, [opportunitySummary]);
+  const summary = useMemo(() => stageSummary || STAGES.map(stage => {
     const rows = projects.filter(p => projectStage(p) === stage);
     return { stage, count: rows.length, value: rows.reduce((sum, p) => sum + (Number(p.estimated_value) || 0), 0) };
-  }), [projects]);
+  }), [projects, stageSummary]);
   const nodes = [{ stage: 'crm', label: 'CRM PIPELINE', count: opportunities?.count, value: opportunities?.value }, ...summary.map(row => ({ ...row, label: row.stage }))];
   return <section className="min-w-0 overflow-hidden rounded-xl border border-border bg-card" aria-label="CRM to RIBA pipeline timeline">
-    <div className="px-5 pt-5"><h2 className="font-heading text-base font-semibold text-als-navy">CRM to RIBA project pipeline</h2><p className="mt-1 text-xs text-slate-500">Open CRM opportunities lead into active RIBA projects. Select a stage to explore its records.</p></div>
+    <div className="px-5 pt-5"><h2 className="font-heading text-base font-semibold text-als-navy">Portfolio journey</h2><p className="mt-1 text-xs text-slate-500">From opportunity through to handover. Click a stage to view its records.</p></div>
     <div className="flex flex-col gap-0 px-5 py-5 md:flex-row md:items-stretch md:overflow-x-auto">
       {nodes.map((node, index) => <React.Fragment key={node.stage}>
         {index > 0 && <div aria-hidden="true" className="flex h-7 items-center justify-center text-slate-400 md:h-auto md:w-5 md:shrink-0"><ChevronRight className="h-4 w-4 rotate-90 md:rotate-0" /></div>}
