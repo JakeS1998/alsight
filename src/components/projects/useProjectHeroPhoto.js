@@ -1,4 +1,4 @@
-import { useEffect } from 'react';
+import { useEffect, useRef } from 'react';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { base44 } from '@/api/base44Client';
 import { INTERNAL_ROLES } from '@/lib/portal';
@@ -7,10 +7,14 @@ export default function useProjectHeroPhoto(project, user) {
   const queryClient = useQueryClient();
   const enabled = !!project?.id && !!user?.id;
   const canReadUploads = project?.procurement_route !== false && INTERNAL_ROLES.includes(user?.role);
-  const queryKey = ['project-hero-photo', project?.id, user?.id, user?.role, 'leisure-location-v2'];
+  const retryRequested = useRef(false);
+  const queryKey = ['project-hero-photo', project?.id, user?.id, user?.role, 'leisure-location-v3'];
+  const googleKey = ['project-google-image', project?.id, project?.name, project?.site_postcode, user?.id, user?.role, 'leisure-location-v3'];
   const query = useQuery({
-    queryKey, enabled, staleTime: 10 * 60 * 1000, refetchInterval: 10 * 60 * 1000,
+    queryKey, enabled, staleTime: 10 * 60 * 1000, refetchInterval: 10 * 60 * 1000, retry: false,
     queryFn: async () => {
+      const retrySearch = retryRequested.current;
+      retryRequested.current = false;
       let reportId = null;
       if (canReadUploads) {
         const { data } = await base44.functions.invoke('getStakeholderFrameworkReport', { projectId: project.id });
@@ -25,9 +29,9 @@ export default function useProjectHeroPhoto(project, user) {
         }
       }
       const image = await queryClient.fetchQuery({
-        queryKey: ['project-google-image', project.id, project.name, project.site_postcode, user.id, user.role, 'leisure-location-v2'],
-        staleTime: 24 * 60 * 60 * 1000,
-        queryFn: async () => (await base44.functions.invoke('findProjectHeaderImage', { projectId: project.id })).data,
+        queryKey: googleKey, retry: false,
+        staleTime: retrySearch ? 0 : queryClient.getQueryData(googleKey)?.url ? 24 * 60 * 60 * 1000 : 5 * 60 * 1000,
+        queryFn: async () => (await base44.functions.invoke('findProjectHeaderImage', { projectId: project.id, retrySearch })).data,
       });
       return { ...image, reportId };
     },
@@ -40,5 +44,5 @@ export default function useProjectHeroPhoto(project, user) {
       }
     });
   }, [enabled, canReadUploads, project?.id, query.data?.reportId, queryClient]);
-  return query;
+  return { ...query, retryPhoto: () => { retryRequested.current = true; return query.refetch(); } };
 }

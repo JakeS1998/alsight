@@ -1,7 +1,7 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
 import { ArrowLeft } from 'lucide-react';
-import { Image } from '@/components/ui/image';
+import ProjectHeroPhoto from '@/components/projects/ProjectHeroPhoto';
 import ProjectPOReferences from '@/components/projects/ProjectPOReferences';
 import FrameworkVersionBadge from '@/components/projects/FrameworkVersionBadge';
 import SourceOpportunityLink from '@/components/crm/SourceOpportunityLink';
@@ -14,8 +14,7 @@ export default function ProjectWorkspaceHeader({ project, user, isSupplier }) {
   return <>
     <div className="ws-topline"><Link to="/projects" className="ws-back"><ArrowLeft size={18} /> Back to Projects</Link></div>
     <header className="ws-hero">
-      {photo.data?.url && <Image className="ws-heroimg" src={photo.data.url} alt={photo.data.caption || `${project.name} project photograph`} />}
-      {photo.isLoading && <span role="status" className="ws-image-status">Loading project image…</span>}
+      <ProjectHeroPhoto key={`${project.id}:${photo.data?.url || ''}:${photo.dataUpdatedAt}`} photo={photo} project={project} />
       <div className="ws-herotext">
         <div className="ws-eyebrow">{project.project_number}</div>
         <h1 className="ws-title">{project.name}</h1>

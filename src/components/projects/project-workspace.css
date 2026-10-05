@@ -35,7 +35,8 @@
 .project-workspace .ws-hero { position: relative; isolation: isolate; min-height: 280px; border-radius: 22px; overflow: hidden; display: grid; grid-template-columns: 1fr 42%; align-items: center; background: var(--ws-navy); box-shadow: 0 18px 42px #183b5a20; animation: enter .7s ease-out .08s both; }
 .project-workspace .ws-hero:before { content: ""; position: absolute; inset: 0; z-index: -1; background: linear-gradient(90deg, var(--ws-navy) 0%, var(--ws-navy) 30%, #102743ed 42%, #10274399 58%, #10274333 78%, #10274314 100%); }
 .project-workspace .ws-heroimg { position: absolute; z-index: -2; inset: 0 0 0 30%; width: 70%; height: 100%; object-fit: cover; mask-image: linear-gradient(90deg, transparent 0%, #0006 18%, #000 42%); -webkit-mask-image: linear-gradient(90deg, transparent 0%, #0006 18%, #000 42%); }
-.project-workspace .ws-image-status { position: absolute; right: 24px; bottom: 20px; color: #bbd1e4; font-size: 13px; }
+.project-workspace .ws-image-status { position: absolute; z-index: 2; left: 24px; bottom: 12px; max-width: calc(100% - 48px); display: flex; align-items: center; flex-wrap: wrap; gap: 8px; padding: 6px 10px; border-radius: var(--radius); background: hsl(var(--als-navy) / .9); color: hsl(var(--sidebar-foreground)); font-size: 12px; }
+.project-workspace .ws-hero:has(.ws-image-status) .ws-herotext { padding-bottom: 64px; }
 .project-workspace .ws-herotext { padding: 35px 42px; color: #fff; }
 @media (min-width: 768px) {
   .project-workspace .ws-hero { min-height: 240px; }
