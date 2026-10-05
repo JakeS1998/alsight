@@ -7,7 +7,8 @@ export default async function(req: Request): Promise<Response> {
     const base44 = createClientFromRequest(req);
     const user = await base44.auth.me();
     if (!user) return Response.json({ error: 'Sign in required' }, { status: 401 });
-    const { projectId } = await req.json();
+    const { projectId, retrySearch = false } = await req.json();
+    if (typeof retrySearch !== 'boolean') return Response.json({error:'Invalid image retry request'}, {status:400});
     if (typeof projectId !== 'string' || !/^[a-zA-Z0-9_-]{1,64}$/.test(projectId)) {
       return Response.json({ error: 'Invalid project reference' }, { status: 400 });
     }
@@ -28,7 +29,7 @@ export default async function(req: Request): Promise<Response> {
       location = postcodeData?.result?.admin_district || postcodeData?.result?.region || postcode.replace(/\s*\d[A-Z]{2}$/, '');
     }
     return await searchHeaderPhoto(`"${venueName}" ${location}`.trim(), `${venueName} project photograph`);
-    });
+    }, {refresh:retrySearch});
     return Response.json(result.body, { status: result.status });
   } catch {
     // Never include provider request URLs or credentials in errors or logs.
