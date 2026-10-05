@@ -2,6 +2,7 @@ import {normaliseCompanyNumber} from './companiesHouseData.ts';
 import {readSourceResponse} from './aseSourceCommon.ts';
 export async function commercialTurnover(base44,account,now=new Date()) {
   if(!account.company_number) return {status:'unavailable',reason:'No Companies House number is recorded.'};
+  if(!/^(?:\d{1,8}|[A-Z]{2}\d{1,6})$/i.test(String(account.company_number).trim())) return {status:'unavailable',reason:'The recorded Companies House number is invalid.'};
   const number=normaliseCompanyNumber(account.company_number);
   const page=await base44.entities.ASESourceRefresh.filter({account_id:account.id,source_key:'accounts',identifier:number,status:{$in:['completed','partial']},refreshed_at:{$lte:now.toISOString()}},{sort:'-refreshed_at',limit:1});
   const audit=page.items[0];
@@ -20,7 +21,7 @@ export async function commercialTurnover(base44,account,now=new Date()) {
     if(!period) return {status:'unavailable',reason:'Turnover is not disclosed in the available accounts. No revenue is inferred from other financial figures.'};
     const days=(Date.parse(metric.end)-Date.parse(metric.start))/86400000+1,age=(now.getTime()-Date.parse(period.end))/86400000;
     const source=new URL(period.source_url);
-    if(period.origin==='pdf' || metric.annual!==true || days<365 || days>366 || !(metric.value>0) || !Number.isFinite(metric.value) || !/(?:^|:)(?:TurnoverRevenue|Revenue|Turnover)$/.test(metric.concept || '') || age<0 || age>913 || Date.parse(period.filed_at)<Date.parse(period.end) || Date.parse(period.filed_at)>now.getTime() || source.protocol!=='https:' || source.hostname!=='find-and-update.company-information.service.gov.uk') return {status:'unavailable',reason:'The latest disclosed turnover is stale, non-annual, non-positive or unverified. ALICE PDF figures are not independently verified and cannot be used as this denominator.'};
+    if(period.origin==='pdf' || metric.annual!==true || !Number.isFinite(days) || !Number.isFinite(age) || !Number.isFinite(Date.parse(period.filed_at)) || metric.end!==period.end || days<365 || days>366 || !(metric.value>0) || !Number.isFinite(metric.value) || !/(?:^|:)(?:TurnoverRevenue|Revenue|Turnover)$/.test(metric.concept || '') || age<0 || age>913 || Date.parse(period.filed_at)<Date.parse(period.end) || Date.parse(period.filed_at)>now.getTime() || source.protocol!=='https:' || source.hostname!=='find-and-update.company-information.service.gov.uk' || !source.pathname.startsWith(`/company/${number}/filing-history/`)) return {status:'unavailable',reason:'The latest disclosed turnover is stale, non-annual, non-positive or unverified. ALICE PDF figures are not independently verified and cannot be used as this denominator.'};
     return {status:'available',value:metric.value,currency:'GBP',period_start:metric.start,period_end:period.end,source_reference:source.href,source_date:period.filed_at,refresh_id:audit.id,raw_sha256:sha,retrieved_at:audit.refreshed_at,company_number:number};
   } catch(error) {return {status:'unavailable',reason:'Stored turnover evidence could not be verified: '+String(error.message).slice(0,200)};}
 }
