@@ -11,6 +11,13 @@ export function checkAccountModelRules() {
     councilNonMatchingCompanyUnchanged:accountModel({name:'Example Ltd',organisation_type:'uk_limited_company'})==='company',
     councilNonMatchingUnsupportedUnchanged:accountModel({name:'Example Charity',organisation_type:'charity'})===null,
     councilMissingNameUnchanged:accountModel({company_type:'ltd'})==='company',
+    llpCompaniesHouseType:accountModel({company_type:'llp'})==='company',
+    llpCompaniesHouseUppercase:accountModel({company_type:'LLP'})==='company',
+    llpOrganisationType:accountModel({organisation_type:'llp'})==='company',
+    llpUKOrganisationType:accountModel({organisation_type:'uk_llp'})==='company',
+    llpFullOrganisationType:accountModel({organisation_type:'limited liability partnership'})==='company',
+    llpUKFullOrganisationType:accountModel({organisation_type:'uk limited liability partnership'})==='company',
+    llpCouncilsRemainCouncil:accountModel({name:'Example Council',company_type:'llp'})==='english_local_authority',
     councilOnlyNameChecked:accountModel({name:'Example',organisation_type:'charity',company_number:'_cc',public_body_identifier:'council'})===null,
   };
 }

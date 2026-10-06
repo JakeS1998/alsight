@@ -31,7 +31,7 @@ export function accountModel(account) {
   if (hasCouncilName(account)) return 'english_local_authority';
   const type = (account.organisation_type || '').toLowerCase().replaceAll(' ','_');
   if (type === 'english_local_authority') return 'english_local_authority';
-  if (['uk_limited_company','uk_plc','limited_company','plc','ltd'].includes(type) || (!type && ['ltd','plc'].includes(account.company_type))) return 'company';
+  if (['uk_limited_company','uk_plc','limited_company','plc','ltd','llp','uk_llp','limited_liability_partnership','uk_limited_liability_partnership'].includes(type) || (!type && ['ltd','plc','llp'].includes(String(account.company_type || '').toLowerCase()))) return 'company';
   return null;
 }
 export async function getPolicy(base44) {
