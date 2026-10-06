@@ -1,0 +1,128 @@
+{
+  "name": "ASEObservation",
+  "type": "object",
+  "properties": {
+    "record_type": {
+      "type": "string",
+      "enum": [
+        "project",
+        "opportunity",
+        "person"
+      ]
+    },
+    "record_id": {
+      "type": "string"
+    },
+    "viewer_role": {
+      "type": "string"
+    },
+    "methodology": {
+      "type": "string"
+    },
+    "observed_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "classification": {
+      "type": "string",
+      "maxLength": 120
+    },
+    "signals": {
+      "type": "array",
+      "maxItems": 12,
+      "items": {
+        "type": "object",
+        "properties": {
+          "label": {
+            "type": "string",
+            "maxLength": 100
+          },
+          "value": {
+            "type": "string",
+            "maxLength": 300
+          }
+        },
+        "required": [
+          "label",
+          "value"
+        ]
+      }
+    },
+    "fingerprint": {
+      "type": "string",
+      "maxLength": 5000
+    }
+  },
+  "required": [
+    "record_type",
+    "record_id",
+    "viewer_role",
+    "methodology",
+    "observed_at",
+    "classification",
+    "signals",
+    "fingerprint"
+  ],
+  "rls": {
+    "read": {
+      "$and": [
+        {
+          "created_by_id": "{{user.id}}"
+        },
+        {
+          "data.viewer_role": "{{user.role}}"
+        }
+      ]
+    },
+    "create": {
+      "$and": [
+        {
+          "created_by_id": "{{user.id}}"
+        },
+        {
+          "data.viewer_role": "{{user.role}}"
+        },
+        {
+          "$or": [
+            {
+              "user_condition": {
+                "role": "admin"
+              }
+            },
+            {
+              "user_condition": {
+                "role": "director"
+              }
+            },
+            {
+              "user_condition": {
+                "role": "regional_director"
+              }
+            },
+            {
+              "user_condition": {
+                "role": "bdm"
+              }
+            },
+            {
+              "user_condition": {
+                "role": "bsm"
+              }
+            },
+            {
+              "user_condition": {
+                "role": "finance"
+              }
+            }
+          ]
+        }
+      ]
+    },
+    "update": {
+      "user_condition": {
+        "role": "ase_snapshot_maintenance"
+      }
+    },
+    "delete": false
+  }
+}

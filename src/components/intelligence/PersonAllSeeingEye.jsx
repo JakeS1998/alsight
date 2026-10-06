@@ -1,0 +1,25 @@
+import React from 'react';
+import AllSeeingEyeCard from '@/components/intelligence/AllSeeingEyeCard';
+import usePersonSignals from '@/components/intelligence/usePersonSignals';
+export default function PersonAllSeeingEye({contact,profile,owner,canEdit}) {
+  const query=usePersonSignals(contact),data=query.data || {},base=`/people/${contact.id}`,next=data.next;
+  const strength=profile?.relationship_strength || profile?.relationship_status;
+  const configured=strength && (profile?.relationship_strength_source || 'user_set')==='user_set';
+  const label=strength ? strength.replaceAll('_',' ').replace(/^./,c=>c.toUpperCase()) : 'Not configured';
+  const days=data.last ? Math.max(0,Math.floor((Date.now()-Date.parse(data.last))/86400000)) : null;
+  const overdue=next?.due_at && Date.parse(next.due_at)<Date.now();
+  const comparable=data.recent>=2 && data.earlier>=2;
+  const trend=comparable ? `Engagement ${data.recent>data.earlier ? 'increasing' : data.recent<data.earlier ? 'declining' : 'stable'}` : undefined;
+  const signals=[
+    {label:'Relationship strength',value:label,detail:configured ? 'Explicitly configured relationship field, not an assessment of this person.' : strength ? 'Stored system-suggested relationship field; not an explicit judgement or personal score.' : 'No explicit relationship strength is configured. Absence or recency is not converted into a judgement about the person.',to:`${base}?tab=overview`,action:'View relationship'},
+    {label:'Engagement',value:`${data.recent ?? '—'} interactions in 30 days`,detail:`${data.earlier ?? '—'} recorded in the previous 30 days. Notes, system events and sentiment are excluded. A frequency trend requires at least two recorded interactions in each window.`,to:`${base}?tab=activity`,action:'Review activity'},
+    {label:'Last meaningful interaction',value:days===null ? 'Not recorded' : `${days} days ago`,detail:data.last ? `Recorded ${new Date(data.last).toLocaleString('en-GB')}. Recency is an observable signal, not relationship quality.` : 'No accessible call, email or structured meeting/interaction is recorded.',to:`${base}?tab=activity`,action:'Review activity'},
+    {label:'Live Opportunities',value:String(data.opportunities ?? '—'),detail:'Accessible open opportunities where this person is the linked primary contact. Other stakeholder roles are not inferred.',to:`${base}?tab=opportunities`,action:'Review opportunities'},
+    {label:'Next Action',value:overdue ? 'Overdue' : next?.due_at ? new Date(next.due_at).toLocaleDateString('en-GB') : next ? 'Due date not recorded' : 'Not recorded',attention:!!overdue,detail:next ? `${next.title} · owner ${next.owner_id || 'not recorded'} · due ${next.due_at ? new Date(next.due_at).toLocaleString('en-GB') : 'not recorded'}. Human-created action, not a recommendation.` : 'No accessible open relationship action is recorded.',to:`${base}?tab=overview#contact-tasks`,action:'Review actions'},
+    {label:'Relationship owner',value:owner || 'Not assigned',detail:'The Alliance owner configured on this relationship.',to:`${base}?tab=overview`,action:'View relationship'},
+    {label:'Project involvement',value:data.projects?.map(r=>`${r.count} ${r.live_project===true ? 'live' : r.live_project===false ? 'not marked live' : 'status not recorded'}`).join(' · ') || 'No accessible linked projects',detail:'Direct client-representative, project-manager and contractor-contact links. Not-live does not imply completed.',to:`${base}?tab=projects`,action:'Review projects'},
+    ...(profile?.key_decision_maker ? [{label:'Strategic role',value:'Key decision-maker',detail:'Explicitly configured business field. Not inferred by AI.',to:`${base}?tab=overview`}] : []),
+    ...(profile?.contact_priority==='strategic' ? [{label:'Priority',value:'Strategic relationship',detail:'Explicitly configured relationship priority.',to:`${base}?tab=overview`}] : [])
+  ];
+  return <AllSeeingEyeCard kind="person" recordId={contact.id} classification={configured ? `${label} relationship` : 'Relationship signals'} tone={configured && ['strong','established'].includes(strength) ? 'good' : 'neutral'} trend={trend} signals={signals} loading={query.isPending} error={query.error} context="Alliance’s relationship with this Person. No numerical personal score or character assessment." explanation={`${days===null ? 'No meaningful interaction is recorded' : `The latest recorded meaningful interaction was ${days} days ago`}${data.opportunities ? `, with primary-contact involvement in ${data.opportunities} accessible live opportunity${data.opportunities===1 ? '' : 'ies'}` : ''}.${overdue ? ' A recorded relationship action is overdue.' : ''} ${configured ? 'Relationship strength is the configured business field.' : 'Relationship quality is not inferred from missing or infrequent records.'}`} actions={[{label:'Review Activity',to:`${base}?tab=activity`},...(canEdit ? [{label:'Log Interaction',to:`${base}?tab=activity&action=log`}] : []),{label:'View Relationship',to:`${base}?tab=overview`}]} />;
+}
