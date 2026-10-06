@@ -3,7 +3,7 @@ import { internalRoles } from '../../shared/asePolicy.ts';
 import { accountDetailSignals } from '../../shared/accountDetailSignals.ts';
 import { dataRequestError } from '../../shared/dataRequestError.ts';
 import {recordIds} from '../../shared/recordIds.ts';
-import {v2DisplayRatings} from '../../shared/aseV2Display.ts';
+import {aseCurrentRatings} from '../../shared/aseCurrentRatings.ts';
 const signalCache = new Map();
 function cachedSignals(key,load) {
  const cached=signalCache.get(key);
@@ -41,7 +41,11 @@ export default async function(req: Request): Promise<Response> {
       const bucket=Number(filters.ase),v2Query=filters.ase==='unassessed' ? {precise_score:{$gte:1}} : {precise_score:{$gte:Math.max(1,bucket-0.5),...(bucket<5 ? {$lt:bucket+0.5} : {$lte:5})}};
       const v2rated=await base44.entities.ASEV2Current.filter(v2Query,{limit:1000,fields:['account_id']});
       if (v2rated.has_more) return Response.json({error:'ASE filter exceeds the reporting limit.'},{status:422});
-      aseIds=v2rated.items.map(row=>row.account_id);
+      const v2accounts=await base44.entities.ASEV2Current.filter({},{distinct:'account_id',limit:1000});
+      if(v2accounts.has_more)return Response.json({error:'ASE filter exceeds the reporting limit.'},{status:422});
+      const legacy=await base44.entities.ASECurrentRating.filter({account_id:{$nin:v2accounts.items},displayed_rating:filters.ase==='unassessed' ? {$gte:1,$lte:5} : bucket},{distinct:'account_id',limit:1000});
+      if(legacy.has_more)return Response.json({error:'ASE filter exceeds the reporting limit.'},{status:422});
+      aseIds=[...new Set([...v2rated.items.map(row=>row.account_id),...legacy.items])];
     }
     const visibleMoney = ['admin','director','regional_director','bsm','finance','bdm','client'].includes(user.role);
     const liveQuery = { status: { $ne: 'inactive' }, live_project: true, approval_status: { $nin: ['complete','completed'] }, $or: [{ practical_completion_date: { $exists: false } }, { practical_completion_date: { $in: [null,''] } }, { practical_completion_date: { $gte: new Date().toISOString() } }] };
@@ -87,8 +91,7 @@ export default async function(req: Request): Promise<Response> {
     const ownerIds = [...new Set(page.items.map(account => account.account_manager_aad_id).filter(Boolean))];
     const ownerRecordIds=recordIds(ownerIds);
     const owners = ownerIds.length ? await base44.entities.Contact.filter({ $or: [{ aad_id: { $in: ownerIds } }, { dataverse_id: { $in: ownerIds } }, ...(ownerRecordIds.length ? [{ id: { $in: ownerRecordIds } }] : [])] }, { limit: 100, fields: ['full_name','aad_id','dataverse_id'] }) : { items: [] };
-    const v2ratings = internal && page.items.length ? await base44.entities.ASEV2Current.filter({account_id:{$in:page.items.map(a=>a.id)}},{limit:30}) : {items:[]};
-    const displayRatings=internal ? await v2DisplayRatings(base44.entities,v2ratings.items) : [];
+    const displayRatings=internal ? await aseCurrentRatings(base44.entities,page.items.map(a=>a.id)) : [];
     const items = page.items.map(rawAccount => {
       const {ase_score,ase_reason,ase_assessed_at,...safeAccount}=rawAccount;
       const account = internal ? {...safeAccount,_ase:displayRatings.find(r=>r.account_id===rawAccount.id) || null} : safeAccount;

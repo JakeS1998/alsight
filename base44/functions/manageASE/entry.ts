@@ -17,7 +17,7 @@ import {checkAccountModelRules} from '../../shared/aseAccountModelChecks.ts';
 import {checkASESourceScoringRules} from '../../shared/aseSourceScoringChecks.ts';
 import {checkBroaderEvidenceRules} from '../../shared/aseBroaderEvidenceChecks.ts';
 import {dataRequestError} from '../../shared/dataRequestError.ts';
-import {v2DisplayRatings} from '../../shared/aseV2Display.ts';
+import {aseCurrentRatings} from '../../shared/aseCurrentRatings.ts';
 import {scopedReadCache,invalidateScopedRead} from '../../shared/scopedReadCache.ts';
 export default async function(req: Request): Promise<Response> {
   try {
@@ -43,7 +43,7 @@ export default async function(req: Request): Promise<Response> {
       if(input.action==='structure') return Response.json(await groupStructure(base44,account));
       return Response.json(await hmrcStatus(base44,account));
     }
-    if(input.action==='summary') {if(typeof input.accountId!=='string' || !/^[a-zA-Z0-9_-]{1,64}$/.test(input.accountId))return Response.json({error:'Valid Account is required.'},{status:400});const account=await base44.entities.Account.get(input.accountId);if(!account)return Response.json({error:'Account unavailable.'},{status:404});const v2=await base44.entities.ASEV2Current.filter({account_id:account.id},{limit:1});const ratings=await v2DisplayRatings(base44.entities,v2.items);return Response.json({current:ratings[0] || null,model:accountModel(account),methodology:'ASE v2'});}
+    if(input.action==='summary') {if(typeof input.accountId!=='string' || !/^[a-zA-Z0-9_-]{1,64}$/.test(input.accountId))return Response.json({error:'Valid Account is required.'},{status:400});const account=await base44.entities.Account.get(input.accountId);if(!account)return Response.json({error:'Account unavailable.'},{status:404});const ratings=await aseCurrentRatings(base44.entities,[account.id]);return Response.json({current:ratings[0] || null,model:accountModel(account),methodology:ratings[0]?.methodology || 'ASE v2'});}
     const policy=await getPolicy(base44);
     if (input.action==='policy') return Response.json({policy});
     if (input.action==='bulkPublish') return Response.json(await publishASEBatch(base44,policy,user,input));

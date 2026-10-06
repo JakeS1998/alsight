@@ -17,8 +17,8 @@ import ASECommercialConcentration from '@/components/ase/ASECommercialConcentrat
 import ASEEvidenceCoverageSummary from '@/components/ase/ASEEvidenceCoverageSummary';
 import ASEHmrcStatus from '@/components/ase/ASEHmrcStatus';
 import ASEV2Panel from '@/components/ase/v2/ASEV2Panel';
-export default function ASEDetailDialog({account,open,onOpenChange}) {
-  const {user}=useAuth(),[selected,setSelected]=useState(null),[mode,setMode]=useState('v2');
+export default function ASEDetailDialog({account,open,onOpenChange,initialMode='v2'}) {
+  const {user}=useAuth(),[selected,setSelected]=useState(null),[mode,setMode]=useState(initialMode);
   const query=useQuery({queryKey:['ase','detail',account.id,selected,user?.id,user?.role],enabled:open && mode==='legacy',queryFn:()=>aseRequest('detail',{accountId:account.id,...(selected ? {assessmentId:selected} : {})})});
   const data=query.data, a=data?.assessment;
   return <Dialog open={open} onOpenChange={onOpenChange}><DialogContent className="max-h-[90vh] max-w-5xl overflow-y-auto" onClick={e=>e.stopPropagation()}><DialogHeader><DialogTitle>All Seeing Eye</DialogTitle><DialogDescription>{account.name} · Explainable Alliance-specific assessment</DialogDescription></DialogHeader><div className="mb-4 flex gap-2" role="tablist" aria-label="All Seeing Eye methodology"><button role="tab" aria-selected={mode==='v2'} className="rounded-md border border-border px-3 py-2 text-sm font-semibold" onClick={()=>setMode('v2')}>All Seeing Eye</button><button role="tab" aria-selected={mode==='legacy'} className="rounded-md border border-border px-3 py-2 text-sm" onClick={()=>setMode('legacy')}>Legacy assessments &amp; sources</button></div>{mode==='v2' ? <ASEV2Panel account={account}/> : query.isPending ? <p role="status">Loading assessment and evidence…</p> : query.error ? <p role="alert" className="text-destructive">{aseError(query.error)} <button className="underline" onClick={()=>query.refetch()}>Try again</button></p> : <div className="space-y-6">
