@@ -8,7 +8,7 @@
 .ase-concentration .track{height:8px;margin-bottom:16px;border-radius:999px;background:hsl(var(--concentration-heat) / .15);position:relative}
 .ase-concentration .fill{height:100%;border-radius:999px;background:hsl(var(--concentration-heat));transform-origin:left center;animation:ase-concentration-reveal .8s cubic-bezier(.2,.75,.25,1) both}
 .ase-concentration .marker{position:absolute;top:50%;width:15px;height:15px;box-sizing:border-box;border:3px solid hsl(var(--card));border-radius:50%;background:hsl(var(--concentration-heat));box-shadow:0 0 0 1px hsl(var(--concentration-heat));transform:translate(-50%,-50%);animation:ase-concentration-pop .55s .35s cubic-bezier(.2,.8,.2,1) both}
-.ase-concentration .amounts{display:flex;align-items:center;justify-content:space-between;gap:14px;font-size:15px;line-height:1.25;font-weight:650;font-variant-numeric:tabular-nums;letter-spacing:-.25px}
-.ase-concentration .amounts span:last-child{text-align:right;color:hsl(var(--muted-foreground))}
+.ase-concentration .amounts{display:flex;align-items:flex-start;justify-content:space-between;gap:14px;font-size:15px;line-height:1.25;font-weight:650;font-variant-numeric:tabular-nums;letter-spacing:-.25px}
+.ase-concentration .amounts > div:last-child{text-align:right}
 @keyframes ase-concentration-reveal{from{transform:scaleX(0)}to{transform:scaleX(1)}}
 @keyframes ase-concentration-pop{from{opacity:0;transform:translate(-50%,-50%) scale(.65)}to{opacity:1;transform:translate(-50%,-50%) scale(1)}}

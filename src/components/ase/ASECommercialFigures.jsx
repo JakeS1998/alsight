@@ -21,12 +21,14 @@ export default function ASECommercialFigures({data,historical=false,expandedEvid
         {available && <><div className="fill" style={{width:`${position}%`}}/><span className="marker" style={{left:`${position}%`}}/></>}
       </div>
       <div className="amounts">
-        <span aria-label={proxy ? 'Balance-sheet value' : 'Reported annual turnover'}>{Number.isFinite(data.comparison_denominator?.value ?? data.turnover?.value) ? formatCurrency(data.comparison_denominator?.value ?? data.turnover.value) : 'Unavailable'}</span>
-        <span className="text-xs">{proxy ? netAssetsProxy ? 'Balance sheet · Net assets' : 'Balance sheet · Total assets' : 'Reported annual turnover'}</span>
-      </div>
-      <div className="amounts">
-        <span aria-label="Annualised contract value">{data.annualised_value==null ? 'Unavailable' : formatCurrency(data.annualised_value)}</span>
-        <span className="text-xs">Annualised Alliance contract exposure</span>
+        <div className="flex min-w-0 flex-1 flex-col gap-1">
+          <span aria-label={proxy ? 'Balance-sheet value' : 'Reported annual turnover'}>{Number.isFinite(data.comparison_denominator?.value ?? data.turnover?.value) ? formatCurrency(data.comparison_denominator?.value ?? data.turnover.value) : 'Unavailable'}</span>
+          <span className="text-xs text-muted-foreground">{proxy ? netAssetsProxy ? 'Balance sheet · Net assets' : 'Balance sheet · Total assets' : 'Reported annual turnover'}</span>
+        </div>
+        <div className="flex min-w-0 flex-1 flex-col gap-1">
+          <span aria-label="Annualised contract value">{data.annualised_value==null ? 'Unavailable' : formatCurrency(data.annualised_value)}</span>
+          <span className="text-xs text-muted-foreground">Annualised Alliance contract exposure</span>
+        </div>
       </div>
       {proxy && <p className="mt-3 text-xs text-muted-foreground">Turnover is unavailable under the filing exemption. Using balance-sheet total ({netAssetsProxy ? 'net assets: assets minus all liabilities' : 'total assets'}) of {formatCurrency(data.comparison_denominator.value)} at {data.comparison_denominator.period_end} instead. This is {netAssetsProxy ? 'a net-assets' : 'an asset-based'} exposure proxy, not revenue concentration; Low confidence and excluded from turnover-based ASE scoring.</p>}
       {!available && <p role="status" className="mt-3 text-xs text-muted-foreground">Cannot calculate concentration: {blockers || data.reason || 'Usable contract values and annual turnover evidence are required.'}</p>}
