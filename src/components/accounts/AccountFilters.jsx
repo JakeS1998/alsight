@@ -2,6 +2,7 @@ import React from 'react';
 import { RELATIONSHIPS } from '@/components/accounts/accountPresentation';
 import { regionName,INTERNAL_ROLES } from '@/lib/portal';
 import { useAuth } from '@/lib/AuthContext';
+import { aseLabels } from '@/components/ase/aseClient';
 export default function AccountFilters({ filters, onChange, options }) {
   const {user}=useAuth();
   const choices = [
@@ -9,7 +10,7 @@ export default function AccountFilters({ filters, onChange, options }) {
     ['organisation','Organisation type',(options.organisations || []).map(value => [value,value.replaceAll('_',' ')])],
     ['region','Region',(options.regions || []).map(value => [value,regionName(value) || value])],
     ['owner','Relationship owner',options.owners || []],
-    ['ase','ASE score',[['unassessed','Not assessed'],...Array.from({ length: 5 },(_,i) => [String(i+1),`${i+1} / 5`])]],
+    ['ase','ASE rating',[['unassessed','Not assessed'],...Array.from({ length: 5 },(_,i) => [String(i+1),`${i+1} / 5 · ${aseLabels[i+1]}`])]],
     ['status','Status',[['active','Active'],['inactive','Inactive']]],
     ['live','Live projects',[['yes','Has live projects'],['no','No live projects']]],
     ['opportunities','Open opportunities',[['yes','Has open opportunities'],['no','No open opportunities']]],

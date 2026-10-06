@@ -1,4 +1,5 @@
 import commercialBoard from './commercialBoard.ts';
+import opportunityASERatingIds from './opportunityASERatingIds.ts';
 const stages=['lead','qualified','scope_development','design_feasibility','proposal_preparation','proposal_submitted','negotiation','preferred_partner','on_hold','won','lost'];
 const escape=v=>String(v).replace(/[.*+?^${}()|[\]\\]/g,'\\$&');
 async function relatedIds(entity,query,field){const page=await entity.filter(query,{distinct:field,limit:1000});if(page.has_more) throw new Error('This activity selection is too broad. Narrow the date or ownership filters.');return page.items.filter(Boolean);}
@@ -9,6 +10,7 @@ export async function commercialWorkspace(db,user,input){
  const recent=[...new Set([...recentA,...recentC])],q={};if(f.search?.trim())q.title={$regex:escape(f.search.trim()),$options:'i'};if(f.owner==='mine')q.owner_id=user.id;if(f.status)q.status=f.status;if(f.stage)q.stage=f.stage;
  if(f.focus==='overdue'){q.status='open';q.id={$in:overdue};}if(f.focus==='quiet'){q.status='open';q.id={$nin:recent};}if(f.focus==='closing'){q.status='open';q.expected_decision_date={$gte:start,$lt:end};}if(f.focus==='pipeline')q.status='open';if(f.focus==='missing'){q.status='open';const withActions=await relatedIds(db.CRMTask,{status:{$in:['open','in_progress']}},'opportunity_id');q.id={$nin:withActions};q.$or=[{next_action:{$exists:false}},{next_action:''},{next_action:null}];}
  if(f.status && f.status!=='open' && ['overdue','quiet','closing','pipeline','missing'].includes(f.focus))q.id={$in:[]};
+ if(f.ase)q.id={$in:await opportunityASERatingIds(db,q,f.ase,overdue)};
  const selectedStages=(input.stages || stages).filter(s=>stages.includes(s) && (!f.stage || f.stage===s));
 
  

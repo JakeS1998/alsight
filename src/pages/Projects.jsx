@@ -14,6 +14,8 @@ import useProjectView from '@/components/projects/useProjectView';
 import { projectStaffName } from "@/components/projects/projectStaffName";
 import ProjectsOperationalWorkspace from '@/components/projects/workspace/ProjectsOperationalWorkspace';
 import ProjectWorkspaceFilters from '@/components/projects/workspace/ProjectWorkspaceFilters';
+import ASERatingFilter from '@/components/intelligence/ASERatingFilter';
+import { aseRoles } from '@/components/ase/aseClient';
 import { FilterSelect } from "@/components/FilterSelect";
 import { Button } from "@/components/ui/button";
 import { Plus, Building2, PoundSterling, Calendar, Users, ArrowRight, FolderKanban, Search, X } from "lucide-react";
@@ -49,7 +51,7 @@ export default function Projects() {
   const [regionFilter, setRegionFilter] = useState("");
   const [statusFilter, setStatusFilter] = useState("");
   const [meeting,setMeeting]=useState(false);
-  const [extraFilters,setExtraFilters]=useState({scope:'',pm:'',client:''});
+  const [extraFilters,setExtraFilters]=useState({scope:'',pm:'',client:'',ase:''});
   const serverPaging = !['supplier', 'project_manager'].includes(role);
   const [cursor, setCursor] = useState(null);
   const [previousCursors, setPreviousCursors] = useState([]);
@@ -160,7 +162,7 @@ export default function Projects() {
 
   const hasFilters = search || bdmFilter || bsmFilter || regionFilter || statusFilter || Object.values(extraFilters).some(Boolean);
   const clearFilters = () => {
-    setSearch(""); setBdmFilter(""); setBsmFilter(""); setRegionFilter(""); setStatusFilter("");setExtraFilters({scope:'',pm:'',client:''});
+    setSearch(""); setBdmFilter(""); setBsmFilter(""); setRegionFilter(""); setStatusFilter("");setExtraFilters({scope:'',pm:'',client:'',ase:''});
   };
 
   return (
@@ -206,6 +208,7 @@ export default function Projects() {
               </button>
             )}
             <ProjectWorkspaceFilters value={extraFilters} onChange={setExtraFilters} options={projectPage.options} projects={projects} serverPaging={serverPaging} staffMap={staffMap} accountMap={accountMap}/>
+            {aseRoles.includes(role) && <ASERatingFilter kind="project" value={extraFilters.ase} onChange={ase=>setExtraFilters(old=>({...old,ase}))}/>}
             {!meeting && <ProjectViewControls view={view} onViewChange={setView} density={density} onDensityChange={setDensity} />}
           </div>
           <p className="text-xs text-muted-foreground">{serverPaging ? projectPage.counts ? `${projectPage.counts.matching} matching of ${projectPage.counts.total} projects` : 'Loading project totals…' : `${filtered.length} of ${projects.length} projects`}</p>

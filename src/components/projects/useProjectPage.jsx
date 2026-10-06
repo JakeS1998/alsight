@@ -24,12 +24,16 @@ export default function useProjectPage(user, filters, cursor, enabled, refreshKe
     if (filters.scope==='mine') {const ids=[user?.id,user?.staff_aad_id,user?.data?.staff_aad_id,user?.delegate_of,staff.data].filter(Boolean);conditions.push({$or:['bdm_aad_id','bsm_aad_id','project_manager_id'].map(field=>({[field]:{$in:ids}}))});}
     return { $and: conditions };
   }, [base, filters.search, filters.bdm, filters.bsm, filters.region, filters.status,filters.pm,filters.client,filters.scope,user,staff.data]);
-  const ready = enabled && !staff.isLoading && !staff.error;
-  const page = useQuery({ queryKey: ['project-page', user?.id, user?.role, query, filters.sort, cursor, refreshKey], enabled: ready, queryFn: () => base44.entities.Project.filter(query, { sort: sorts[filters.sort] || '-created_date', limit: 50, ...(cursor ? { cursor } : {}) }) });
-  const counts = useQuery({ queryKey: ['project-counts', user?.id, user?.role, query, refreshKey], enabled: ready, queryFn: async () => { const [matching, total] = await Promise.all([base44.entities.Project.count(query), base44.entities.Project.count(base)]); return { matching, total }; } });
+  const scopeReady = enabled && !staff.isLoading && !staff.error;
+  const ratings = useQuery({queryKey:['project-ase-filter',user?.id,user?.role,query,refreshKey],enabled:scopeReady && !!filters.ase,staleTime:60000,retry:false,queryFn:async()=>{const {data}=await base44.functions.invoke('getProjectASERatings',{query});if(data.error)throw new Error(data.error);return data;}});
+  const ratingError=filters.ase ? ratings.error : null;
+  const filteredQuery=useMemo(()=>filters.ase ? {...query,id:{$in:ratings.data?.buckets?.[filters.ase] || []}} : query,[query,filters.ase,ratings.data]);
+  const ready = scopeReady && (!filters.ase || !ratings.isPending && !ratingError);
+  const page = useQuery({ queryKey: ['project-page', user?.id, user?.role, filteredQuery, filters.sort, cursor, refreshKey], enabled: ready, queryFn: () => base44.entities.Project.filter(filteredQuery, { sort: sorts[filters.sort] || '-created_date', limit: 50, ...(cursor ? { cursor } : {}) }) });
+  const counts = useQuery({ queryKey: ['project-counts', user?.id, user?.role, filteredQuery, refreshKey], enabled: ready, queryFn: async () => { const [matching, total] = await Promise.all([base44.entities.Project.count(filteredQuery), base44.entities.Project.count(base)]); return { matching, total }; } });
   const options = useQuery({ queryKey: ['project-filter-options', user?.id, user?.role, base, refreshKey], enabled: ready, queryFn: async () => {
     const pages = await Promise.all(['bdm_aad_id', 'bsm_aad_id', 'department_id', 'project_manager_id', 'client_account_id'].map(distinct => base44.entities.Project.filter(base, { distinct, limit: 1000 })));
     return { bdm: pages[0].items.filter(Boolean), bsm: pages[1].items.filter(Boolean), region: pages[2].items.filter(Boolean),pm:pages[3].items.filter(Boolean),client:pages[4].items.filter(Boolean) };
   }, staleTime: 300000 });
-  return { items: ready ? page.data?.items || [] : [], next: ready && page.data?.has_more ? page.data.next_cursor : null, counts: counts.data, options: options.data, loading: enabled && (staff.isLoading || page.isLoading || counts.isLoading), error: staff.error || page.error || counts.error || options.error, mapQuery: query, mapSort: sorts[filters.sort] || '-created_date', mapReady: ready, scopeError: staff.error, retryScope: staff.refetch };
+  return { items: ready ? page.data?.items || [] : [], next: ready && page.data?.has_more ? page.data.next_cursor : null, counts: counts.data, options: options.data, loading: enabled && (staff.isLoading || !!filters.ase && ratings.isPending || page.isLoading || counts.isLoading), error: staff.error || ratingError || page.error || counts.error || options.error, mapQuery: filteredQuery, mapSort: sorts[filters.sort] || '-created_date', mapReady: ready, scopeError: staff.error || ratingError, retryScope: ratingError ? ratings.refetch : staff.refetch };
 }
