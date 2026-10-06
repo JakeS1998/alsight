@@ -13,7 +13,7 @@ export default function useDashboardData(filters = {}) {
   const role = user?.role || 'client';
   const internal = INTERNAL_ROLES.includes(role);
   const key = JSON.stringify([user?.id, role, user?.staff_aad_id, user?.data, user?.region, user?.delegate_of, filters, revision]);
-  const query = useQuery({ queryKey: ['dashboard-data', key], enabled: !!user?.id && role !== 'project_manager', staleTime: 60000, queryFn: async () => {
+  const query = useQuery({ queryKey: ['dashboard-data', key], enabled: !!user?.id && role !== 'project_manager', staleTime: 60000, refetchOnMount: false, queryFn: async () => {
     const contact = ['bdm','bsm'].includes(role) && user.email ? (await base44.entities.Contact.filter({ email: { $regex: `^${user.email.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}$`, $options: 'i' } }, { limit: 1, fields: ['aad_id'] })).items[0] : null;
     const clauses = [{ status: { $ne: 'inactive' } }, projectScope(user, contact?.aad_id)];
     if (filters.region) clauses.push({ department_id: filters.region });
@@ -27,5 +27,5 @@ export default function useDashboardData(filters = {}) {
   const projects = query.data?.projects || [];
   const portfolio = useMemo(() => buildPortfolio(projects, extras.data), [query.data, extras.data]);
   const accountMap = useMemo(() => Object.fromEntries((query.data?.accounts || []).filter(a => a.dataverse_id).map(a => [a.dataverse_id, a])), [query.data]);
-  return { user, role, internal, projects, portfolio, accountMap, extras: extras.data, loading: query.isPending || (internal && extras.loading), error: query.error?.message || extras.error, refresh: () => setRevision(v => v + 1), key };
+  return { user, role, internal, projects, portfolio, accountMap, extras: extras.data, projectsLoading: query.isPending, loading: query.isPending || (internal && extras.loading), error: query.error?.message || extras.error, refresh: () => setRevision(v => v + 1), key };
 }

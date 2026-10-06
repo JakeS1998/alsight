@@ -1,5 +1,6 @@
 import { createClientFromRequest } from 'npm:@base44/sdk@0.8.52';
 import { portfolioCachedRead, projectOverviewRollups } from '../../shared/portfolioOverviewReads.ts';
+import { readPortfolioStages } from '../../shared/portfolioStageSummary.ts';
 export default async function(req) {
   try {
     const base44 = createClientFromRequest(req);
@@ -12,13 +13,7 @@ export default async function(req) {
     const related = { project_id: { $in: input.projectIds.length ? input.projectIds : ['000000000000000000000000'] } };
     const cachedRead = portfolioCachedRead(user, input);
     const now = new Date().toISOString();
-    const p5 = { $or: [{ riba5_system_date: { $gt: '', $lte: now } }, { riba4_end: { $gt: '', $lt: now } }] };
-    const next = [p5, { riba3_end: { $gt: '', $lt: now } }, { riba2_end: { $gt: '', $lt: now } }, { riba1_end: { $gt: '', $lt: now } }];
-    const stages = [];
-    for (const [index, condition] of next.concat([{}]).entries()) {
-      const result = await cachedRead(`stage:${index}`, () => base44.entities.Project.aggregate({ query: { $and: [query, condition, ...next.slice(0, index).map(c => ({ $nor: [c] }))] }, sum: 'estimated_value' }));
-      stages.push({ stage: ['RIBA 5–7','RIBA 4','RIBA 3','RIBA 2','RIBA 1'][index], count: result.rows[0]?.count || 0, value: result.rows[0]?.sum_estimated_value || 0 });
-    }
+    const stages = await readPortfolioStages(base44.entities, query, now, cachedRead);
     const opportunitiesQuery = { status: 'open', stage: { $nin: ['won','lost','on_hold'] } };
     const [projectRollups, opportunities, delivery, actions, decisions, risks, recent, milestones, coverage] = await (async () => {
       const results = [];
@@ -37,9 +32,12 @@ export default async function(req) {
         return counts;
       }
       ];
-      for (const [index, read] of reads.entries()) results.push(await cachedRead(`summary:${index}`, read));
+      for (let index = 0; index < reads.length; index += 2) {
+        const batch = reads.slice(index, index + 2);
+        results.push(...await Promise.all(batch.map((read, offset) => cachedRead(`summary:${index + offset}`, read))));
+      }
       return results;
     })();
-    return Response.json({ stages: stages.reverse(), projects: projectRollups.projects, regions: projectRollups.regions, opportunities: opportunities.rows, delivery: delivery.rows, actions: actions.rows, decisions: decisions.rows, risks: risks.rows, recent: recent.items, milestones: milestones.items, coverage, refreshedAt: now });
+    return Response.json({ stages, projects: projectRollups.projects, regions: projectRollups.regions, opportunities: opportunities.rows, delivery: delivery.rows, actions: actions.rows, decisions: decisions.rows, risks: risks.rows, recent: recent.items, milestones: milestones.items, coverage, refreshedAt: now });
   } catch (error) { return Response.json({ error: error.message }, { status: /rate limit|too many requests/i.test(error.message) ? 429 : 500 }); }
 }

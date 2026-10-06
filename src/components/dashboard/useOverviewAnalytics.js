@@ -3,7 +3,7 @@ import { base44 } from '@/api/base44Client';
 import organisationQueryPolicy from '@/components/data/organisationQueryPolicy';
 export default function useOverviewAnalytics(dashboard, since) {
   const ids = dashboard.portfolio.pipeline.map(p => p.id);
-  const enabled = !dashboard.loading && !dashboard.error && !!dashboard.user && dashboard.internal;
+  const enabled = !dashboard.projectsLoading && !dashboard.error && !!dashboard.user && dashboard.internal;
   const summary = useQuery({ ...organisationQueryPolicy, queryKey: ['overview-analytics', dashboard.key], enabled, staleTime: 60000, refetchOnMount: false, queryFn: async () => {
     const { data } = await base44.functions.invoke('getPortfolioOverview', { projectIds: ids });
     if (data.error) throw new Error(data.error);

@@ -4,7 +4,7 @@ import { listAll } from "@/components/data/loadAll";
 
 const EMPTY = { orders: [], proposals: [], deliveries: [], actions: [] };
 export default function usePortfolioExtras(enabled = true, scopeKey = '') {
-  const query = useQuery({ queryKey: ['dashboard-portfolio-extras', scopeKey], enabled, staleTime: 60000,
+  const query = useQuery({ queryKey: ['dashboard-portfolio-extras', scopeKey], enabled, staleTime: 60000, refetchOnMount: false,
     queryFn: async () => {
       const [orders, proposals, deliveries, actions] = await Promise.all([
         listAll(base44.entities.PurchaseOrder), listAll(base44.entities.FeeProposal), listAll(base44.entities.ProjectDelivery), listAll(base44.entities.ProjectAction),
