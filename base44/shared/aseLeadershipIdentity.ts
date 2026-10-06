@@ -5,7 +5,7 @@ export function compareLeadershipIdentity(subject,candidate) {
   const exact=identityName(subject.name)===identityName(candidate.name),basis=[];
   if(!possibleName(subject.name,candidate.name)) return {status:'NO MATCH',confidence:'High',basis:['Name does not match']};
   if(exact) basis.push('Exact full name');else basis.push('Similar name, not a confirmed identity');
-  if(subject.entity && subject.registration_number && candidate.registration_number && subject.registration_number.replace(/^0+/,'')===candidate.registration_number.replace(/^0+/,'')) return {status:exact ? 'CONFIRMED MATCH' : 'POTENTIAL MATCH',confidence:exact ? 'High' : 'Low',basis:[...basis,'Exact corporate registration number']};
+  if(subject.entity && subject.registration_number && candidate.registration_number && subject.registration_number.replace(/\s/g,'').toUpperCase()===candidate.registration_number.replace(/\s/g,'').toUpperCase() && subject.country && candidate.registration_country && identityName(subject.country)===identityName(candidate.registration_country)) return {status:exact ? 'CONFIRMED MATCH' : 'POTENTIAL MATCH',confidence:exact ? 'High' : 'Low',basis:[...basis,'Exact corporate registration number']};
   if(subject.birth_year && candidate.birth_year && subject.birth_year!==candidate.birth_year || subject.birth_month && candidate.birth_month && subject.birth_month!==candidate.birth_month) return {status:'NO MATCH',confidence:'High',basis:[...basis,'Conflicting birth date']};
   const birth=subject.birth_year && subject.birth_month && subject.birth_year===candidate.birth_year && subject.birth_month===candidate.birth_month;
   if(birth) basis.push('Birth month and year match');

@@ -56,6 +56,10 @@
         "type": "string"
       }
     },
+    "change_counts": {
+      "type": "object",
+      "additionalProperties": true
+    },
     "checks": {
       "type": "array",
       "maxItems": 400,

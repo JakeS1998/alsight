@@ -5,18 +5,26 @@ import {createASEV2Assessment} from '../../shared/aseV2Assessment.ts';
 import {validateV2Input} from '../../shared/aseV2Inputs.ts';
 import {checkASEV2Rules} from '../../shared/aseV2Checks.ts';
 import {withASEAutomationLease} from '../../shared/aseAutomationLease.ts';
+import {startLeadershipRun,advanceLeadershipRun,publicLeadershipRun} from '../../shared/aseLeadershipRuns.ts';
+import {saveLeadershipReview} from '../../shared/aseLeadershipReviews.ts';
 export default async function(req: Request): Promise<Response> {
   try {
     const base44=createClientFromRequest(req),user=await base44.auth.me();
     if(!user || !internalRoles.includes(user.role)) return Response.json({error:'ASE v2 is internal-only.'},{status:403});
     const input=await req.json();if(!['detail','history','configuration','saveConfiguration','saveInput','assess','checkRules'].includes(input.action)) return Response.json({error:'Invalid ASE v2 operation.'},{status:400});
-    if(['saveConfiguration','saveInput','assess','checkRules'].includes(input.action) && user.role!=='admin') return Response.json({error:'Only administrators can approve ASE v2 methodology, evidence or assessments.'},{status:403});
+    if(['saveConfiguration','saveInput','assess','checkRules','leadershipStart','leadershipStep','leadershipStatus','leadershipReview'].includes(input.action) && user.role!=='admin') return Response.json({error:'Only administrators can approve ASE v2 methodology, evidence or assessments.'},{status:403});
     if(input.action==='checkRules') return Response.json(checkASEV2Rules());
     const policy=await getASEV2Policy(base44.entities);
     if(input.action==='configuration') return Response.json({policy});
     if(input.action==='saveConfiguration') {if(input.confirmed!==true || JSON.stringify(input.configuration).length>16000) throw new Error('Confirm the bounded methodology configuration.');const configuration=validateASEV2Config(input.configuration);return Response.json({policy:await base44.entities.ASEV2Policy.create({version:`ASE-v2-${new Date().toISOString()}`,configuration,approved_by:user.id})});}
     if(typeof input.accountId!=='string' || !/^[a-zA-Z0-9_-]{1,64}$/.test(input.accountId)) throw new Error('Valid relationship required.');
     const account=await base44.entities.Account.get(input.accountId);if(!account) return Response.json({error:'Relationship unavailable.'},{status:404});
+    if(input.action==='leadershipStatus') {const page=await base44.entities.ASELeadershipRun.filter({account_id:account.id},{sort:'-created_date',limit:1});return Response.json({run:publicLeadershipRun(page.items[0])});}
+    if(input.action==='leadershipReview') return Response.json({saved:await saveLeadershipReview(base44.entities,account,input,user,policy.configuration.leadership)});
+    if(['leadershipStart','leadershipStep'].includes(input.action)) {
+      const result=await withASEAutomationLease(base44,async assertLease=>{if(input.action==='leadershipStart') return startLeadershipRun(base44.entities,account,user,policy.configuration.leadership);if(typeof input.runId!=='string' || !/^[a-zA-Z0-9_-]{1,64}$/.test(input.runId)) throw new Error('Valid screening run required.');const run=await base44.entities.ASELeadershipRun.get(input.runId);if(!run || run.account_id!==account.id) throw new Error('Screening run unavailable.');return advanceLeadershipRun(base44.entities,run,policy.configuration.leadership,assertLease);});
+      if(result.busy) return Response.json({error:'Another ASE step is running; resume screening when it finishes.'},{status:409});return Response.json({run:result});
+    }
     if(input.action==='saveInput') return Response.json({saved:await base44.entities.ASEV2OrganisationInput.create(validateV2Input(input,account,user))});
     if(input.action==='assess') {
       if(input.confirmed!==true || account.name.startsWith('ASE Demo') || account.status==='inactive') throw new Error('Confirm reassessment of a live, non-demo relationship.');

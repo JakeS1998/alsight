@@ -13,10 +13,13 @@ export function calculateASEV2(policy,checks) {
   });
   const used=components.filter(c=>c.score!==null && c.weight>0),assessed_weight=used.reduce((sum,c)=>sum+c.weight,0),coverage=round(components.reduce((sum,c)=>sum+c.weight*c.coverage/100,0)),raw_score=assessed_weight ? round(used.reduce((sum,c)=>sum+c.score*c.weight,0)/assessed_weight) : null;
   components.forEach(c=>{c.effective_weight=c.score===null || !assessed_weight ? 0 : round(c.weight/assessed_weight*100);c.weighted_contribution=c.score===null ? 0 : round(c.score*c.effective_weight/100);});
-  const caps=checks.filter(c=>c.state==='ADVERSE' && c.verified===true && c.severe_event in policy.caps).map(c=>({event:c.severe_event,cap:policy.caps[c.severe_event],check_key:c.key,reason:c.reason,source_reference:c.source_reference}));
-  const sufficient=coverage>=policy.confidence.minimum || caps.length>0,final_score=raw_score===null || !sufficient ? null : round(Math.min(raw_score,...caps.map(c=>c.cap))),confidence=coverage>=policy.confidence.high ? 'High' : coverage>=policy.confidence.medium ? 'Medium' : 'Low';
+  const caps=checks.filter(c=>c.state==='ADVERSE' && c.verified===true && c.slot!=='individual_insolvency' && c.severe_event in policy.caps).map(c=>({event:c.severe_event,cap:policy.caps[c.severe_event],check_key:c.key,reason:c.reason,source_reference:c.source_reference}));
+  const optionalWeight=policy.leadership?.individual_insolvency_optional ? (policy.components.find(c=>c.key==='adverse')?.weight || 0)*(policy.slots.adverse.individual_insolvency || 0)/100 : 0;
+  const personalCoverage=checks.find(c=>c.component==='adverse' && c.slot==='individual_insolvency'),personalPoints=personalCoverage?.score!=null ? optionalWeight*(personalCoverage.quality ?? policy.quality[personalCoverage.confidence] ?? policy.quality.Low) : 0;
+  const qualifying_coverage=round((coverage-personalPoints)/(100-optionalWeight)*100);
+  const sufficient=qualifying_coverage>=policy.confidence.minimum || caps.length>0,final_score=raw_score===null || !sufficient ? null : round(Math.min(raw_score,...caps.map(c=>c.cap))),confidence=coverage>=policy.confidence.high ? 'High' : coverage>=policy.confidence.medium ? 'Medium' : 'Low';
   const classification=final_score===null ? 'Not assessed' : policy.classifications.find(c=>final_score>=c.minimum)?.label || 'Critical';
-  return {components,assessed_weight,coverage,raw_score,final_score,confidence,classification,caps};
+  return {components,assessed_weight,coverage,qualifying_coverage,raw_score,final_score,confidence,classification,caps};
 }
 export function explainASEV2(result,checks) {
   const parts=result.components.filter(c=>c.score!==null).map(c=>`${c.label}: ${c.score.toFixed(2)}/5 × ${c.effective_weight.toFixed(2)}% effective weight = ${c.weighted_contribution.toFixed(4)}.`);

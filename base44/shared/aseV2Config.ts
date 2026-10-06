@@ -1,15 +1,17 @@
+import {leadershipDefaults,leadershipSlots,withLeadershipPolicy,validateLeadershipPolicy} from './aseLeadershipConfig.ts';
 export const aseV2Defaults={
+  leadership:leadershipDefaults,
   components:[{key:'financial',label:'Financial Health',weight:25},{key:'adverse',label:'Adverse Events & Corporate Stability',weight:20},{key:'profile',label:'Trading & Corporate Profile',weight:10},{key:'dependency',label:'Alliance Dependency',weight:15},{key:'experience',label:'Alliance Experience',weight:10},{key:'market',label:'Market Diversification',weight:10},{key:'esg',label:'ESG & Regulatory',weight:10}],
-  slots:{financial:{strength:35,trend:20,liquidity:25,debt:20},adverse:{registry:40,gazette:35,sanctions:25},profile:{filings:60,ownership:40},dependency:{exposure:100},experience:{outcomes:100},market:{find_a_tender:50,contracts_finder:50},esg:{environment_agency:100}},
+  slots:{financial:{strength:35,trend:20,liquidity:25,debt:20},adverse:leadershipSlots.adverse,profile:leadershipSlots.profile,dependency:{exposure:100},experience:{outcomes:100},market:{find_a_tender:50,contracts_finder:50},esg:{environment_agency:100}},
   confidence:{high:85,medium:60,minimum:40},quality:{High:1,Medium:0.85,Low:0.5},freshness_days:{registry:7,accounts:7,gazette:1,local_authority:7,council_governance:7,turnover:540,experience:730},
   dependency_curve:[{percentage:0,score:5},{percentage:10,score:5},{percentage:20,score:4.5},{percentage:35,score:3.5},{percentage:50,score:2},{percentage:65,score:1.25},{percentage:100,score:1}],dependency_flag:65,
   financial_rules:{strength:{thresholds:[0,10,25,40],descending:false},trend:{thresholds:[-10,0,5,10],descending:false},liquidity:{thresholds:[0.75,1,1.25,2],descending:false},debt:{thresholds:[10,25,40,60],descending:true}},
   council_financial_rules:{strength:{thresholds:[5,10,20,30],descending:false},trend:{thresholds:[-5,-2,0,2],descending:false},liquidity:{thresholds:[0,1,2,5],descending:true,strict:true},debt:{thresholds:[5,10,15,20],descending:true}},
   gazette_rules:{recent_days:730,recent_score:3,historic_score:4},filing_rules:{medium_days:30,long_days:90,short_score:3,medium_score:2,long_score:1},source_rubric:{clear:5,active_adverse:1,profile_complete:4},
   experience_scores:{excellent:5,satisfactory:4,resolved_issue:3,unresolved_material:2,serious_unresolved:1},
-  caps:{active_insolvency:1.5,dissolved:1.5,confirmed_material_sanctions:1.5},classifications:[{minimum:4,label:'Strong'},{minimum:3.5,label:'Good'},{minimum:2.5,label:'Stable / Monitor'},{minimum:1.6,label:'Concern'},{minimum:1,label:'Critical'}],commercial_credit_provider:'None / Awaiting integration'
+  caps:{active_insolvency:1.5,dissolved:1.5,confirmed_material_sanctions:1.5,current_director_disqualification:2.5},classifications:[{minimum:4,label:'Strong'},{minimum:3.5,label:'Good'},{minimum:2.5,label:'Stable / Monitor'},{minimum:1.6,label:'Concern'},{minimum:1,label:'Critical'}],commercial_credit_provider:'None / Awaiting integration'
 };
-export async function getASEV2Policy(db) {const page=await db.ASEV2Policy.filter({},{sort:'-created_date',limit:1});return page.items[0] || {version:'ASE-v2-foundation-1',configuration:aseV2Defaults};}
+export async function getASEV2Policy(db) {const page=await db.ASEV2Policy.filter({},{sort:'-created_date',limit:1});return withLeadershipPolicy(page.items[0] || {version:'ASE-v2-leadership-1',configuration:aseV2Defaults});}
 export function validateASEV2Config(c) {
   const keys=aseV2Defaults.components.map(r=>r.key),finite=(v,min,max)=>typeof v==='number' && Number.isFinite(v) && v>=min && v<=max;
   if(!c || !Array.isArray(c.components) || c.components.length!==keys.length || keys.some(k=>c.components.filter(r=>r.key===k).length!==1) || c.components.some(r=>!finite(r.weight,0,100)) || Math.abs(c.components.reduce((s,r)=>s+r.weight,0)-100)>1e-6) throw new Error('All seven weights must be supplied and total 100%.');
@@ -27,5 +29,6 @@ export function validateASEV2Config(c) {
   for(const value of [c.filing_rules.short_score,c.filing_rules.medium_score,c.filing_rules.long_score,...Object.values(c.source_rubric || {})]) if(!finite(value,1,5)) throw new Error('Source rubric scores must be between 1 and 5.');
   if(Object.keys(c.source_rubric || {}).length!==3 || Object.keys(aseV2Defaults.source_rubric).some(key=>!finite(c.source_rubric[key],1,5))) throw new Error('Provide the complete approved source rubric.');
   if(c.commercial_credit_provider!=='None / Awaiting integration') throw new Error('Commercial credit cannot be activated until a licensed provider adapter is configured.');
+  validateLeadershipPolicy(c);
   return c;
 }
