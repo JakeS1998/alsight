@@ -1,9 +1,8 @@
 import {makeSourceFact} from './aseSourceCommon.ts';
-const norm=value=>String(value || '').toLowerCase().replace(/[^a-z0-9]/g,'');
 const unique=(row,pattern)=>{const matches=(row.facts || []).filter(f=>pattern.test(f.header.trim()) && Number.isFinite(f.value));return matches.length===1 ? matches[0].value : null;};
-export function councilAutomaticMetrics(account,code,refresh,returns,budgets,officialName) {
+export function councilAutomaticMetrics(account,code,refresh,returns,budgets) {
   const facts=[],warnings=[];
-  if(norm(account.name)!==norm(officialName)) return {facts,warnings:['Exact Account-to-ONS council name match is missing; financial normalisation remains context.']};
+  if(!/^E\d{8}$/.test(code) || account.local_authority_code!==code) return {facts,warnings:['The saved ONS authority code must match the financial return; council display names need not match.']};
   const certified=returns.filter(row=>row.code===code && row.certification==='Y');
   const metrics=certified.map(row=>({row,nre:unique(row,/^(?:total )?net revenue expenditure$/i),reserves:unique(row,/^(?:total )?(?:usable general fund reserves|general fund usable reserves)$/i),financing:unique(row,/^(?:total )?capital financing(?: costs)?$/i)}));
   const add=(entry,component,value,note)=>facts.push(makeSourceFact(account,'local_authority',code,refresh,`auto-${component}-${entry.row.financial_year}`,{component,title:`Certified council ${component.replaceAll('_',' ')} · ${entry.row.financial_year}`,value:String(value),source_reference:entry.row.source_url,reporting_period:`${entry.row.financial_year+1}-03-31`,source_date:entry.row.source_date || refresh.refreshed_at.slice(0,10),evidence_type:'financial',currency:'GBP',period_months:12,confidence:'High',automatic_eligible:true,notes:note}));

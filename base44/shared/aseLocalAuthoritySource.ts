@@ -20,9 +20,7 @@ export async function retrieveLocalAuthority(account,code,refresh) {
     } catch(error) {warnings.push(`${document.title}: ${error.message}`);}
   }
   if(!returns.length) throw new Error('No financial return matched this ONS authority code. '+warnings.join(' ').slice(0,500));
-  const norm=name=>String(name || '').toLowerCase().replace(/[^a-z0-9]/g,'');
-  if(!norm(account.name).includes(norm(officialName))) warnings.push(`This ONS code resolves to ${officialName}; verify that this is the intended Account before approving evidence.`);
-  const budget=await retrieveCouncilBudget(account,code,refresh,collection,officialName);
+    const budget=await retrieveCouncilBudget(account,code,refresh,collection,officialName);
   const context=await retrieveCouncilContext(account,code,refresh,officialName);
   const {support,documentsFound}=context;
   facts.push(...budget.facts,...context.facts);

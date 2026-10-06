@@ -14,7 +14,7 @@ export const defaultModels = {
     numeric('liquidity','Liquidity',13.5,'current ratio',[0.75,1,1.25,2]),
     numeric('debt','Debt position',13.5,'% net interest-bearing debt / total assets',[10,25,40,60],true),
     category('compliance','Filing / corporate compliance',9,'compliance',['Current and timely filings','Current; confirmed late filing in preceding three years','Worst filing 1–30 days overdue','Worst filing 31–90 days overdue','Worst filing >90 days overdue or active strike-off']),
-    category('adverse','Adverse events',9,'event',['Verified absence of relevant events','Resolved event within 24 months','Unresolved non-material event','Unresolved material default or enforcement','Confirmed insolvency or winding-up']),
+    category('adverse','Adverse events',9,'event',['Clean record under configured checks','Resolved event within 24 months','Unresolved non-material event','Unresolved material default or enforcement','Confirmed insolvency or winding-up']),
     {...commercialRule},
   ],
   english_local_authority: [
@@ -38,7 +38,8 @@ export async function getPolicy(base44) {
   const page = await base44.entities.ASEPolicy.filter({}, {sort:'-created_date',limit:1});
   const policy=page.items[0] || {version:'approved-v1',models:defaultModels};
   const models=withCommercialModel(policy.models);
-  return {...policy,models,version:`${policy.version}|${commercialScoringVersion}|${ratingPolicy.version}`,rating_policy:ratingPolicy};
+  models.company=models.company.map(rule=>rule.key==='adverse' ? {...rule,choices:rule.choices.map(choice=>choice.value==='5' ? {...choice,label:'Clean record under configured checks'} : choice)} : rule);
+  return {...policy,models,version:`${policy.version}|${commercialScoringVersion}|${ratingPolicy.version}|gazette-clean-ons-code-v1`,rating_policy:ratingPolicy};
 }
 export function scoreEvidence(rule, evidence) {
   if (evidence.score_eligible === false) return null;

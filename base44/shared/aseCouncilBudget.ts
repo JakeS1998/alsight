@@ -13,8 +13,7 @@ export async function retrieveCouncilBudget(account,code,refresh,collection,offi
     for(const [part,attachment] of attachments.entries()) {
       try {
         const parsed=await councilReturn(attachment.url,code,'budget');
-        if(parsed.name!==officialName) warnings.push(`Budget authority name ${parsed.name} differs from the outturn name ${officialName}; confirm identity before review.`);
-        returns.push({...parsed,financial_year:year,source_url:attachment.url});
+                returns.push({...parsed,financial_year:year,source_url:attachment.url});
         for(const [index,metric] of parsed.facts.entries()) facts.push(makeSourceFact(account,'local_authority',code,refresh,`budget-${year}-${part}-${index}`,{component:'council_budget_return',title:`Budget: ${metric.header}`,value:`GBP ${Math.round(metric.value*1000)}`,evidence_type:'financial',currency:'GBP',period_months:12,reporting_period:`${year+1}-03-31`,source_date:String(page.public_updated_at || refresh.refreshed_at).slice(0,10),source_reference:attachment.url,notes:`ONS ${code}; ${parsed.name}; financial year ${year}/${year+1}. Estimated budget figure, not actual outturn. Original GBP thousands converted ×1000. Restricted and earmarked balances must not be assumed usable. Future period ends are context only; do not score a forecast as completed annual evidence.`}));
       } catch(error) {warnings.push(`${attachment.title}: ${error.message}`);}
     }

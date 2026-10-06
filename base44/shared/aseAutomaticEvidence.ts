@@ -1,5 +1,5 @@
 import {councilAutomaticMetrics} from './aseCouncilAutomaticMetrics.ts';
-export const automaticRuleVersion='automatic-v1-no-absence';
+export const automaticRuleVersion='automatic-v2-gazette-clean-ons-code';
 const age=(value,now)=> (now.getTime()-Date.parse(value))/86400000;
 const numeric=value=>typeof value==='string' && /^-?(?:\d+\.?\d*|\.\d+)$/.test(value) && Number.isFinite(Number(value));
 export function automaticEvidence(source,account,result,now=new Date()) {
@@ -29,9 +29,14 @@ export function automaticEvidence(source,account,result,now=new Date()) {
       eligible=row.governance_review.document_status==='current' && age(row.governance_review.operative_from,now)>=0 && Date.parse(row.governance_review.operative_to)>now.getTime();
       reason=eligible ? 'Exact authority in current official register and primary statutory directions with verified operative dates.' : 'Operative status is uncertain; no event inferred.';
     }
-    if(source==='gazette') reason='Exact notice matches retained as primary event context; publication alone does not establish current operative insolvency status. Current registry insolvency is scored separately.';
+    if(source==='gazette') {
+      const feed=raw.feed || {},entry=feed.entry,total=feed['f:total'];
+      const clean=freshPeriod && freshDate && age(row.retrieval_date,now)>=0 && age(row.retrieval_date,now)<=1 && age(row.source_date,now)<=1 && raw.company_number===account.company_number && row.company_number===account.company_number && row.source==='The Gazette' && row.component==='adverse' && row.value==='5' && (typeof total==='string' || typeof total==='number') && total!=='' && Number(total)===0 && (entry==null || Array.isArray(entry) && entry.length===0) && Array.isArray(raw.notices) && raw.notices.length===0;
+      eligible=clean;
+      reason=clean ? 'Configured ASE rule: successful company-number Gazette search returned zero notices; clean for this check only, not a complete credit or court-register clearance.' : 'Notice matches retained as primary event context; failed, incomplete, stale or non-empty searches do not qualify as a clean record. Current registry insolvency is scored separately.';
+    }
     if(source==='blackflag') reason='Secondary extraction and proprietary rating are context only; no automatic ASE conversion.';
-    if(['adverse','intervention','efs'].includes(row.component) && row.value==='5') {eligible=false;reason='No-result or absence classifications are never automatically scored.';}
+    if(['adverse','intervention','efs'].includes(row.component) && row.value==='5' && !(source==='gazette' && eligible)) {eligible=false;reason='No-result or absence classifications are not automatically scored except a successful empty Gazette search under the configured rule.';}
     return {...row,score_eligible:eligible,automatic_eligible:eligible,automatic_reason:reason,automatic_rule_version:automaticRuleVersion};
   });
 }
