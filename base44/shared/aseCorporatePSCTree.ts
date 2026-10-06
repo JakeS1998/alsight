@@ -7,7 +7,10 @@ export async function corporatePSCTree(base44,account) {
   const client=await corporatePSCClient();
   const ensure=async num=>{if(!nodes.has(num)){const profile=await client.profile(num);nodes.set(num,{id:num,number:num,name:profile.company_name,company_number:num,parentId:null,external:true,source_reference:pscReference(num),source_label:'Companies House PSC'});}return nodes.get(num);};
   const parent=async num=>{const register=await client.psc(num);if(!register.complete)warnings.push(`PSC list truncated for ${num}; no unique parent is inferred.`);const rows=register.items.map(corporatePSC).filter(Boolean),majority=rows.filter(row=>row.majority);return {rows,parent:register.complete && majority.length===1 ? majority[0] : null};};
-  const current=await ensure(number);let cursor=number;
+  const current=await ensure(number),currentRegister=await client.psc(number);
+  const individualPSCs=currentRegister.items.filter(row=>row.kind==='individual-person-with-significant-control').map(row=>({name:row.name || 'Name unavailable',controls:row.natures_of_control || [],notified_on:row.notified_on}));
+  const corporatePSCCount=currentRegister.items.filter(row=>['corporate-entity-person-with-significant-control','legal-person-with-significant-control'].includes(row.kind)).length;
+  let cursor=number;
   for(let depth=0;depth<6;depth++) {
     const result=await parent(cursor);
     if(!result.parent){if(cursor===number)warnings.push(result.rows.length ? 'Corporate PSCs are recorded, but a unique majority-controlling parent is not established.' : 'No current UK corporate PSC parent is registered; individual PSCs do not establish a group-company parent.');break;}
@@ -35,5 +38,5 @@ export async function corporatePSCTree(base44,account) {
   const linked=await base44.entities.Account.filter({company_number:{$in:[...nodes.keys()]}},{limit:100,fields:['name','company_number']});
   const ids=new Map([...nodes.keys()].map(num=>[num,num===number ? account.id : 'ch:'+num]));
   for(const node of nodes.values()){const matches=linked.items.filter(row=>row.company_number===node.number);if(node.number===number){node.external=false;}else if(matches.length===1){ids.set(node.number,matches[0].id);node.external=false;}}
-  return {nodes:[...nodes.values()].map(node=>({...node,id:ids.get(node.number),parentId:node.parentId ? ids.get(node.parentId) : null})),currentId:account.id,ancestorIds:ancestors.map(num=>ids.get(num)),warnings:[...new Set(warnings)],checked_at:new Date().toISOString()};
+  return {nodes:[...nodes.values()].map(node=>({...node,id:ids.get(node.number),parentId:node.parentId ? ids.get(node.parentId) : null})),currentId:account.id,ancestorIds:ancestors.map(num=>ids.get(num)),ownership:{individual_pscs:individualPSCs,corporate_psc_count:corporatePSCCount,register_complete:currentRegister.complete,corporate_parent_confirmed:!!current.parentId,source_reference:pscReference(number)},warnings:[...new Set(warnings)],checked_at:new Date().toISOString()};
 }
