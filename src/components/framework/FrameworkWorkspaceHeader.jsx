@@ -11,7 +11,7 @@ export default function FrameworkWorkspaceHeader() {
     <div className="w-full px-6 py-8 sm:px-10 sm:py-10">
       <span className="inline-block rounded-lg border border-sidebar-foreground/25 bg-als-navy/50 px-3 py-1.5 text-xs text-sidebar-foreground">Framework 360</span>
       <h1 className="mt-4 font-heading text-3xl font-bold tracking-tight sm:text-4xl">Framework</h1>
-      <p className="mt-3 max-w-lg text-sm text-sidebar-foreground/85">UK Leisure Framework · Project milestones and delivery outcomes</p>
+      <p className="mt-3 max-w-lg text-sm text-sidebar-foreground/85">UK Leisure Framework · Project milestones and delivery outcomes.</p>
     </div>
   </header>;
 }
