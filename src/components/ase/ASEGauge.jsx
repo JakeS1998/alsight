@@ -14,7 +14,7 @@ export default function ASEGauge({rating,precise,label,loading=false,showScale=f
   {available && [152,388].map((angle,i)=>{const p=point(angle);return <circle key={angle} cx={p[0]} cy={p[1]} r="8.5" fill="currentColor" className={i===0 ? colours[0] : colours[4]}/>;})}
   {showScale && available && [1,2,3,4,5].map((n,i)=>{const p=point(150+i*60,111);return <text key={n} x={p[0]} y={p[1]+4} textAnchor="middle" fontSize="13" fontWeight="700" fill="currentColor" className="text-foreground">{n}</text>;})}
   {marker && <circle cx={marker[0]} cy={marker[1]} r="10" fill="currentColor" stroke="hsl(var(--card))" strokeWidth="3" className={colour}/>}
-  <text x="120" y="133" textAnchor="middle" fill="currentColor" className="text-foreground" fontSize={available ? decimal ? '40' : '49' : '32'} fontWeight="800">{available ? <>{decimal ? score.toFixed(1) : rating}<tspan fontSize="28">/5</tspan></> : loading ? '--' : 'N/A'}</text>
-  <text x="120" y="159" textAnchor="middle" fill="currentColor" className="text-foreground" fontSize="15" fontWeight="700">{loading ? 'Calculating…' : available ? (label || bands[rating-1]).replace(/^Provisional(?:\s*[·:–-]\s*|\s+)/i,'') : 'Not available'}</text>
+  <text x="120" y="133" textAnchor="middle" fill="currentColor" className="text-foreground" fontSize={available ? decimal ? '40' : '49' : '32'} fontWeight="800">{available ? <>{decimal ? score.toFixed(1) : rating}<tspan fontSize="28">/5</tspan></> : loading ? '--' : '—'}</text>
+  <text x="120" y="159" textAnchor="middle" fill="currentColor" className="text-foreground" fontSize="15" fontWeight="700">{loading ? 'Calculating…' : available ? (label || bands[rating-1]).replace(/^Provisional(?:\s*[·:–-]\s*|\s+)/i,'') : 'Awaiting evidence'}</text>
  </svg>;
 }

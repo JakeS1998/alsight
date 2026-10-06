@@ -8,12 +8,15 @@ export async function commercialInsight(base44,account,options={}) {
   const ids=await syncCommercialInputs(base44,account);
      const candidateQuery={id:{$in:ids}}; // IDs were already scoped to accessible executed contractor-side contracts during synchronisation.
      const eligible={...candidateQuery,commercial_effective_value:{$gt:0},commercial_effective_annual_value:{$gt:0},commercial_effective_reference:{$exists:true,$nin:['',null]},commercial_effective_start:{$lte:date},commercial_effective_end:{$gte:date}};
-  const duplicates=await base44.entities.JCT.aggregate({query:eligible,groupBy:'commercial_effective_reference',having:{count:{$gt:1}},limit:100});
-  if(duplicates.truncated) return {status:'unavailable',reason:'Duplicate contract references exceed the validation limit.',checked_at:now.toISOString()};
-  const duplicateRefs=duplicates.rows.map(row=>row.commercial_effective_reference);
-     if(duplicateRefs.length) eligible.commercial_effective_reference={$exists:true,$nin:['',null,...duplicateRefs]};
-  const [total,allCount,turnover,contracts,hmrc]=await Promise.all([
-    base44.entities.JCT.aggregate({query:eligible,groupBy:['commercial_effective_date_basis','commercial_effective_mode'],sum:'commercial_effective_annual_value'}),base44.entities.JCT.count(candidateQuery),commercialTurnover(base44,account,now),
+  const grouped=await base44.entities.JCT.aggregate({query:eligible,groupBy:['commercial_effective_reference','commercial_effective_date_basis','commercial_effective_mode'],sum:'commercial_effective_annual_value',limit:1000});
+  if(grouped.truncated)return {status:'unavailable',reason:'Contract totals exceed the validation limit.',checked_at:now.toISOString()};
+  const referenceCounts=new Map();
+  grouped.rows.forEach(row=>referenceCounts.set(row.commercial_effective_reference,(referenceCounts.get(row.commercial_effective_reference) || 0)+row.count));
+  const duplicateRefs=[...referenceCounts].filter(([,count])=>count>1).map(([reference])=>reference);
+  if(duplicateRefs.length)eligible.commercial_effective_reference={$exists:true,$nin:['',null,...duplicateRefs]};
+  const total={rows:grouped.rows.filter(row=>!duplicateRefs.includes(row.commercial_effective_reference))};
+  const [allCount,turnover,contracts,hmrc]=await Promise.all([
+    base44.entities.JCT.count(candidateQuery),commercialTurnover(base44,account,now),
     base44.entities.JCT.filter(eligible,{limit:20,...(options.cursor ? {cursor:options.cursor} : {}),fields:['document_id','project_id','commercial_reviewed_at','commercial_reviewed_by','commercial_effective_value','commercial_effective_start','commercial_effective_end','commercial_effective_annual_value','commercial_effective_reference','commercial_effective_date_basis','commercial_effective_mode','commercial_effective_source']}),hmrcStatus(base44,account)
   ]);
   const included=total.rows.reduce((sum,row)=>sum+row.count,0),annual=included ? total.rows.reduce((sum,row)=>sum+row.sum_commercial_effective_annual_value,0) : null,excluded=allCount-included;
