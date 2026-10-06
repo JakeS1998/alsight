@@ -8,7 +8,7 @@ import ASECommercialContractReview from '@/components/ase/ASECommercialContractR
 import organisationQueryPolicy from '@/components/data/organisationQueryPolicy';
 export default function ASECommercialConcentration({account,card=false,snapshot}) {
   const {user}=useAuth(),[cursor,setCursor]=useState(null),[showReview,setShowReview]=useState(false);
-  const query=useQuery({queryKey:['ase','commercial',account.id,'commercial-scoring-v1',cursor,user?.id,user?.role],enabled:!snapshot,queryFn:()=>aseRequest('commercial',{accountId:account.id,...(cursor ? {cursor} : {})}),staleTime:60000,...organisationQueryPolicy});
+  const query=useQuery({queryKey:['ase','commercial',account.id,'commercial-scoring-v2-appointments',cursor,user?.id,user?.role],enabled:!snapshot,queryFn:()=>aseRequest('commercial',{accountId:account.id,...(cursor ? {cursor} : {})}),staleTime:60000,...organisationQueryPolicy});
   const data=snapshot || query.data;
   const [desktop,setDesktop]=useState(()=>window.matchMedia('(min-width: 1200px)').matches);
   useEffect(()=>{const media=window.matchMedia('(min-width: 1200px)'),update=()=>setDesktop(media.matches);media.addEventListener('change',update);return ()=>media.removeEventListener('change',update);},[]);
