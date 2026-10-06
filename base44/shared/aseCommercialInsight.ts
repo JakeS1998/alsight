@@ -1,27 +1,18 @@
 import {accountModel} from './asePolicy.ts';
 import {commercialTurnover,hmrcStatus} from './aseCommercialTurnover.ts';
-import {contractQuery} from './aseCommercialTerms.ts';
-import {syncCommercialInputs} from './aseCommercialInputs.ts';
+import {commercialContractExposure} from './aseCommercialExposure.ts';
 export async function commercialInsight(base44,account,options={}) {
   const now=options.at ? new Date(options.at) : new Date(),date=now.toISOString().slice(0,10);
   if(accountModel(account)!=='company') return {status:'not_applicable',reason:'Turnover concentration applies to supported company accounts, not local-authority spending.',checked_at:now.toISOString()};
-  const ids=await syncCommercialInputs(base44,account);
-     const candidateQuery={id:{$in:ids}}; // IDs were already scoped to accessible executed contractor-side contracts during synchronisation.
-     const eligible={...candidateQuery,commercial_effective_value:{$gt:0},commercial_effective_annual_value:{$gt:0},commercial_effective_reference:{$exists:true,$nin:['',null]},commercial_effective_start:{$lte:date},commercial_effective_end:{$gte:date}};
-  const grouped=await base44.entities.JCT.aggregate({query:eligible,groupBy:['commercial_effective_reference','commercial_effective_date_basis','commercial_effective_mode'],sum:'commercial_effective_annual_value',limit:1000});
-  if(grouped.truncated)return {status:'unavailable',reason:'Contract totals exceed the validation limit.',checked_at:now.toISOString()};
-  const referenceCounts=new Map();
-  grouped.rows.forEach(row=>referenceCounts.set(row.commercial_effective_reference,(referenceCounts.get(row.commercial_effective_reference) || 0)+row.count));
-  const duplicateRefs=[...referenceCounts].filter(([,count])=>count>1).map(([reference])=>reference);
-  if(duplicateRefs.length)eligible.commercial_effective_reference={$exists:true,$nin:['',null,...duplicateRefs]};
-  const total={rows:grouped.rows.filter(row=>!duplicateRefs.includes(row.commercial_effective_reference))};
+  const exposure=await commercialContractExposure(base44,account,date);
+  if(exposure.reason==='Contract totals exceed the validation limit.') return {status:'unavailable',reason:exposure.reason,checked_at:now.toISOString()};
+  const {eligible,duplicateRefs}=exposure;
   const [allCount,turnover,contracts,hmrc]=await Promise.all([
-    base44.entities.JCT.count(candidateQuery),commercialTurnover(base44,account,now),
+    exposure.candidate_count,commercialTurnover(base44,account,now),
     base44.entities.JCT.filter(eligible,{limit:20,...(options.cursor ? {cursor:options.cursor} : {}),fields:['document_id','project_id','commercial_reviewed_at','commercial_reviewed_by','commercial_effective_value','commercial_effective_start','commercial_effective_end','commercial_effective_annual_value','commercial_effective_reference','commercial_effective_date_basis','commercial_effective_mode','commercial_effective_source']}),hmrcStatus(base44,account)
   ]);
-  const included=total.rows.reduce((sum,row)=>sum+row.count,0),annual=included ? total.rows.reduce((sum,row)=>sum+row.sum_commercial_effective_annual_value,0) : null,excluded=allCount-included;
-  const programmeCount=total.rows.filter(row=>row.commercial_effective_date_basis==='project_programme').reduce((sum,row)=>sum+row.count,0);
-   const proposalCount=total.rows.filter(row=>row.commercial_effective_mode==='pathway_proposal').reduce((sum,row)=>sum+row.count,0);
+  const included=exposure.included_count,annual=exposure.annualised_value,excluded=allCount-included;
+  const programmeCount=exposure.programme_proxy_count,proposalCount=exposure.proposal_proxy_count;
   const available=included>0 && turnover.status==='available' && Number.isFinite(annual);
   const warnings=[];
   if(turnover.limitation) warnings.push(turnover.limitation);

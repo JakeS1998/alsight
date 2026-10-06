@@ -1,6 +1,6 @@
-import {syncCommercialInputs} from './aseCommercialInputs.ts';
+import {commercialContractExposure} from './aseCommercialExposure.ts';
+import {scoreAllianceContractExposure} from './aseV2DependencyScoring.ts';
 import {filedCommercialTurnover} from './aseCommercialTurnover.ts';
-import {dependencyScore} from './aseV2Calculation.ts';
 import {v2UnavailableCheck} from './aseV2ExternalChecks.ts';
 export async function allianceV2Checks(base44,account,configuration) {
   const now=new Date(),date=now.toISOString().slice(0,10),db=base44.entities,aliases=[account.id,account.dataverse_id].filter(Boolean);
@@ -8,18 +8,13 @@ export async function allianceV2Checks(base44,account,configuration) {
   const checks=[],exposure=v2UnavailableCheck('dependency','exposure','Alliance contract exposure','ALSight','No complete contract exposure and annual-turnover evidence available.'),experience=v2UnavailableCheck('experience','outcomes','Recorded Alliance outcomes','ALSight','Limited Alliance history is not poor performance.'),context={project_groups:projects.rows,project_reporting_truncated:projects.truncated};
   let dependency={status:'unavailable'},turnover;
   const declared=turnoverInputs.items[0];
-  if(declared) turnover={status:'available',value:declared.turnover_value,period_end:declared.period_end,retrieved_at:declared.obtained_at,source_reference:declared.evidence_reference,source_label:`Reviewed ${declared.evidence_origin} annual GBP turnover`,origin:declared.evidence_origin,input_id:declared.id};
+  if(declared) turnover={status:'available',currency:'GBP',value:declared.turnover_value,period_end:declared.period_end,retrieved_at:declared.obtained_at,source_reference:declared.evidence_reference,source_label:`Reviewed ${declared.evidence_origin} annual GBP turnover`,origin:declared.evidence_origin,input_id:declared.id};
   else turnover={...await filedCommercialTurnover(base44,account,now,Infinity),origin:'external',source_label:'Companies House filed accounts'};
   try {
-    const ids=await syncCommercialInputs(base44,account),query={id:{$in:ids},commercial_effective_mode:'reviewed',commercial_effective_value:{$gt:0},commercial_effective_start:{$lte:date},commercial_effective_end:{$gte:date}},total=await db.JCT.aggregate({query,groupBy:'commercial_effective_reference',sum:'commercial_effective_value',limit:100});
-    if(total.truncated || total.rows.some(r=>!r.commercial_effective_reference || r.count>1)) throw new Error('Incomplete or duplicate signed-contract reference data; exposure not inferred.');
-    const included=total.rows.length,amount=included ? total.rows.reduce((s,r)=>s+r.sum_commercial_effective_value,0) : null,unreviewed=ids.length ? await db.JCT.count({id:{$in:ids},commercial_reviewed:{$ne:true}}) : 0;
-    dependency={status:amount!==null && turnover.status==='available' ? 'available' : 'unavailable',exposure:amount,included_count:included,unreviewed_count:unreviewed,turnover,method:'Total reviewed company-specific values of current executed contractor-side contracts ÷ declared or verified annual company turnover × 100. Not annualised, not realised revenue; Pathway proposal estimates and duplicate references excluded.'};
-    if(dependency.status==='available') {
-      const percentage=amount/turnover.value*100,age=(now.getTime()-Date.parse(turnover.period_end))/86400000,stale=age>configuration.freshness_days.turnover,score=dependencyScore(percentage,configuration),quality=stale || unreviewed ? configuration.quality.Low : turnover.origin==='external' && !declared ? configuration.quality.High : configuration.quality.Medium;
-      Object.assign(dependency,{percentage,turnover_age_days:Math.floor(age),stale,high_dependency:percentage>=configuration.dependency_flag,label:percentage<=10 ? 'Very Low Dependency' : percentage<=20 ? 'Low Dependency' : percentage<=35 ? 'Moderate Dependency' : percentage<=50 ? 'High Dependency' : 'Very High Dependency'});
-      Object.assign(exposure,{state:score>=3.5 ? 'POSITIVE' : 'ADVERSE',score,confidence:stale || unreviewed ? 'Low' : declared ? 'Medium' : 'High',quality,verified:true,checked_at:now.toISOString(),source_reference:turnover.source_reference,reason:`£${amount.toFixed(2)} current reviewed Alliance exposure ÷ £${turnover.value.toFixed(2)} annual turnover × 100 = ${percentage.toFixed(2)}%. Configured non-linear curve gives ${score.toFixed(2)}/5. Concentration risk is not insolvency, financial distress or poor performance.${stale ? ' Turnover is stale: confidence reduced, not the score.' : ''}${unreviewed ? ` ${unreviewed} signed contracts lack reviewed terms; exposure may be understated and coverage is reduced.` : ''}`});
-    } else {exposure.state='LIMITED';exposure.reason=turnover.reason || 'No current reviewed contract exposure. Absence of usable records is not zero dependency.';}
+    const contracts=await commercialContractExposure(base44,account,date);
+    const scored=scoreAllianceContractExposure(contracts,turnover,configuration,now);
+    dependency=scored.dependency;
+    Object.assign(exposure,scored.check);
   } catch(error){Object.assign(exposure,{state:'CHECK FAILED',reason:String(error.message).slice(0,600),checked_at:now.toISOString()});}
   const events=[...new Map(inputs.items.map(r=>[r.evidence_reference,r]).reverse()).values()];
   if(!inputs.has_more && events.length) {
