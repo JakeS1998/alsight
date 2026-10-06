@@ -10,7 +10,7 @@ import frameworkAgreementRoute from '@/components/delivery/frameworkAgreementRou
 import ProjectEmptyState from '@/components/projects/ProjectEmptyState';
 import {
   FileSearch, FileCheck, UserCheck, Gavel, FilePlus,
-  Check, Clock, ExternalLink, AlertCircle,
+  ExternalLink, AlertCircle,
 } from "lucide-react";
 
 // Lifecycle stages in the requested project order:
@@ -130,7 +130,7 @@ export function ProjectDraftingTab({ project, legalDocs, dmas, jcts, accountMap,
   return (
     <div className="ws-subsection ws-documents">
       <div className="ws-panelhead"><h2 className="ws-sectiontitle">Documents</h2></div>
-      <div className="ws-document-grid">{stages.map((stage, i) => {
+      <div className="ws-document-grid">{stages.map((stage) => {
         let docs = [];
         if (stage.key === 'precon') {
           docs = preConstructionDocs;
@@ -148,19 +148,10 @@ export function ProjectDraftingTab({ project, legalDocs, dmas, jcts, accountMap,
 
         const status = stage.kind === "report" ? (project.link_to_riba4_report ? 'complete' : 'empty') : stage.kind === "pq" ? pqStatus(project) : docStatus(docs);
         const cfg = STATUS_CFG[status];
-        const isLast = i === stages.length - 1;
-        const Icon = stage.icon;
 
         return (
-          <div key={stage.key} className="ws-document-stage ws-card ws-panel flex gap-4">
-            <div className="flex flex-col items-center">
-              <div className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-full border-2 transition-colors ${cfg.marker}`}>
-                {status === "complete" ? <Check className="h-5 w-5" /> : status === "in_progress" ? <Clock className="h-4 w-4" /> : <Icon className="h-4 w-4" />}
-              </div>
-              {!isLast && <div className={`w-0.5 flex-1 my-1 rounded-full ${cfg.line}`} style={{ minHeight: 24 }} />}
-            </div>
-
-            <div className={`flex-1 pb-8 ${isLast ? "pb-0" : ""}`}>
+          <div key={stage.key} className="ws-document-stage ws-card ws-panel">
+            <div className="min-w-0">
               <div className="flex flex-wrap items-center gap-2 mb-3">
                 <h3 className="text-sm font-semibold text-slate-900">{stage.key === 'aa' ? agreementNames(project.project_number).access : stage.key === 'dma' ? agreementNames(project.project_number).development : stage.label}</h3>
                 {stage.kind !== "pq" && stage.kind !== "report" && (

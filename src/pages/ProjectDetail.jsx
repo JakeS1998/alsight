@@ -6,7 +6,9 @@ import { INTERNAL_ROLES } from '@/lib/portal';
 import ProjectValuationsTab from "@/components/valuations/ProjectValuationsTab";
 import UKLFProjectTab from '@/components/framework/UKLFProjectTab';
 
-import { listAll, filterAll } from "@/components/data/loadAll";
+import { listAll } from "@/components/data/loadAll";
+import useProjectDocuments from '@/components/projects/useProjectDocuments';
+import ProjectDocumentLoadState from '@/components/projects/ProjectDocumentLoadState';
 import { Tabs, TabsContent } from "@/components/ui/tabs";
 import { ProjectGeneralTab } from "@/components/projects/ProjectGeneralTab";
 
@@ -47,10 +49,8 @@ export default function ProjectDetail() {
     if (project?.procurement_route === false && activeTab === 'uklf') setActiveTab('general');
   }, [project?.procurement_route, activeTab]);
   useEffect(() => { const tab = new URLSearchParams(location.search).get('tab'); setActiveTab(isExternalPM ? (['valuations','timeline','drafting','warranties','delivery'].includes(tab) ? tab : 'general') : isSupplier ? (['general','timeline','drafting','warranties','purchase-orders'].includes(tab) ? tab : tab === 'valuations' && canSeeValuations ? 'valuations' : 'general') : (tab === 'valuations' && !canSeeValuations) ? 'general' : ['general','timeline','drafting','warranties','finance','delivery','valuations','uklf'].includes(tab) ? tab : 'general'); }, [location.search, isExternalPM, isSupplier, canSeeValuations]);
-  const [legalDocs, setLegalDocs] = useState([]);
-  const [dmas, setDmas] = useState([]);
-  const [jcts, setJcts] = useState([]);
-  const [warranties, setWarranties] = useState([]);
+  const documents = useProjectDocuments(project, user);
+  const { legalDocs, dmas, jcts, warranties } = documents;
   const [supplierOrders, setSupplierOrders] = useState([]);
   const [accountMap, setAccountMap] = useState({});
   const [loading, setLoading] = useState(true);
@@ -61,21 +61,10 @@ export default function ProjectDetail() {
         const proj = isExternalPM ? (await base44.functions.invoke('manageValuation', { action: 'project', projectId }).catch(() => ({ data: { project: null } }))).data.project : isSupplier ? (await Promise.all([base44.functions.invoke('supplierProjectAccess', { action: 'project', projectId }).then(res => res.data.project).catch(() => null), base44.functions.invoke('manageValuation', { action: 'project', projectId }).then(res => res.data.project).catch(() => null)]).then(([linked, manager]) => (linked || manager) ? { ...(linked || manager), can_submit_valuation: !!manager } : null)) : await base44.entities.Project.get(projectId).catch(() => null);
         if (!proj || proj.status === 'inactive') { setProject(null); return; }
         setProject(proj);
-        const dvId = proj.dataverse_id;
-
-        const [docs, dmasData, jctsData, warrs, accounts, orders] = await Promise.all([
-          !isSupplier || supplierAccountId ? filterAll(base44.entities.LegalDocument, { project_id: { $in: [proj.id, dvId].filter(Boolean) }, ...(isSupplier ? { account_id: supplierAccountId } : {}) }).catch(() => []) : [],
-          isSupplier ? [] : filterAll(base44.entities.DMA, { project_id: dvId }).catch(() => []),
-          !isSupplier || supplierAccountId ? filterAll(base44.entities.JCT, { project_id: dvId, ...(isSupplier ? { $or: [{ account_id: supplierAccountId }, { contractor_id: supplierAccountId }] } : {}) }).catch(() => []) : [],
-          !isSupplier || supplierAccountId ? filterAll(base44.entities.Warranty, { project_id: dvId, ...(isSupplier ? { $or: [{ account_id: supplierAccountId }, { supplier_id: supplierAccountId }] } : {}) }).catch(() => []) : [],
+        const [accounts, orders] = await Promise.all([
           listAll(base44.entities.Account, "-name").catch(() => []),
           isSupplier ? base44.functions.invoke('supplierProjectAccess', { action: 'orders', projectId }).then(res => res.data.orders || []).catch(() => []) : [],
         ]);
-
-        setLegalDocs(docs);
-        setDmas(dmasData);
-        setJcts(jctsData);
-        setWarranties(warrs);
         setSupplierOrders(orders);
 
         const map = {};
@@ -87,7 +76,7 @@ export default function ProjectDetail() {
     })();
   }, [projectId, isExternalPM, isSupplier, supplierAccountId]);
 
-  if (loading) {
+  if (loading || documents.loading) {
     return (
       <div className="flex justify-center py-20">
         <div className="h-8 w-8 animate-spin rounded-full border-4 border-slate-200 border-t-primary" />
@@ -122,12 +111,16 @@ export default function ProjectDetail() {
           {canSeeProjectOverview && <ProjectManagerOverview projectId={project.id} mode="timeline" supplier={isSupplier} />}
         </TabsContent>
         <TabsContent value="drafting" className="ws-content mt-6 space-y-6">
-          {INTERNAL_ROLES.includes(user?.role) && <DocumentInsight project={project} legalDocs={legalDocs} dmas={dmas} jcts={jcts} warranties={warranties} />}
-          {isSupplier ? <SupplierProjectDocuments project={project} legalDocs={legalDocs} jcts={jcts} accountMap={accountMap} /> : isExternalPM ? <ProjectDraftingTab project={project} legalDocs={legalDocs.filter(d => ['access_agreement','pcsa'].includes(d.document_type))} dmas={dmas} jcts={jcts} accountMap={accountMap} onProjectUpdated={updated => setProject(current => ({ ...current, ...updated }))} pmView /> : <ProjectDraftingTab project={project} legalDocs={legalDocs} dmas={dmas} jcts={jcts} accountMap={accountMap} onProjectUpdated={updated => setProject(current => ({ ...current, ...updated }))} />}
+          {!documents.error && <>
+            {INTERNAL_ROLES.includes(user?.role) && <DocumentInsight project={project} legalDocs={legalDocs} dmas={dmas} jcts={jcts} warranties={warranties} />}
+            {isSupplier ? <SupplierProjectDocuments project={project} legalDocs={legalDocs} jcts={jcts} accountMap={accountMap} /> : isExternalPM ? <ProjectDraftingTab project={project} legalDocs={legalDocs.filter(d => ['access_agreement','pcsa'].includes(d.document_type))} dmas={dmas} jcts={jcts} accountMap={accountMap} onProjectUpdated={updated => setProject(current => ({ ...current, ...updated }))} pmView /> : <ProjectDraftingTab project={project} legalDocs={legalDocs} dmas={dmas} jcts={jcts} accountMap={accountMap} onProjectUpdated={updated => setProject(current => ({ ...current, ...updated }))} />}
+          </>}
+          <ProjectDocumentLoadState documents={documents} />
         </TabsContent>
         <TabsContent value="warranties" className="ws-content mt-6 space-y-6">
           {INTERNAL_ROLES.includes(user?.role) && <DocumentInsight project={project} legalDocs={legalDocs} dmas={dmas} jcts={jcts} warranties={warranties} />}
-          <ProjectWarrantiesTab project={project} warranties={warranties} accountMap={accountMap} hideCommentsAndLinks={isSupplier} />
+          {!documents.error && <ProjectWarrantiesTab project={project} warranties={warranties} accountMap={accountMap} hideCommentsAndLinks={isSupplier} />}
+          <ProjectDocumentLoadState documents={documents} />
           {canSeeProjectOverview && <ProjectManagerOverview projectId={project.id} mode="warranties" supplier={isSupplier} />}
         </TabsContent>
         {isSupplier && <TabsContent value="purchase-orders" className="ws-content mt-6"><SupplierPurchaseOrders project={project} orders={supplierOrders} /></TabsContent>}
