@@ -1,9 +1,9 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useRef } from "react";
 import { FormSection, FormField, formInputClass } from "@/components/forms/PowerForm";
 import { Button } from "@/components/ui/button";
 import SearchableSelect from '@/components/forms/SearchableSelect';
-import { base44 } from "@/api/base44Client";
-import { Plus, Trash2, Loader2, Upload, FileCheck } from "lucide-react";
+import TeamFeeUpload from '@/components/delivery/TeamFeeUpload';
+import { Plus, Trash2, Loader2 } from "lucide-react";
 import ContractorFeeBuilder from '@/components/delivery/ContractorFeeBuilder';
 import ContractorStageOhp from '@/components/delivery/ContractorStageOhp';
 import normalizeContractorOhp from '@/components/delivery/normalizeContractorOhp';
@@ -34,6 +34,8 @@ export function DeliveryTeam({ project, delivery, setField, onSave, saving, supp
   const { surveysPct, riba57Pct, surveysType, surveysFixed } = legacyContractorOhp;
   const [team, setTeam] = useState([]);
   const [uploading, setUploading] = useState(null);
+  const teamRef = useRef(team);
+  teamRef.current = team;
 
   useEffect(() => {
     try {
@@ -42,7 +44,7 @@ export function DeliveryTeam({ project, delivery, setField, onSave, saving, supp
     } catch { setTeam([]); }
   }, [delivery.delivery_team, surveysPct, riba57Pct, surveysType, surveysFixed]);
 
-  const commit = (next) => { setTeam(next); setField("delivery_team", JSON.stringify(next)); };
+  const commit = (next) => { teamRef.current = next; setTeam(next); setField("delivery_team", JSON.stringify(next)); };
   const addMember = () => commit([...team, { ...EMPTY_MEMBER, fees: { ...EMPTY_MEMBER.fees } }]);
   const removeMember = (idx) => commit(team.filter((_, i) => i !== idx));
   const setMember = (idx, field, value) => {
@@ -60,14 +62,7 @@ export function DeliveryTeam({ project, delivery, setField, onSave, saving, supp
   const setFee = (idx, stage, value) => commit(team.map((m, i) => (i === idx ? { ...m, fees: { ...m.fees, [stage]: value } } : m)));
   const setContractorFees = (idx, fees) => commit(team.map((m, i) => (i === idx ? { ...m, contractor_fees: fees } : m)));
 
-  const uploadFile = async (idx, file) => {
-    if (!file) return;
-    setUploading(idx);
-    try {
-      const { file_url } = await base44.integrations.Core.UploadPublicFile({ file });
-      setMember(idx, "fee_proposal_link", file_url);
-    } finally { setUploading(null); }
-  };
+  const applyScannedFees = (idx, patch) => commit(teamRef.current.map((member, index) => index !== idx ? member : { ...member, ...patch, ...(patch.fees ? { fees: { ...member.fees, ...patch.fees } } : {}) }));
 
   return (
     <FormSection title={embedded ? 'Delivery Team' : '1b · Delivery Team'} collapsible={!embedded} description={singleTask ? 'Enter one task fee total for each supplier — these feed the single-task proposal.' : 'Add each supplier, upload their fee proposal and enter their fees per RIBA stage — these feed the Fee Proposal'}>
@@ -92,24 +87,10 @@ export function DeliveryTeam({ project, delivery, setField, onSave, saving, supp
                   </SearchableSelect>
                 </FormField>
                 <FormField label="Fee proposal received">
-                  {m.fee_proposal_link ? (
-                    <div className="flex h-10 items-center gap-3">
-                      <a href={m.fee_proposal_link} target="_blank" rel="noreferrer" className="inline-flex items-center gap-1 text-sm text-primary hover:underline"><FileCheck className="h-4 w-4" /> View</a>
-                      <label className="inline-flex cursor-pointer items-center gap-1 text-xs text-slate-500 hover:text-slate-900">
-                        <Upload className="h-3.5 w-3.5" /> Replace
-                        <input type="file" className="hidden" onChange={(e) => uploadFile(idx, e.target.files?.[0])} disabled={uploading === idx} />
-                      </label>
-                    </div>
-                  ) : (
-                    <label className="flex h-10 cursor-pointer items-center gap-2 rounded-lg border border-slate-300 bg-white px-3 text-sm text-slate-500 hover:bg-slate-50">
-                      {uploading === idx ? <Loader2 className="h-4 w-4 animate-spin" /> : <Upload className="h-4 w-4" />}
-                      {uploading === idx ? "Uploading..." : "Upload"}
-                      <input type="file" className="hidden" onChange={(e) => uploadFile(idx, e.target.files?.[0])} disabled={uploading === idx} />
-                    </label>
-                  )}
+                  <TeamFeeUpload projectId={project.id} member={m} supplier={suppliers.find(s => s.company_number === m.supplier_company_number)?.name} singleTask={singleTask} disabled={uploading !== null} onBusy={busy => setUploading(busy ? idx : null)} onPatch={patch => applyScannedFees(idx, patch)} />
                 </FormField>
               </div>
-              <button onClick={() => removeMember(idx)} className="mt-1 rounded p-1 text-slate-400 hover:bg-rose-50 hover:text-rose-600"><Trash2 className="h-4 w-4" /></button>
+              <button type="button" disabled={uploading !== null} onClick={() => removeMember(idx)} className="mt-1 rounded p-1 text-slate-400 hover:bg-rose-50 hover:text-rose-600"><Trash2 className="h-4 w-4" /></button>
             </div>
             {singleTask ? <TaskMemberFee member={m} onChange={patch => commit(team.map((member, index) => index === idx ? { ...member, ...patch } : member))} /> : isContractor(m) ? (
               <div>
@@ -134,7 +115,7 @@ export function DeliveryTeam({ project, delivery, setField, onSave, saving, supp
         ))}
         <div className="flex items-center justify-between">
           <Button type="button" variant="outline" size="sm" onClick={addMember}><Plus className="mr-1.5 h-4 w-4" /> Add team member</Button>
-          <Button type="button" onClick={() => onSave({ delivery_team: JSON.stringify(team) })} disabled={saving} className="bg-primary hover:bg-primary/90">
+          <Button type="button" onClick={() => onSave({ delivery_team: JSON.stringify(team) })} disabled={saving || uploading !== null} className="bg-primary hover:bg-primary/90">
             {saving && <Loader2 className="mr-1.5 h-4 w-4 animate-spin" />} Save team
           </Button>
         </div>
