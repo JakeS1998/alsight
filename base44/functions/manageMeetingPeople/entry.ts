@@ -19,8 +19,8 @@ export default async function(req: Request): Promise<Response> {
   const session=await base44.entities.CRMActivity.get(input.sessionId);
   if(!session || session.next_action!=='meeting_start' || !session.key_points?.startsWith('Meeting session: '))return Response.json({error:'Meeting unavailable.'},{status:404});
   if(session.owner_id!==user.id && !session.meeting_hosts?.some(person=>person.id===user.id))return Response.json({error:'Only this meeting’s hosts can change its people.'},{status:403});
-  const ends=await base44.asServiceRole.entities.CRMActivity.filter({key_points:session.key_points,next_action:'meeting_end'},{limit:1});
-  if(ends.items.length)return Response.json({error:'An ended meeting’s attendees and hosts cannot be changed.'},{status:409});
+  const ends=await base44.asServiceRole.entities.CRMActivity.filter({key_points:session.key_points,next_action:{$in:['meeting_end','meeting_resume']}},{sort:'-occurred_at',limit:1});
+  if(ends.items[0]?.next_action==='meeting_end')return Response.json({error:'Resume this ended meeting before changing its attendees and hosts.'},{status:409});
   if(!Array.isArray(input.hostIds) || !input.hostIds.length || input.hostIds.length>10 || !Array.isArray(input.attendeeIds) || input.attendeeIds.length>50 || [...input.hostIds,...input.attendeeIds].some(id=>!validId(id)) || !input.hostIds.includes(session.owner_id))return Response.json({error:'Select up to 10 hosts and 50 attendees; the original organiser remains a host.'},{status:400});
   const ids=[...new Set([...input.hostIds,...input.attendeeIds])];
   const people=await Promise.all(ids.map(id=>base44.asServiceRole.entities.User.get(id)));
