@@ -2,6 +2,7 @@ import { createClientFromRequest } from 'npm:@base44/sdk@0.8.52';
 import { internalRoles } from '../../shared/asePolicy.ts';
 import { accountDetailSignals } from '../../shared/accountDetailSignals.ts';
 import { dataRequestError } from '../../shared/dataRequestError.ts';
+import {recordIds} from '../../shared/recordIds.ts';
 const signalCache = new Map();
 function cachedSignals(key,load) {
  const cached=signalCache.get(key);
@@ -83,7 +84,8 @@ export default async function(req: Request): Promise<Response> {
       base44.entities.Account.count(query),
     ]);
     const ownerIds = [...new Set(page.items.map(account => account.account_manager_aad_id).filter(Boolean))];
-    const owners = ownerIds.length ? await base44.entities.Contact.filter({ $or: [{ aad_id: { $in: ownerIds } }, { dataverse_id: { $in: ownerIds } }, { id: { $in: ownerIds } }] }, { limit: 100, fields: ['full_name','aad_id','dataverse_id'] }) : { items: [] };
+    const ownerRecordIds=recordIds(ownerIds);
+    const owners = ownerIds.length ? await base44.entities.Contact.filter({ $or: [{ aad_id: { $in: ownerIds } }, { dataverse_id: { $in: ownerIds } }, ...(ownerRecordIds.length ? [{ id: { $in: ownerRecordIds } }] : [])] }, { limit: 100, fields: ['full_name','aad_id','dataverse_id'] }) : { items: [] };
     const v2ratings = internal && page.items.length ? await base44.entities.ASEV2Current.filter({account_id:{$in:page.items.map(a=>a.id)}},{limit:30}) : {items:[]};
     const items = page.items.map(rawAccount => {
       const {ase_score,ase_reason,ase_assessed_at,...safeAccount}=rawAccount;

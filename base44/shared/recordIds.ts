@@ -1,0 +1,1 @@
+export const recordIds=values=>values.filter(value=>typeof value==='string' && /^[a-f0-9]{24}$/i.test(value));

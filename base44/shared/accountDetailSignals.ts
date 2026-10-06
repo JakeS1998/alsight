@@ -1,3 +1,4 @@
+import {recordIds} from './recordIds.ts';
 export async function accountDetailSignals(base44,accountId,internal,visibleMoney) {
  const rawAccount=await base44.entities.Account.get(accountId);
  if(!rawAccount)return {items:[],total:0,next_cursor:null,has_more:false};
@@ -10,14 +11,15 @@ export async function accountDetailSignals(base44,accountId,internal,visibleMone
  ]);
  if([legal,warranties,contracts].some(page=>page.has_more))throw Object.assign(new Error('Organisation project links exceed the reporting limit.'),{status:422});
  const projectIds=[...new Set([...legal.items,...warranties.items,...contracts.items].filter(Boolean))];
- const related={$or:[{client_account_id:{$in:keys}},{account_id:{$in:keys}},...(projectIds.length ? [{id:{$in:projectIds}},{dataverse_id:{$in:projectIds}}] : [])]};
+ const projectRecordIds=recordIds(projectIds);
+ const related={$or:[{client_account_id:{$in:keys}},{account_id:{$in:keys}},...(projectRecordIds.length ? [{id:{$in:projectRecordIds}}] : []),...(projectIds.length ? [{dataverse_id:{$in:projectIds}}] : [])]};
  const live={status:{$ne:'inactive'},live_project:true,approval_status:{$nin:['complete','completed']},$or:[{practical_completion_date:{$exists:false}},{practical_completion_date:{$in:[null,'']}},{practical_completion_date:{$gte:new Date().toISOString()}}]};
  const [projects,openOpportunities,activity,conversation,owners,v2ratings]=await Promise.all([
   base44.entities.Project.aggregate({query:{$and:[live,related]},...(visibleMoney ? {sum:'estimated_value'} : {})}),
   base44.entities.Opportunity.count({...scope,status:'open'}),
   base44.entities.CRMActivity.filter(scope,{sort:'-occurred_at',limit:1,fields:['occurred_at']}),
   base44.entities.Conversation.filter(scope,{sort:'-occurred_at',limit:1,fields:['occurred_at']}),
-  rawAccount.account_manager_aad_id ? base44.entities.Contact.filter({$or:[{aad_id:rawAccount.account_manager_aad_id},{dataverse_id:rawAccount.account_manager_aad_id},{id:rawAccount.account_manager_aad_id}]},{limit:1,fields:['full_name']}) : {items:[]},
+  rawAccount.account_manager_aad_id ? base44.entities.Contact.filter({$or:[{aad_id:rawAccount.account_manager_aad_id},{dataverse_id:rawAccount.account_manager_aad_id},...(recordIds([rawAccount.account_manager_aad_id]).length ? [{id:rawAccount.account_manager_aad_id}] : [])]},{limit:1,fields:['full_name']}) : {items:[]},
   internal ? base44.entities.ASEV2Current.filter({account_id:rawAccount.id},{limit:1}) : {items:[]}
  ]);
  const {ase_score,ase_reason,ase_assessed_at,...safeAccount}=rawAccount;
