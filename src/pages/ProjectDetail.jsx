@@ -105,11 +105,11 @@ export default function ProjectDetail() {
   }
 
   return (
-    <Tabs className="project-workspace" orientation="vertical" value={activeTab} onValueChange={tab => { setActiveTab(tab); setEditUKLFKpis(false); }}>
-      <ProjectWorkspaceNav user={user} project={project} isSupplier={isSupplier} isExternalPM={isExternalPM} canSeeValuations={canSeeValuations} />
+    <Tabs className="project-workspace" orientation="horizontal" value={activeTab} onValueChange={tab => { setActiveTab(tab); setEditUKLFKpis(false); }}>
       <main className="ws-main">
         <ProjectStickyHeader className="ws-sticky-header">
           <ProjectWorkspaceHeader project={project} user={user} isSupplier={isSupplier} client={accountMap[project.client_account_id]} />
+          <ProjectWorkspaceNav user={user} project={project} isSupplier={isSupplier} isExternalPM={isExternalPM} canSeeValuations={canSeeValuations} />
         </ProjectStickyHeader>
         <TabsContent value="general" className="ws-content space-y-6">
           {INTERNAL_ROLES.includes(user?.role) && <ProjectAttention project={project}/>}
