@@ -11,6 +11,7 @@ import {checkLeadershipRules} from '../../shared/aseLeadershipChecks.ts';
 import {officialSanctions} from '../../shared/aseLeadershipSanctions.ts';
 import {checkASEV2Scheduling} from '../../shared/aseV2SchedulingChecks.ts';
 import {v2DisplayAssessment} from '../../shared/aseV2Display.ts';
+import {dataRequestError} from '../../shared/dataRequestError.ts';
 export default async function(req: Request): Promise<Response> {
   try {
     const base44=createClientFromRequest(req),user=await base44.auth.me();
@@ -44,5 +45,5 @@ export default async function(req: Request): Promise<Response> {
     const id=input.assessmentId || current?.assessment_id,assessment=id ? await base44.entities.ASEV2Assessment.get(id) : null;
     if(assessment && assessment.account_id!==account.id) return Response.json({error:'Assessment belongs to another relationship.'},{status:403});
     return Response.json({policy,current,assessment:v2DisplayAssessment(assessment),history:{...history,items:history.items.map(v2DisplayAssessment)}});
-  } catch(error){return Response.json({error:error.message || 'Unable to complete ASE v2 operation.'},{status:400});}
+  } catch(error){return dataRequestError(error,'Unable to complete ASE v2 operation.',400);}
 }

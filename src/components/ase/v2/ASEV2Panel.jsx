@@ -13,9 +13,10 @@ import ASEV2PolicyEditor from '@/components/ase/v2/ASEV2PolicyEditor';
 import ASEV2History from '@/components/ase/v2/ASEV2History';
 import ASECommercialConcentration from '@/components/ase/ASECommercialConcentration';
 import LeadershipControl from '@/components/ase/v2/LeadershipControl';
+import organisationQueryPolicy from '@/components/data/organisationQueryPolicy';
 export default function ASEV2Panel({account}) {
   const {user}=useAuth(),cache=useQueryClient(),[selected,setSelected]=useState(null),[inputs,setInputs]=useState(false),[exposure,setExposure]=useState(false),[confirmed,setConfirmed]=useState(false),admin=user?.role==='admin';
-  const query=useQuery({queryKey:['ase','v2',account.id,selected,user?.id,user?.role],queryFn:()=>aseV2Request('detail',{accountId:account.id,...(selected ? {assessmentId:selected} : {})})});
+  const query=useQuery({...organisationQueryPolicy,queryKey:['ase','v2',account.id,selected,user?.id,user?.role],queryFn:()=>aseV2Request('detail',{accountId:account.id,...(selected ? {assessmentId:selected} : {})})});
   const assess=useMutation({mutationFn:()=>aseV2Request('assess',{accountId:account.id,confirmed}),onSuccess:()=>{setSelected(null);setConfirmed(false);invalidateASE(cache);}});
   if(query.isPending) return <p role="status">Loading All Seeing Eye assessment…</p>;
   if(query.error) return <p role="alert" className="text-sm text-destructive">{aseError(query.error)} <button className="underline" onClick={()=>query.refetch()}>Try again</button></p>;
