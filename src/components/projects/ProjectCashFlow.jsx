@@ -28,10 +28,10 @@ export function useProjectCashFlow(projectId) {
   return { invoices, entries, loading, error };
 }
 
-export default function ProjectCashFlow({ entries, loading, error }) {
+export default function ProjectCashFlow({ entries, commitments = [], loading, error }) {
   return <section className="rounded-2xl border border-border bg-card p-5 space-y-5">
     <div><h3 className="font-heading text-base font-semibold text-card-foreground">Money in & out</h3>
-      <p className="text-xs text-muted-foreground">Cumulative client payments, recorded spending and net cash balance; sample figures are illustrative.</p></div>
-    {loading ? <p className="py-12 text-center text-sm text-muted-foreground">Loading cash flow…</p> : error ? <p role="alert" className="text-sm text-destructive">{error}</p> : <CashFlowChart entries={entries} />}
+      <p className="text-xs text-muted-foreground">Cumulative client payments, recorded spending, net cash balance and approved or issued PO commitments (net of VAT). PO commitments are not payments and do not reduce the cash balance.</p></div>
+    {loading ? <p className="py-12 text-center text-sm text-muted-foreground">Loading cash flow…</p> : error ? <p role="alert" className="text-sm text-destructive">{error}</p> : <CashFlowChart entries={entries} commitments={commitments} />}
   </section>;
 }
