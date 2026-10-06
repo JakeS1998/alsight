@@ -1,0 +1,94 @@
+{
+  "name": "Companies House Exact Name Lookup",
+  "description": "Search missing company numbers by exact current registered name; save only unique verified matches without overwriting existing numbers.",
+  "trigger": {
+    "config": {
+      "trigger_type": "entity",
+      "entity_name": "CompanyNameLookupRun",
+      "events": [
+        "create",
+        "update"
+      ]
+    },
+    "condition": "${ .trigger.data.status == \"running\" and .trigger.data.dispatch_token != .trigger.old_data.dispatch_token }"
+  },
+  "definition": {
+    "document": {
+      "dsl": "1.0.0",
+      "name": "company_name_lookup",
+      "version": "1.0",
+      "namespace": "base44"
+    },
+    "do": [
+      {
+        "throttle": {
+          "wait": "PT30S",
+          "then": "lookup",
+          "x-base44": {
+            "title": "Space out company searches"
+          }
+        }
+      },
+      {
+        "lookup": {
+          "call": "invoke_backend_function",
+          "with": {
+            "function_name": "manageSupplierRegistry",
+            "args": {
+              "action": "nameLookupStep",
+              "runId": "${ .trigger.entity_id }",
+              "token": "${ .trigger.data.dispatch_token }"
+            }
+          },
+          "then": "check_busy",
+          "x-base44": {
+            "title": "Check the next missing company number"
+          }
+        }
+      },
+      {
+        "check_busy": {
+          "switch": [
+            {
+              "when": "${ .lookup.busy == true }",
+              "then": "retry_wait"
+            },
+            {
+              "when": "${ true }",
+              "then": "end"
+            }
+          ],
+          "x-base44": {
+            "title": "Check search availability"
+          }
+        }
+      },
+      {
+        "retry_wait": {
+          "wait": "PT60S",
+          "then": "retry_lookup",
+          "x-base44": {
+            "title": "Wait before retrying"
+          }
+        }
+      },
+      {
+        "retry_lookup": {
+          "call": "invoke_backend_function",
+          "with": {
+            "function_name": "manageSupplierRegistry",
+            "args": {
+              "action": "nameLookupStep",
+              "runId": "${ .trigger.entity_id }",
+              "token": "${ .trigger.data.dispatch_token }"
+            }
+          },
+          "then": "end",
+          "x-base44": {
+            "title": "Continue the saved name search"
+          }
+        }
+      }
+    ]
+  }
+}

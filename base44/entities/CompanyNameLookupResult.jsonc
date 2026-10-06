@@ -1,0 +1,56 @@
+{
+  "name": "CompanyNameLookupResult",
+  "type": "object",
+  "properties": {
+    "job_key": {
+      "type": "string"
+    },
+    "run_id": {
+      "type": "string"
+    },
+    "account_id": {
+      "type": "string"
+    },
+    "account_name": {
+      "type": "string"
+    },
+    "outcome": {
+      "type": "string",
+      "enum": [
+        "matched",
+        "no_match",
+        "ambiguous",
+        "failed",
+        "skipped"
+      ]
+    },
+    "company_number": {
+      "type": "string"
+    },
+    "registered_name": {
+      "type": "string"
+    },
+    "company_status": {
+      "type": "string"
+    },
+    "source_reference": {
+      "type": "string"
+    },
+    "checked_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "note": {
+      "type": "string",
+      "maxLength": 1000
+    }
+  },
+  "required": [
+    "job_key",
+    "run_id",
+    "account_id",
+    "account_name",
+    "outcome",
+    "checked_at"
+  ]
+}

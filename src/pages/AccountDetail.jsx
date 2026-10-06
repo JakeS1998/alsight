@@ -41,6 +41,15 @@ export default function AccountDetail() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
+    if (!user?.id) return;
+    return base44.entities.Account.subscribe(event => {
+      if (event.type !== 'update' || event.id !== accountId || !Object.prototype.hasOwnProperty.call(event.data || {}, 'company_number')) return;
+      setAccount(current => current ? { ...current, company_number: event.data.company_number } : current);
+      cache.setQueryData(['account-record',user.id,user.role,accountId], current => current ? { ...current, company_number: event.data.company_number } : current);
+    });
+  }, [accountId,user?.id,user?.role,cache]);
+
+  useEffect(() => {
     let active = true;
     if (!user?.id) return;
     setLoading(true);

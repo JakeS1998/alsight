@@ -1,0 +1,48 @@
+{
+  "name": "CompanyNameLookupRun",
+  "type": "object",
+  "properties": {
+    "status": {
+      "type": "string",
+      "enum": [
+        "running",
+        "completed"
+      ]
+    },
+    "eligible_count": {
+      "type": "integer"
+    },
+    "cursor": {
+      "type": "string"
+    },
+    "dispatch_token": {
+      "type": "string"
+    },
+    "retry_count": {
+      "type": "integer",
+      "default": 0
+    },
+    "requested_by": {
+      "type": "string"
+    },
+    "started_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "last_activity": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "completed_at": {
+      "type": "string",
+      "format": "date-time"
+    }
+  },
+  "required": [
+    "status",
+    "eligible_count",
+    "dispatch_token",
+    "requested_by",
+    "started_at"
+  ]
+}
