@@ -1,8 +1,11 @@
 import React,{useEffect,useState} from 'react';
 import {base44} from '@/api/base44Client';
+import {useQueryClient} from '@tanstack/react-query';
+import {useAuth} from '@/lib/AuthContext';
 export default function PeopleFilters({filters,onChange}) {
+  const cache=useQueryClient(),{user}=useAuth();
   const [owners,setOwners]=useState([]),[organisations,setOrganisations]=useState([]),[term,setTerm]=useState('');
-  useEffect(()=>{base44.entities.Contact.filter({portal_role:{$in:['admin','director','regional_director','bsm','finance','bdm']}},{limit:100,sort:'full_name',fields:['full_name']}).then(p=>setOwners(p.items));},[]);
+  useEffect(()=>{let active=true;cache.fetchQuery({queryKey:['people-staff',user?.id,user?.role],staleTime:60000,retry:false,queryFn:()=>base44.entities.Contact.filter({portal_role:{$in:['admin','director','regional_director','bsm','finance','bdm']}},{limit:100,sort:'full_name',fields:['full_name','portal_role']})}).then(p=>{if(active)setOwners(p.items);});return()=>{active=false;};},[cache,user?.id,user?.role]);
   useEffect(()=>{const timer=setTimeout(()=>base44.entities.Account.filter(term ? {name:{$regex:term.replace(/[.*+?^${}()|[\]\\]/g,'\\$&'),$options:'i'}} : {},{limit:50,sort:'name',fields:['name']}).then(p=>setOrganisations(p.items)),300);return()=>clearTimeout(timer);},[term]);
   const select=(key,label,choices)=><label className="sr-only">{label}</label>;
   const field=(key,label,choices)=><select aria-label={label} className="max-w-56 rounded-lg border border-input bg-card px-3 py-2 text-xs" value={filters[key] || ''} onChange={e=>onChange({...filters,[key]:e.target.value})}><option value="">{label}</option>{choices.map(([value,text])=><option key={value} value={value}>{text}</option>)}</select>;
