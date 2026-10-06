@@ -1,9 +1,11 @@
 import {uklfReportScope} from './uklfReportScope.ts';
 import {workspaceFields,workspaceQuery,safeWorkspaceRow} from './frameworkWorkspaceRules.ts';
 import {frameworkWorkspaceSummary} from './frameworkWorkspaceSummary.ts';
+import {scopedReadCache,invalidateScopedRead} from './scopedReadCache.ts';
 export async function frameworkWorkspace(base44,user,body) {
  const internal=user.role!=='framework_stakeholder',source=internal ? base44.entities.FrameworkProjectReport : base44.asServiceRole.entities.FrameworkProjectReport;
- const scope=await uklfReportScope(base44.asServiceRole.entities);
+ const viewerKey=`framework:${user.id}:${user.role}`;
+ const scope=await scopedReadCache(`${viewerKey}:scope`,()=>uklfReportScope(base44.asServiceRole.entities));
  const withinScope=record=>record && !Object.entries(scope).some(([field,rule])=>rule.$nin?.includes(record[field]));
  if(body.workspaceAction==='detail') {
   if(!/^[a-f0-9]{24}$/i.test(body.reportId || ''))return Response.json({error:'Invalid Framework record.'},{status:400});
@@ -21,9 +23,12 @@ export async function frameworkWorkspace(base44,user,body) {
   if(!withinScope(record) || !project || project.procurement_route===false)return Response.json({error:'Select an accessible Framework project.'},{status:400});
   if(record.project_id)return Response.json({error:'This record is already linked. Refresh the workspace.'},{status:409});
   const duplicate=await source.count({project_id:project.id});if(duplicate)return Response.json({error:'That ALSight project is already linked to a Framework record.'},{status:409});
-  await source.update(body.reportId,{project_id:project.id,project_number:project.project_number || ''});return Response.json({linked:true});
+  await source.update(body.reportId,{project_id:project.id,project_number:project.project_number || ''});invalidateScopedRead('framework:');return Response.json({linked:true});
  }
- if(body.workspaceAction==='summary')return Response.json(await frameworkWorkspaceSummary(source,scope,internal,[7,30,90].includes(body.days) ? body.days : 30));
+ if(body.workspaceAction==='summary') {
+  const days=[7,30,90].includes(body.days) ? body.days : 30;
+  return Response.json(await scopedReadCache(`${viewerKey}:summary:${days}:${JSON.stringify(scope)}`,()=>frameworkWorkspaceSummary(source,scope,internal,days)));
+ }
  if(body.workspaceAction==='clients') {
   const term=String(body.term || '').slice(0,80).replace(/[.*+?^${}()|[\]\\]/g,'\\$&');
   return Response.json(await source.filter({$and:[scope,...(term ? [{client:{$regex:term,$options:'i'}}] : [])]},{distinct:'client',sort:'client',limit:50,...(body.cursor ? {cursor:body.cursor} : {})}));

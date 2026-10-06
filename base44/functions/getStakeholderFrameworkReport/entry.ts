@@ -3,6 +3,7 @@ import { completionOutcome, reportProject } from '../../shared/uklfCompletion.ts
 import { uklfPortfolioSummary } from '../../shared/uklfPortfolioSummary.ts';
 import { uklfReportScope } from '../../shared/uklfReportScope.ts';
 import {frameworkWorkspace} from '../../shared/frameworkWorkspace.ts';
+import {dataRequestError} from '../../shared/dataRequestError.ts';
 
 const INTERNAL = ['admin', 'director', 'regional_director', 'bsm', 'finance', 'bdm'];
 const STAGES = ['pq_date', 'aa_signed', 'calloff_date', 'completed_on_time'];
@@ -109,6 +110,6 @@ export default async function(req: Request): Promise<Response> {
     return Response.json({ rows, count, ...summary });
   } catch (error) {
     console.error('Framework report unavailable', error);
-    return Response.json({ error: 'Unable to load framework report' }, { status: 500 });
+    return dataRequestError(error, 'Unable to load framework report');
   }
 }
