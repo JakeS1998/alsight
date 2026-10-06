@@ -9,6 +9,6 @@ export async function frameworkWorkspaceSummary(source,scope,internal,days=30) {
   const batch=await Promise.all(entries.slice(index,index+2).map(async([key,query])=>[key,await source.count(query)]));
   for(const [key,value] of batch)summary[key]=value;
  }
- if(internal){const value=await source.aggregate({query:scope,sum:'calloff_value'});summary.totalCallOffValue=value.rows?.[0]?.sum_calloff_value ?? 0;}
+ if(internal){const value=await source.aggregate({query:scope,sum:['calloff_value','access_fee']});summary.totalCallOffValue=value.rows?.[0]?.sum_calloff_value ?? 0;summary.totalUKLFFees=value.rows?.[0]?.sum_access_fee ?? 0;}
  return {...summary,periodDays:days,asOf:new Date().toISOString(),activityNote:'Questionnaire activity uses the recorded PQ date, not the date added to the system; missing or future PQ dates are excluded. Agreements and call-offs use recorded milestone dates. Outcome updates are not necessarily newly completed projects.'};
 }
