@@ -12,11 +12,11 @@ import { INTERNAL_ROLES } from '@/lib/portal';
 import { hasCompanyRegistry } from '@/components/accounts/accountSections';
 import { aseRoles } from '@/components/ase/aseClient';
 import ASECommercialConcentration from '@/components/ase/ASECommercialConcentration';
-export default function AccountOverview({ account, contacts, projects, signals, user, summaryLoading, summaryError, onAccountEnriched }) {
+export default function AccountOverview({ account, contacts, projects, signals, user, summaryLoading, summaryError, onSummaryRetry, onAccountEnriched }) {
   const showCompaniesHouse = hasCompanyRegistry(account) && aseRoles.includes(user?.role);
   return <div className="account-overview-grid">
     {INTERNAL_ROLES.includes(user?.role) && <section className="account-panel account-assessment-panel" aria-label="All Seeing Eye assessment"><ASERating account={account} expanded /></section>}
-    <AccountRelationshipSummary account={account} signals={signals} loading={summaryLoading} error={summaryError} />
+    <AccountRelationshipSummary account={account} signals={signals} loading={summaryLoading} error={summaryError} onRetry={onSummaryRetry} />
     <AccountKeyPeople account={account} />
     <AccountRecentActivity account={account} />
     <div className="account-work-row"><AccountCurrentWork account={account} projects={projects}/>{INTERNAL_ROLES.includes(user?.role) && <AccountInsightCard account={account}/>}</div>

@@ -18,6 +18,8 @@ export default function ASECommercialFigures({data,historical=false}) {
         <span aria-label="Latest reported turnover">{data.turnover?.status==='available' ? formatCurrency(data.turnover.value) : 'Unavailable'}</span>
       </div>
     </div>
+    {!available && <div role="status" className="rounded-md bg-muted p-3 text-xs"><p className="font-semibold">Concentration cannot be calculated yet</p><p className="mt-1 text-muted-foreground">{data.reason || 'Usable contract values and verified annual turnover are required; missing evidence is not zero concentration.'}</p>{data.turnover?.reason && data.turnover.reason!==data.reason && <p className="mt-2 text-muted-foreground">Turnover: {data.turnover.reason}</p>}</div>}
+    {!!data.warnings?.length && <ul className="list-disc space-y-1 pl-4 text-xs text-muted-foreground">{data.warnings.map((warning,index)=><li key={index}>{warning}</li>)}</ul>}
     <ASECommercialEvidence data={data}/>
   </div>;
 }
