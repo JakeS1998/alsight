@@ -1,6 +1,7 @@
 import {normaliseCompanyNumber} from './companiesHouseData.ts';
 import {readSourceResponse} from './aseSourceCommon.ts';
 import {vatIdentifier} from './aseVatIdentifier.ts';
+import {filedTurnoverPeriod} from './aseFiledTurnover.ts';
 export async function commercialTurnover(base44,account,now=new Date()) {
   const filed=await filedCommercialTurnover(base44,account,now);
   return filed.status==='available' ? {...filed,source_label:'Companies House filed accounts'} : filed;
@@ -22,12 +23,8 @@ export async function filedCommercialTurnover(base44,account,now=new Date(),maxA
     const snapshot=JSON.parse(stored.text);
     if(snapshot.identifier!==number || snapshot.data?.company_number!==number) return {status:'unavailable',reason:'Turnover evidence does not match this company.'};
     const candidates=(snapshot.data.periods || []).filter(period=>period.metrics?.revenue).sort((a,b)=>b.end.localeCompare(a.end));
-    const period=candidates[0],metric=period?.metrics?.revenue;
-    if(!period) return {status:'unavailable',reason:'Turnover is not disclosed in the available accounts. No revenue is inferred from other financial figures.'};
-    const days=(Date.parse(metric.end)-Date.parse(metric.start))/86400000+1,age=(now.getTime()-Date.parse(period.end))/86400000;
-    const source=new URL(period.source_url);
-    if(period.origin==='pdf' || metric.annual!==true || !Number.isFinite(days) || !Number.isFinite(age) || !Number.isFinite(Date.parse(period.filed_at)) || metric.end!==period.end || days<365 || days>366 || !(metric.value>0) || !Number.isFinite(metric.value) || !/(?:^|:)(?:TurnoverRevenue|Revenue|Turnover)$/.test(metric.concept || '') || age<0 || age>maxAgeDays || Date.parse(period.filed_at)<Date.parse(period.end) || Date.parse(period.filed_at)>now.getTime() || source.protocol!=='https:' || source.hostname!=='find-and-update.company-information.service.gov.uk' || !source.pathname.startsWith(`/company/${number}/filing-history/`)) return {status:'unavailable',reason:'The latest disclosed turnover is stale, non-annual, non-positive or unverified. ALICE PDF figures are not independently verified and cannot be used as this denominator.'};
-    return {status:'available',value:metric.value,currency:'GBP',period_start:metric.start,period_end:period.end,source_reference:source.href,source_date:period.filed_at,refresh_id:audit.id,raw_sha256:sha,retrieved_at:audit.refreshed_at,company_number:number};
+    const turnover=filedTurnoverPeriod(candidates[0],number,now,maxAgeDays);
+    return turnover.status==='available' ? {...turnover,refresh_id:audit.id,raw_sha256:sha,retrieved_at:audit.refreshed_at} : turnover;
   } catch(error) {return {status:'unavailable',reason:'Stored turnover evidence could not be verified: '+String(error.message).slice(0,200)};}
 }
 export async function hmrcStatus(base44,account) {

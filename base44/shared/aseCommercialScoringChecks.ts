@@ -1,5 +1,6 @@
 import {calculate,defaultModels,scoreEvidence} from './asePolicy.ts';
 import {commercialRule,commercialEvidence,withCommercialModel} from './aseCommercialScoring.ts';
+import {filedTurnoverPeriod} from './aseFiledTurnover.ts';
 export function checkCommercialScoringRules() {
   const at='2026-10-05T12:00:00Z',account={id:'commercial-rule-check',name:'Rule check'},now=new Date(at);
   const data={status:'available',percentage:60,annualised_value:600000,included_count:1,excluded_count:0,estimated:false,turnover:{status:'available',value:1000000,currency:'GBP',period_start:'2025-01-01',period_end:'2025-12-31',annual_verified:true}};
@@ -8,7 +9,17 @@ export function checkCommercialScoringRules() {
   const scored=calculate(defaultModels,'company',[...base,row],now),provisional=calculate(defaultModels,'company',[...base,estimated],now),missing=calculate(defaultModels,'company',base,now);
   const legacy={company:defaultModels.company.filter(r=>r.key!==commercialRule.key).map(r=>({...r,weighting:r.weighting/0.9})),english_local_authority:defaultModels.english_local_authority};
   const migrated=withCommercialModel(legacy);
+  const period={end:'2025-12-31',origin:'pdf',filed_at:'2026-08-18',source_url:'https://find-and-update.company-information.service.gov.uk/company/02999852/filing-history/example',pdf_file_uri:'private/test.pdf',metrics:{revenue:{value:30036460,concept:'PDF:revenue',start:'2025-01-01',end:'2025-12-31',annual:true,page:12,quote:'TURNOVER 30,036,460',multiplier:1}}};
+  const turnover=filedTurnoverPeriod(period,'02999852',now),invalid=changes=>filedTurnoverPeriod({...period,metrics:{revenue:{...period.metrics.revenue,...changes}}},'02999852',now);
   return {
+    filedPdfTurnover:turnover.status==='available' && turnover.value===30036460 && turnover.period_end==='2025-12-31' && turnover.annual_verified===false && turnover.confidence==='Low',
+    filedPdfTurnoverCitation:invalid({quote:'TURNOVER 999'}).status==='unavailable',
+    filedPdfTurnoverDefinition:invalid({quote:'Net assets 30,036,460'}).status==='unavailable',
+    filedTurnoverAnnual:invalid({start:'2025-07-01',annual:false}).status==='unavailable',
+    filedTurnoverIdentity:filedTurnoverPeriod(period,'00000000',now).status==='unavailable',
+    filedTurnoverNoZero:invalid({value:0}).status==='unavailable',
+    filedPdfConcentrationLowConfidence:commercialEvidence(account,{...data,turnover},at)?.confidence==='Low',
+    filedTaggedTurnover:filedTurnoverPeriod({...period,origin:undefined,metrics:{revenue:{...period.metrics.revenue,concept:'uk-core:TurnoverRevenue'}}},'02999852',now).annual_verified===true,
     concentrationExactBands:[[0,5],[9.999,5],[10,4],[24.999,4],[25,3],[49.999,3],[50,2],[74.999,2],[75,1],[150,1]].every(([value,score])=>scoreEvidence(commercialRule,{value:String(value)})===score),
     concentrationTenPercent:commercialRule.weighting===10 && Math.abs(defaultModels.company.reduce((sum,r)=>sum+r.weighting,0)-100)<1e-6,
     concentrationWeighted:Math.abs(scored.precise_score-3.98)<1e-6 && scored.coverage===100,
