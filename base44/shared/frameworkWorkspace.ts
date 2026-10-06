@@ -27,7 +27,7 @@ export async function frameworkWorkspace(base44,user,body) {
  }
  if(body.workspaceAction==='summary') {
   const days=[7,30,90].includes(body.days) ? body.days : 30;
-  return Response.json(await scopedReadCache(`${viewerKey}:summary:fees:${days}:${JSON.stringify(scope)}`,()=>frameworkWorkspaceSummary(source,scope,internal,days)));
+  return Response.json(await scopedReadCache(`${viewerKey}:summary:fast:${days}:${JSON.stringify(scope)}`,()=>frameworkWorkspaceSummary(source,scope,internal,days)));
  }
  if(body.workspaceAction==='clients') {
   const term=String(body.term || '').slice(0,80).replace(/[.*+?^${}()|[\]\\]/g,'\\$&');
