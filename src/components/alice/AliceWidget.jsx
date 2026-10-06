@@ -68,9 +68,9 @@ export default function AliceWidget() {
       });
     };
   }, [conversation?.id]);
-  const send = async (value, draft = false) => {
+  const send = async (value, draft = false, explainOnly = false) => {
     if (!value.trim() || busy || restoring) return;
-    if (!draft) {
+    if (!draft && !explainOnly) {
       const intent = value.trim().match(/\b(?:new|add|create|log|record)\b.{0,45}\b(opportunity|project|risk|comment|action|decision|valuation)\b|\b(opportunity|project|risk|comment|action|decision|valuation)\b.{0,30}\b(?:log|add|create|record)\b/i);
       const type = intent?.[1]?.toLowerCase() || intent?.[2]?.toLowerCase();
       if (type && GUIDES[type].roles.includes(user?.role)) { start(type); setText(''); return; }

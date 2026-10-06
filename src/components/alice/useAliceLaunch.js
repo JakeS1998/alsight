@@ -11,7 +11,7 @@ export default function useAliceLaunch({ user, guide, open, busy, restoring, sen
     if (task && GUIDES[task]?.roles.includes(user?.role)) {
       setPending(null); setText(''); start(task);
     } else if (typeof prompt === 'string' && prompt.trim()) {
-      cancel(); setText(prompt.trim()); setPending(autoSend ? prompt.trim() : null);
+      cancel(); setText(prompt.trim()); setPending(autoSend ? {prompt:prompt.trim(),explainOnly:event.detail?.assessment===true} : null);
     }
   };
   useEffect(() => {
@@ -22,7 +22,7 @@ export default function useAliceLaunch({ user, guide, open, busy, restoring, sen
   useEffect(() => {
     if (!pending || !open || restoring || busy || guide) return;
     setPending(null);
-    send(pending);
+    send(pending.prompt,false,pending.explainOnly);
   }, [pending, open, restoring, busy, guide, send]);
   return () => setPending(null);
 }
