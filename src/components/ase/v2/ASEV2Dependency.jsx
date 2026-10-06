@@ -1,0 +1,10 @@
+import React from 'react';
+import {Button} from '@/components/ui/button';
+import {formatCurrency} from '@/lib/portal';
+export default function ASEV2Dependency({data,onReview,onExposure}) {
+  if(!data) return null;
+  return <section className="rounded-lg border border-border p-4"><h3 className="font-semibold">Alliance Dependency</h3><p className="mt-2 text-sm">{Number.isFinite(data.percentage) ? `${data.percentage.toFixed(1)}% · ${data.label}` : 'Insufficient exposure or turnover evidence'}</p>{data.high_dependency && <p className="mt-2 text-sm font-semibold text-risk-high">High Alliance Dependency flag, concentration/exposure risk only</p>}
+    <dl className="mt-3 grid gap-3 text-xs sm:grid-cols-2"><div><dt className="text-muted-foreground">Current reviewed Alliance contract exposure</dt><dd>{data.exposure===null || data.exposure===undefined ? 'Unavailable' : formatCurrency(data.exposure)}</dd></div><div><dt className="text-muted-foreground">Annual company turnover</dt><dd>{data.turnover?.status==='available' ? formatCurrency(data.turnover.value) : 'Unavailable'}</dd></div><div><dt className="text-muted-foreground">Turnover provenance</dt><dd>{data.turnover?.source_label || data.turnover?.reason || 'Not recorded'}</dd></div><div><dt className="text-muted-foreground">Accounts period / date obtained</dt><dd>{data.turnover?.period_end || 'Unknown'} / {data.turnover?.retrieved_at || 'Unknown'}</dd></div></dl>
+    {data.turnover_age_days!=null && <p className="mt-2 text-xs">Evidence age: {data.turnover_age_days} days. {data.stale && 'Stale turnover reduces evidence confidence, not the dependency score.'}</p>}<p className="mt-2 text-xs text-muted-foreground">{data.method || 'Missing contract inputs are not a zero-exposure result.'}</p><p className="mt-2 text-xs">High dependency does not imply insolvency, financial distress or poor management.</p><div className="mt-3 flex flex-wrap gap-2">{onReview && <Button size="sm" variant="outline" onClick={onReview}>Review Turnover Evidence</Button>}{onExposure && <Button size="sm" variant="outline" onClick={onExposure}>Review Exposure</Button>}</div>
+  </section>;
+}

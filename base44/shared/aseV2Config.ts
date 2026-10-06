@@ -1,0 +1,26 @@
+export const aseV2Defaults={
+  components:[{key:'financial',label:'Financial Health',weight:25},{key:'adverse',label:'Adverse Events & Corporate Stability',weight:20},{key:'profile',label:'Trading & Corporate Profile',weight:10},{key:'dependency',label:'Alliance Dependency',weight:15},{key:'experience',label:'Alliance Experience',weight:10},{key:'market',label:'Market Diversification',weight:10},{key:'esg',label:'ESG & Regulatory',weight:10}],
+  slots:{financial:{strength:35,trend:20,liquidity:25,debt:20},adverse:{registry:40,gazette:35,sanctions:25},profile:{filings:60,ownership:40},dependency:{exposure:100},experience:{outcomes:100},market:{find_a_tender:50,contracts_finder:50},esg:{environment_agency:100}},
+  confidence:{high:85,medium:60,minimum:40},quality:{High:1,Medium:0.85,Low:0.5},freshness_days:{registry:7,accounts:7,gazette:1,local_authority:7,council_governance:7,turnover:540,experience:730},
+  dependency_curve:[{percentage:0,score:5},{percentage:10,score:5},{percentage:20,score:4.5},{percentage:35,score:3.5},{percentage:50,score:2},{percentage:65,score:1.25},{percentage:100,score:1}],dependency_flag:65,
+  financial_rules:{strength:{thresholds:[0,10,25,40],descending:false},trend:{thresholds:[-10,0,5,10],descending:false},liquidity:{thresholds:[0.75,1,1.25,2],descending:false},debt:{thresholds:[10,25,40,60],descending:true}},
+  experience_scores:{excellent:5,satisfactory:4,resolved_issue:3,unresolved_material:2,serious_unresolved:1},
+  caps:{active_insolvency:1.5,dissolved:1.5,confirmed_material_sanctions:1.5},classifications:[{minimum:4,label:'Strong'},{minimum:3.5,label:'Good'},{minimum:2.5,label:'Stable / Monitor'},{minimum:1.6,label:'Concern'},{minimum:1,label:'Critical'}],commercial_credit_provider:'None / Awaiting integration'
+};
+export async function getASEV2Policy(db) {const page=await db.ASEV2Policy.filter({},{sort:'-created_date',limit:1});return page.items[0] || {version:'ASE-v2-foundation-1',configuration:aseV2Defaults};}
+export function validateASEV2Config(c) {
+  const keys=aseV2Defaults.components.map(r=>r.key),finite=(v,min,max)=>typeof v==='number' && Number.isFinite(v) && v>=min && v<=max;
+  if(!c || !Array.isArray(c.components) || c.components.length!==keys.length || keys.some(k=>c.components.filter(r=>r.key===k).length!==1) || c.components.some(r=>!finite(r.weight,0,100)) || Math.abs(c.components.reduce((s,r)=>s+r.weight,0)-100)>1e-6) throw new Error('All seven weights must be supplied and total 100%.');
+  for(const key of keys) {const slots=c.slots?.[key],expected=Object.keys(aseV2Defaults.slots[key]);if(!slots || Object.keys(slots).length!==expected.length || expected.some(s=>!finite(slots[s],0.01,100)) || Math.abs(Object.values(slots).reduce((s,v)=>s+v,0)-100)>1e-6) throw new Error('Evidence weights must total 100% within each component.');}
+  if(!finite(c.confidence?.minimum,1,100) || !finite(c.confidence?.medium,c.confidence.minimum,100) || !finite(c.confidence?.high,c.confidence.medium,100)) throw new Error('Confidence thresholds must increase from minimum to Medium to High.');
+  for(const key of Object.keys(aseV2Defaults.caps)) if(!finite(c.caps?.[key],1,5)) throw new Error('Severe-event caps must be between 1 and 5.');
+  for(const key of Object.keys(aseV2Defaults.freshness_days)) if(!finite(c.freshness_days?.[key],1,3650)) throw new Error('Evidence freshness must be between 1 and 3650 days.');
+  for(const key of ['High','Medium','Low']) if(!finite(c.quality?.[key],0.01,1)) throw new Error('Evidence quality must be between 0 and 1.');
+  if(!(c.quality.High>=c.quality.Medium && c.quality.Medium>=c.quality.Low)) throw new Error('Evidence quality must decrease with confidence.');
+  if(!Array.isArray(c.dependency_curve) || c.dependency_curve.length<2 || c.dependency_curve.length>12 || c.dependency_curve[0].percentage!==0 || c.dependency_curve.at(-1).percentage<100 || c.dependency_curve.some((r,i)=>!finite(r.percentage,0,1000) || !finite(r.score,1,5) || i>0 && (r.percentage<=c.dependency_curve[i-1].percentage || r.score>c.dependency_curve[i-1].score)) || !finite(c.dependency_flag,50,100)) throw new Error('Provide an increasing exposure curve with non-increasing scores.');
+  for(const key of Object.keys(aseV2Defaults.experience_scores)) if(!finite(c.experience_scores?.[key],1,5)) throw new Error('Experience scores must be between 1 and 5.');
+  for(const key of Object.keys(aseV2Defaults.financial_rules)) {const r=c.financial_rules?.[key];if(!Array.isArray(r?.thresholds) || r.thresholds.length!==4 || r.thresholds.some((v,i)=>!Number.isFinite(v) || i>0 && v<=r.thresholds[i-1]) || typeof r.descending!=='boolean') throw new Error('Financial rules require four increasing thresholds.');}
+  if(!Array.isArray(c.classifications) || c.classifications.length!==5 || c.classifications.at(-1).minimum!==1 || c.classifications.some((r,i)=>!finite(r.minimum,1,5) || typeof r.label!=='string' || r.label.length<1 || r.label.length>40 || i>0 && r.minimum>=c.classifications[i-1].minimum)) throw new Error('Classification boundaries must decrease to 1.');
+  if(c.commercial_credit_provider!=='None / Awaiting integration') throw new Error('Commercial credit cannot be activated until a licensed provider adapter is configured.');
+  return c;
+}

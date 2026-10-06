@@ -1,0 +1,118 @@
+{
+  "name": "ASEV2Current",
+  "type": "object",
+  "properties": {
+    "account_id": {
+      "type": "string"
+    },
+    "assessment_id": {
+      "type": "string"
+    },
+    "displayed_rating": {
+      "type": [
+        "number",
+        "null"
+      ]
+    },
+    "precise_score": {
+      "type": [
+        "number",
+        "null"
+      ]
+    },
+    "rating_label": {
+      "type": "string"
+    },
+    "data_confidence": {
+      "type": "string",
+      "enum": [
+        "High",
+        "Medium",
+        "Low"
+      ]
+    },
+    "coverage": {
+      "type": "number"
+    },
+    "assessment_date": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "explanation": {
+      "type": "string"
+    },
+    "previous_rating": {
+      "type": [
+        "number",
+        "null"
+      ]
+    },
+    "change": {
+      "type": [
+        "number",
+        "null"
+      ]
+    },
+    "methodology": {
+      "type": "string",
+      "enum": [
+        "ASE v2"
+      ]
+    }
+  },
+  "required": [
+    "account_id",
+    "assessment_id",
+    "data_confidence",
+    "coverage",
+    "assessment_date",
+    "methodology"
+  ],
+  "rls": {
+    "read": {
+      "$or": [
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        },
+        {
+          "user_condition": {
+            "role": "director"
+          }
+        },
+        {
+          "user_condition": {
+            "role": "regional_director"
+          }
+        },
+        {
+          "user_condition": {
+            "role": "bsm"
+          }
+        },
+        {
+          "user_condition": {
+            "role": "bdm"
+          }
+        },
+        {
+          "user_condition": {
+            "role": "finance"
+          }
+        }
+      ]
+    },
+    "create": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "update": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "delete": false
+  }
+}

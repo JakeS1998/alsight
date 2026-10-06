@@ -1,0 +1,12 @@
+import React from 'react';
+import {formatDateTime} from '@/lib/portal';
+const tones={CLEAR:'text-success',POSITIVE:'text-success',ADVERSE:'text-destructive',LIMITED:'text-muted-foreground',UNAVAILABLE:'text-muted-foreground','CHECK FAILED':'text-risk-high'};
+export default function ASEV2Evidence({check}) {
+  const url=typeof check.source_reference==='string' && /^https:\/\//.test(check.source_reference);
+  return <details className="rounded-md border border-border bg-card p-3 text-xs"><summary className="flex cursor-pointer flex-wrap justify-between gap-2"><strong>{check.label}</strong><span className={tones[check.state]}>{check.state} · {check.score===null ? 'Unscored' : `${check.score.toFixed(2)}/5`}</span></summary>
+    <p className="mt-2">{check.reason}</p><dl className="mt-2 grid gap-2 sm:grid-cols-2"><div><dt className="text-muted-foreground">Source</dt><dd>{check.source}</dd></div><div><dt className="text-muted-foreground">Checked</dt><dd>{check.checked_at ? formatDateTime(check.checked_at) : 'Not checked / not connected'}</dd></div><div><dt className="text-muted-foreground">Evidence confidence</dt><dd>{check.confidence}</dd></div><div><dt className="text-muted-foreground">Component score impact</dt><dd>{check.score===null ? 'Missing or failed evidence affects coverage, not score' : `${check.score.toFixed(4)} × ${check.effective_subweight?.toFixed(2)}% = ${check.component_contribution?.toFixed(4)} component points`}</dd></div></dl>
+    {check.matching_status && <p className="mt-2 font-semibold">Matching status: {check.matching_status}</p>}{check.evidence_date && <p className="mt-2">Evidence period/date: {check.evidence_date}</p>}
+    {url ? <a className="mt-2 inline-block underline" href={check.source_reference} target="_blank" rel="noreferrer">View source evidence</a> : check.source_reference && <p className="mt-2">Evidence reference: {check.source_reference}</p>}
+    {check.records?.map((r,index)=><p key={index} className="mt-2 border-t border-border pt-2">{r.title || r.outcome?.replaceAll('_',' ')} · {r.date} · {r.score!=null && `${r.score}/5 · `}{/^https:\/\//.test(r.reference || '') ? <a href={r.reference} className="underline" target="_blank" rel="noreferrer">Source record</a> : r.reference}</p>)}
+  </details>;
+}

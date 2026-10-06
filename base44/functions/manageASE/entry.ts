@@ -71,7 +71,7 @@ export default async function(req: Request): Promise<Response> {
     const model=accountModel(account);
     const currentPage=await base44.entities.ASECurrentRating.filter({account_id:account.id},{limit:1});
     const current=currentPage.items[0] || null;
-    if (input.action==='summary') return Response.json({current:await publishedRatingExplanation(base44,current),model});
+    if (input.action==='summary') {const v2=await base44.entities.ASEV2Current.filter({account_id:account.id},{limit:1});return Response.json({current:v2.items[0] || await publishedRatingExplanation(base44,current),model});}
     if (input.action==='addEvidence') {
       if (!model) return Response.json({error:'Select a supported organisation type in Account details first.'},{status:400});
       const data=validateEvidence(input.evidence || {},policy.models[model]);
