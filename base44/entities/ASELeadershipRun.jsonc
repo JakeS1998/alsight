@@ -1,0 +1,106 @@
+{
+  "name": "ASELeadershipRun",
+  "type": "object",
+  "properties": {
+    "account_id": {
+      "type": "string"
+    },
+    "company_number": {
+      "type": "string"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "running",
+        "completed",
+        "failed"
+      ]
+    },
+    "roster_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "completed_at": {
+      "type": "string"
+    },
+    "cursor": {
+      "type": "integer",
+      "default": 0
+    },
+    "subjects": {
+      "type": "array",
+      "maxItems": 100,
+      "items": {
+        "type": "object",
+        "additionalProperties": true
+      }
+    },
+    "former_officers": {
+      "type": "array",
+      "maxItems": 30,
+      "items": {
+        "type": "object",
+        "additionalProperties": true
+      }
+    },
+    "roster_complete": {
+      "type": "boolean"
+    },
+    "psc_complete": {
+      "type": "boolean"
+    },
+    "psc_statements": {
+      "type": "array",
+      "maxItems": 30,
+      "items": {
+        "type": "string"
+      }
+    },
+    "checks": {
+      "type": "array",
+      "maxItems": 400,
+      "items": {
+        "type": "object",
+        "additionalProperties": true
+      }
+    },
+    "warnings": {
+      "type": "array",
+      "maxItems": 30,
+      "items": {
+        "type": "string"
+      }
+    },
+    "requested_by": {
+      "type": "string"
+    },
+    "error": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "account_id",
+    "company_number",
+    "status",
+    "roster_at",
+    "requested_by"
+  ],
+  "rls": {
+    "read": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "create": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "update": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "delete": false
+  }
+}

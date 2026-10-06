@@ -1,0 +1,92 @@
+{
+  "name": "ASELeadershipReview",
+  "type": "object",
+  "properties": {
+    "account_id": {
+      "type": "string"
+    },
+    "person_key": {
+      "type": "string"
+    },
+    "source": {
+      "type": "string",
+      "enum": [
+        "disqualification",
+        "sanctions",
+        "individual_insolvency"
+      ]
+    },
+    "evidence_key": {
+      "type": "string"
+    },
+    "evidence_reference": {
+      "type": "string",
+      "maxLength": 500
+    },
+    "state": {
+      "type": "string",
+      "enum": [
+        "CLEAR",
+        "ADVERSE",
+        "HISTORIC",
+        "CONFIRMED MATCH",
+        "MANUAL REVIEW"
+      ]
+    },
+    "matching_identifiers": {
+      "type": "array",
+      "maxItems": 6,
+      "items": {
+        "type": "string"
+      }
+    },
+    "reviewed_by": {
+      "type": "string"
+    },
+    "reviewed_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "event_start": {
+      "type": "string"
+    },
+    "event_end": {
+      "type": "string"
+    },
+    "verified": {
+      "type": "boolean"
+    },
+    "note": {
+      "type": "string",
+      "maxLength": 600
+    }
+  },
+  "required": [
+    "account_id",
+    "person_key",
+    "source",
+    "evidence_reference",
+    "state",
+    "reviewed_by",
+    "reviewed_at",
+    "verified"
+  ],
+  "rls": {
+    "read": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "create": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "update": {
+      "user_condition": {
+        "role": "ase_snapshot_maintenance"
+      }
+    },
+    "delete": false
+  }
+}

@@ -1,0 +1,21 @@
+const titles=/\b(mr|mrs|ms|miss|dr|sir|professor|prof|lord|lady)\b/g;
+export function identityName(value) {return String(value || '').normalize('NFKD').replace(/[\u0300-\u036f]/g,'').toLowerCase().replace(titles,'').replace(/[^a-z0-9\s]/g,' ').split(/\s+/).filter(Boolean).sort().join(' ');}
+export function possibleName(a,b) {const x=identityName(a),y=identityName(b);if(!x || !y) return false;if(x===y) return true;const left=x.split(' '),right=y.split(' '),overlap=left.filter(t=>right.includes(t)).length;return Math.min(left.length,right.length)>=2 && overlap/Math.max(left.length,right.length)>=0.67;}
+export function compareLeadershipIdentity(subject,candidate) {
+  const exact=identityName(subject.name)===identityName(candidate.name),basis=[];
+  if(!possibleName(subject.name,candidate.name)) return {status:'NO MATCH',confidence:'High',basis:['Name does not match']};
+  if(exact) basis.push('Exact full name');else basis.push('Similar name, not a confirmed identity');
+  if(subject.entity && subject.registration_number && candidate.registration_number && subject.registration_number.replace(/^0+/,'')===candidate.registration_number.replace(/^0+/,'')) return {status:exact ? 'CONFIRMED MATCH' : 'POTENTIAL MATCH',confidence:exact ? 'High' : 'Low',basis:[...basis,'Exact corporate registration number']};
+  if(subject.birth_year && candidate.birth_year && subject.birth_year!==candidate.birth_year || subject.birth_month && candidate.birth_month && subject.birth_month!==candidate.birth_month) return {status:'NO MATCH',confidence:'High',basis:[...basis,'Conflicting birth date']};
+  const birth=subject.birth_year && subject.birth_month && subject.birth_year===candidate.birth_year && subject.birth_month===candidate.birth_month;
+  if(birth) basis.push('Birth month and year match');
+  const postcode=subject.postcode && candidate.postcode && subject.postcode.replace(/\s/g,'').toUpperCase()===candidate.postcode.replace(/\s/g,'').toUpperCase();if(postcode) basis.push('Postcode match');
+  if(subject.person_number && candidate.person_number && subject.person_number===candidate.person_number) return {status:'CONFIRMED MATCH',confidence:'High',basis:[...basis,'Exact Companies House person number']};
+  return {status:exact && birth && postcode ? 'CONFIRMED MATCH' : 'POTENTIAL MATCH',confidence:exact && birth && postcode ? 'High' : birth ? 'Medium' : 'Low',basis};
+}
+export function leadershipSubject(row,role,index,companyNumber) {
+  const officerPath=row.links?.officer?.appointments,officerId=typeof officerPath==='string' ? officerPath.match(/^\/officers\/([A-Za-z0-9_-]+)\/appointments$/)?.[1] : null,entity=/corporate|legal-person/.test(row.kind || row.officer_role || ''),id=officerId ? 'officer:'+officerId : 'psc:'+(row.links?.self || index),birth=row.date_of_birth || {},identification=row.identification || {};
+  return {key:id,name:String(row.name || 'Protected / undisclosed record').slice(0,160),roles:[role],entity,current:!row.resigned_on && !row.ceased_on,company_number:companyNumber,officer_id:officerId,person_number:row.person_number || '',registration_number:identification.registration_number || '',nationality:String(row.nationality || '').slice(0,100),country:String(row.country_of_residence || identification.country_registered || row.address?.country || '').slice(0,100),birth_year:birth.year || null,birth_month:birth.month || null,postcode:String(row.address?.postal_code || '').slice(0,20),appointed_on:row.appointed_on || row.notified_on || '',ceased_on:row.resigned_on || row.ceased_on || '',nature_of_control:row.natures_of_control || [],category:row.kind || row.officer_role || '',reference:row.links?.self ? 'https://find-and-update.company-information.service.gov.uk'+row.links.self : `https://find-and-update.company-information.service.gov.uk/company/${companyNumber}/officers`};
+}
+export function publicLeadershipSubject(s) {const {birth_year,birth_month,postcode,person_number,...safe}=s;return safe;}
+export function leadershipAudit(subject,source,state,reason,extra={}) {return {person_key:subject.key,person:subject.name,role:subject.roles.join(', '),source,checked_at:new Date().toISOString(),match_status:state,matching_confidence:'Low',human_review:false,evidence_reference:subject.reference,score:null,reason,...extra};}
