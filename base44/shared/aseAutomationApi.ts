@@ -3,6 +3,8 @@ import {withASEAutomationLease} from './aseAutomationLease.ts';
 import {advanceASEAutomation} from './aseAutomationStep.ts';
 import {automaticEvidence} from './aseAutomaticEvidence.ts';
 import {dispatchASEContinuation} from './aseAutomationDispatch.ts';
+import {resumeNightlyASE,stalledASERun,nightlyProgressRules} from './aseNightlyProgress.ts';
+import {accountsCacheRules} from './aseAccountsCache.ts';
 export async function manageASEAutomation(base44,user,input) {
   if(input.action==='automationRules') {
     const now=new Date('2026-10-05T12:00:00Z'),account={company_number:'12345678',local_authority_code:'E08000032'};
@@ -10,6 +12,7 @@ export async function manageASEAutomation(base44,user,input) {
     const assess=(source,facts,raw)=>automaticEvidence(source,account,{facts,raw},now);
     const good=assess('accounts',[fact],{company_number:'12345678',periods:[{end:'2026-03-31',metrics:{net_assets:{value:25},assets:{value:100}}}]})[0];
     const checks={primaryMetric:good.automatic_eligible,wrongCompany:!assess('accounts',[fact],{company_number:'87654321'})[0].automatic_eligible,staleMetric:!assess('accounts',[{...fact,reporting_period:'2020-03-31'}],{company_number:'12345678'})[0].automatic_eligible,noAbsence:!assess('gazette',[{...fact,component:'adverse',value:'5'}],{})[0].automatic_eligible,externalScore:!assess('blackflag',[{...fact,component:'external_risk_score',value:'90'}],{})[0].automatic_eligible,ambiguousDebt:!assess('accounts',[{...fact,component:'debt'}],{company_number:'12345678',periods:[{end:fact.reporting_period,metrics:{borrowings:{concept:'Borrowings'}}}]})[0].automatic_eligible};
+    Object.assign(checks,nightlyProgressRules(),accountsCacheRules());
     return {checks,passed:Object.values(checks).every(Boolean)};
   }
   if(input.action==='automationScope') return aseAutomationScope(base44,input.accountId);
@@ -18,11 +21,19 @@ export async function manageASEAutomation(base44,user,input) {
     const result=await withASEAutomationLease(base44,async()=>{
       const active=await base44.entities.ASEAutomationRun.filter({status:{$in:['queued','running']}},{limit:1});
       if(active.items.length) {
-        if(input.scheduled===true) return {skipped:true,reason:'An ASE refresh is already active; no overlapping nightly run was started.',runId:active.items[0].id};
+        if(input.scheduled===true) {
+          const run=active.items[0];
+          if(run.scope==='portfolio' && stalledASERun(run)) return resumeNightlyASE(base44,run);
+          return {skipped:true,reason:'An ASE refresh is already active; no overlapping nightly run was started.',runId:run.id};
+        }
         throw new Error('An ASE run is already active. Pause it or wait for completion before starting another.');
       }
+      if(input.scheduled===true) {
+        const unfinished=await base44.entities.ASEAutomationRun.filter({scope:'portfolio',status:'paused'},{sort:'created_date',limit:1});
+        if(unfinished.items[0]) return resumeNightlyASE(base44,unfinished.items[0]);
+      }
       const scope=await aseAutomationScope(base44,input.accountId);
-      return {run:await base44.entities.ASEAutomationRun.create({...scope,status:scope.eligible_count ? 'queued' : 'completed',requested_by:user.id,requested_by_name:user.full_name || user.id,processed_count:0,cursor:'',active_job_id:'',finished_listing:false,last_activity:new Date().toISOString()})};
+      return {run:await base44.entities.ASEAutomationRun.create({...scope,scheduled:input.scheduled===true,status:scope.eligible_count ? 'queued' : 'completed',requested_by:user.id,requested_by_name:user.full_name || user.id,processed_count:0,cursor:'',active_job_id:'',finished_listing:false,last_activity:new Date().toISOString()})};
     });
     if(result.busy) {
       if(input.scheduled===true) return {skipped:true,reason:'An ASE source operation is in progress; no overlapping nightly run was started.'};

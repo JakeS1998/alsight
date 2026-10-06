@@ -3,14 +3,23 @@ import {accountModel} from './asePolicy.ts';
 import {withASEAutomationLease} from './aseAutomationLease.ts';
 import {advanceASEAccount} from './aseAutomationAccountStep.ts';
 import {aseContinuationTicket} from './aseAutomationDispatch.ts';
+import {outsideASENight} from './aseNightlyProgress.ts';
 export async function advanceASEAutomation(base44,runId,user) {
   const result=await withASEAutomationLease(base44,async assertLease=>{
     const db=base44.entities,run=await db.ASEAutomationRun.get(runId);
     if(!run || run.pause_requested || !['queued','running'].includes(run.status)) return {continue:false,waitFor:'PT15S'};
+    if(outsideASENight(run)) {
+      await db.ASEAutomationRun.update(run.id,{status:'paused',pause_requested:false,dispatch_token:'',waiting_until:'',error:'Overnight window ended; saved company and source will continue at the next nightly run.',last_activity:new Date().toISOString()});
+      return {continue:false,waitFor:'PT15S'};
+    }
     try {
       await db.ASEAutomationRun.updateMany({id:run.id,status:{$in:['queued','running']}},{$set:{status:'running',dispatch_token:'',last_activity:new Date().toISOString(),waiting_until:'',error:''}});
       let job=run.active_job_id ? await db.ASEAutomationAccount.get(run.active_job_id) : null;
       if(!job) {
+        if(run.finished_listing) {
+          await db.ASEAutomationRun.update(run.id,{status:'completed',completed_at:new Date().toISOString(),active_job_id:'',dispatch_token:''});
+          return {continue:false,waitFor:'PT15S'};
+        }
         let account,page;
         if(run.scope==='account') {account=run.finished_listing ? null : await db.Account.get(run.account_id);page={has_more:false,next_cursor:null};}
         else {page=await db.Account.filter(supportedASEQuery,{sort:'id',limit:1,...(run.cursor ? {cursor:run.cursor} : {})});account=page.items[0];}

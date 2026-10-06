@@ -68,6 +68,10 @@
     "pause_requested": {
       "type": "boolean",
       "default": false
+    },
+    "scheduled": {
+      "type": "boolean",
+      "default": false
     }
   },
   "required": [

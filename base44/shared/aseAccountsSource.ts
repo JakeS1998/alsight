@@ -4,6 +4,7 @@ import {downloadAccountsDocument} from './aseAccountsDownload.ts';
 import {scanPdfAccounts} from './aseAccountsPdf.ts';
 import { parseFiledAccounts } from './aseAccountsXml.ts';
 import { accountsEvidence } from './aseAccountsEvidence.ts';
+import {readAccountsCache,accountsExtractionVersion,accountsFilingKeys} from './aseAccountsCache.ts';
 const api='https://api.company-information.service.gov.uk',documents='https://document-api.company-information.service.gov.uk';
 export async function retrieveAccounts(account,number,refresh,base44) {
   const key=secrets.get('COMPANIES_HOUSE_API_KEY');
@@ -14,6 +15,8 @@ export async function retrieveAccounts(account,number,refresh,base44) {
   const history=await sourceJson(`${api}/company/${number}/filing-history?category=accounts&items_per_page=100`,{headers});
   const filings=(history.items || []).filter(row=>row.links?.document_metadata && /^\d{4}-\d{2}-\d{2}$/.test(row.date || '') && Date.parse(row.date)<=Date.now()).sort((a,b)=>b.date.localeCompare(a.date)).slice(0,3);
   if(!filings.length) throw new Error('No available filed-account documents were found for this company.');
+  const cached=await readAccountsCache(base44,account.id,number,filings);
+  if(cached) return {facts:accountsEvidence(account,number,refresh,cached.periods),raw:cached,summary:{...cached.source_summary,checked_for_new_filings:true,unchanged_filings_reused:true},warnings:cached.extraction_warnings || []};
   const warnings=[],retrieved=[],periodMap=new Map();
   for(const filing of filings) {
     try {
@@ -43,5 +46,6 @@ export async function retrieveAccounts(account,number,refresh,base44) {
   const facts=accountsEvidence(account,number,refresh,periods);
   warnings.push('Exact-entity, non-dimensional GBP tagged metrics are automatically validated. ALICE PDF extraction is a Low-confidence fallback, not independently verified accounting evidence. Missing disclosures, unreadable figures and ambiguous borrowing definitions remain unscored.');
   if(history.total_count>100) warnings.push('Filing discovery is limited to the latest 100 account filings and three documents.');
-  return {facts,raw:{company_number:number,documents:retrieved,periods},summary:{company_number:number,company_name:profile.company_name,documents_retrieved:retrieved.filter(row=>!row.scan_failed).length,financial_periods:periods.map(row=>row.end),normalised_candidates:facts.filter(row=>row.component!=='filed_financials').length,tagged_financials_available:periods.some(period=>period.origin!=='pdf' && Object.keys(period.metrics).length>0),pdf_documents_scanned:retrieved.filter(row=>row.pdf_file_uri).length,pdf_financials_available:periods.some(period=>period.origin==='pdf')},warnings};
+  const summary={company_number:number,company_name:profile.company_name,documents_retrieved:retrieved.filter(row=>!row.scan_failed).length,financial_periods:periods.map(row=>row.end),normalised_candidates:facts.filter(row=>row.component!=='filed_financials').length,tagged_financials_available:periods.some(period=>period.origin!=='pdf' && Object.keys(period.metrics).length>0),pdf_documents_scanned:retrieved.filter(row=>row.pdf_file_uri).length,pdf_financials_available:periods.some(period=>period.origin==='pdf'),checked_for_new_filings:true,unchanged_filings_reused:false};
+  return {facts,raw:{company_number:number,documents:retrieved,periods,extraction_version:accountsExtractionVersion,filing_keys:accountsFilingKeys(filings),source_summary:summary,extraction_warnings:warnings},summary,warnings};
 }

@@ -1,10 +1,9 @@
 {
-  "name": "Nightly ASE Update",
   "definition": {
     "document": {
       "dsl": "1.0.0",
       "name": "nightly_ase_update",
-      "version": "1.1",
+      "version": "1.2",
       "namespace": "base44"
     },
     "do": [
@@ -21,14 +20,14 @@
           },
           "then": "end",
           "x-base44": {
-            "title": "Start overnight ASE v2 update",
-            "description": "Gazette overnight; all supported live organisations"
+            "title": "Resume or start overnight ASE update",
+            "description": "Saved position; check new Companies House accounts"
           }
         }
       }
     ]
   },
-  "description": "At 21:15 Europe/London each night, starts the resumable ASE v2 portfolio update, including overnight Gazette checks for supported live organisations. Gazette collection stops outside 21:00\u201307:00; daytime updates continue with current cached evidence or explicit limitations. Demos and HMRC are excluded, historical legacy assessments are preserved, and active ASE work is not duplicated.",
+  "description": "At 21:15 Europe/London each night, resumes the unfinished portfolio cycle at its saved company and source, or starts a new cycle only after completion. Checks Companies House for new filed accounts and extracts the latest disclosed turnover, reusing integrity-checked unchanged filings. Scheduled collection pauses at 07:00 and continues the next night; manually paused runs stay paused. Demos and HMRC are excluded, legacy assessments are preserved, and live work is not duplicated.",
   "trigger": {
     "condition": null,
     "config": {
@@ -45,5 +44,6 @@
       "ends_on_date": null,
       "ends_after_count": null
     }
-  }
+  },
+  "name": "Nightly ASE Update"
 }
