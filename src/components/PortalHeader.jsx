@@ -16,7 +16,7 @@ const NAV_ITEMS = [
   { label: 'Home', path: '/', icon: House, roles: INTERNAL_ROLES.concat(['client', 'supplier']) },
   { label: 'Portfolio', path: '/portfolio-overview', icon: LayoutDashboard, roles: INTERNAL_ROLES },
   { label: 'Projects', path: '/projects', icon: FolderKanban, roles: ALL_ROLES },
-  { label: 'Framework', path: '/framework-reports', icon: UKLFIcon, roles: INTERNAL_ROLES.concat(['framework_stakeholder']) },
+  { label: 'Framework360', path: '/framework-reports', icon: UKLFIcon, roles: INTERNAL_ROLES.concat(['framework_stakeholder']) },
   { label: 'Opportunities', path: '/crm/opportunities', icon: BriefcaseBusiness, roles: INTERNAL_ROLES },
   { label: 'My Account', path: '/account', icon: UserCircle, roles: ['client'] },
   { label: 'Relationships', path: '/accounts', icon: Building2, roles: ALL_ROLES.filter(role => role !== 'supplier') },

@@ -38,7 +38,7 @@ export default function usePortalSearch(term, role) {
       const sources = SEARCH_SOURCES.filter(source => source.roles.includes(role));
       const results = await Promise.allSettled([
         ...sources.map(source => searchSource(source, escapeSearch(value), role)),
-        ...(role === 'framework_stakeholder' ? [base44.functions.invoke('getStakeholderFrameworkReport', { term: value, stage: 'all', page: 0 }).then(({ data }) => ({ label: 'Framework reports', more: data.count > data.rows.length, cursor: data.rows.length ? 1 : null, items: data.rows.map(r => ({ id: r.id, title: r.site || r.framework_ref, detail: r.framework_ref, path: `/framework-reports/${r.id}` })) }))] : []),
+        ...(role === 'framework_stakeholder' ? [base44.functions.invoke('getStakeholderFrameworkReport', { term: value, stage: 'all', page: 0 }).then(({ data }) => ({ label: 'Framework360', more: data.count > data.rows.length, cursor: data.rows.length ? 1 : null, items: data.rows.map(r => ({ id: r.id, title: r.site || r.framework_ref, detail: r.framework_ref, path: `/framework-reports/${r.id}` })) }))] : []),
       ]);
       if (!active) return;
       const groups = results.filter(result => result.status === 'fulfilled').map(result => result.value).filter(group => group.items.length);

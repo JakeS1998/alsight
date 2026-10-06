@@ -21,7 +21,7 @@ export const SEARCH_SOURCES = [
   { entity: 'ProjectDelivery', label: 'Delivery records', roles: internal, fields: ['scope_summary', 'next_action'], title: r => r.scope_summary || r.next_action, tab: 'delivery', projectKey: 'project_id', projectFormat: 'id' },
   { entity: 'FeeProposal', label: 'Fee proposals', roles: internal, fields: ['services_included', 'services_excluded'], title: r => r.services_included || 'Fee proposal', tab: 'delivery', projectKey: 'project_id', projectFormat: 'id' },
   { entity: 'Valuation', label: 'Valuations', roles: [...internal, 'project_manager'], fields: ['notes', 'submitted_by_name'], title: r => `Valuation ${r.number || ''}`.trim(), tab: 'valuations', projectKey: 'project_id', projectFormat: 'id', extra: ['number'] },
-  { entity: 'FrameworkProjectReport', label: 'Framework reports', roles: internal, fields: ['framework_ref', 'project_number', 'site', 'client'], title: r => r.site || r.framework_ref, detail: r => r.framework_ref, path: r => `/framework-reports/${r.id}` },
+  { entity: 'FrameworkProjectReport', label: 'Framework360', roles: internal, fields: ['framework_ref', 'project_number', 'site', 'client'], title: r => r.site || r.framework_ref, detail: r => r.framework_ref, path: r => `/framework-reports/${r.id}` },
 ];
 
 export const escapeSearch = value => value.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
