@@ -167,8 +167,8 @@ export function InviteUserDialog({ open, onOpenChange, contact, accounts, existi
             </p>
             <p className="mt-1 text-xs text-slate-500">
               {existingUser
-                ? "The user's role and account have been updated."
-                : "The selected role and account are saved and will be applied automatically when the invitee signs in."}
+                ? "The person’s portal role and organisation access have been updated."
+                : "The selected portal role and organisation access are saved and will be applied when the invitee signs in."}
             </p>
             <Button variant="outline" className="mt-4" onClick={() => onOpenChange(false)}>Close</Button>
           </div>
