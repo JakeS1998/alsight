@@ -14,7 +14,7 @@ export function checkASESourceScoringRules() {
  const registryInsolvency={...row,id:'registry',source:'Companies House',value:'1',score_eligible:true,confidence:'High'};
  return {
   gazetteEmptyClean:clean.score_eligible && clean.automatic_eligible,
-  gazetteCleanProvisional:rating.displayed_rating===5 && rating.rating_label.startsWith('Provisional'),
+  gazetteCleanLowConfidence:rating.displayed_rating===5 && rating.rating_label==='Strong' && rating.data_confidence==='Low',
   gazetteNonEmptyUnknown:!check({...raw,feed:{'f:total':'1',entry:[]}}).score_eligible,
   gazetteMissingTotalUnknown:!check({...raw,feed:{}}).score_eligible,
   gazetteNullTotalUnknown:!check({...raw,feed:{'f:total':null}}).score_eligible,

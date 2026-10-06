@@ -12,7 +12,7 @@ export function checkCommercialScoringRules() {
     concentrationExactBands:[[0,5],[9.999,5],[10,4],[24.999,4],[25,3],[49.999,3],[50,2],[74.999,2],[75,1],[150,1]].every(([value,score])=>scoreEvidence(commercialRule,{value:String(value)})===score),
     concentrationTenPercent:commercialRule.weighting===10 && Math.abs(defaultModels.company.reduce((sum,r)=>sum+r.weighting,0)-100)<1e-6,
     concentrationWeighted:Math.abs(scored.precise_score-3.98)<1e-6 && scored.coverage===100,
-    concentrationProvisional:estimated.confidence==='Low' && provisional.data_confidence==='Low' && provisional.rating_label.startsWith('Provisional'),
+    concentrationLowConfidence:estimated.confidence==='Low' && provisional.data_confidence==='Low' && !provisional.rating_label.startsWith('Provisional'),
     concentrationIncomplete:commercialEvidence(account,{...data,status:'incomplete'},at).confidence==='Low',
     concentrationUnconfirmedAnnual:commercialEvidence(account,{...data,turnover:{...data.turnover,annual_verified:false,period_start:null}},at).confidence==='Low',
     concentrationMissingUnscored:commercialEvidence(account,{...data,status:'unavailable',percentage:null},at)===null && missing.coverage===90 && Math.abs(missing.precise_score-4.2)<1e-6,

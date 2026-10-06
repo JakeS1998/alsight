@@ -28,7 +28,7 @@ export async function retrieveAccounts(account,number,refresh,base44) {
         const scan=await scanPdfAccounts(base44,content.bytes,number,filing);
         retrieved.push({filing_date:filing.date,source_url:reference,metadata,pdf_file_uri:scan.file_uri,extraction:'ALICE PDF extraction; not independently verified'});
         for(const period of scan.periods) if(!periodMap.has(period.end)) periodMap.set(period.end,{...period,filed_at:filing.date,source_url:reference,pdf_file_uri:scan.file_uri});
-        warnings.push(`Accounts filed ${filing.date}: ALICE scanned the PDF; ${scan.periods.length} usable reporting periods. PDF-derived ratings are provisional with Low confidence; figures require human verification.`);
+        warnings.push(`Accounts filed ${filing.date}: ALICE scanned the PDF; ${scan.periods.length} usable reporting periods. PDF-derived ratings have Low confidence; figures require human verification.`);
         continue;
       }
       if(Number(metadata.resources[type].content_length)>750000) throw new Error('Tagged document exceeds the 750 KB per-document limit.');
@@ -41,7 +41,7 @@ export async function retrieveAccounts(account,number,refresh,base44) {
   const periods=[...periodMap.values()].sort((a,b)=>b.end.localeCompare(a.end)).slice(0,3);
   if(!retrieved.some(row=>!row.scan_failed && !row.unsupported)) throw new Error('No account document could be retrieved. '+warnings.join(' ').slice(0,600));
   const facts=accountsEvidence(account,number,refresh,periods);
-  warnings.push('Exact-entity, non-dimensional GBP tagged metrics are automatically validated. ALICE PDF extraction is a Low-confidence provisional fallback, not independently verified accounting evidence. Missing disclosures, unreadable figures and ambiguous borrowing definitions remain unscored.');
+  warnings.push('Exact-entity, non-dimensional GBP tagged metrics are automatically validated. ALICE PDF extraction is a Low-confidence fallback, not independently verified accounting evidence. Missing disclosures, unreadable figures and ambiguous borrowing definitions remain unscored.');
   if(history.total_count>100) warnings.push('Filing discovery is limited to the latest 100 account filings and three documents.');
   return {facts,raw:{company_number:number,documents:retrieved,periods},summary:{company_number:number,company_name:profile.company_name,documents_retrieved:retrieved.filter(row=>!row.scan_failed).length,financial_periods:periods.map(row=>row.end),normalised_candidates:facts.filter(row=>row.component!=='filed_financials').length,tagged_financials_available:periods.some(period=>period.origin!=='pdf' && Object.keys(period.metrics).length>0),pdf_documents_scanned:retrieved.filter(row=>row.pdf_file_uri).length,pdf_financials_available:periods.some(period=>period.origin==='pdf')},warnings};
 }

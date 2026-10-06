@@ -21,8 +21,8 @@ export function checkPdfAndProvisionalRules() {
     pdfNoUnquotedFigures:parse({...input,periods:[{...input.periods[0],metrics:[{...make('assets',123),quote:'Total assets 999'}]}]}).length===0,
     pdfNoAmbiguousBorrowings:parse({...input,periods:[{...input.periods[0],metrics:[{...make('borrowings',100),quote:'Creditors 100'}]}]}).length===0,
     pdfDeterministicRatios:eligible.length===2 && Math.abs(Number(eligible.find(row=>row.component==='financial_strength')?.value)-100/3)<1e-6 && eligible.find(row=>row.component==='liquidity')?.value==='2',
-    pdfAlwaysProvisional:result.displayed_rating===4 && result.rating_label.startsWith('Provisional') && result.data_confidence==='Low',
-    limitedEvidenceProvisional:lowCoverage.displayed_rating!=null && lowCoverage.rating_label.startsWith('Provisional'),
+    pdfLowConfidence:result.displayed_rating===4 && result.rating_label==='Good' && result.data_confidence==='Low',
+    limitedEvidenceConfidence:lowCoverage.displayed_rating!=null && lowCoverage.data_confidence==='Low' && !lowCoverage.rating_label.startsWith('Provisional'),
     noEvidenceUnscored:calculate(defaultModels,'company',[],now).displayed_rating===null,
     zeroWeightUnscored:calculate(zeroWeights,'company',eligible,now).displayed_rating===null
   };

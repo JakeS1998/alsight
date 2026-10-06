@@ -1,4 +1,5 @@
 const number=value=>new Intl.NumberFormat('en-GB',{maximumFractionDigits:2}).format(value);
+export const confidenceRating=record=>record ? {...record,rating_label:record.rating_label?.replace(/^Provisional(?:\s*[·:–-]\s*|\s+)/i,'')} : record;
 export function ratingExplanation(components,rules,precise,rating,evidence=[]) {
   const used=components.filter(c=>c.score!=null && c.weighting>0);
   if(!used.length) return 'No scored evidence has been analysed in this assessment yet.';
@@ -15,6 +16,7 @@ export function ratingExplanation(components,rules,precise,rating,evidence=[]) {
   return `Analysed ${used.length} component${used.length===1 ? '' : 's'}: ${descriptions.join('; ')}. These results give a weighted score of ${precise.toFixed(3)}/5, rounded to ${rating}/5.`;
 }
 export async function publishedRatingExplanation(base44,current) {
+  current=confidenceRating(current);
   if(!current?.assessment_id) return current;
   const [assessment,components,evidence]=await Promise.all([
     base44.entities.ASEAssessment.get(current.assessment_id),
