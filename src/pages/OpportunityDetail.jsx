@@ -92,7 +92,7 @@ export default function OpportunityDetail() {
       <TabsList className="flex h-auto flex-wrap justify-start gap-1">
         <TabsTrigger value="overview">Overview</TabsTrigger><TabsTrigger value="activity">Activity</TabsTrigger><TabsTrigger value="people">People</TabsTrigger><TabsTrigger value="history">History</TabsTrigger><TabsTrigger value="brief">Opportunity &amp; Scoping</TabsTrigger><TabsTrigger value="team">Design Team</TabsTrigger><TabsTrigger value="fees">Commercial</TabsTrigger><TabsTrigger value="handover">Handover</TabsTrigger>
       </TabsList>
-      <TabsContent value="overview"><OpportunityOverview item={item} account={account} contacts={contacts} user={user} canEdit={canEdit} /></TabsContent>
+      <TabsContent value="overview"><OpportunityOverview item={item} account={account} contacts={contacts} user={user} canEdit={canEdit} onAction={()=>setQuickAction({item,kind:'action'})} /></TabsContent>
       <TabsContent value="activity"><CRMActivityTimeline item={item} user={user} canEdit={canEdit} /></TabsContent>
       <TabsContent value="people"><OpportunityPeople key={item.contact_id || 'none'} item={item} account={account} contacts={contacts} canEdit={canEdit} onSave={savePlan} busy={saving}/></TabsContent>
       <TabsContent value="history"><OpportunityHistory item={item}/></TabsContent>
@@ -101,7 +101,7 @@ export default function OpportunityDetail() {
       <TabsContent value="fees"><OpportunityFee item={item} account={account} onSave={savePlan} canEdit={canEdit} saving={saving} /></TabsContent>
       <TabsContent value="handover"><div className="rounded-xl border border-border bg-card p-5"><h2 className="font-semibold">Project handover</h2><p className="mt-2 text-sm text-muted-foreground">{item.status === 'won' ? 'This opportunity is won. Review the details before creating the project.' : 'Mark the opportunity Won after client confirmation to begin project handover.'}</p>{item.status === 'won' && !item.project_id && ['admin','director','bdm'].includes(user?.role) && <button onClick={() => setReviewOpen(true)} className="mt-3 rounded-lg bg-primary px-4 py-2 text-sm font-semibold text-primary-foreground">Review &amp; convert</button>}{item.project_id && <Link to={`/projects/${item.project_id}`} className="mt-3 block text-sm text-primary hover:underline">View converted project →</Link>}</div></TabsContent>
     </Tabs>
-    {quickAction && <CommercialQuickAction selection={quickAction} user={user} onClose={()=>setQuickAction(null)} onSaved={async()=>{await cache.invalidateQueries({queryKey:['commercial-next-action',item.id]});await cache.invalidateQueries({queryKey:['commercial-workspace']});setTab('overview');}}/>}
+    {quickAction && <CommercialQuickAction selection={quickAction} user={user} onClose={()=>setQuickAction(null)} onSaved={async()=>{await cache.invalidateQueries({queryKey:['commercial-next-action',item.id]});await cache.invalidateQueries({queryKey:['ase-opportunity-tasks',item.id]});await cache.invalidateQueries({queryKey:['commercial-workspace']});setTab('overview');}}/>}
     {outcome && <OpportunityOutcome type={outcome} onClose={() => setOutcome(null)} onSubmit={submitOutcome} busy={saving} />}
     {reviewOpen && <OpportunityConversionReview open={reviewOpen} onClose={() => setReviewOpen(false)} onConfirm={convert} busy={saving} item={item} account={account} contacts={contacts} />}
   </div>;

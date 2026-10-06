@@ -119,6 +119,7 @@ export function ProjectGeneralTab({ project, accountMap, onProjectUpdated, singl
 
   return (
     <div className="ws-general">
+      {INTERNAL_ROLES.includes(role) && <Project360Strip project={project} singleTask={singleTask} />}
       <ProjectWorkspaceFields
         summary={[
           { label: 'Client', value: client?.name || project.client_name || '—', to: client ? `/accounts/${client.id}` : undefined },
@@ -154,7 +155,6 @@ export function ProjectGeneralTab({ project, accountMap, onProjectUpdated, singl
       />
       <ProjectWorkspaceDates project={project} singleTask={singleTask} ribaRows={ribaRows} expectedDates={expectedDates} ribaDates={ribaDates} setRibaDates={setRibaDates} canEdit={canEdit} saving={saving} saved={saved} saveError={saveError} onSave={handleSave} />
 
-      {INTERNAL_ROLES.includes(role) && <Project360Strip project={project} singleTask={singleTask} />}
       {INTERNAL_ROLES.includes(role) && <ValuationSnapshot project={project} />}
       {INTERNAL_ROLES.includes(role) && project.request_brief_file_uri && <ProjectBriefHistory fileUri={project.request_brief_file_uri} />}
       {(role === 'project_manager' || (role === 'supplier' && project.can_submit_valuation)) && <ProjectDocumentStatuses projectId={project.id} projectNumber={project.project_number} />}
