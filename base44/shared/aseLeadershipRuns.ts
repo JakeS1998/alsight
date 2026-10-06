@@ -1,0 +1,32 @@
+import {secrets} from 'base44:runtime';
+import {normaliseCompanyNumber} from './companiesHouseData.ts';
+import {leadershipCHClient} from './aseLeadershipCompaniesHouse.ts';
+import {leadershipSubject,publicLeadershipSubject,leadershipAudit} from './aseLeadershipIdentity.ts';
+import {screenDirectorDisqualification} from './aseLeadershipDisqualification.ts';
+import {screenOfficerAppointments} from './aseLeadershipAppointments.ts';
+import {officialSanctions,screenLeadershipSanctions} from './aseLeadershipSanctions.ts';
+export function publicLeadershipRun(run) {if(!run) return null;return {...run,subjects:(run.subjects || []).map(publicLeadershipSubject),former_officers:(run.former_officers || []).map(publicLeadershipSubject)};}
+export async function startLeadershipRun(db,account,user,policy) {
+  const number=normaliseCompanyNumber(account.company_number),key=secrets.get('COMPANIES_HOUSE_API_KEY');if(!key) throw new Error('Companies House credentials are unavailable.');
+  const recent=await db.ASELeadershipRun.filter({account_id:account.id},{sort:'-created_date',limit:1});if(recent.items[0]?.status==='running' && recent.items[0].company_number===number) return publicLeadershipRun(recent.items[0]);if(recent.items[0] && Date.now()-Date.parse(recent.items[0].roster_at)<60000) throw new Error('Wait one minute between new leadership screenings.');
+  const ch=leadershipCHClient(key),profile=await ch.get('/company/'+number);if(normaliseCompanyNumber(profile.company_number)!==number) throw new Error('Registry identity mismatch.');
+  const officers=await ch.list('/company/'+number+'/officers',200),pscs=await ch.list('/company/'+number+'/persons-with-significant-control',200),statements=await ch.list('/company/'+number+'/persons-with-significant-control/statements',100),allOfficers=officers.items.map((r,i)=>leadershipSubject(r,r.officer_role || 'Officer',i,number)),allPSCs=pscs.items.map((r,i)=>leadershipSubject(r,'PSC',i,number));
+  const subjects=[{key:'company:'+number,name:profile.company_name,entity:true,registration_number:number,country:'United Kingdom',roles:['Company'],current:true,company_number:number,reference:'https://find-and-update.company-information.service.gov.uk/company/'+number},...allOfficers.filter(s=>s.current),...allPSCs.filter(s=>s.current)],dedup=[];
+  for(const s of subjects) {const same=dedup.find(p=>p.key===s.key || !s.entity && !p.entity && s.birth_year && s.birth_month && s.postcode && s.name===p.name && s.birth_year===p.birth_year && s.birth_month===p.birth_month && s.postcode===p.postcode);if(same) {same.roles=[...new Set([...same.roles,...s.roles])];same.nature_of_control=[...new Set([...(same.nature_of_control || []),...(s.nature_of_control || [])])];}else dedup.push(s);}
+  const cutoff=Date.now()-policy.changes_days*86400000,changes=rows=>rows.reduce((sum,r)=>sum+[r.appointed_on,r.notified_on,r.resigned_on,r.ceased_on].filter(d=>d && Date.parse(d)>=cutoff && Date.parse(d)<=Date.now()).length,0),warnings=[];
+  if(!officers.complete || !pscs.complete || dedup.length>100) warnings.push('Officer/PSC collection exceeds a safe page limit; whole-population clearance is unavailable.');
+  const run=await db.ASELeadershipRun.create({account_id:account.id,company_number:number,status:'running',roster_at:new Date().toISOString(),cursor:0,subjects:dedup.slice(0,100),former_officers:allOfficers.filter(s=>!s.current).sort((a,b)=>b.ceased_on.localeCompare(a.ceased_on)).slice(0,30),roster_complete:officers.complete && dedup.length<=100,psc_complete:pscs.complete && statements.complete,psc_statements:statements.items.filter(r=>!r.ceased_on).map(r=>r.statement).filter(Boolean).slice(0,30),change_counts:{officers:changes(officers.items),pscs:changes(pscs.items)},checks:[],warnings,requested_by:user.id});return publicLeadershipRun(run);
+}
+export async function advanceLeadershipRun(db,run,policy,assertLease) {
+  if(run.status!=='running') return publicLeadershipRun(run);const subject=run.subjects[run.cursor];if(!subject) return publicLeadershipRun(await db.ASELeadershipRun.update(run.id,{status:'completed',completed_at:new Date().toISOString()}));
+  const key=secrets.get('COMPANIES_HOUSE_API_KEY'),ch=leadershipCHClient(key),checks=[],subjects=[...run.subjects],warnings=[...run.warnings];
+  const attempt=async(source,work)=>{try{return await work();}catch(error){return leadershipAudit(subject,source,'CHECK FAILED',String(error.message).slice(0,500));}};
+  checks.push(await attempt('sanctions',async()=>screenLeadershipSanctions(subject,await officialSanctions())));
+  if(subject.officer_id || subject.roles.some(r=>/director|secretary|officer|member|partner/i.test(r))) {checks.push(await attempt('disqualification',()=>screenDirectorDisqualification(subject,ch)));checks.push(await attempt('appointments',()=>screenOfficerAppointments(subject,ch,policy)));}
+  if(subject.roles.includes('PSC') && subject.entity && /^[A-Za-z0-9]{8}$/.test(subject.registration_number || '') && subject.company_number!==subject.registration_number) {
+    try {const parent=await ch.list('/company/'+subject.registration_number+'/persons-with-significant-control',100);for(const [i,row] of parent.items.entries()) if(!row.ceased_on && subjects.length<100) {const controller=leadershipSubject(row,'Ultimate controller',i,subject.registration_number);if(!subjects.some(s=>s.key===controller.key)) subjects.push({...controller,control_reference:subject.reference});}if(!parent.complete) warnings.push('Corporate PSC upstream control is incomplete; ultimate control not inferred.');}catch(error){warnings.push('Upstream corporate PSC control could not be fully retrieved.');}
+  }
+  if(subject.roles.some(r=>r!=='Company') && !subject.entity) checks.push(leadershipAudit(subject,'individual_insolvency','UNAVAILABLE','Not automatically checked. Official Individual Insolvency Register has no supported structured API here; manual evidence may be recorded.'));
+  await assertLease();const cursor=run.cursor+1,completed=cursor>=subjects.length;
+  return publicLeadershipRun(await db.ASELeadershipRun.update(run.id,{subjects,cursor,checks:[...run.checks,...checks],warnings:[...new Set(warnings)].slice(0,30),status:completed ? 'completed' : 'running',...(completed ? {completed_at:new Date().toISOString()} : {})}));
+}
