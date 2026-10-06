@@ -7,6 +7,7 @@ export function calculateASEV2(policy,checks) {
     for(const row of rows) {if(!aseV2States.includes(row.state) || row.score!=null && (!Number.isFinite(row.score) || row.score<1 || row.score>5) || row.score!=null && ['UNAVAILABLE','CHECK FAILED'].includes(row.state)) throw new Error('Invalid evidence state or normalised score.');}
     if(new Set(rows.map(r=>r.slot)).size!==rows.length) throw new Error('One assessed evidence result is required per slot; duplicate evidence cannot increase coverage.');
     const scored=rows.filter(r=>Number.isFinite(r.score)),assessed=scored.reduce((sum,r)=>sum+slots[r.slot],0),score=assessed ? scored.reduce((sum,r)=>sum+r.score*slots[r.slot],0)/assessed : null;
+    rows.forEach(row=>{row.configured_subweight=slots[row.slot];row.effective_subweight=row.score===null || !assessed ? 0 : round(slots[row.slot]/assessed*100);row.component_contribution=row.score===null ? 0 : round(row.score*row.effective_subweight/100);});
     const coverage=scored.reduce((sum,r)=>sum+slots[r.slot]*Math.max(0,Math.min(1,r.quality ?? policy.quality[r.confidence] ?? policy.quality.Low)),0);
     return {key:rule.key,label:rule.label,weight:rule.weight,score:score===null ? null : round(score),coverage:round(coverage),check_keys:rows.map(r=>r.key),configured_contribution:score===null ? null : round(score*rule.weight/100)};
   });

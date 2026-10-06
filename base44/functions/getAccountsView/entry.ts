@@ -25,9 +25,11 @@ export default async function(req: Request): Promise<Response> {
     if (filters.ase) {
       if (!internal) return Response.json({error:'ASE is internal-only.'},{status:403});
       if (filters.ase !== 'unassessed' && !/^[1-5]$/.test(filters.ase)) return Response.json({error:'Invalid ASE rating.'},{status:400});
-      const rated = await base44.entities.ASECurrentRating.filter({displayed_rating:filters.ase==='unassessed' ? {$gte:1} : Number(filters.ase)},{limit:1000,fields:['account_id']});
-      if (rated.has_more) return Response.json({error:'ASE filter exceeds the reporting limit.'},{status:422});
-      aseIds = rated.items.map(row=>row.account_id);
+      const bucket=Number(filters.ase),v2Query=filters.ase==='unassessed' ? {precise_score:{$gte:1}} : {precise_score:{$gte:Math.max(1,bucket-0.5),...(bucket<5 ? {$lt:bucket+0.5} : {$lte:5})}};
+      const [rated,v2all,v2rated]=await Promise.all([base44.entities.ASECurrentRating.filter({displayed_rating:filters.ase==='unassessed' ? {$gte:1} : bucket},{limit:1000,fields:['account_id']}),base44.entities.ASEV2Current.filter({},{limit:1000,fields:['account_id']}),base44.entities.ASEV2Current.filter(v2Query,{limit:1000,fields:['account_id']})]);
+      if ([rated,v2all,v2rated].some(p=>p.has_more)) return Response.json({error:'ASE filter exceeds the reporting limit.'},{status:422});
+      const superseded=new Set(v2all.items.map(row=>row.account_id));
+      aseIds=[...rated.items.filter(row=>!superseded.has(row.account_id)).map(row=>row.account_id),...v2rated.items.map(row=>row.account_id)];
     }
     const visibleMoney = ['admin','director','regional_director','bsm','finance','bdm','client'].includes(user.role);
     const liveQuery = { status: { $ne: 'inactive' }, live_project: true, approval_status: { $nin: ['complete','completed'] }, $or: [{ practical_completion_date: { $exists: false } }, { practical_completion_date: { $in: [null,''] } }, { practical_completion_date: { $gte: new Date().toISOString() } }] };
@@ -76,10 +78,10 @@ export default async function(req: Request): Promise<Response> {
     ]);
     const ownerIds = [...new Set(page.items.map(account => account.account_manager_aad_id).filter(Boolean))];
     const owners = ownerIds.length ? await base44.entities.Contact.filter({ $or: [{ aad_id: { $in: ownerIds } }, { dataverse_id: { $in: ownerIds } }, { id: { $in: ownerIds } }] }, { limit: 100, fields: ['full_name','aad_id','dataverse_id'] }) : { items: [] };
-    const ratings = internal && page.items.length ? await base44.entities.ASECurrentRating.filter({account_id:{$in:page.items.map(a=>a.id)}},{limit:30}) : {items:[]};
+    const [ratings,v2ratings] = internal && page.items.length ? await Promise.all([base44.entities.ASECurrentRating.filter({account_id:{$in:page.items.map(a=>a.id)}},{limit:30}),base44.entities.ASEV2Current.filter({account_id:{$in:page.items.map(a=>a.id)}},{limit:30})]) : [{items:[]},{items:[]}];
     const items = page.items.map(rawAccount => {
       const {ase_score,ase_reason,ase_assessed_at,...safeAccount}=rawAccount;
-      const account = internal ? {...safeAccount,_ase:ratings.items.find(r=>r.account_id===rawAccount.id) || null} : safeAccount;
+      const account = internal ? {...safeAccount,_ase:v2ratings.items.find(r=>r.account_id===rawAccount.id) || ratings.items.find(r=>r.account_id===rawAccount.id) || null} : safeAccount;
       const keys = [account.id,account.dataverse_id].filter(Boolean);
       const related = groupedProjects.filter(row => row.accountKeys.some(key => keys.includes(key)));
       const open = opportunities.rows.filter(row => keys.includes(row.account_id));
