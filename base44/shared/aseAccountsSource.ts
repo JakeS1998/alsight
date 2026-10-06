@@ -42,7 +42,7 @@ export async function retrieveAccounts(account,number,refresh,base44) {
       retrieved.push(document);
       for(const period of parsed) if(!periodMap.has(period.end) || periodMap.get(period.end).origin==='pdf') periodMap.set(period.end,{...period,filed_at:filing.date,source_url:reference,filing_exemption:exemption});
       const latest=parsed[0];
-      if(exemption && !latest?.metrics?.revenue && !latest?.metrics?.assets && !(latest?.metrics?.fixed_assets && latest?.metrics?.current_assets) && metadata.resources?.['application/pdf']) {
+      if(exemption && !latest?.metrics?.revenue && !latest?.metrics?.net_assets && metadata.resources?.['application/pdf']) {
         if(Number(metadata.resources['application/pdf'].content_length)>8000000) throw new Error('PDF exceeds the 8 MB scanning limit.');
         const pdf=await downloadAccountsDocument(metadataUrl.href,headers,'application/pdf',8000000),scan=await scanPdfAccounts(base44,pdf.bytes,number,filing);
         document.pdf_file_uri=scan.file_uri;
