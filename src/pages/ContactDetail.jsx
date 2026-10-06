@@ -1,5 +1,8 @@
 import React, { useEffect, useState } from 'react';
-import { Link, useParams } from 'react-router-dom';
+import { Link, useParams, useSearchParams } from 'react-router-dom';
+import {Tabs,TabsList,TabsTrigger,TabsContent} from '@/components/ui/tabs';
+import PersonColleagues from '@/components/relationships/PersonColleagues';
+import PersonPortalAccount from '@/components/relationships/PersonPortalAccount';
 import { base44 } from '@/api/base44Client';
 import { useAuth } from '@/lib/AuthContext';
 import { INTERNAL_ROLES } from '@/lib/portal';
@@ -16,12 +19,15 @@ import { contactBelongsToAccount } from '@/components/accounts/accountContactQue
 
 export default function ContactDetail() {
   const { accountId, contactId } = useParams();
+  const [params,setParams]=useSearchParams();
+  const tabs=['overview','activity','opportunities','projects','portal'];
+  const setTab=tab=>setParams(old=>{const next=new URLSearchParams(old);next.set('tab',tab);next.delete('action');return next;},{replace:true});
   const { user } = useAuth();
   const internal = INTERNAL_ROLES.includes(user?.role);
   const canEdit = ['admin','director','bdm','bsm'].includes(user?.role);
   const [contact, setContact] = useState(null), [account, setAccount] = useState(null), [profile, setProfile] = useState(null), [staff, setStaff] = useState([]), [opportunities, setOpportunities] = useState([]);
   const [last, setLast] = useState(null), [next, setNext] = useState(null), [openCount, setOpenCount] = useState(0), [revision, setRevision] = useState(0);
-  const [loading, setLoading] = useState(true), [error, setError] = useState(''), [action, setAction] = useState('');
+  const [loading, setLoading] = useState(true), [error, setError] = useState(''), [action, setAction] = useState(params.get('action') || '');
   const [editingSection, setEditingSection] = useState(null);
   const refreshSignals = async () => {
     if (!internal) return;
@@ -41,7 +47,7 @@ export default function ContactDetail() {
       if (!c || !active) { if (active) setContact(null); return; }
       const matches = [c.company_number && { company_number: c.company_number }, c.company_name && { company_name: c.company_name }].filter(Boolean);
       const [a, p, s, o] = await Promise.all([
-        accountId ? base44.entities.Account.get(accountId) : matches.length ? base44.entities.Account.filter({ account_type: 'client', $or: matches }, { limit: 1 }).then(page => page.items[0] || null) : Promise.resolve(null),
+        accountId ? base44.entities.Account.get(accountId) : matches.length ? base44.entities.Account.filter({ $or: matches }, { limit: 1 }).then(page => page.items[0] || null) : Promise.resolve(null),
         internal ? base44.entities.ContactProfile.filter({ contact_id: contactId }, { limit: 1 }) : Promise.resolve({ items: [] }),
         internal ? base44.entities.Contact.filter({ portal_role: { $in: ['admin','director','regional_director','bsm','finance','bdm'] } }, { sort: 'full_name', limit: 100, fields: ['full_name','portal_role'] }) : Promise.resolve({ items: [] }),
         internal ? base44.entities.Opportunity.filter({ contact_id: contactId }, { sort: '-created_date', limit: 50, fields: ['title','stage','status','account_id'] }) : Promise.resolve({ items: [] }),
@@ -69,19 +75,16 @@ export default function ContactDetail() {
   const editProps = { contact, profile, staff, isAdmin: user?.role === 'admin', onCancel: () => setEditingSection(null), onSaved: async updated => { setProfile(updated); setContact(await base44.entities.Contact.get(contact.id)); setEditingSection(null); } };
   const editCards = { editingSection, onEdit: section => { setAction(''); setEditingSection(section); }, editorProps: editProps, canEdit };
   return <div className="min-w-0 space-y-5" data-alice-contact-id={contact.id} data-alice-contact-name={contact.full_name}>
-    <Link to={account ? `/accounts/${account.id}` : user?.role === 'admin' ? '/contacts' : '/crm/clients'} className="text-sm text-primary hover:underline">← Back to {account?.name || 'Contacts'}</Link>
-    <ContactHeader contact={contact} account={account} profile={profile} owner={owner} last={last} next={next} health={health} canEdit={canEdit} onAction={key => { setEditingSection(null); setAction(key); }} />
+    <nav className="flex flex-wrap gap-2 text-xs text-muted-foreground" aria-label="Breadcrumb"><Link to="/people" className="hover:text-primary">Relationships / People</Link>{accountId && account && <><span>/</span><Link className="hover:text-primary" to={`/accounts/${account.id}?tab=contacts`}>{account.name}</Link></>}<span>/ {contact.full_name}</span></nav>
+    <ContactHeader contact={contact} account={account} profile={profile} owner={owner} last={last} next={next} health={health} canEdit={canEdit} onAction={key => { setEditingSection(null);setTab(['log','note'].includes(key) ? 'activity' : 'overview'); setAction(key); }} />
     <div id="contact-action-panel">{action === 'opportunity' && account?.account_type === 'client' && <ContactOpportunityForm contact={contact} account={account} user={user} onCancel={() => setAction('')} onSaved={() => { setAction(''); setRevision(r => r + 1); }} />}</div>
-    <div className="grid gap-5 xl:grid-cols-[minmax(0,7fr)_minmax(290px,3fr)]"><main className="min-w-0 space-y-5">
-      <ContactOverviewCards contact={contact} profile={profile} owner={owner} health={health} {...editCards} />
-      <div id="contact-activity"><ContactActivity contact={contact} account={account} user={user} canEdit={canEdit} mode={action} onClose={() => setAction('')} onLogged={() => { refreshSignals().catch(e => setError(e.message)); setRevision(r => r + 1); }} opportunities={opportunities} /></div>
-      {account?.account_type === 'client' && <ContactOpportunities key={revision} contactId={contact.id} />}
-      <ContactProjects contact={contact} />
-    </main><aside className="min-w-0 space-y-5">
-      <div id="contact-tasks"><ContactTasks contact={contact} account={account} user={user} canEdit={canEdit} mode={action} onClose={() => setAction('')} onChanged={() => refreshSignals().catch(e => setError(e.message))} /></div>
-      <ContactOverviewCards contact={contact} profile={profile} owner={owner} health={health} column="side" {...editCards} />
-      <ContactKeyDates contact={contact} user={user} canEdit={canEdit} />
-      <ContactConnections contactId={contact.id} staff={staff} ownerId={profile?.relationship_owner_contact_id} canEdit={canEdit} user={user} />
-    </aside></div>
+    <Tabs value={tabs.includes(params.get('tab')) && (params.get('tab')!=='portal' || user?.role==='admin') ? params.get('tab') : 'overview'} onValueChange={setTab} className="space-y-5">
+      <TabsList className="flex h-auto flex-wrap justify-start gap-2 border-b border-border bg-transparent p-0 pb-2"><TabsTrigger value="overview">Overview</TabsTrigger><TabsTrigger value="activity">Activity</TabsTrigger><TabsTrigger value="opportunities">Opportunities</TabsTrigger><TabsTrigger value="projects">Projects</TabsTrigger>{user?.role==='admin' && <TabsTrigger value="portal">Portal Account</TabsTrigger>}</TabsList>
+      <TabsContent value="overview"><div className="grid gap-5 xl:grid-cols-[minmax(0,7fr)_minmax(290px,3fr)]"><main className="min-w-0 space-y-5"><ContactOverviewCards contact={contact} profile={profile} owner={owner} health={health} {...editCards}/><ContactOverviewCards contact={contact} profile={profile} owner={owner} health={health} column="side" {...editCards}/></main><aside className="space-y-5"><div id="contact-tasks"><ContactTasks contact={contact} account={account} user={user} canEdit={canEdit} mode={action} onClose={()=>setAction('')} onChanged={()=>refreshSignals().catch(e=>setError(e.message))}/></div><PersonColleagues account={account} contactId={contact.id}/><ContactKeyDates contact={contact} user={user} canEdit={canEdit}/><ContactConnections contactId={contact.id} staff={staff} ownerId={profile?.relationship_owner_contact_id} canEdit={canEdit} user={user}/></aside></div></TabsContent>
+      <TabsContent value="activity"><div id="contact-activity"><ContactActivity contact={contact} account={account} user={user} canEdit={canEdit} mode={action} onClose={()=>setAction('')} onLogged={()=>{refreshSignals().catch(e=>setError(e.message));setRevision(r=>r+1);}} opportunities={opportunities}/></div></TabsContent>
+      <TabsContent value="opportunities"><ContactOpportunities key={revision} contactId={contact.id}/></TabsContent>
+      <TabsContent value="projects"><ContactProjects contact={contact}/></TabsContent>
+      {user?.role==='admin' && <TabsContent value="portal"><PersonPortalAccount contact={contact}/></TabsContent>}
+    </Tabs>
   </div>;
 }

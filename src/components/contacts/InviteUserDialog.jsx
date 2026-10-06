@@ -32,6 +32,7 @@ export function InviteUserDialog({ open, onOpenChange, contact, accounts, existi
   const [submitting, setSubmitting] = useState(false);
   const [success, setSuccess] = useState(false);
   const [error, setError] = useState("");
+  const [confirmed,setConfirmed]=useState(false);
 
   useEffect(() => {
     if (open && contact) {
@@ -46,7 +47,7 @@ export function InviteUserDialog({ open, onOpenChange, contact, accounts, existi
         setAccountId(matched?.dataverse_id || "");
         setRegion("");
       }
-      setSuccess(false);
+      setSuccess(false);setConfirmed(false);
       setError("");
     }
   }, [open, contact?.id]);
@@ -64,7 +65,7 @@ export function InviteUserDialog({ open, onOpenChange, contact, accounts, existi
   const submit = async (e) => {
     e.preventDefault();
     const address = email.trim().toLowerCase();
-    if (!address) return;
+    if (!address || !confirmed) return;
     const companyNumber = role === 'supplier' ? (accounts.find(a => a.dataverse_id === accountId)?.company_number || null) : null;
     const linkedAccountId = role === 'framework_stakeholder' ? null : accountId || null;
     setSubmitting(true);
@@ -147,8 +148,8 @@ export function InviteUserDialog({ open, onOpenChange, contact, accounts, existi
           </DialogTitle>
           <DialogDescription>
             {existingUser || pendingAssignment
-              ? `Update the role and account for ${contact.full_name}.`
-              : `Invite ${contact.full_name} to the portal and assign their role and account.`}
+              ? `Update the portal role and organisation access for ${contact.full_name}.`
+              : `Invite ${contact.full_name} to the portal and assign their portal role and organisation access.`}
           </DialogDescription>
         </DialogHeader>
 
@@ -204,7 +205,7 @@ export function InviteUserDialog({ open, onOpenChange, contact, accounts, existi
 
             {(role === "client" || role === "supplier") && (
               <FormField
-                label="Linked Account"
+                label="Organisation access"
                 description="Determines which projects and documents this user can access"
               >
                 <AccountCombobox
@@ -218,13 +219,14 @@ export function InviteUserDialog({ open, onOpenChange, contact, accounts, existi
             {role === 'project_manager' && !contact.dataverse_id && <p className="text-sm text-red-600">This contact needs a linked project manager record before portal access can be assigned.</p>}
             {error && <p className="text-sm text-red-600">{error}</p>}
 
+            <label className="flex items-start gap-2 text-xs text-muted-foreground"><input type="checkbox" checked={confirmed} onChange={e=>setConfirmed(e.target.checked)}/>I confirm this person’s portal role and organisation access before sending or updating access.</label>
             <DialogFooter>
               <Button type="button" variant="outline" onClick={() => onOpenChange(false)} disabled={submitting}>
                 Cancel
               </Button>
               <Button
                 type="submit"
-                disabled={submitting || !email.trim() || (role === 'project_manager' && !contact.dataverse_id)}
+                disabled={submitting || !confirmed || !email.trim() || (role === 'project_manager' && !contact.dataverse_id)}
                 className="bg-primary hover:bg-primary/90"
               >
                 {submitting ? (

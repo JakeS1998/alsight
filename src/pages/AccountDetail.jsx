@@ -97,8 +97,8 @@ export default function AccountDetail() {
   if (!account) {
     return (
       <div className="rounded-2xl border border-dashed border-slate-300 bg-white py-16 text-center">
-        <p className="text-sm text-slate-500">Account not found.</p>
-        <Link to="/accounts" className="mt-3 inline-block text-sm text-primary hover:underline">Back to Accounts</Link>
+        <p className="text-sm text-slate-500">Organisation not found.</p>
+        <Link to="/accounts" className="mt-3 inline-block text-sm text-primary hover:underline">Back to Organisations</Link>
       </div>
     );
   }
@@ -111,14 +111,14 @@ export default function AccountDetail() {
       <div className="account-sticky-header">
         <AccountHeader account={account} owner={summary.isPending ? 'Loading…' : signals?.owner || (account.account_manager_aad_id ? 'Assigned owner' : 'Not assigned')} actions={<AccountClassification account={account} user={user} onSaved={updated => setAccount(current => ({ ...current,...updated }))} />} />
         <TabsList className="account-tabs mt-4" aria-label="Relationship sections">
-          {['Overview','Contacts','Projects',...(['admin','director','regional_director','bsm','finance','bdm'].includes(user?.role) ? ['Opportunities'] : []),...(['admin','director','regional_director','bsm','finance','bdm','client'].includes(user?.role) ? ['Financials'] : []),'Activity','Documents'].map(title => <TabsTrigger key={title} value={title.toLowerCase()}>{title}</TabsTrigger>)}
+          {['Overview','Contacts','Projects',...(['admin','director','regional_director','bsm','finance','bdm'].includes(user?.role) ? ['Opportunities'] : []),...(['admin','director','regional_director','bsm','finance','bdm','client'].includes(user?.role) ? ['Financials'] : []),'Activity','Documents'].map(title => <TabsTrigger key={title} value={title.toLowerCase()}>{title==='Contacts' ? 'People' : title}</TabsTrigger>)}
         </TabsList>
       </div>
       <TabsContent value="overview"><AccountOverview account={account} contacts={contacts} projects={projects} signals={signals} user={user} summaryLoading={summary.isPending} summaryError={summary.error} onAccountEnriched={updated=>setAccount(current=>({...current,...updated}))} /></TabsContent>
       <TabsContent value="contacts" className="space-y-6">
       {/* Linked Contacts */}
-      <Section icon={Users} title="Linked Contacts" count={contactTotal}>
-        {contacts.length === 0 ? <Empty text="No contacts linked to this account" /> : (
+      <Section icon={Users} title="People at this organisation" count={contactTotal}>
+        {contacts.length === 0 ? <Empty text="No people linked to this organisation yet" /> : (
           <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
             {contacts.map((c) => (
               <div key={c.id} className="rounded-xl border border-slate-200 bg-white p-4">
@@ -140,7 +140,7 @@ export default function AccountDetail() {
           setContacts(current => [...current,...page.items]);
           setContactPage(page);
         } finally { setLoadingContacts(false); }
-      }}>{loadingContacts ? 'Loading contacts…' : 'Load more contacts'}</Button>}
+      }}>{loadingContacts ? 'Loading people…' : 'Load more people'}</Button>}
 
       </TabsContent>
       <TabsContent value="opportunities" className="space-y-6">

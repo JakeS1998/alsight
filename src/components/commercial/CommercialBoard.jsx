@@ -1,0 +1,10 @@
+import React from 'react';
+import {DragDropContext,Droppable,Draggable} from '@hello-pangea/dnd';
+import {Button} from '@/components/ui/button';
+import {stageLabel} from '@/components/crm/crm';
+import {formatCurrency} from '@/lib/portal';
+import CommercialCard from '@/components/commercial/CommercialCard';
+const tones=['border-t-chart-2 bg-chart-2/5','border-t-chart-4 bg-chart-4/10','border-t-primary bg-primary/5','border-t-success bg-success/5'];
+export default function CommercialBoard({pages,editable,busy,onMove,onAction,onMore}){
+ return <DragDropContext onDragEnd={onMove}><div className="flex items-start gap-3 overflow-x-auto pb-5" aria-label="Opportunity board">{pages.map((page,i)=><section key={page.stage} className={`w-64 shrink-0 rounded-xl border border-border border-t-4 p-3 ${tones[i%4]}`}><header className="mb-4"><h2 className="text-xs font-semibold">{stageLabel(page.stage)}</h2><div className="mt-2 flex justify-between text-[11px] text-muted-foreground"><span>{page.total.count} opportunities</span><span>{formatCurrency(page.total.sum_budget)}</span></div></header><Droppable droppableId={page.stage} isDropDisabled={!editable || busy}>{provided=><div className="min-h-24 space-y-3" ref={provided.innerRef} {...provided.droppableProps}>{page.items.map((item,index)=><Draggable key={item.id} draggableId={item.id} index={index} isDragDisabled={!editable || busy}>{drag=><div ref={drag.innerRef} {...drag.draggableProps} {...drag.dragHandleProps}><CommercialCard item={item} editable={editable} onAction={onAction}/></div>}</Draggable>)}{provided.placeholder}{!page.items.length && <p className="py-6 text-center text-xs text-muted-foreground">{editable ? 'Move an opportunity here' : 'No opportunities in this stage'}</p>}</div>}</Droppable>{page.has_more && <Button className="mt-3 w-full" size="sm" variant="outline" disabled={busy} onClick={()=>onMore(page)}>Load more</Button>}</section>)}</div></DragDropContext>;
+}

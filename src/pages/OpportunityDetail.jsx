@@ -72,6 +72,7 @@ export default function OpportunityDetail() {
     finally { setLoading(false); }
   };
   useEffect(() => { load(); }, [opportunityId]);
+  useEffect(()=>{if(['won','lost'].includes(params.get('outcome')))setOutcome(params.get('outcome'));},[params.get('outcome')]);
   if (!['admin', 'director', 'regional_director', 'bsm', 'finance', 'bdm'].includes(user?.role)) return <p className="p-6 text-muted-foreground">Opportunity not available.</p>;
   if (loading) return <p className="p-6 text-muted-foreground">Loading opportunity…</p>;
   if (error) return <p role="alert" className="p-6 text-destructive">{error}</p>;

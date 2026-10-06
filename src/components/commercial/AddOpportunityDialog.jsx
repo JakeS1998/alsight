@@ -1,0 +1,11 @@
+import React,{useState} from 'react';
+import {useNavigate} from 'react-router-dom';
+import {Dialog,DialogContent,DialogHeader,DialogTitle} from '@/components/ui/dialog';
+import {Button} from '@/components/ui/button';
+import ClientSelect from '@/components/crm/ClientSelect';
+import {STAGES,createCRMOpportunity} from '@/components/crm/crm';
+export default function AddOpportunityDialog({open,onOpenChange,user}){
+ const navigate=useNavigate(),[form,setForm]=useState({title:'',account_id:'',budget:'',stage:'lead',expected_decision_date:'',location:''}),[busy,setBusy]=useState(false),[error,setError]=useState('');
+ const save=async e=>{e.preventDefault();setBusy(true);setError('');try{const item=await createCRMOpportunity({...form,...(form.budget!=='' ? {budget:Number(form.budget)} : {budget:0})},user);onOpenChange(false);navigate(`/opportunities/${item.id}`);}catch(e){setError(e.message);}finally{setBusy(false);}};
+ return <Dialog open={open} onOpenChange={onOpenChange}><DialogContent><DialogHeader><DialogTitle>Add opportunity</DialogTitle></DialogHeader><form className="space-y-4" onSubmit={save}><label className="block text-sm">Organisation<ClientSelect value={form.account_id} onChange={account_id=>setForm({...form,account_id})}/></label>{[['title','Opportunity name','text'],['budget','Opportunity value (£)','number'],['expected_decision_date','Expected close date','date'],['location','Location','text']].map(([key,label,type])=><label className="block text-sm" key={key}>{label}<input required={key==='title'} type={type} min={type==='number' ? '0' : undefined} maxLength={200} className="mt-1 w-full rounded-lg border border-input bg-background p-2" value={form[key]} onChange={e=>setForm({...form,[key]:e.target.value})}/></label>)}<label className="block text-sm">Stage<select value={form.stage} onChange={e=>setForm({...form,stage:e.target.value})} className="mt-1 w-full rounded-lg border border-input bg-background p-2">{STAGES.filter(s=>!['won','lost'].includes(s.value)).map(s=><option key={s.value} value={s.value}>{s.label}</option>)}</select></label>{error && <p role="alert" className="text-sm text-destructive">{error}</p>}<Button disabled={busy || !form.account_id}>{busy ? 'Creating…' : 'Create opportunity'}</Button></form></DialogContent></Dialog>;
+}

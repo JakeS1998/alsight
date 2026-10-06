@@ -11,7 +11,7 @@ export const chance = item => item.probability ?? (STAGES.find(s => s.value === 
 export const weighted = item => (Number(item.budget) || 0) * chance(item) / 100;
 export const isoToday = () => new Date().toISOString().slice(0, 10);
 export async function logCRMActivity(item, user, type, subject, description = '') {
-  return base44.entities.CRMActivity.create({ opportunity_id: item.id, account_id: item.account_id, type, occurred_at: new Date().toISOString(), subject, description, owner_id: item.owner_id || user?.id, line_manager_id: item.line_manager_id || user?.data?.line_manager_id || user?.line_manager_id || '', author_id: user?.id || '', author_name: user?.full_name || user?.email || 'Team member' });
+  return base44.entities.CRMActivity.create({ opportunity_id: item.id, account_id: item.account_id, type, occurred_at: new Date().toISOString(), subject, description, ...(item.contact_id ? {contact_id:item.contact_id} : {}), owner_id: item.owner_id || user?.id, line_manager_id: item.line_manager_id || user?.data?.line_manager_id || user?.line_manager_id || '', author_id: user?.id || '', author_name: user?.full_name || user?.email || 'Team member' });
 }
 export async function updateCRMOpportunity(item, patch, user) {
   const next = { ...item, ...patch };
@@ -25,7 +25,7 @@ export async function updateCRMOpportunity(item, patch, user) {
   patch.weighted_alliance_fee = Math.round((Number(next.alliance_fee) || 0) * chance(next) / 100 * 100) / 100;
   const result = await base44.entities.Opportunity.update(item.id, patch);
   const changes = ['stage', 'probability', 'budget', 'alliance_fee', 'expected_decision_date', 'owner_id', 'fee_status'].filter(key => patch[key] !== undefined && patch[key] !== item[key]);
-  if (changes.length) await logCRMActivity(item, user, patch.stage && patch.stage !== item.stage ? 'stage_change' : 'system', patch.stage && patch.stage !== item.stage ? `Stage changed: ${stageLabel(item.stage)} → ${stageLabel(patch.stage)}` : 'Opportunity details updated', changes.map(key => `${key.replaceAll('_', ' ')}: ${item[key] ?? '—'} → ${patch[key] ?? '—'}`).join('\n'));
+  if (changes.length) await logCRMActivity(item, user, patch.stage && patch.stage !== item.stage ? 'stage_change' : 'system', patch.stage && patch.stage !== item.stage ? `Stage changed: ${stageLabel(item.stage)} → ${stageLabel(patch.stage)}` : 'Opportunity details updated', changes.map(key => `${key.replaceAll('_', ' ')}: ${item[key] ?? '—'} → ${patch[key] ?? '—'}`).join('\n') + (patch.stage_entered_at && item.stage_entered_at ? `\nPrevious stage entered: ${item.stage_entered_at}\nStage exited: ${patch.stage_entered_at}\nPrevious stage duration: ${Math.max(0,Math.floor((Date.parse(patch.stage_entered_at)-Date.parse(item.stage_entered_at))/86400000))} days` : ''));
   return result;
 }
 export async function createCRMOpportunity(data, user) {
