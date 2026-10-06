@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useLayoutEffect, useRef, useState } from 'react';
 import { useLocation } from 'react-router-dom';
 
 export default function useExpandingSearch() {
@@ -10,15 +10,14 @@ export default function useExpandingSearch() {
     if (restoreFocus) trigger.current?.focus();
   }, []);
   useEffect(() => { close(); }, [pathname, close]);
-  useEffect(() => {
+  useLayoutEffect(() => {
     if (!open) return;
-    // Wait for the expanded field's visibility styles before focusing it.
-    const focusFrame = requestAnimationFrame(() => input.current?.focus({ preventScroll: true }));
+    input.current?.focus({ preventScroll: true });
     const outside = event => { if (!root.current?.contains(event.target)) close(); };
     const escape = event => { if (event.key === 'Escape') { event.preventDefault(); close(true); } };
     document.addEventListener('pointerdown', outside);
     document.addEventListener('keydown', escape);
-    return () => { cancelAnimationFrame(focusFrame); document.removeEventListener('pointerdown', outside); document.removeEventListener('keydown', escape); };
+    return () => { document.removeEventListener('pointerdown', outside); document.removeEventListener('keydown', escape); };
   }, [open, close]);
   const onKeyDown = event => {
     if (!['ArrowDown', 'ArrowUp', 'Home', 'End'].includes(event.key)) return;

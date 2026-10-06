@@ -12,7 +12,7 @@
 .portal-search { position: relative; width: 42px; height: 42px; flex-shrink: 0; }
 .portal-search-trigger { transition: opacity 180ms ease; }
 .portal-search[data-open="true"] .portal-search-trigger { opacity: 0; pointer-events: none; }
-.portal-search-field { position: absolute; right: 0; top: 0; z-index: 51; display: flex; align-items: center; gap: 8px; width: 42px; height: 42px; padding: 0 11px; border: 1px solid hsl(var(--border)); border-radius: var(--radius); background: hsl(var(--card)); color: hsl(var(--card-foreground)); opacity: 0; visibility: hidden; overflow: hidden; pointer-events: none; transition: width 260ms cubic-bezier(.22, 1, .36, 1), opacity 160ms ease, visibility 260ms; }
+.portal-search-field { position: absolute; right: 0; top: 0; z-index: 51; display: flex; align-items: center; gap: 8px; width: 42px; height: 42px; padding: 0 11px; border: 1px solid hsl(var(--border)); border-radius: var(--radius); background: hsl(var(--card)); color: hsl(var(--card-foreground)); opacity: 0; visibility: hidden; overflow: hidden; pointer-events: none; transition: width 260ms cubic-bezier(.22, 1, .36, 1), opacity 160ms ease; }
 .portal-search[data-open="true"] .portal-search-field { width: 280px; opacity: 1; visibility: visible; overflow: visible; pointer-events: auto; }
 .portal-search-field:focus-within { border-color: hsl(var(--ring)); box-shadow: 0 0 0 2px hsl(var(--ring) / .15); }
 .portal-search-results { position: absolute; right: 0; top: calc(100% + 8px); z-index: 50; width: 360px; max-width: calc(100vw - 32px); overflow: hidden; border: 1px solid hsl(var(--border)); border-radius: var(--panel-radius); background: hsl(var(--card)); box-shadow: 0 12px 32px hsl(var(--als-navy) / .2); }
