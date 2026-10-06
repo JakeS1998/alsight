@@ -26,7 +26,7 @@ export function assessmentPreview(prepared,policy) {
   const selectedEvidence=sourceEvidence.filter(row=>usedIds.has(row.id));
   const notSelectedEvidence=sourceEvidence.filter(row=>!usedIds.has(row.id)).map(row=>{
     const rule=policy.models[model].find(item=>item.key===row.component);
-    return {...row,selection_reason:row.score_eligible===false ? 'Context or unapproved evidence, excluded from scoring.' : !rule || scoreEvidence(rule,row)===null ? 'No usable metric for this model component.' : 'Not selected: a newer period, newer metric or more adverse verified classification takes precedence.'};
+    return {...row,selection_reason:row.score_eligible===false ? row.automatic_reason || 'Context or unapproved evidence, excluded from scoring.' : !rule || scoreEvidence(rule,row)===null ? 'No usable metric for this model component.' : 'Not selected: a newer period, newer metric or more adverse verified classification takes precedence.'};
   });
   return {preparedAt,previewToken,summary:{...summary,policy_version:policy.version,previous_rating:previous?.displayed_rating ?? null,change:summary.displayed_rating!==null && previous?.displayed_rating!=null ? summary.displayed_rating-previous.displayed_rating : null},components:components.map(({latest,...component})=>({...component,id:component.component})),selectedEvidence,notSelectedEvidence,sourceCount:sourceEvidence.length,selectedCount:selectedEvidence.length,notSelectedCount:notSelectedEvidence.length,missingComponents:components.filter(row=>row.score===null).map(row=>row.component_label)};
 }

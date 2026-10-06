@@ -27,7 +27,7 @@ export function checkASESourceScoringRules() {
   councilDifferentNameScores:facts.length===2 && councilRows.every(fact=>fact.automatic_eligible),
   councilWrongSavedCodeExcluded:councilAutomaticMetrics({...council,local_authority_code:'E08000033'},code,refresh,returns,[]).facts.length===0,
   councilWrongReturnCodeExcluded:councilAutomaticMetrics(council,code,refresh,returns.map(r=>({...r,code:'E08000033'})),[]).facts.length===0,
-  councilUncertifiedExcluded:councilAutomaticMetrics(council,code,refresh,returns.map(r=>({...r,certification:'N'})),[]).facts.length===0,
+  councilUncertifiedWithoutProvenanceExcluded:councilAutomaticMetrics(council,code,refresh,returns.map(r=>({...r,certification:'N'})),[]).facts.length===0,
   councilNoEmptySearchClearance:!automaticEvidence('council_governance',council,{raw:{authority_code:code},facts:[{...row,component:'intervention'}]},now)[0].score_eligible
  };
 }

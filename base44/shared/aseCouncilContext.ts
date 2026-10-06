@@ -8,10 +8,12 @@ export async function retrieveCouncilContext(account,code,refresh,officialName) 
     for(const document of documents) {
       try {
         const page=await sourceJson('https://www.gov.uk/api/content'+document.base_path),body=String(page.details?.body || '');
-        const row=[...body.matchAll(/<tr\b[^>]*>([\s\S]*?)<\/tr>/gi)].map(match=>[...match[1].matchAll(/<t[dh]\b[^>]*>([\s\S]*?)<\/t[dh]>/gi)].map(cell=>sourceText(cell[1]))).find(cells=>norm(cells[0])===norm(officialName));
+        const matches=[...body.matchAll(/<tr\b[^>]*>([\s\S]*?)<\/tr>/gi)].map(match=>[...match[1].matchAll(/<t[dh]\b[^>]*>([\s\S]*?)<\/t[dh]>/gi)].map(cell=>sourceText(cell[1]))).filter(cells=>norm(cells[0])===norm(officialName));
+        const row=matches.length===1 ? matches[0] : null;
+        if(matches.length>1) warnings.push('Multiple authority rows in the support publication; no automatic classification.');
         const year=document.base_path.match(/for-(\d{4})-/)?.[1],value=row ? row.slice(1).join('; ') : 'No exact authority row found in this published list',url='https://www.gov.uk'+document.base_path;
-        support.push({url,value});
-        facts.push(makeSourceFact(account,'local_authority',code,refresh,`efs-${year}`,{component:'efs',title:`Exceptional Financial Support register · ${year}`,value,evidence_type:'event',source_date:String(page.public_updated_at || refresh.refreshed_at).slice(0,10),source_reference:url,notes:`Matched against official return name ${officialName} for ONS ${code}. In-principle support, applications, approvals and final capitalisation directions must be distinguished. No matched row does not prove absence of support. Administrator review is required for ASE classification.`,severity:row ? 'moderate' : 'none'}));
+        support.push({url,value,code,authority_name:row?.[0] || '',exact_match:!!row,financial_year:Number(year),source_date:String(page.public_updated_at || refresh.refreshed_at).slice(0,10)});
+        facts.push(makeSourceFact(account,'local_authority',code,refresh,`efs-${year}`,{component:'efs',title:`Exceptional Financial Support register · ${year}`,value,evidence_type:'event',source_date:String(page.public_updated_at || refresh.refreshed_at).slice(0,10),source_reference:url,notes:`Matched against official return name ${officialName} for ONS ${code}. In-principle support, applications, approvals and final capitalisation directions must be distinguished. No matched row does not prove absence of support. Explicit current-year support agreed in principle can score at Low confidence under the broader evidence rule; ambiguous amounts, bare list entries and unmatched rows remain context.`,severity:row ? 'moderate' : 'none'}));
       } catch(error) {warnings.push(`Exceptional Financial Support: ${error.message}`);}
     }
   } catch(error) {warnings.push(`Exceptional Financial Support collection: ${error.message}`);}

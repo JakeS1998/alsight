@@ -3,6 +3,7 @@ import { councilReturn } from './aseCouncilOds.ts';
 import { retrieveCouncilBudget } from './aseCouncilBudget.ts';
 import { retrieveCouncilContext } from './aseCouncilContext.ts';
 import {councilAutomaticMetrics} from './aseCouncilAutomaticMetrics.ts';
+import {councilSupportEvidence} from './aseCouncilSupport.ts';
 export async function retrieveLocalAuthority(account,code,refresh) {
   const collection=await sourceJson('https://www.gov.uk/api/content/government/collections/local-authority-revenue-expenditure-and-financing');
   const documents=(collection.links?.documents || []).filter(doc=>/individual.*outturn/i.test(doc.title) && !doc.withdrawn && (!doc.public_updated_at || Date.parse(doc.public_updated_at)<=Date.now())).sort((a,b)=>{const year=doc=>Number(doc.title.match(/England: (\d{4})/)?.[1] || 0);return year(b)-year(a);}).slice(0,3);
@@ -26,7 +27,8 @@ export async function retrieveLocalAuthority(account,code,refresh) {
   facts.push(...budget.facts,...context.facts);
   warnings.push(...budget.warnings,...context.warnings);
   const normalised=councilAutomaticMetrics(account,code,refresh,returns,budget.returns,officialName);
-  warnings.push(...normalised.warnings,'Only exact authority matches and certified, unambiguous financial definitions are automatically scored. Support-list matches, audit opinions and Section 114 search results remain context unless explicit primary facts can be validated. No absence is inferred.');
-  const combined=[...normalised.facts,...facts];if(combined.length>40) warnings.push('Context records limited to 40; complete parsed returns remain in the private source snapshot.');
+  warnings.push(...normalised.warnings,'Exact ONS identity and unambiguous definitions remain required. Published completed-year uncertified metrics and explicit current-year support agreed in principle can score with Low confidence. Generic reserves, ambiguous support lists, audit guidance and search results stay context. No absence is inferred.');
+  const supportFacts=councilSupportEvidence(account,code,refresh,support,officialName);
+  const combined=[...normalised.facts,...supportFacts,...facts];if(combined.length>40) warnings.push('Context records limited to 40; complete parsed returns remain in the private source snapshot.');
   return {facts:combined.slice(0,40),raw:{code,returns,budget_returns:budget.returns,support,governance_candidates:documentsFound},summary:{authority_code:code,authority_name:officialName,financial_years:returns.map(row=>row.financial_year),budget_years:[...new Set(budget.returns.map(row=>row.financial_year))],support_registers:support.length,governance_candidates:documentsFound.length},warnings};
 }

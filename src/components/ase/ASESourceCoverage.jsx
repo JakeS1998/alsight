@@ -2,9 +2,9 @@ import React from 'react';
 export default function ASESourceCoverage({model}) {
   const council=model==='english_local_authority';
   const entries=council ? [
-    ['MHCLG Revenue Outturn','Automatic validation','Exact ONS identity, certified rows and explicit metric definitions. Generic or restricted reserves are never substituted for usable General Fund reserves.'],
+    ['MHCLG Revenue Outturn','Automatic validation','Exact ONS identity and explicit metric definitions. Completed-year uncertified published figures may score with Low confidence. Generic, unallocated or restricted reserves are never substituted for usable General Fund reserves.'],
     ['MHCLG Revenue Budget','Comparable periods only','Budget/outturn ratios require matching authority and completed financial year. Forecasts remain context.'],
-    ['Exceptional Financial Support','Explicit decisions only','Support-list matches are context unless approval, period and operative status are unambiguous. No match never proves absence.'],
+    ['Exceptional Financial Support','Explicit decisions only','An exact official-name match with explicit current-year support agreed in principle scores 3/5 with Low confidence, not as final approval or consecutive-year support. Ambiguous amounts and missing matches remain unscored.'],
     ['Statutory intervention / Section 114','Primary facts only','Current statutory directions can score when exact identity and operative dates are validated. Searches, inspections and historical mentions stay unscored.'],
     ['Local audit / backstop','Context unless explicit','A missing report or backstop-only disclaimer is not a substantive governance failure. Ambiguous primary documents remain unscored without blocking publication.'],
     ['PWLB / CIPFA','Not connected','No loan or benchmark is substituted for primary financial evidence.']

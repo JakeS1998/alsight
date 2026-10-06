@@ -4,6 +4,7 @@ import {retrieveGazette} from './aseGazetteSource.ts';
 import {retrieveLocalAuthority} from './aseLocalAuthoritySource.ts';
 import {retrieveCouncilGovernance} from './aseCouncilGovernance.ts';
 import {automaticEvidence,automaticRegistryFacts} from './aseAutomaticEvidence.ts';
+import {eligibilityReport} from './aseEligibilityReport.ts';
 const providers={accounts:retrieveAccounts,gazette:retrieveGazette,local_authority:retrieveLocalAuthority,council_governance:retrieveCouncilGovernance};
 export async function collectASESource(base44,account,source,user) {
   if(source==='hmrc') throw new Error('HMRC is excluded from automated ASE.');
@@ -17,7 +18,7 @@ export async function collectASESource(base44,account,source,user) {
     else {const response=await base44.functions.invoke('manageCompaniesHouse',{action:'refresh',accountId:account.id});if(response.data.error) throw new Error(response.data.error);audit=response.data.audit;}
     const page=await base44.entities.ASEEvidence.filter({account_id:account.id,assessment_id:null,source:'Companies House',source_refresh_id:audit.id},{limit:40});
     const rows=automaticRegistryFacts(page.items,audit,canonical);
-    if(rows.length) await base44.entities.ASEEvidence.bulkUpdate(rows.map(row=>({id:row.id,score_eligible:row.score_eligible,automatic_eligible:row.automatic_eligible,automatic_reason:row.automatic_reason,automatic_rule_version:row.automatic_rule_version})));
+    if(rows.length) await base44.entities.ASEEvidence.bulkUpdate(rows.map(row=>({id:row.id,confidence:row.confidence,score_eligible:row.score_eligible,automatic_eligible:row.automatic_eligible,automatic_reason:row.automatic_reason,automatic_rule_version:row.automatic_rule_version})));
     return {audit,evidenceCount:rows.length,eligibleCount:rows.filter(row=>row.automatic_eligible).length};
   }
   if(!providers[source]) throw new Error('Unsupported automatic source.');
@@ -30,9 +31,12 @@ export async function collectASESource(base44,account,source,user) {
     const {signed_url}=await base44.integrations.Core.CreateFileSignedUrl({file_uri:recent.raw_file_uri});
     const response=await fetch(signed_url,{signal:AbortSignal.timeout(15000)});if(!response.ok) throw new Error('Recent source snapshot is unavailable.');
     const stored=await response.json(),rows=automaticEvidence(source,canonical,{facts:page.items,raw:stored.data});
-    if(rows.length) await base44.entities.ASEEvidence.bulkUpdate(rows.map(row=>({id:row.id,score_eligible:row.score_eligible,automatic_eligible:row.automatic_eligible,automatic_reason:row.automatic_reason,automatic_rule_version:row.automatic_rule_version})));
-    return {audit:recent,evidenceCount:rows.length,eligibleCount:rows.filter(row=>row.automatic_eligible).length};
+    if(rows.length) await base44.entities.ASEEvidence.bulkUpdate(rows.map(row=>({id:row.id,confidence:row.confidence,score_eligible:row.score_eligible,automatic_eligible:row.automatic_eligible,automatic_reason:row.automatic_reason,automatic_rule_version:row.automatic_rule_version})));
+    const report=eligibilityReport(rows,page.items,true);
+    const updated=await base44.entities.ASESourceRefresh.update(recent.id,{summary:{...recent.summary,automatic_eligible_count:report.eligible_count,eligibility:report}});
+    return {audit:updated,evidenceCount:rows.length,eligibleCount:report.eligible_count,eligibility:report};
   }
+  const previousPage=recent && ['completed','partial'].includes(recent.status) ? await base44.entities.ASEEvidence.filter({account_id:account.id,assessment_id:null,source_refresh_id:recent.id},{limit:40}) : {items:[]};
   const attempt=await base44.entities.ASESourceRefresh.create({...query,requested_by:user.id,refreshed_at:new Date().toISOString(),status:'pending'});
   try {
     const result=await providers[source](canonical,identifier,attempt,base44);
@@ -45,9 +49,9 @@ export async function collectASESource(base44,account,source,user) {
     for(let n=0;n<4;n++){const retired=await base44.entities.ASEEvidence.updateMany({account_id:account.id,assessment_id:null,source:sourceNames[source],external_key:{$exists:true},score_eligible:{$ne:false}},{$set:{score_eligible:false,automatic_eligible:false}});if(!retired.has_more) break;}
     const rows=automaticEvidence(source,canonical,result);
     if(rows.length) await base44.entities.ASEEvidence.upsert(rows.map(row=>({...row,raw_file_uri:file_uri})),{key:'external_key'});
-    const eligibleCount=rows.filter(row=>row.automatic_eligible).length;
-    const audit=await base44.entities.ASESourceRefresh.update(attempt.id,{status:result.warnings.length ? 'partial' : 'completed',summary:{...result.summary,evidence_count:rows.length,automatic_eligible_count:eligibleCount,verification_status:result.summary.pdf_documents_scanned ? 'Tagged figures use deterministic validation; ALICE PDF transcription has Low confidence and is not independently verified' : 'Deterministic automatic validation; ambiguous evidence remains context'},warnings:result.warnings,raw_file_uri:file_uri,raw_sha256:sha});
-    return {audit,evidenceCount:rows.length,eligibleCount};
+    const report=eligibilityReport(rows,previousPage.items,!!recent && ['completed','partial'].includes(recent.status)),eligibleCount=report.eligible_count;
+    const audit=await base44.entities.ASESourceRefresh.update(attempt.id,{status:result.warnings.length ? 'partial' : 'completed',summary:{...result.summary,evidence_count:rows.length,automatic_eligible_count:eligibleCount,eligibility:report,verification_status:result.summary.pdf_documents_scanned ? 'Tagged figures use deterministic validation; ALICE PDF transcription has Low confidence and is not independently verified' : 'Deterministic automatic validation; ambiguous evidence remains context'},warnings:result.warnings,raw_file_uri:file_uri,raw_sha256:sha});
+    return {audit,evidenceCount:rows.length,eligibleCount,eligibility:report};
   } catch(error) {
     await base44.entities.ASESourceRefresh.update(attempt.id,{status:'failed',error:String(error.message).slice(0,1000)});throw error;
   }

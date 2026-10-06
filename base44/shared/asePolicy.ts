@@ -22,7 +22,7 @@ export const defaultModels = {
     numeric('reserves_trend','Reserves sustainability / trend',20,'percentage-point annual change in reserves ratio',[-5,-2,0,2]),
     numeric('borrowing','Borrowing / debt',15,'% financing costs / net revenue expenditure',[5,10,15,20],true),
     numeric('budget','Budget / outturn position',15,'% revenue overspend / budget',[0,1,2,5],true,true),
-    category('efs','Exceptional Financial Support',15,'event',['Verified absence of support','Historical support; no current application or approval','Current application pending','Approved for current year','Approved in consecutive financial years']),
+    category('efs','Exceptional Financial Support',15,'event',['Verified absence of support','Historical support; no current application or approval','Current application pending or support agreed in principle','Approved for current year','Approved in consecutive financial years']),
     category('audit','Audit / governance',10,'governance',['Unqualified opinion; no significant findings','Unqualified opinion with recommendations','Qualified opinion; no material governance failure','Confirmed material governance weaknesses','Adverse or disclaimed audit opinion']),
     category('intervention','Statutory intervention / serious event',5,'event',['Verified absence of relevant events','Resolved relevant event within 24 months','Formal non-statutory improvement action','Active statutory financial or governance intervention','Active Section 114 position']),
   ],
@@ -39,7 +39,8 @@ export async function getPolicy(base44) {
   const policy=page.items[0] || {version:'approved-v1',models:defaultModels};
   const models=withCommercialModel(policy.models);
   models.company=models.company.map(rule=>rule.key==='adverse' ? {...rule,choices:rule.choices.map(choice=>choice.value==='5' ? {...choice,label:'Clean record under configured checks'} : choice)} : rule);
-  return {...policy,models,version:`${policy.version}|${commercialScoringVersion}|${ratingPolicy.version}|gazette-clean-ons-code-v1`,rating_policy:ratingPolicy};
+  models.english_local_authority=models.english_local_authority.map(rule=>rule.key==='efs' ? {...rule,choices:rule.choices.map(choice=>choice.value==='3' ? {...choice,label:'Current application pending or support agreed in principle'} : choice)} : rule);
+  return {...policy,models,version:`${policy.version}|${commercialScoringVersion}|${ratingPolicy.version}|broader-official-evidence-v1`,rating_policy:ratingPolicy};
 }
 export function scoreEvidence(rule, evidence) {
   if (evidence.score_eligible === false) return null;
@@ -58,7 +59,7 @@ export function calculate(models, model, evidence, now=new Date()) {
     const periodRows = usable.filter(row=>row.reporting_period===period).sort((a,b)=>b.retrieval_date.localeCompare(a.retrieval_date));
     const latest = rule.choices ? periodRows.reduce((a,b)=>!a || scoreEvidence(rule,b)<scoreEvidence(rule,a) ? b : a,null) : periodRows[0];
     const score = latest ? scoreEvidence(rule,latest) : null;
-    return {component:rule.key,component_label:rule.label,weighting:rule.weighting,score,weighted_score:score===null ? null : score*rule.weighting/100,evidence_ids:latest ? [latest.id] : [],metric_value:latest?.value || '',explanation:latest ? `${rule.label}: ${rule.choices ? rule.choices.find(c=>c.value===latest.value).label : `${latest.value} ${rule.unit}`}. Approved rule gives ${score}/5, weighted at ${rule.weighting}%.${latest.automatic_rule_version==='blackflag-financial-fallback-v1' ? ' Source: Blackflag secondary financial fallback; no verified eligible Companies House equivalent for this component and reporting period.' : ''}${rule.key===commercialRule.key ? ' '+latest.notes : ''}` : 'Missing or unusable evidence; excluded from the score.',latest};
+    return {component:rule.key,component_label:rule.label,weighting:rule.weighting,score,weighted_score:score===null ? null : score*rule.weighting/100,evidence_ids:latest ? [latest.id] : [],metric_value:latest?.value || '',explanation:latest ? `${rule.label}: ${rule.choices ? rule.choices.find(c=>c.value===latest.value).label : `${latest.value} ${rule.unit}`}. Approved rule gives ${score}/5, weighted at ${rule.weighting}%.${latest.automatic_rule_version==='blackflag-financial-fallback-v1' ? ' Source: Blackflag secondary financial fallback; no verified eligible Companies House equivalent for this component and reporting period.' : ''}${rule.key===commercialRule.key ? ' '+latest.notes : latest.confidence==='Low' ? ' '+(latest.automatic_reason || latest.notes || 'This input has Low confidence.') : ''}` : 'Missing or unusable evidence; excluded from the score.',latest};
   });
   const used = components.filter(row=>row.score !== null && row.weighting>0);
   const coverage = used.reduce((sum,row)=>sum+row.weighting,0);
