@@ -6,5 +6,5 @@ const options = {
  lost: [{value:'lost',label:'Closed · Lost'}],
 };
 export default function ASERatingFilter({kind,value,onChange}) {
- return <FilterSelect label="ASE rating" value={value || ''} onChange={onChange} options={options[kind] || []}/>;
+ return <FilterSelect label="All Seeing Eye rating" value={value || ''} onChange={onChange} options={options[kind] || []}/>;
 }

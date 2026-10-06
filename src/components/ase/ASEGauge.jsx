@@ -8,7 +8,7 @@ export default function ASEGauge({rating,precise,label,loading=false,showScale=f
  const score=available ? Math.min(5,Math.max(1,Number.isFinite(precise) ? precise : rating)) : null;
  const marker=score!=null ? point(150+(score-1)*60) : null;
  const colour=available ? colours[Math.min(4,Math.max(0,Math.round(score)-1))] : 'text-border';
- return <svg viewBox="0 0 240 213" className={`w-full ${loading ? 'animate-pulse' : ''}`} role="img" aria-label={loading ? 'ASE rating calculating' : available ? `ASE rating ${rating} out of 5, ${label || bands[rating-1]}` : 'ASE rating not available'}>
+ return <svg viewBox="0 0 240 213" className={`w-full ${loading ? 'animate-pulse' : ''}`} role="img" aria-label={loading ? 'All Seeing Eye rating calculating' : available ? `All Seeing Eye rating ${rating} out of 5, ${label || bands[rating-1]}` : 'All Seeing Eye rating not available'}>
   <path d={arc(150,390)} stroke="currentColor" strokeWidth="17" fill="none" strokeLinecap="round" className="text-border"/>
   {available && colours.map((tone,i)=><path key={tone} d={arc(152+i*48,150+(i+1)*48-2)} stroke="currentColor" strokeWidth="17" fill="none" className={tone}/>)}
   {available && [152,388].map((angle,i)=>{const p=point(angle);return <circle key={angle} cx={p[0]} cy={p[1]} r="8.5" fill="currentColor" className={i===0 ? colours[0] : colours[4]}/>;})}
