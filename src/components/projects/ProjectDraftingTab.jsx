@@ -8,6 +8,7 @@ import RibaReportLink from '@/components/projects/RibaReportLink';
 import agreementNames from '@/components/projects/agreementNames';
 import frameworkAgreementRoute from '@/components/delivery/frameworkAgreementRoute';
 import ProjectEmptyState from '@/components/projects/ProjectEmptyState';
+import DocumentStageMarker from '@/components/documents/DocumentStageMarker';
 import {
   FileSearch, FileCheck, UserCheck, Gavel, FilePlus,
   ExternalLink, AlertCircle,
@@ -130,7 +131,7 @@ export function ProjectDraftingTab({ project, legalDocs, dmas, jcts, accountMap,
   return (
     <div className="ws-subsection ws-documents">
       <div className="ws-panelhead"><h2 className="ws-sectiontitle">Documents</h2></div>
-      <div className="ws-document-grid">{stages.map((stage) => {
+      <ol className="ws-document-grid" aria-label="Document timeline">{stages.map((stage, index) => {
         let docs = [];
         if (stage.key === 'precon') {
           docs = preConstructionDocs;
@@ -150,7 +151,8 @@ export function ProjectDraftingTab({ project, legalDocs, dmas, jcts, accountMap,
         const cfg = STATUS_CFG[status];
 
         return (
-          <div key={stage.key} className="ws-document-stage ws-card ws-panel">
+          <li key={stage.key} className="ws-document-stage relative pl-12">
+            <DocumentStageMarker icon={stage.icon} status={status} last={index === stages.length - 1} />
             <div className="min-w-0">
               <div className="flex flex-wrap items-center gap-2 mb-3">
                 <h3 className="text-sm font-semibold text-slate-900">{stage.key === 'aa' ? agreementNames(project.project_number).access : stage.key === 'dma' ? agreementNames(project.project_number).development : stage.label}</h3>
@@ -198,9 +200,9 @@ export function ProjectDraftingTab({ project, legalDocs, dmas, jcts, accountMap,
                 </div>
               )}
             </div>
-          </div>
+          </li>
         );
-      })}</div>
+      })}</ol>
     </div>
   );
 }
