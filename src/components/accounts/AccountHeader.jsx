@@ -11,7 +11,7 @@ import { Building2, Landmark } from 'lucide-react';
 export default function AccountHeader({ account, owner, actions }) {
   const { user } = useAuth();
   const AccountIcon = isCouncilAccount(account) ? Landmark : Building2;
-  const photo = useQuery({ queryKey: ['account-hero',account.id,user?.id,user?.role], staleTime: 86400000, queryFn: async () => (await base44.functions.invoke('findAccountHeaderImage',{ accountId: account.id })).data });
+  const photo = useQuery({ queryKey: ['account-hero',account.id,user?.id,user?.role,'static-photos-v1'], staleTime: 86400000, queryFn: async () => (await base44.functions.invoke('findAccountHeaderImage',{ accountId: account.id })).data });
   const identifiers = [['Relationship owner',owner || 'Not assigned'],['Location',[account.address_city,account.address_postcode].filter(Boolean).join(' · ')]];
   return <><Link to="/accounts" className="mb-4 inline-block text-sm font-medium text-muted-foreground hover:text-foreground">← Back to Relationships</Link><header className="account-hero">
     {photo.data?.url && <div className="account-hero-photo"><Image src={photo.data.url} alt={photo.data.caption || `${account.name} offices`} className="h-full w-full object-cover" /></div>}

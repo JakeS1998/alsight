@@ -9,8 +9,8 @@ export default function useProjectHeroPhoto(project, user) {
   const enabled = !!project?.id && !!user?.id;
   const canReadUploads = project?.procurement_route !== false && INTERNAL_ROLES.includes(user?.role);
   const retryRequested = useRef(false);
-  const queryKey = ['project-hero-photo', project?.id, user?.id, user?.role, 'leisure-location-v3'];
-  const googleKey = ['project-google-image', project?.id, project?.name, project?.site_postcode, user?.id, user?.role, 'leisure-location-v3'];
+  const queryKey = ['project-hero-photo', project?.id, user?.id, user?.role, 'leisure-location-static-v4'];
+  const googleKey = ['project-google-image', project?.id, project?.name, project?.site_postcode, user?.id, user?.role, 'leisure-location-static-v4'];
   const query = useQuery({
     queryKey, enabled, staleTime: 10 * 60 * 1000, refetchInterval: 10 * 60 * 1000, retry: false,
     queryFn: async () => {
