@@ -1,0 +1,4 @@
+import React from 'react';
+export default function WorkspaceMetrics({items,selected,onSelect}) {
+  return <div className="grid grid-cols-2 gap-3 xl:grid-cols-4">{items.map(item=><button key={item.key} type="button" onClick={()=>onSelect(item.key)} aria-pressed={selected===item.key} className={`flex items-start gap-3 rounded-xl border bg-card p-4 text-left shadow-sm transition-colors hover:border-primary ${selected===item.key ? 'border-primary ring-1 ring-primary/20' : 'border-border'}`}><span className={`mt-0.5 rounded-lg p-2 ${item.tone || 'bg-muted text-muted-foreground'}`}><item.icon className="h-4 w-4"/></span><span><strong className="block text-xl font-semibold tracking-tight">{item.value ?? '—'}</strong><span className="mt-1 block text-xs text-muted-foreground">{item.label}</span></span></button>)}</div>;
+}

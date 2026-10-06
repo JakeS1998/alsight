@@ -1,0 +1,10 @@
+import React,{useState} from 'react';
+import {useNavigate} from 'react-router-dom';
+import {base44} from '@/api/base44Client';
+import {Dialog,DialogContent,DialogHeader,DialogTitle} from '@/components/ui/dialog';
+import {Button} from '@/components/ui/button';
+export default function AddPersonDialog({open,onOpenChange}) {
+  const navigate=useNavigate(),[form,setForm]=useState({full_name:'',job_title:'',company_name:'',email:''}),[busy,setBusy]=useState(false),[error,setError]=useState('');
+  const save=async e=>{e.preventDefault();setBusy(true);setError('');try{if(form.email){const existing=await base44.entities.Contact.filter({email:form.email.trim().toLowerCase()},{limit:1});if(existing.items.length) throw new Error('A person with this email already exists. Open that person instead.');}const person=await base44.entities.Contact.create({...form,full_name:form.full_name.trim(),...(form.email ? {email:form.email.trim().toLowerCase()} : {email:undefined}),status:'active'});onOpenChange(false);navigate(`/people/${person.id}`);}catch(e){setError(e.message);}finally{setBusy(false);}};
+  return <Dialog open={open} onOpenChange={onOpenChange}><DialogContent><DialogHeader><DialogTitle>Add a person</DialogTitle></DialogHeader><p className="text-xs text-muted-foreground">Create a relationship record, not a portal login. Portal access is managed separately.</p><form className="space-y-4" onSubmit={save}>{[['full_name','Full name'],['job_title','Job title'],['company_name','Organisation name'],['email','Work email']].map(([key,label])=><label className="block text-sm" key={key}>{label}<input required={key==='full_name'} type={key==='email' ? 'email' : 'text'} maxLength={160} className="mt-1 w-full rounded-lg border border-input bg-background p-2" value={form[key]} onChange={e=>setForm({...form,[key]:e.target.value})}/></label>)}{error && <p className="text-sm text-destructive" role="alert">{error}</p>}<Button disabled={busy}>{busy ? 'Adding…' : 'Add person'}</Button></form></DialogContent></Dialog>;
+}
