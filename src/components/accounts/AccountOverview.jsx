@@ -16,8 +16,10 @@ export default function AccountOverview({ account, contacts, projects, signals, 
   const showCompaniesHouse = hasCompanyRegistry(account) && aseRoles.includes(user?.role);
   return <div className="account-overview-grid">
     {INTERNAL_ROLES.includes(user?.role) && <section className="account-panel account-assessment-panel" aria-label="All Seeing Eye assessment"><ASERating account={account} expanded /></section>}
-    <AccountRelationshipSummary account={account} signals={signals} loading={summaryLoading} error={summaryError} onRetry={onSummaryRetry} />
-    <AccountKeyPeople account={account} />
+    <div className="account-summary-column">
+      <AccountRelationshipSummary account={account} signals={signals} loading={summaryLoading} error={summaryError} onRetry={onSummaryRetry} />
+      <AccountKeyPeople account={account} />
+    </div>
     <AccountRecentActivity account={account} />
     <div className="account-work-row"><AccountCurrentWork account={account} projects={projects}/>{INTERNAL_ROLES.includes(user?.role) && <AccountInsightCard account={account}/>}</div>
     <AccountKeyInformation account={account} showRegistryDetails={!showCompaniesHouse} />
