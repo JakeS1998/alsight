@@ -4,16 +4,22 @@
 .account-panel.account-insight-card header h2 { margin: 0; font-size: 16px; font-weight: 800; }
 .account-assessment-panel { grid-column: span 2; }
 .account-registry-section { grid-column: 1 / -1; min-width: 0; }
-.account-commercial-row, .account-work-row, .account-summary-column, .account-main-column, .account-overview-information { display: contents; }
+.account-commercial-row, .account-work-row, .account-summary-column, .account-main-column, .account-overview-information, .account-registry-column, .account-activity-slot { display: contents; }
 @media (min-width: 1200px) {
-  .account-main-column { display: flex; flex-direction: column; grid-column: span 2; gap: 16px; min-width: 0; }
-  .account-main-column:empty { display: none; }
+  .account-main-column, .account-summary-column, .account-registry-column { display: flex; flex-direction: column; gap: 16px; min-width: 0; }
+  .account-main-column { grid-column: span 2; }
+  .account-main-column:empty, .account-registry-column:not(:has(.account-panel)) { display: none; }
   .account-overview-grid:has(> .account-main-column:empty) > .account-summary-column { grid-column: 1 / -1; }
-  .account-summary-column { display: grid; align-content: start; gap: 16px; min-width: 0; }
-  .account-commercial-row { display: grid; grid-column: 1 / -1; grid-template-columns: minmax(0,1fr) minmax(0,2fr); gap: 16px; min-width: 0; align-items: start; }
-  .account-work-row { display: grid; grid-column: 1 / -1; grid-template-columns: repeat(3,minmax(0,1fr)); gap: 16px; min-width: 0; }
-  .account-work-row > .account-overview-wide { grid-column: 1 / span 2; grid-row: 1; }
-  .account-work-row > .account-insight-card { grid-column: 3; grid-row: 1; }
+  .account-registry-column { grid-column: 1 / -1; }
+  .account-summary-column .account-overview-wide > div, .account-summary-column .account-overview-wide ul.grid { grid-template-columns: minmax(0,1fr); }
+}
+@media (min-width: 1600px) {
+  .account-profile .account-overview-grid { grid-template-columns: minmax(0,1.4fr) minmax(0,1fr) minmax(0,1.2fr); align-items: start; }
+  .account-profile .account-main-column, .account-profile .account-registry-column { grid-column: auto; }
+  .account-profile .account-overview-grid:has(> .account-main-column:empty) { grid-template-columns: repeat(2,minmax(0,1fr)); }
+  .account-profile .account-overview-grid:has(> .account-main-column:empty) > .account-summary-column { grid-column: auto; }
+  .account-profile .account-overview-grid:not(:has(> .account-registry-column .account-panel)) { grid-template-columns: minmax(0,1.4fr) minmax(0,1fr); }
+  .account-profile .account-overview-grid:has(> .account-main-column:empty):not(:has(> .account-registry-column .account-panel)) { grid-template-columns: minmax(0,1fr); }
 }
 .account-assessment-button { display: block; border-radius: var(--radius); }
 .account-assessment-content { display: grid; grid-template-columns: minmax(150px,.7fr) minmax(0,1.3fr); align-items: center; gap: 24px; }
@@ -49,7 +55,7 @@
   .account-profile .account-tabs { gap: 18px; margin-top: 12px; padding: 0 12px; border-bottom: 1px solid hsl(var(--border)); border-radius: 0; background: transparent; }
   .account-profile .account-tabs > button { padding: 13px 6px; border-radius: 0; border-bottom: 2px solid transparent; color: hsl(var(--muted-foreground)); font-size: 13px; box-shadow: none; }
   .account-profile .account-tabs > button[data-state="active"] { border-bottom-color: hsl(var(--primary)); background: transparent; color: hsl(var(--foreground)); }
-  .account-profile .account-overview-grid { grid-template-columns: repeat(3,minmax(0,1fr)); gap: 16px; align-items: stretch; }
+  .account-profile .account-overview-grid { gap: 16px; align-items: start; }
   .account-profile .account-panel { padding: 22px; border-radius: var(--radius); box-shadow: var(--surface-shadow); }
   .account-profile .account-panel h2 { margin-bottom: 18px; font-size: 15px; line-height: 1.4; }
   .account-profile .account-key-info { gap: 10px; }
@@ -121,10 +127,10 @@
   .account-overview-grid { grid-template-columns: repeat(2,minmax(0,1fr)); }
   .account-filters { grid-template-columns: repeat(2,minmax(0,1fr)); }
   .account-summary-column > section { order: 1; }
-  .account-main-column > section:not(.account-assessment-panel):not(.account-overview-wide) { order: 2; }
-  .account-main-column > .account-overview-wide { order: 3; }
+  .account-activity-slot > section { order: 2; }
+  .account-work-row > section { order: 3; }
   .account-overview-information > section { order: 4; }
-  .account-commercial-row > *, .account-overview-grid > .account-panel { order: 5; }
+  .account-commercial-row > *, .account-registry-column > .account-panel { order: 5; }
   .account-registry-section { order: 6; }
 }
 @media (max-width: 767px) { .account-overview-grid, .account-filters { grid-template-columns: minmax(0,1fr); } .account-overview-wide { grid-column: auto; } .account-sticky-header { position: static; } .account-hero-copy { padding: 24px; max-width: 100%; } .account-panel, .account-card { padding: 20px; } .ase-rating svg { width: 120px; } .ase-compact svg { width: 62px; } }

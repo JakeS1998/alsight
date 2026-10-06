@@ -17,16 +17,19 @@ export default function AccountOverview({ account, contacts, projects, signals, 
   return <div className="account-overview-grid">
     <div className="account-main-column">
       {INTERNAL_ROLES.includes(user?.role) && <section className="account-panel account-assessment-panel" aria-label="All Seeing Eye assessment"><ASERating account={account} expanded /></section>}
-      <AccountRecentActivity account={account} />
-      <AccountCurrentWork account={account} projects={projects}/>
+      {showCompaniesHouse && <div className="account-commercial-row"><ASECommercialConcentration key={account.id} account={account} card/></div>}
     </div>
     <div className="account-summary-column">
       <AccountRelationshipSummary account={account} signals={signals} loading={summaryLoading} error={summaryError} onRetry={onSummaryRetry} />
       <AccountKeyPeople account={account} />
+      <div className="account-work-row"><AccountCurrentWork account={account} projects={projects}/></div>
+      <div className="account-activity-slot"><AccountRecentActivity account={account} /></div>
       {INTERNAL_ROLES.includes(user?.role) && <AccountInsightCard account={account}/>}
-      <div className="account-overview-information"><AccountKeyInformation account={account} showRegistryDetails={!showCompaniesHouse} /></div>
     </div>
-    {showCompaniesHouse ? <div className="account-commercial-row"><AccountStructure account={account}/><ASECommercialConcentration key={account.id} account={account} card/></div> : <AccountStructure account={account}/>}
-    {showCompaniesHouse && <div className="account-registry-section"><CompaniesHousePanel account={account} onUpdated={onAccountEnriched}/></div>}
+    <div className="account-registry-column">
+      <div className="account-overview-information"><AccountKeyInformation account={account} showRegistryDetails={!showCompaniesHouse} /></div>
+      <AccountStructure account={account}/>
+      {showCompaniesHouse && <div className="account-registry-section"><CompaniesHousePanel account={account} onUpdated={onAccountEnriched}/></div>}
+    </div>
   </div>;
 }
