@@ -2,6 +2,7 @@ import {normaliseCompanyNumber} from './companiesHouseData.ts';
 import {readSourceResponse} from './aseSourceCommon.ts';
 import {vatIdentifier} from './aseVatIdentifier.ts';
 import {filedTurnoverPeriod} from './aseFiledTurnover.ts';
+import {balanceSheetProxy,accountsTurnoverExemption} from './aseBalanceSheetProxy.ts';
 export async function commercialTurnover(base44,account,now=new Date()) {
   const filed=await filedCommercialTurnover(base44,account,now);
   return filed.status==='available' ? {...filed,source_label:'Companies House filed accounts'} : filed;
@@ -23,7 +24,12 @@ export async function filedCommercialTurnover(base44,account,now=new Date(),maxA
     const snapshot=JSON.parse(stored.text);
     if(snapshot.identifier!==number || snapshot.data?.company_number!==number) return {status:'unavailable',reason:'Turnover evidence does not match this company.'};
     const candidates=(snapshot.data.periods || []).filter(period=>period.metrics?.revenue).sort((a,b)=>b.end.localeCompare(a.end));
-    if(!candidates.length) return {status:'unavailable',period_end:snapshot.data.periods?.[0]?.end,reason:`No numeric annual company turnover was extracted from the available filed accounts${snapshot.data.periods?.[0]?.end ? `, latest period ending ${snapshot.data.periods[0].end}` : ''}. A turnover accounting-policy heading is not a reported revenue amount; a cited annual turnover figure is required.`};
+    if(!candidates.length) {
+      const latest=[...(snapshot.data.periods || [])].sort((a,b)=>b.end.localeCompare(a.end))[0];
+      const document=snapshot.data.documents?.find(row=>row.source_url===latest?.source_url);
+      const proxy=balanceSheetProxy(latest ? {...latest,filing_exemption:latest.filing_exemption || accountsTurnoverExemption(document?.xml)} : null,number,now,maxAgeDays);
+      return {status:'unavailable',period_end:latest?.end,...(proxy.status==='available' ? {balance_sheet_proxy:{...proxy,refresh_id:audit.id,raw_sha256:sha,retrieved_at:audit.refreshed_at}} : {}),reason:`No numeric annual company turnover was extracted from the available filed accounts${latest?.end ? `, latest period ending ${latest.end}` : ''}. A turnover accounting-policy heading is not a reported revenue amount; a cited annual turnover figure is required.`};
+    }
     const turnover=filedTurnoverPeriod(candidates[0],number,now,maxAgeDays);
     return turnover.status==='available' ? {...turnover,refresh_id:audit.id,raw_sha256:sha,retrieved_at:audit.refreshed_at} : turnover;
   } catch(error) {return {status:'unavailable',reason:'Stored turnover evidence could not be verified: '+String(error.message).slice(0,200)};}

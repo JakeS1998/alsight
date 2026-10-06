@@ -1,5 +1,5 @@
 import {readSourceResponse} from './aseSourceCommon.ts';
-export const accountsExtractionVersion='filed-accounts-turnover-v1';
+export const accountsExtractionVersion='filed-accounts-balance-sheet-proxy-v2';
 export const accountsFilingKeys=filings=>filings.map(row=>`${row.transaction_id}:${row.date}:${row.links.document_metadata}`);
 export function reusableAccounts(snapshot,number,filings) {
   return snapshot?.company_number===number && snapshot.extraction_version===accountsExtractionVersion && JSON.stringify(snapshot.filing_keys)===JSON.stringify(accountsFilingKeys(filings)) && snapshot.documents?.length===filings.length && snapshot.documents.every(row=>!row.scan_failed && !row.unsupported);

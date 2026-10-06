@@ -3,6 +3,7 @@ import { sourceJson } from './aseSourceCommon.ts';
 import {downloadAccountsDocument} from './aseAccountsDownload.ts';
 import {scanPdfAccounts} from './aseAccountsPdf.ts';
 import { parseFiledAccounts } from './aseAccountsXml.ts';
+import {accountsTurnoverExemption} from './aseBalanceSheetProxy.ts';
 import { accountsEvidence } from './aseAccountsEvidence.ts';
 import {readAccountsCache,accountsExtractionVersion,accountsFilingKeys} from './aseAccountsCache.ts';
 const api='https://api.company-information.service.gov.uk',documents='https://document-api.company-information.service.gov.uk';
@@ -35,10 +36,19 @@ export async function retrieveAccounts(account,number,refresh,base44) {
         continue;
       }
       if(Number(metadata.resources[type].content_length)>750000) throw new Error('Tagged document exceeds the 750 KB per-document limit.');
-      const content=await downloadAccountsDocument(metadataUrl.href,headers,type,750000),parsed=parseFiledAccounts(content.text,number);
+      const content=await downloadAccountsDocument(metadataUrl.href,headers,type,750000),parsed=parseFiledAccounts(content.text,number),exemption=accountsTurnoverExemption(content.text);
       if(!parsed.length) warnings.push(`Accounts filed ${filing.date}: no supported, unambiguous GBP facts matched this entity.`);
-      retrieved.push({filing_date:filing.date,source_url:reference,metadata,xml:content.text});
-      for(const period of parsed) if(!periodMap.has(period.end) || periodMap.get(period.end).origin==='pdf') periodMap.set(period.end,{...period,filed_at:filing.date,source_url:reference});
+      const document={filing_date:filing.date,source_url:reference,metadata,xml:content.text};
+      retrieved.push(document);
+      for(const period of parsed) if(!periodMap.has(period.end) || periodMap.get(period.end).origin==='pdf') periodMap.set(period.end,{...period,filed_at:filing.date,source_url:reference,filing_exemption:exemption});
+      const latest=parsed[0];
+      if(exemption && !latest?.metrics?.revenue && !latest?.metrics?.assets && !(latest?.metrics?.fixed_assets && latest?.metrics?.current_assets) && metadata.resources?.['application/pdf']) {
+        if(Number(metadata.resources['application/pdf'].content_length)>8000000) throw new Error('PDF exceeds the 8 MB scanning limit.');
+        const pdf=await downloadAccountsDocument(metadataUrl.href,headers,'application/pdf',8000000),scan=await scanPdfAccounts(base44,pdf.bytes,number,filing);
+        document.pdf_file_uri=scan.file_uri;
+        for(const period of scan.periods) if(!periodMap.has(period.end) || periodMap.get(period.end).source_url===reference) periodMap.set(period.end,{...period,filed_at:filing.date,source_url:reference,pdf_file_uri:scan.file_uri,filing_exemption:exemption});
+        warnings.push(`Accounts filed ${filing.date}: PDF scanned for the exempt filing's balance-sheet total; figures are Low confidence and not independently verified.`);
+      }
     } catch(error) {warnings.push(`Accounts filed ${filing.date}: ${error.message}`);retrieved.push({filing_date:filing.date,scan_failed:true,error:String(error.message).slice(0,400)});}
   }
   const periods=[...periodMap.values()].sort((a,b)=>b.end.localeCompare(a.end)).slice(0,3);

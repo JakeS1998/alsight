@@ -1,4 +1,5 @@
 import {normaliseCompanyNumber} from './companiesHouseData.ts';
+import {accountsTurnoverExemption} from './aseBalanceSheetProxy.ts';
 const keys=['revenue','profit','assets','current_assets','fixed_assets','current_liabilities','net_assets','cash','borrowings'];
 const date=value=>typeof value==='string' && /^\d{4}-\d{2}-\d{2}$/.test(value) && Number.isFinite(Date.parse(value)) && new Date(value).toISOString().slice(0,10)===value;
 export function normalisePdfAccounts(output,number,filedAt) {
@@ -19,7 +20,7 @@ export function normalisePdfAccounts(output,number,filedAt) {
       const value=m.value*m.multiplier;if(!Number.isFinite(value) || !['profit','net_assets'].includes(m.key) && value<0) continue;
       metrics[m.key]={value,concept:m.key==='borrowings' ? 'TotalBorrowings' : `PDF:${m.key}`,start:['revenue','profit'].includes(m.key) ? p.start : '',end:p.end,annual:['revenue','profit'].includes(m.key) && days>=365 && days<=366,page:m.page,quote:m.quote.trim(),multiplier:m.multiplier};
     }
-    if(Object.keys(metrics).length) periods.push({end:p.end,start:p.start || '',metrics,origin:'pdf',confidence:'Low'});
+    if(Object.keys(metrics).length) periods.push({end:p.end,start:p.start || '',metrics,origin:'pdf',confidence:'Low',filing_exemption:accountsTurnoverExemption(output.turnover_exemption_quote)});
   }
   return periods;
 }
