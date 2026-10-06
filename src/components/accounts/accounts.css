@@ -7,7 +7,7 @@
 .account-commercial-row, .account-work-row, .account-summary-column { display: contents; }
 @media (min-width: 1200px) {
   .account-summary-column { display: grid; align-content: start; gap: 16px; min-width: 0; }
-  .account-commercial-row { display: grid; grid-column: 1 / -1; grid-template-columns: minmax(0,1fr) minmax(0,2fr); gap: 16px; min-width: 0; }
+  .account-commercial-row { display: grid; grid-column: 1 / -1; grid-template-columns: minmax(0,1fr) minmax(0,2fr); gap: 16px; min-width: 0; align-items: start; }
   .account-work-row { display: grid; grid-column: 1 / -1; grid-template-columns: repeat(3,minmax(0,1fr)); gap: 16px; min-width: 0; }
   .account-work-row > .account-overview-wide { grid-column: 1 / span 2; grid-row: 1; }
   .account-work-row > .account-insight-card { grid-column: 3; grid-row: 1; }

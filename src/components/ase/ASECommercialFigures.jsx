@@ -3,7 +3,7 @@ import { formatCurrency, formatDate } from '@/lib/portal';
 import ASECommercialEvidence from '@/components/ase/ASECommercialEvidence';
 import '@/components/ase/ase-commercial-figures.css';
 
-export default function ASECommercialFigures({data,historical=false}) {
+export default function ASECommercialFigures({data,historical=false,expandedEvidence=false}) {
   const available = Number.isFinite(data.percentage);
   const position = available ? Math.min(100,Math.max(0,data.percentage)) : 0;
   const heat = !available ? 'unavailable' : data.percentage < 10 ? 'low' : data.percentage < 25 ? 'good' : data.percentage < 50 ? 'moderate' : data.percentage < 75 ? 'high' : 'critical';
@@ -20,6 +20,6 @@ export default function ASECommercialFigures({data,historical=false}) {
     </div>
     {data.turnover?.status==='available' && <p className="text-xs text-muted-foreground">Companies House turnover · year ended {formatDate(data.turnover.period_end)} · <a href={data.turnover.source_reference} target="_blank" rel="noopener noreferrer" className="underline">View filed accounts{data.turnover.page ? ` · page ${data.turnover.page}` : ''}</a>{data.turnover.extraction==='pdf' && ' · PDF extraction, Low confidence'}</p>}
     {!available && <div role="status" className="rounded-md bg-muted p-3 text-xs"><p className="font-semibold">Concentration cannot be calculated yet</p><p className="mt-1 text-muted-foreground">{data.reason || 'Usable contract values and verified annual turnover are required; missing evidence is not zero concentration.'}</p>{data.turnover?.reason && data.turnover.reason!==data.reason && <p className="mt-2 text-muted-foreground">Turnover: {data.turnover.reason}</p>}</div>}
-    <ASECommercialEvidence data={data}/>
+    <ASECommercialEvidence data={data} expanded={expandedEvidence}/>
   </div>;
 }
