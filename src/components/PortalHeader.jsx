@@ -36,17 +36,19 @@ export default function PortalHeader() {
   const nav = (compact = false) => items.map(item => {
     const Icon = item.icon;
     if(item.path==='/accounts' && INTERNAL_ROLES.includes(role)) return <RelationshipNavigation key="relationships" compact={compact} onNavigate={()=>setMenuOpen(false)}/>;
-    const active = item.path === '/crm/opportunities' ? (location.pathname.startsWith('/crm') || location.pathname.startsWith('/opportunities/')) : location.pathname === item.path;
-    return <Link key={item.path} to={item.path} onClick={() => setMenuOpen(false)} aria-current={active ? 'page' : undefined} className={`flex items-center gap-1.5 rounded-lg px-2 py-2 text-sm font-medium 2xl:px-3 ${active ? 'bg-primary text-primary-foreground' : 'text-white/75 hover:bg-white/10 hover:text-white'} ${compact ? 'w-full' : 'whitespace-nowrap'}`}>{Icon === UKLFIcon ? <UKLFIcon darkBackground /> : <Icon className="h-4 w-4 shrink-0" />}{item.label}</Link>;
+    const active = item.path === '/crm/opportunities' ? (location.pathname.startsWith('/crm') || location.pathname.startsWith('/opportunities/')) : item.path === '/' ? location.pathname === '/' : location.pathname === item.path || location.pathname.startsWith(`${item.path}/`);
+    return <Link key={item.path} to={item.path} onClick={() => setMenuOpen(false)} aria-current={active ? 'page' : undefined} data-active={active} className={`portal-nav-item ${compact ? 'w-full' : ''}`}>{Icon === UKLFIcon ? <UKLFIcon darkBackground /> : <Icon className="h-4 w-4 shrink-0" />}{item.label}</Link>;
   });
   return <header ref={headerRef} className="sticky top-0 z-40 bg-als-navy text-white shadow-sm">
     <div className="portal-topbar">
-      <Link to={role === 'framework_stakeholder' ? '/framework-reports' : '/'} aria-label="ALSight home" onClick={() => setMenuOpen(false)} className="shrink-0"><Logo variant="header" className="h-10 w-28 sm:w-36 2xl:w-44" /></Link>
-      <nav aria-label="Main navigation" className="portal-navigation hidden min-w-0 flex-1 items-center gap-1 overflow-x-auto lg:flex">{nav()}</nav>
-      <PortalSearch />
-      {INTERNAL_ROLES.includes(role) && <NotificationCenter user={user} />}
-      <div className="hidden min-w-0 shrink-0 lg:block"><UserMenu user={user} onSignOut={signOut} /></div>
-      <button type="button" aria-label={menuOpen ? 'Close menu' : 'Open menu'} aria-expanded={menuOpen} onClick={() => setMenuOpen(v => !v)} className="rounded-lg p-2 text-white lg:hidden">{menuOpen ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}</button>
+      <Link to={role === 'framework_stakeholder' ? '/framework-reports' : '/'} aria-label="ALSight home" onClick={() => setMenuOpen(false)} className="portal-logo"><Logo variant="header" className="portal-logo-image" /></Link>
+      <nav aria-label="Main navigation" className="portal-navigation hidden min-w-0 items-center lg:flex">{nav()}</nav>
+      <div className="portal-utilities">
+        <PortalSearch />
+        {INTERNAL_ROLES.includes(role) && <NotificationCenter user={user} />}
+        <div className="portal-profile hidden min-w-0 shrink-0 lg:block"><UserMenu user={user} onSignOut={signOut} /></div>
+        <button type="button" aria-label={menuOpen ? 'Close menu' : 'Open menu'} aria-expanded={menuOpen} onClick={() => setMenuOpen(v => !v)} className="portal-icon-button lg:hidden">{menuOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}</button>
+      </div>
     </div>
     {menuOpen && <div className="border-t border-white/10 px-5 pb-4 pt-3 lg:hidden sm:px-8"><nav aria-label="Main navigation" className="grid gap-1 sm:grid-cols-2">{nav(true)}</nav><div className="mt-3 border-t border-white/10 pt-3"><UserMenu user={user} mobile onSignOut={signOut} onNavigate={() => setMenuOpen(false)} /></div></div>}
   </header>;

@@ -28,8 +28,7 @@
   .home-bottom-grid { grid-template-columns: minmax(0, 1.25fr) minmax(0, 1fr); }
 }
 @media (min-width: 1024px) and (max-width: 1279px) {
-  .portal-topbar { display: grid; grid-template-columns: minmax(0, 1fr) auto auto auto; gap: 8px 12px; padding-block: 8px; }
-  .portal-navigation { grid-row: 2; grid-column: 1 / -1; }
+
   .portal-main table th, .portal-main table td { padding-left: 8px; padding-right: 8px; }
 }
 @media (min-width: 1280px) {

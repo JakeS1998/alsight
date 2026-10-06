@@ -5,8 +5,8 @@ const external = [...internal, 'client', 'supplier'];
 // Search only types with a destination in the portal. Linked records resolve through a project the viewer can open.
 export const SEARCH_SOURCES = [
   { entity: 'Project', label: 'Projects', roles: external, fields: ['name', 'project_number', 'client_name', 'site_postcode'], title: r => r.name, detail: r => r.project_number, path: r => `/projects/${r.id}` },
-  { entity: 'Account', label: 'Accounts', roles: [...external, 'project_manager'], fields: ['name', 'company_name', 'company_number', 'address_city'], title: r => r.name, detail: r => r.company_number, path: r => `/accounts/${r.id}` },
-  { entity: 'Contact', label: 'Contacts', roles: internal, fields: ['full_name', 'email', 'company_name'], title: r => r.full_name, detail: r => r.company_name, path: r => `/crm/contacts/${r.id}` },
+  { entity: 'Account', label: 'Organisations', roles: [...external, 'project_manager'], fields: ['name', 'company_name', 'company_number', 'address_city'], title: r => r.name, detail: r => r.company_number, path: r => `/accounts/${r.id}` },
+  { entity: 'Contact', label: 'People', roles: internal, fields: ['full_name', 'email', 'company_name'], title: r => r.full_name, detail: r => r.company_name, path: r => `/crm/contacts/${r.id}` },
   { entity: 'Opportunity', label: 'Opportunities', roles: internal, fields: ['title', 'location', 'project_details'], title: r => r.title, detail: r => r.location, path: r => `/opportunities/${r.id}` },
   { entity: 'CRMTask', label: 'Pipeline tasks', roles: internal, fields: ['title', 'description'], title: r => r.title, detail: r => r.description, path: r => `/opportunities/${r.opportunity_id}`, extra: ['opportunity_id'] },
   { entity: 'CRMActivity', label: 'CRM activity', roles: internal, fields: ['subject', 'description'], title: r => r.subject, detail: r => r.description, path: r => `/opportunities/${r.opportunity_id}`, extra: ['opportunity_id'] },

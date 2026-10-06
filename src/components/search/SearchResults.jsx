@@ -3,7 +3,7 @@ import { Link } from 'react-router-dom';
 
 export default function SearchResults({ groups, loading, error, term, onSelect, onMore }) {
   return <div id="portal-search-results" role="status" aria-live="polite" className="max-h-[min(65vh,570px)] overflow-y-auto border-t border-border bg-card text-card-foreground">
-    {term.trim().length < 2 ? <p className="p-5 text-sm text-muted-foreground">Type at least two characters to search.</p> : loading ? <p className="p-5 text-sm text-muted-foreground">Searching portal records…</p> : <>
+    {term.trim().length < 2 ? <p className="p-5 text-sm text-muted-foreground">Type at least two characters to search.</p> : loading ? <p className="p-5 text-sm text-muted-foreground">Searching ALSight…</p> : <>
       {error && <p className="px-5 pt-4 text-sm text-destructive">{error}</p>}
       {!groups.length && <p className="p-5 text-sm text-muted-foreground">No matching records found.</p>}
       {groups.map(group => <section key={group.label} aria-label={group.label} className="border-b border-border last:border-0">

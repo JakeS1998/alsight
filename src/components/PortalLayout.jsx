@@ -7,6 +7,7 @@ import AliceWidget from '@/components/alice/AliceWidget';
 import aliceAccessKey from '@/components/alice/aliceAccessKey';
 import '@/components/layout/portal-responsive.css';
 import '@/components/layout/portal-design.css';
+import '@/components/layout/portal-header.css';
 
 export default function PortalLayout() {
   const { user } = useAuth();
