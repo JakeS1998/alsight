@@ -1,26 +1,10 @@
 {
-  "trigger": {
-    "condition": null,
-    "config": {
-      "trigger_type": "scheduled",
-      "events": [],
-      "schedule_mode": "recurring",
-      "cron_expression": "15 21 * * *",
-      "one_time_date": null,
-      "timezone": "Europe/London",
-      "interval_value": null,
-      "interval_unit": null,
-      "interval_anchor": null,
-      "ends_type": "never",
-      "ends_on_date": null,
-      "ends_after_count": null
-    }
-  },
+  "name": "Nightly ASE Update",
   "definition": {
     "document": {
       "dsl": "1.0.0",
       "name": "nightly_ase_update",
-      "version": "1.0",
+      "version": "1.1",
       "namespace": "base44"
     },
     "do": [
@@ -37,13 +21,29 @@
           },
           "then": "end",
           "x-base44": {
-            "title": "Start nightly ASE update",
-            "description": "All supported live Accounts; no overlapping run"
+            "title": "Start overnight ASE v2 update",
+            "description": "Gazette overnight; all supported live organisations"
           }
         }
       }
     ]
   },
-  "description": "At 21:15 Europe/London each night, starts the existing resumable ASE portfolio refresh and automatic publication for supported live Accounts. Includes permitted connected evidence sources and governance web discovery. Demos and HMRC are excluded; unavailable providers are reported as blockers. Existing active ASE work is not duplicated.",
-  "name": "Nightly ASE Update"
+  "description": "At 21:15 Europe/London each night, starts the resumable ASE v2 portfolio update, including overnight Gazette checks for supported live organisations. Gazette collection stops outside 21:00\u201307:00; daytime updates continue with current cached evidence or explicit limitations. Demos and HMRC are excluded, historical legacy assessments are preserved, and active ASE work is not duplicated.",
+  "trigger": {
+    "condition": null,
+    "config": {
+      "trigger_type": "scheduled",
+      "events": [],
+      "schedule_mode": "recurring",
+      "cron_expression": "15 21 * * *",
+      "one_time_date": null,
+      "timezone": "Europe/London",
+      "interval_value": null,
+      "interval_unit": null,
+      "interval_anchor": null,
+      "ends_type": "never",
+      "ends_on_date": null,
+      "ends_after_count": null
+    }
+  }
 }

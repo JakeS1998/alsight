@@ -9,7 +9,8 @@ import { retrieveAccounts } from '../../shared/aseAccountsSource.ts';
 import { retrieveCouncilGovernance } from '../../shared/aseCouncilGovernance.ts';
 import { validateGovernanceReview } from '../../shared/aseGovernanceReview.ts';
 import {collectASESource} from '../../shared/aseCollectSource.ts';
-import {publishAutomatically} from '../../shared/aseAutomaticPublication.ts';
+import {getASEV2Policy} from '../../shared/aseV2Config.ts';
+import {createASEV2Assessment} from '../../shared/aseV2Assessment.ts';
 import {withASEAutomationLease} from '../../shared/aseAutomationLease.ts';
 import {alsightSafety} from '../../shared/alsightSafety.ts';
 import {dataRequestError} from '../../shared/dataRequestError.ts';
@@ -80,11 +81,11 @@ export default async function(req: Request): Promise<Response> {
     if(!accountModel(account)) throw new Error('Set a supported Account organisation type before automated ASE collection.');
     const result=await withASEAutomationLease(base44,async assertLease=>{
       const collected=await collectASESource(base44,account,input.source,user);await assertLease();
-      const current=await base44.entities.Account.get(account.id),policy=await getPolicy(base44);
-      const assessment=await publishAutomatically(base44,current,policy,user,{job_key:`source:${collected.audit.id}`});
+      const current=await base44.entities.Account.get(account.id),policy=await getASEV2Policy(base44.entities);
+      const assessment=await createASEV2Assessment(base44,current,user,policy,assertLease,{refreshSources:false,automationKey:`source:${collected.audit.id}`});
       return {...collected,assessment};
-    });
-    if(result.busy) return Response.json({error:'An ASE source operation is already running; please wait.'},{status:429});
+    },`account:${account.id}`);
+    if(result.busy) return Response.json({error:'An update for this organisation is already running; please wait.'},{status:429});
     return Response.json(result);
   } catch(error) {
     const message=String(error.message || 'Source operation failed.').slice(0,1000);

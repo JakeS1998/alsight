@@ -114,6 +114,10 @@
     },
     "assessment_note": {
       "type": "string"
+    },
+    "automation_key": {
+      "type": "string",
+      "maxLength": 160
     }
   },
   "required": [

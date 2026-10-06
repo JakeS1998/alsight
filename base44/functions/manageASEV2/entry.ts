@@ -24,14 +24,14 @@ export default async function(req: Request): Promise<Response> {
     if(input.action==='leadershipStatus') {const page=await base44.entities.ASELeadershipRun.filter({account_id:account.id},{sort:'-created_date',limit:1});return Response.json({run:publicLeadershipRun(page.items[0])});}
     if(input.action==='leadershipReview') return Response.json({saved:await saveLeadershipReview(base44.entities,account,input,user,policy.configuration.leadership)});
     if(['leadershipStart','leadershipStep'].includes(input.action)) {
-      const result=await withASEAutomationLease(base44,async assertLease=>{if(input.action==='leadershipStart') return startLeadershipRun(base44.entities,account,user,policy.configuration.leadership);if(typeof input.runId!=='string' || !/^[a-zA-Z0-9_-]{1,64}$/.test(input.runId)) throw new Error('Valid screening run required.');const run=await base44.entities.ASELeadershipRun.get(input.runId);if(!run || run.account_id!==account.id) throw new Error('Screening run unavailable.');return advanceLeadershipRun(base44.entities,run,policy.configuration.leadership,assertLease);});
-      if(result.busy) return Response.json({error:'Another ASE step is running; resume screening when it finishes.'},{status:409});return Response.json({run:result});
+      const result=await withASEAutomationLease(base44,async assertLease=>{if(input.action==='leadershipStart') return startLeadershipRun(base44.entities,account,user,policy.configuration.leadership);if(typeof input.runId!=='string' || !/^[a-zA-Z0-9_-]{1,64}$/.test(input.runId)) throw new Error('Valid screening run required.');const run=await base44.entities.ASELeadershipRun.get(input.runId);if(!run || run.account_id!==account.id) throw new Error('Screening run unavailable.');return advanceLeadershipRun(base44.entities,run,policy.configuration.leadership,assertLease);},`account:${account.id}`);
+      if(result.busy) return Response.json({error:'An update for this organisation is already running; resume screening when it finishes.'},{status:409});return Response.json({run:result});
     }
     if(input.action==='saveInput') return Response.json({saved:await base44.entities.ASEV2OrganisationInput.create(validateV2Input(input,account,user))});
     if(input.action==='assess') {
       if(input.confirmed!==true || account.name.startsWith('ASE Demo') || account.status==='inactive') throw new Error('Confirm reassessment of a live, non-demo relationship.');
-      const result=await withASEAutomationLease(base44,assertLease=>createASEV2Assessment(base44,account,user,policy,assertLease));
-      if(result.busy) return Response.json({error:'Another ASE source operation is running; retry when the current step finishes.'},{status:409});
+      const result=await withASEAutomationLease(base44,assertLease=>createASEV2Assessment(base44,account,user,policy,assertLease),`account:${account.id}`);
+      if(result.busy) return Response.json({error:'An update for this organisation is already running; retry when its current step finishes.'},{status:409});
       return Response.json({assessment:result});
     }
     if(input.cursor!=null && (typeof input.cursor!=='string' || input.cursor.length>4096)) throw new Error('Invalid history cursor.');

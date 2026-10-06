@@ -40,6 +40,7 @@ export default async function(req: Request): Promise<Response> {
       if(input.action==='structure') return Response.json(await groupStructure(base44,account));
       return Response.json(await hmrcStatus(base44,account));
     }
+    if(input.action==='summary') {if(typeof input.accountId!=='string' || !/^[a-zA-Z0-9_-]{1,64}$/.test(input.accountId))return Response.json({error:'Valid Account is required.'},{status:400});const account=await base44.entities.Account.get(input.accountId);if(!account)return Response.json({error:'Account unavailable.'},{status:404});const v2=await base44.entities.ASEV2Current.filter({account_id:account.id},{limit:1});return Response.json({current:v2.items[0] || null,model:accountModel(account),methodology:'ASE v2'});}
     const policy=await getPolicy(base44);
     if (input.action==='policy') return Response.json({policy});
     if (input.action==='bulkPublish') return Response.json(await publishASEBatch(base44,policy,user,input));
@@ -72,7 +73,6 @@ export default async function(req: Request): Promise<Response> {
     const model=accountModel(account);
     const currentPage=await base44.entities.ASECurrentRating.filter({account_id:account.id},{limit:1});
     const current=currentPage.items[0] || null;
-    if (input.action==='summary') {const v2=await base44.entities.ASEV2Current.filter({account_id:account.id},{limit:1});return Response.json({current:v2.items[0] || await publishedRatingExplanation(base44,current),model});}
     if (input.action==='addEvidence') {
       if (!model) return Response.json({error:'Select a supported organisation type in Account details first.'},{status:400});
       const data=validateEvidence(input.evidence || {},policy.models[model]);

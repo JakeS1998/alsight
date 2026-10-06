@@ -20,7 +20,8 @@ export async function advanceASEAutomation(base44,runId,user) {
         await db.ASEAutomationRun.update(run.id,{active_job_id:job.id,cursor:page.next_cursor || '',finished_listing:!page.has_more});
         run.active_job_id=job.id;run.finished_listing=!page.has_more;
       }
-      const progress=job.outcome==='processing' ? await advanceASEAccount(base44,run,job,user,assertLease) : {done:true};
+      const locked=job.outcome==='processing' ? await withASEAutomationLease(base44,async assertAccountLease=>advanceASEAccount(base44,run,job,user,async()=>{await assertLease();await assertAccountLease();}),`account:${job.account_id}`) : {done:true};
+      const progress=locked.busy ? {done:false,waitFor:'PT30S'} : locked;
       await assertLease();
       if(progress.done) {
         const processed=await db.ASEAutomationAccount.count({run_id:run.id,outcome:{$ne:'processing'}});

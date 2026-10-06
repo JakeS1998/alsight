@@ -1,7 +1,8 @@
-import {accountModel,getPolicy} from './asePolicy.ts';
+import {accountModel} from './asePolicy.ts';
+import {getASEV2Policy} from './aseV2Config.ts';
+import {createASEV2Assessment} from './aseV2Assessment.ts';
 import {sourceIdentifier} from './aseSourceCommon.ts';
 import {collectASESource} from './aseCollectSource.ts';
-import {publishAutomatically} from './aseAutomaticPublication.ts';
 import {gazetteWaitSeconds} from './aseProviderPolicy.ts';
 const companySources=['registry','accounts','gazette'],councilSources=['local_authority','council_governance'];
 export async function advanceASEAccount(base44,run,job,user,assertLease) {
@@ -14,7 +15,7 @@ export async function advanceASEAccount(base44,run,job,user,assertLease) {
       const identifier=sourceIdentifier(account,key==='registry' ? 'accounts' : key);
       {
         const seconds=key==='gazette' ? gazetteWaitSeconds() : 0;
-        if(seconds) {await base44.entities.ASEAutomationAccount.update(job.id,{stage:'Waiting for Gazette overnight window'});return {done:false,waitFor:`PT${seconds}S`,waitingUntil:new Date(Date.now()+seconds*1000).toISOString()};}
+        if(seconds) {await base44.entities.ASEAutomationAccount.update(job.id,{sources:[...(job.sources || []),{key,identifier,status:'deferred',error:'Gazette refresh deferred to the nightly 21:15 Europe/London run. Current stored evidence is reused only within its freshness limit.'}],source_index:(job.source_index || 0)+1,stage:'Gazette deferred; continuing daytime ASE v2 update'});return {done:false,waitFor:'PT15S'};}
         await base44.entities.ASEAutomationAccount.update(job.id,{stage:`Collecting ${key}`});
         const result=await collectASESource(base44,account,key,user);await assertLease();
         outcome={key,identifier,status:result.audit.status,audit_id:result.audit.id,evidence_count:result.evidenceCount,eligible_count:result.eligibleCount,warnings:(result.audit.warnings || []).slice(0,6).map(text=>String(text).slice(0,600))};
@@ -30,10 +31,10 @@ export async function advanceASEAccount(base44,run,job,user,assertLease) {
   }
   await assertLease();
   try {
-    const policy=await getPolicy(base44),assessment=await publishAutomatically(base44,account,policy,{id:run.requested_by,full_name:run.requested_by_name},job);
-    const components=await base44.entities.ASEComponentScore.filter({assessment_id:assessment.id,score:null},{limit:10,fields:['component_label']});
-    const blockers=[...(job.sources || []).filter(s=>keys.includes(s.key) && ['missing_identifier','failed','blocked'].includes(s.status)).map(s=>`${s.key}: ${s.error}`),...components.items.map(c=>`${c.component_label}: no sufficiently validated current evidence.`)].slice(0,25);
-    await base44.entities.ASEAutomationAccount.update(job.id,{outcome:assessment.displayed_rating==null ? 'not_assessed' : 'rated',assessment_id:assessment.id,rating:assessment.displayed_rating ?? null,coverage:assessment.coverage,unknown_components_count:components.items.length,blockers,stage:'Automatically published',completed_at:new Date().toISOString()});
+    const policy=await getASEV2Policy(base44.entities),assessment=await createASEV2Assessment(base44,account,{id:run.requested_by,full_name:run.requested_by_name},policy,assertLease,{refreshSources:false,automationKey:job.job_key});
+    const components=assessment.components.filter(c=>c.score==null);
+    const blockers=[...(job.sources || []).filter(s=>keys.includes(s.key) && ['missing_identifier','failed','blocked','deferred'].includes(s.status)).map(s=>`${s.key}: ${s.error}`),...components.map(c=>`${c.label}: no sufficiently validated current evidence.`)].slice(0,25);
+    await base44.entities.ASEAutomationAccount.update(job.id,{outcome:assessment.final_score==null ? 'not_assessed' : 'rated',assessment_id:assessment.id,rating:assessment.final_score==null ? null : Number(assessment.final_score.toFixed(1)),coverage:assessment.coverage,unknown_components_count:components.length,blockers,stage:'ASE v2 automatically published',completed_at:new Date().toISOString()});
   } catch(error) {await base44.entities.ASEAutomationAccount.update(job.id,{outcome:'failed',stage:'Publication failed; retry is safe',blockers:[String(error.message).slice(0,1000)],completed_at:new Date().toISOString()});}
   return {done:true};
 }

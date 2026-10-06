@@ -50,7 +50,10 @@
       "type": "string"
     },
     "rating": {
-      "type": "integer"
+      "type": [
+        "number",
+        "null"
+      ]
     },
     "coverage": {
       "type": "number"

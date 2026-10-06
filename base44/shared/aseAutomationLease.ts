@@ -1,6 +1,6 @@
-export async function withASEAutomationLease(base44,work) {
+export async function withASEAutomationLease(base44,work,key='global') {
   const db=base44.entities;
-  const {records}=await db.ASEAutomationLease.upsert([{key:'global'}],{key:'key'}),lock=records[0],token=crypto.randomUUID();
+  const {records}=await db.ASEAutomationLease.upsert([{key}],{key:'key'}),lock=records[0],token=crypto.randomUUID();
   const claimed=await db.ASEAutomationLease.updateMany({id:lock.id,lease_until:{$lt:new Date().toISOString()}},{$set:{lease_token:token,lease_until:new Date(Date.now()+600000).toISOString()}});
   if(!claimed.updated) return {busy:true,continue:true,waitFor:'PT30S'};
   const assertLease=async()=>{const current=await db.ASEAutomationLease.get(lock.id);if(current.lease_token!==token || Date.parse(current.lease_until)<=Date.now()) throw new Error('Automation lease expired; resume from saved progress.');};
