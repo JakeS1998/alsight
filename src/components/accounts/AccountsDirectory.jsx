@@ -7,8 +7,13 @@ import useAccountsView from '@/components/accounts/useAccountsView';
 import useAccountFilterOptions from '@/components/accounts/useAccountFilterOptions';
 import '@/components/accounts/accounts.css';
 import WorkspacePageHeader from '@/components/layout/WorkspacePageHeader';
+import { useQueryClient } from '@tanstack/react-query';
+import { useAuth } from '@/lib/AuthContext';
 export default function AccountsDirectory() {
-  const [filters,setFilters] = useState({}), [search,setSearch] = useState(''), [cursor,setCursor] = useState(null), [history,setHistory] = useState([]), [view,setView] = useState('cards');
+  const {user} = useAuth(), cache = useQueryClient();
+  const saved = cache.getQueryData(['accounts-directory-filters',user?.id,user?.role]) || {};
+  const [filters,setFilters] = useState(() => saved), [search,setSearch] = useState(() => saved.search || ''), [cursor,setCursor] = useState(null), [history,setHistory] = useState([]), [view,setView] = useState('cards');
+  useEffect(() => { cache.setQueryData(['accounts-directory-filters',user?.id,user?.role],{...filters,search}); },[cache,user?.id,user?.role,filters,search]);
   useEffect(() => { const timer = setTimeout(() => { setFilters(old => ({ ...old, search })); setCursor(null); setHistory([]); },500); return () => clearTimeout(timer); },[search]);
   const result = useAccountsView({ filters, cursor });
   const options = useAccountFilterOptions();
