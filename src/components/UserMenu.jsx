@@ -18,7 +18,7 @@ export default function UserMenu({ user, onSignOut, onNavigate, mobile = false }
       {INTERNAL_ROLES.includes(role) && <DropdownMenuItem asChild><Link to="/delegation" onClick={onNavigate}><UserCog /> Delegation</Link></DropdownMenuItem>}
       {role === 'admin' && <DropdownMenuItem asChild><Link to="/admin" onClick={onNavigate}><UserCog /> Admin</Link></DropdownMenuItem>}
       {role === 'client' && <DropdownMenuItem asChild><Link to="/account" onClick={onNavigate}>My Account</Link></DropdownMenuItem>}
-      {role === 'admin' && <DropdownMenuItem asChild><Link to="/contacts" onClick={onNavigate}>Contacts</Link></DropdownMenuItem>}
+      {role === 'admin' && <DropdownMenuItem asChild><Link to="/people" onClick={onNavigate}>People</Link></DropdownMenuItem>}
       <DropdownMenuItem asChild><Link to="/help" onClick={onNavigate}>Help</Link></DropdownMenuItem>
       <DropdownMenuSeparator />
       <DropdownMenuItem onSelect={onSignOut}><LogOut /> Sign out</DropdownMenuItem>
