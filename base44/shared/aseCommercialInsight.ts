@@ -4,11 +4,11 @@ import {commercialContractExposure} from './aseCommercialExposure.ts';
 export async function commercialInsight(base44,account,options={}) {
   const now=options.at ? new Date(options.at) : new Date(),date=now.toISOString().slice(0,10);
   if(accountModel(account)!=='company') return {status:'not_applicable',reason:'Turnover concentration applies to supported company accounts, not local-authority spending.',checked_at:now.toISOString()};
-  const exposure=await commercialContractExposure(base44,account,date);
-  if(exposure.reason==='Contract totals exceed the validation limit.') return {status:'unavailable',reason:exposure.reason,checked_at:now.toISOString()};
+  const [turnover,exposure]=await Promise.all([commercialTurnover(base44,account,now),commercialContractExposure(base44,account,date)]);
+  if(exposure.reason==='Contract totals exceed the validation limit.') return {status:'unavailable',reason:exposure.reason,turnover,percentage:null,annualised_value:null,checked_at:now.toISOString()};
   const {eligible,duplicateRefs}=exposure;
-  const [allCount,turnover,contracts,hmrc]=await Promise.all([
-    exposure.candidate_count,commercialTurnover(base44,account,now),
+  const [allCount,contracts,hmrc]=await Promise.all([
+    exposure.candidate_count,
     base44.entities.JCT.filter(eligible,{limit:20,...(options.cursor ? {cursor:options.cursor} : {}),fields:['document_id','project_id','commercial_reviewed_at','commercial_reviewed_by','commercial_effective_value','commercial_effective_start','commercial_effective_end','commercial_effective_annual_value','commercial_effective_reference','commercial_effective_date_basis','commercial_effective_mode','commercial_effective_source']}),hmrcStatus(base44,account)
   ]);
   const included=exposure.included_count,annual=exposure.annualised_value,excluded=allCount-included;
