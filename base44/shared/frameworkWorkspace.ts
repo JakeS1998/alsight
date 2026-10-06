@@ -1,6 +1,7 @@
 import {uklfReportScope} from './uklfReportScope.ts';
 import {workspaceFields,workspaceQuery,safeWorkspaceRow} from './frameworkWorkspaceRules.ts';
 import {frameworkWorkspaceSummary} from './frameworkWorkspaceSummary.ts';
+import {frameworkCommercialSummary} from './frameworkCommercialSummary.ts';
 import {scopedReadCache,invalidateScopedRead} from './scopedReadCache.ts';
 export async function frameworkWorkspace(base44,user,body) {
  const internal=user.role!=='framework_stakeholder',source=internal ? base44.entities.FrameworkProjectReport : base44.asServiceRole.entities.FrameworkProjectReport;
@@ -27,7 +28,11 @@ export async function frameworkWorkspace(base44,user,body) {
  }
  if(body.workspaceAction==='summary') {
   const days=[7,30,90].includes(body.days) ? body.days : 30;
-  return Response.json(await scopedReadCache(`${viewerKey}:summary:fast:${days}:${JSON.stringify(scope)}`,()=>frameworkWorkspaceSummary(source,scope,internal,days)));
+  return Response.json(await scopedReadCache(`${viewerKey}:summary:proposal-fees:${days}:${JSON.stringify(scope)}`,async()=>{
+   const summary=await frameworkWorkspaceSummary(source,scope,internal,days);
+   const commercial=internal ? await scopedReadCache(`${viewerKey}:commercial:proposal-fees:${JSON.stringify(scope)}`,()=>frameworkCommercialSummary(base44.entities,source,scope)) : {};
+   return {...summary,...commercial};
+  }));
  }
  if(body.workspaceAction==='clients') {
   const term=String(body.term || '').slice(0,80).replace(/[.*+?^${}()|[\]\\]/g,'\\$&');

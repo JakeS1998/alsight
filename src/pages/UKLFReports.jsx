@@ -15,7 +15,7 @@ export default function UKLFReports() {
  const {user}=useAuth(),allowed=INTERNAL_ROLES.includes(user?.role) || user?.role==='framework_stakeholder';
  const [search,setSearch]=useState(''),[term,setTerm]=useState(''),[filters,setFilters]=useState({}),[days,setDays]=useState(30);
  useEffect(()=>{const timer=setTimeout(()=>setTerm(search.trim()),400);return()=>clearTimeout(timer);},[search]);
- const query=useQuery({queryKey:['framework-workspace','summary',user?.id,user?.role,days,'load-v2'],enabled:allowed,queryFn:async()=>{const {data}=await base44.functions.invoke('getStakeholderFrameworkReport',{workspaceAction:'summary',days});if(data.error)throw new Error(data.error);return data;},...organisationQueryPolicy,retry:false,staleTime:60000});
+ const query=useQuery({queryKey:['framework-workspace','summary',user?.id,user?.role,days,'proposal-fees'],enabled:allowed,queryFn:async()=>{const {data}=await base44.functions.invoke('getStakeholderFrameworkReport',{workspaceAction:'summary',days});if(data.error)throw new Error(data.error);return data;},...organisationQueryPolicy,retry:false,staleTime:60000});
  const data=query.data || {};
  const attentionFilter=next=>{setSearch('');setTerm('');setFilters(next);requestAnimationFrame(()=>document.getElementById('framework-projects')?.scrollIntoView({behavior:'smooth',block:'start'}));};
  if(!allowed)return <p className="p-6 text-muted-foreground">Framework reporting is available to UKLF stakeholders and the internal team.</p>;
