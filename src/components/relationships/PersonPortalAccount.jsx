@@ -1,0 +1,14 @@
+import React,{useState} from 'react';
+import {useQuery,useQueryClient} from '@tanstack/react-query';
+import {base44} from '@/api/base44Client';
+import {InviteUserDialog} from '@/components/contacts/InviteUserDialog';
+import {Button} from '@/components/ui/button';
+import {ROLE_LABELS} from '@/lib/portal';
+export default function PersonPortalAccount({contact}) {
+  const [open,setOpen]=useState(false),cache=useQueryClient();
+  const query=useQuery({queryKey:['person-portal-account',contact.id],queryFn:async()=>{const [users,pending,accounts]=await Promise.all([contact.email ? base44.entities.User.filter({email:contact.email.trim().toLowerCase()}) : [],base44.entities.PendingPortalAccess.filter({contact_id:contact.id},{limit:1}),base44.entities.Account.filter({},{limit:100,sort:'name'})]);return {user:(Array.isArray(users) ? users : users.items || [])[0],pending:pending.items[0],accounts:accounts.items};}});
+  if(query.isPending) return <p className="text-sm text-muted-foreground">Loading portal identity…</p>;
+  if(query.error) return <p role="alert" className="text-sm text-destructive">Portal access could not be loaded.</p>;
+  const {user,pending,accounts}=query.data,linked=accounts.find(a=>a.dataverse_id===(user?.account_id || pending?.account_id)),state=pending ? 'Invited' : user ? 'Linked portal account' : 'No Portal Account';
+  return <section className="rounded-xl border border-border bg-card p-6"><h2 className="font-semibold">Portal Account</h2><p className="mt-2 text-sm text-muted-foreground">A person is a relationship record. Portal access is a separate, administrator-controlled permission.</p><dl className="mt-5 grid gap-4 text-sm sm:grid-cols-3">{[['Portal status',state],['Portal role',ROLE_LABELS[user?.role || pending?.portal_role] || 'Not assigned'],['Organisation access',linked?.name || user?.account_id || pending?.account_id || 'Not assigned']].map(([label,value])=><div key={label}><dt className="text-xs text-muted-foreground">{label}</dt><dd className="mt-1 font-medium">{value}</dd></div>)}</dl><p className="mt-4 text-xs text-muted-foreground">Sign-in, lock and activation details are not inferred from the existence of a linked identity.</p><Button className="mt-5" onClick={()=>setOpen(true)}>{user || pending ? 'Manage portal role and organisation' : 'Invite to portal'}</Button><InviteUserDialog open={open} onOpenChange={setOpen} contact={contact} accounts={accounts} existingUser={user} pendingAssignment={pending} onDone={()=>cache.invalidateQueries({queryKey:['person-portal-account',contact.id]})}/></section>;
+}

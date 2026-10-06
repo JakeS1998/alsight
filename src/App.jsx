@@ -11,6 +11,8 @@ import ProtectedRoute from '@/components/ProtectedRoute';
 import PortalLayout from '@/components/PortalLayout';
 import AdminContactsRoute from '@/components/contacts/AdminContactsRoute';
 import CRMRoute from '@/components/crm/CRMRoute';
+import PeopleRoute from '@/components/relationships/PeopleRoute';
+const People = lazy(() => import('@/pages/People'));
 import PageLoadBoundary from '@/components/PageLoadBoundary';
 import StakeholderRoute from '@/components/StakeholderRoute';
 const Login = lazy(() => import('@/pages/Login'));
@@ -101,7 +103,12 @@ const AuthenticatedApp = () => {
           </Route>
           <Route element={<AdminContactsRoute />}>
             <Route path="/admin" element={<Admin />} />
-            <Route path="/contacts" element={<Contacts />} />
+
+          </Route>
+          <Route element={<PeopleRoute />}>
+            <Route path="/people" element={<People />} />
+            <Route path="/people/:contactId" element={<ContactDetail />} />
+            <Route path="/contacts" element={<Navigate to="/people" replace />} />
             <Route path="/contacts/:contactId" element={<ContactDetail />} />
           </Route>
           <Route path="/accounts/:accountId/contacts/:contactId" element={<ContactDetail />} />

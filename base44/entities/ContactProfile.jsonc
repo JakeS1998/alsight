@@ -58,7 +58,16 @@
         "developing",
         "established",
         "strong",
+        "cooling",
+        "limited",
         ""
+      ]
+    },
+    "relationship_strength_source": {
+      "type": "string",
+      "enum": [
+        "system_suggested",
+        "user_set"
       ]
     },
     "relationship_owner_contact_id": {
@@ -75,6 +84,19 @@
         "strategic",
         ""
       ]
+    },
+    "key_decision_maker": {
+      "type": "boolean"
+    },
+    "person_category": {
+      "type": "string"
+    },
+    "tags": {
+      "type": "array",
+      "maxItems": 20,
+      "items": {
+        "type": "string"
+      }
     },
     "interests": {
       "type": "string"
