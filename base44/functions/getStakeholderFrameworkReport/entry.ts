@@ -2,6 +2,7 @@ import { createClientFromRequest } from 'npm:@base44/sdk@0.8.52';
 import { completionOutcome, reportProject } from '../../shared/uklfCompletion.ts';
 import { uklfPortfolioSummary } from '../../shared/uklfPortfolioSummary.ts';
 import { uklfReportScope } from '../../shared/uklfReportScope.ts';
+import {frameworkWorkspace} from '../../shared/frameworkWorkspace.ts';
 
 const INTERNAL = ['admin', 'director', 'regional_director', 'bsm', 'finance', 'bdm'];
 const STAGES = ['pq_date', 'aa_signed', 'calloff_date', 'completed_on_time'];
@@ -40,11 +41,9 @@ const safeRow = (r, internal) => ({
   pq_date: r.pq_date, pq_status: r.pq_status, aa_sent: r.aa_sent, aa_signed: r.aa_signed,
   calloff_date: r.calloff_date, completed_on_time: r.completed_on_time,
   completed_to_budget: r.completed_to_budget, zero_riddor: r.zero_riddor,
-  riddor_incidents: r.riddor_incidents ?? (r.zero_riddor === 'N' ? null : 0),
-  apprenticeships: r.apprenticeships,
-  ...(internal ? { indicative_value: r.indicative_value, aa_value: r.aa_value,
-    calloff_value: r.calloff_value, completion_value: r.completion_value,
-    access_fee: r.access_fee, local_spend: r.local_spend } : {}),
+  riddor_incidents: r.riddor_incidents ?? null,
+  apprenticeships: r.apprenticeships, created_date:r.created_date, updated_date:r.updated_date,
+
 });
 
 export default async function(req: Request): Promise<Response> {
@@ -55,12 +54,17 @@ export default async function(req: Request): Promise<Response> {
     const internal = INTERNAL.includes(user.role);
     if (!internal && user.role !== 'framework_stakeholder') return Response.json({ error: 'Forbidden' }, { status: 403 });
     const body = await req.json();
+    if(body.workspaceAction) {
+      if(!['summary','clients','list','detail','link'].includes(body.workspaceAction))return Response.json({error:'Invalid Framework operation.'},{status:400});
+      return await frameworkWorkspace(base44,user,body);
+    }
     const source = base44.asServiceRole.entities.FrameworkProjectReport;
     if (body?.reportId || body?.projectId) {
       if (body.reportId && !safeId(body.reportId) || body.projectId && !safeId(body.projectId))
         return Response.json({ error: 'Invalid project reference' }, { status: 400 });
       if (body.projectId) {
-        const requestedProject = await base44.asServiceRole.entities.Project.get(body.projectId).catch(() => null);
+        const requestedProject = await base44.entities.Project.get(body.projectId).catch(() => null);
+        if (!requestedProject)return Response.json({error:'Project unavailable'},{status:404});
         if (requestedProject?.procurement_route === false) return Response.json({ report: null, directProject: true });
       }
       let report = body.reportId ? await source.get(body.reportId).catch(() => null) : null;
@@ -68,7 +72,7 @@ export default async function(req: Request): Promise<Response> {
         const linked = await source.filter({ project_id: body.projectId }, '-created_date', 1);
         report = linked[0];
         if (!report) {
-          const project = await base44.asServiceRole.entities.Project.get(body.projectId).catch(() => null);
+          const project = await base44.entities.Project.get(body.projectId).catch(() => null);
           const number = /^PROJ(\d+)$/i.exec(project?.project_number || '');
           if (number) {
             const exact = await source.filter({ framework_ref: { $in: [number[1], `FW3${number[1]}`, project.project_number] } }, '-created_date', 1);
@@ -76,7 +80,7 @@ export default async function(req: Request): Promise<Response> {
           }
         }
       }
-      const project = report ? await reportProject(base44, report, body.projectId) : null;
+      const project = report ? await reportProject({asServiceRole:{entities:base44.entities}}, report, body.projectId) : null;
       if (project?.procurement_route === false) return Response.json({ report: null, directProject: true });
       const defaults = internal && report ? await suggestedKpis(base44, project) : {};
       const completion = project ? completionOutcome(project) : '';

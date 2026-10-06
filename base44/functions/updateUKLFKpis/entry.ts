@@ -11,27 +11,28 @@ export default async function(req: Request): Promise<Response> {
     const user = await base44.auth.me();
     if (!user) return Response.json({ error: 'Sign in required' }, { status: 401 });
     if (!INTERNAL.includes(user.role)) return Response.json({ error: 'Internal team access required' }, { status: 403 });
-    const { reportId, kpis } = await req.json();
+    const { reportId, kpis, frameworkContext=false } = await req.json();
+    if(frameworkContext && user.role!=='admin')return Response.json({error:'Framework administrator access required'},{status:403});
     if (typeof reportId !== 'string' || !/^[a-zA-Z0-9_-]{1,64}$/.test(reportId) || !kpis || typeof kpis !== 'object' || Array.isArray(kpis))
       return Response.json({ error: 'Invalid KPI submission' }, { status: 400 });
     if (FIELDS.some(field => !OUTCOMES.includes(kpis[field])))
       return Response.json({ error: 'Choose Yes, No or Not recorded for each outcome' }, { status: 400 });
     if (!Number.isInteger(kpis.riddor_incidents) || kpis.riddor_incidents < 0 || kpis.riddor_incidents > 100000)
       return Response.json({ error: 'RIDDOR incidents must be a non-negative whole number' }, { status: 400 });
-    if (kpis.local_spend !== null && (typeof kpis.local_spend !== 'number' || !Number.isFinite(kpis.local_spend) || kpis.local_spend < 0 || kpis.local_spend > 1e12))
+    if (!frameworkContext && kpis.local_spend !== null && (typeof kpis.local_spend !== 'number' || !Number.isFinite(kpis.local_spend) || kpis.local_spend < 0 || kpis.local_spend > 1e12))
       return Response.json({ error: 'Local spend must be a valid non-negative amount' }, { status: 400 });
     if (kpis.apprenticeships !== null && (!Number.isInteger(kpis.apprenticeships) || kpis.apprenticeships < 0 || kpis.apprenticeships > 100000))
       return Response.json({ error: 'Apprenticeships must be a valid non-negative whole number' }, { status: 400 });
-    const source = base44.asServiceRole.entities.FrameworkProjectReport;
+    const source = frameworkContext ? base44.entities.FrameworkProjectReport : base44.asServiceRole.entities.FrameworkProjectReport;
     const existing = await source.get(reportId).catch(() => null);
     if (!existing) return Response.json({ error: 'UKLF report not found' }, { status: 404 });
-    const project = await reportProject(base44, existing);
+    const project = frameworkContext ? (existing.project_id ? await base44.entities.Project.get(existing.project_id).catch(()=>null) : null) : await reportProject(base44, existing);
     const changes = {
       completed_on_time: (project && completionOutcome(project)) || kpis.completed_on_time,
       completed_to_budget: kpis.completed_to_budget,
       zero_riddor: kpis.riddor_incidents === 0 ? 'Y' : 'N',
       riddor_incidents: kpis.riddor_incidents,
-      local_spend: kpis.local_spend,
+      ...(!frameworkContext ? {local_spend:kpis.local_spend} : {}),
       apprenticeships: kpis.apprenticeships,
     };
     await source.update(reportId, changes);

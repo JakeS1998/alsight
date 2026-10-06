@@ -1,0 +1,7 @@
+import React from 'react';
+import {Layers,Link2,BarChart3} from 'lucide-react';
+import {formatCurrency} from '@/lib/portal';
+export default function FrameworkPulse({data}) {
+ const items=[['Framework Projects',data.total,Layers],['Linked to ALSight',data.linked,Link2],['Outcomes Recorded',data.outcomes,BarChart3]];
+ return <section className="rounded-panel border border-border bg-card p-5 shadow-sm"><h2 className="mb-5 flex items-center gap-2 text-sm font-semibold"><Layers className="h-4 w-4"/>Framework Pulse</h2><div className="grid grid-cols-3 gap-4">{items.map(([label,value,Icon],i)=><div key={label} className={i ? 'border-l border-border pl-4' : ''}><p className="flex items-center gap-2 text-3xl font-bold tracking-tight"><Icon className="h-4 w-4 text-muted-foreground"/>{value?.toLocaleString() ?? '—'}</p><p className="mt-2 text-xs text-muted-foreground">{label}</p></div>)}{data.totalCallOffValue!==undefined && <div className="col-span-3 flex flex-wrap items-baseline justify-between gap-2 border-t border-border pt-4"><p className="text-xl font-semibold tracking-tight">{formatCurrency(data.totalCallOffValue)}</p><p className="mt-2 text-xs text-muted-foreground">Total Call-Off Value</p></div>}</div></section>;
+}

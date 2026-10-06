@@ -1,0 +1,9 @@
+import {recordedOutcome,outcomeReview,outcomeMissing,missing} from './frameworkWorkspaceRules.ts';
+export async function frameworkWorkspaceSummary(source,scope,internal,days=30) {
+ const q=extra=>({$and:[scope,extra]}),start=new Date(Date.now()-days*86400000).toISOString(),date=start.slice(0,10),today=new Date().toISOString().slice(0,10);
+ const queries={total:scope,linked:q({project_id:{$gt:''}}),questionnaire:q({pq_date:{$gt:''}}),agreement:q({aa_signed:{$gt:''}}),calloff:q({calloff_date:{$gt:''}}),outcomes:q(recordedOutcome),unlinked:q(missing('project_id')),missingAgreements:q(missing('aa_signed')),outstanding:q({$and:[{calloff_date:{$gt:''}},outcomeMissing]}),review:q(outcomeReview),onTime:q({completed_on_time:'Y'}),onTimeRecorded:q({completed_on_time:{$in:['Y','N']}}),toBudget:q({completed_to_budget:'Y'}),budgetRecorded:q({completed_to_budget:{$in:['Y','N']}}),safe:q({$and:[recordedOutcome,{zero_riddor:'Y'}]}),safetyRecorded:q({$and:[recordedOutcome,{zero_riddor:{$in:['Y','N']}}]}),added:q({created_date:{$gte:start}}),signed:q({aa_signed:{$gte:date,$lte:today}}),calledOff:q({calloff_date:{$gte:date,$lte:today}}),outcomeUpdated:q({$and:[recordedOutcome,{updated_date:{$gte:start}},{created_date:{$lt:start}}]})};
+ const entries=await Promise.all(Object.entries(queries).map(async([key,query])=>[key,await source.count(query)]));
+ const summary=Object.fromEntries(entries);
+ if(internal){const value=await source.aggregate({query:scope,sum:'calloff_value'});summary.totalCallOffValue=value.rows?.[0]?.sum_calloff_value ?? 0;}
+ return {...summary,periodDays:days,asOf:new Date().toISOString(),activityNote:'Added records use import/creation timestamps. Agreements and call-offs use recorded milestone dates. Outcome updates are not necessarily newly completed projects.'};
+}

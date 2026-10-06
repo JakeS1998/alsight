@@ -1,0 +1,6 @@
+import React from 'react';
+import {AlertTriangle,ChevronRight} from 'lucide-react';
+export default function FrameworkAttention({data,onFilter}) {
+ const items=[['unlinked','Framework projects not yet linked to ALSight',data.unlinked,{linked:'unlinked'}],['agreements','Agreements not yet recorded',data.missingAgreements,{attention:'agreements'}],['outstanding','Projects at Call-Off without a delivery outcome',data.outstanding,{attention:'outstanding'}],['review','Delivery outcomes requiring review',data.review,{outcome:'review'}]];
+ return <section className="rounded-panel border border-destructive/15 bg-destructive/5 p-5"><h2 className="mb-3 flex items-center gap-2 text-sm font-semibold"><AlertTriangle className="h-4 w-4 text-destructive"/>Needs Attention</h2><div className="space-y-1">{items.map(([key,label,count,filter])=><button key={key} className="flex w-full items-center gap-3 rounded-lg py-2 text-left hover:bg-card/70" onClick={()=>onFilter(filter)}><strong className="w-10 shrink-0 text-lg text-destructive">{count ?? '—'}</strong><span className="flex-1 text-xs">{label}</span><ChevronRight className="h-3 w-3"/></button>)}</div><p className="mt-2 text-[10px] text-muted-foreground">Review flags reflect recorded delayed, not-to-budget or RIDDOR outcomes; they are not inferred professional judgements.</p></section>;
+}

@@ -9,9 +9,12 @@ import { GUIDES } from '@/components/alice/aliceGuides';
 import useAliceLaunch from '@/components/alice/useAliceLaunch';
 import { useAuth } from '@/lib/AuthContext';
 import aliceAccessKey from '@/components/alice/aliceAccessKey';
+import {useLocation} from 'react-router-dom';
+import FrameworkAliceChat from '@/components/framework/FrameworkAliceChat';
 const AGENT = 'alice';
 export default function AliceWidget() {
   const { user } = useAuth();
+  const frameworkContext=useLocation().pathname.startsWith('/framework-reports');
   const storageKey = aliceAccessKey(user);
   const { guide, start, cancel, next, back, confirm } = useAliceGuide(user);
   const [open, setOpen] = useState(false);
@@ -37,7 +40,7 @@ export default function AliceWidget() {
     return () => document.removeEventListener('focusin', track);
   }, []);
   useEffect(() => {
-    if (!open) return;
+    if (!open || frameworkContext) {setRestoring(false);return;}
     let alive = true;
     const restore = async () => {
       setRestoring(true);
@@ -50,7 +53,7 @@ export default function AliceWidget() {
       finally { if (alive) setRestoring(false); }
     };
     restore(); return () => { alive = false; };
-  }, [open, storageKey]);
+  }, [open, storageKey, frameworkContext]);
   useEffect(() => {
     if (!conversation?.id) return;
     let active = true;
@@ -69,7 +72,7 @@ export default function AliceWidget() {
     };
   }, [conversation?.id]);
   const send = async (value, draft = false, explainOnly = false) => {
-    if (!value.trim() || busy || restoring) return;
+    if (frameworkContext || !value.trim() || busy || restoring) return;
     if (!draft && !explainOnly) {
       const intent = value.trim().match(/\b(?:new|add|create|log|record)\b.{0,45}\b(opportunity|project|risk|comment|action|decision|valuation)\b|\b(opportunity|project|risk|comment|action|decision|valuation)\b.{0,30}\b(?:log|add|create|record)\b/i);
       const type = intent?.[1]?.toLowerCase() || intent?.[2]?.toLowerCase();
@@ -122,7 +125,7 @@ export default function AliceWidget() {
   return <div data-alice-widget className="fixed bottom-4 right-4 z-50 sm:bottom-6 sm:right-6">
     {open && <section role="dialog" aria-label="Chat with ALICE" className={`mb-3 flex h-[min(710px,calc(100dvh-110px))] ${guide?.type === 'valuation' && guide.step > 0 ? 'w-[min(1100px,calc(100vw-32px))]' : 'w-[min(500px,calc(100vw-32px))]'} flex-col overflow-hidden rounded-3xl border border-border bg-card text-foreground shadow-2xl`}>
       <header className="flex items-center gap-3 border-b border-border bg-card px-5 py-4"><span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-assistant text-white"><Bot className="h-6 w-6" /></span><div className="min-w-0 flex-1"><strong className="font-heading text-base font-semibold">ALICE</strong><p className="text-xs leading-tight text-muted-foreground">Alliance Leisure Intelligence &amp; Construction Expert</p></div>{(conversation || messages.length > 0 || guide) && <button type="button" onClick={endChat} disabled={restoring || guide?.saving} className="shrink-0 rounded-lg px-2 py-1 text-xs font-medium text-assistant hover:bg-muted disabled:opacity-50">End chat</button>}<button type="button" aria-label="Close ALICE" onClick={() => setOpen(false)} className="shrink-0 rounded-lg p-1 text-muted-foreground hover:bg-muted hover:text-foreground"><X className="h-5 w-5" /></button></header>
-      {guide ? <AliceGuidedChat guide={guide} onNext={next} onBack={back} onConfirm={confirm} onCancel={cancel} /> : <>
+      {frameworkContext ? <FrameworkAliceChat/> : guide ? <AliceGuidedChat guide={guide} onNext={next} onBack={back} onConfirm={confirm} onCancel={cancel} /> : <>
         {!messages.length && !busy ? <AliceWelcome role={user?.role} disabled={restoring} onStart={start} /> : <>
           <button type="button" onClick={() => setShowTasks(v => !v)} aria-expanded={showTasks} className="block w-full border-b border-border px-5 py-2 text-left text-xs font-semibold text-assistant hover:bg-muted">{showTasks ? 'Hide tasks' : 'Start a task'}</button>
           {showTasks && <div className="grid gap-2 border-b border-border px-5 py-3">{Object.entries(GUIDES).filter(([, item]) => item.roles.includes(user?.role)).map(([type, item]) => <button type="button" key={type} onClick={() => { start(type); setShowTasks(false); }} disabled={busy || restoring} className="rounded-xl border border-border bg-muted/60 px-3 py-2 text-left text-sm hover:border-assistant disabled:opacity-50">{item.label}</button>)}</div>}

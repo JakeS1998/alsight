@@ -1,48 +1,21 @@
-import React, { useEffect, useState } from 'react';
-import { base44 } from '@/api/base44Client';
-import { useAuth } from '@/lib/AuthContext';
-import { INTERNAL_ROLES } from '@/lib/portal';
-import FrameworkVisualSummary from '@/components/framework/FrameworkVisualSummary';
-import FrameworkReportRows from '@/components/framework/FrameworkReportRows';
-
+import React,{useState,useEffect} from 'react';
+import {useQuery} from '@tanstack/react-query';
+import {base44} from '@/api/base44Client';
+import {useAuth} from '@/lib/AuthContext';
+import {INTERNAL_ROLES} from '@/lib/portal';
+import FrameworkPulse from '@/components/framework/FrameworkPulse';
+import FrameworkAttention from '@/components/framework/FrameworkAttention';
+import FrameworkRecentActivity from '@/components/framework/FrameworkRecentActivity';
+import FrameworkJourney from '@/components/framework/FrameworkJourney';
+import FrameworkOutcomes from '@/components/framework/FrameworkOutcomes';
+import FrameworkWorkspaceExplorer from '@/components/framework/FrameworkWorkspaceExplorer';
 export default function UKLFReports() {
-  const { user } = useAuth();
-  const internal = INTERNAL_ROLES.includes(user?.role);
-  const allowed = internal || user?.role === 'framework_stakeholder';
-  const [search, setSearch] = useState('');
-  const [term, setTerm] = useState('');
-  const [stage, setStage] = useState('all');
-  const [page, setPage] = useState(0);
-  const [rows, setRows] = useState([]);
-  const [data, setData] = useState(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState('');
-  const [revision, setRevision] = useState(0);
-  useEffect(() => {
-    if (!allowed) return;
-    let active = true;
-    setLoading(true); setError('');
-    base44.functions.invoke('getStakeholderFrameworkReport', { term, stage, page })
-      .then(({ data: next }) => { if (active) { setRows(previous => page ? [...previous, ...next.rows] : next.rows); setData(next); } })
-      .catch(() => { if (active) setError('Unable to load the report. Please try again.'); })
-      .finally(() => { if (active) setLoading(false); });
-    return () => { active = false; };
-  }, [term, stage, page, revision, allowed]);
-  const apply = (nextTerm, nextStage) => {
-    setRows([]); setPage(0); setTerm(nextTerm); setStage(nextStage); setRevision(n => n + 1);
-  };
-  if (!allowed) return <p className="p-6 text-slate-500">Framework reporting is available to UKLF stakeholders and the internal team.</p>;
-  return <div className="space-y-6">
-    <div><h1 className="font-heading text-2xl font-bold text-als-navy">UKLF</h1><p className="text-sm text-slate-500">UK Leisure Framework · project milestones and delivery outcomes</p></div>
-    <FrameworkVisualSummary data={data} />
-    <div className="flex flex-wrap items-end gap-3 rounded-xl border border-slate-200 bg-white p-4">
-      <form onSubmit={e => { e.preventDefault(); apply(search.trim(), stage); }} className="flex min-w-[230px] flex-1 flex-col gap-1.5"><label htmlFor="framework-search" className="text-sm font-medium">Find a framework project</label><div className="flex gap-2"><input id="framework-search" value={search} onChange={e => setSearch(e.target.value)} placeholder="Site, client, FW3 or PROJ reference" className="h-10 min-w-0 flex-1 rounded-lg border border-slate-300 px-3 text-sm" /><button className="rounded-lg bg-primary px-4 text-sm font-medium text-primary-foreground">Search</button></div></form>
-      <div className="flex flex-col gap-1.5"><label htmlFor="framework-stage" className="text-sm font-medium">Milestone reached</label><select id="framework-stage" value={stage} onChange={e => apply(term, e.target.value)} className="h-10 rounded-lg border border-slate-300 px-3 text-sm"><option value="all">Any milestone</option><option value="pq_date">Questionnaire dated</option><option value="aa_signed">Agreement signed</option><option value="calloff_date">Call-off dated</option><option value="completed_on_time">Delivery outcome recorded</option></select></div>
-      {(term || stage !== 'all') && <button type="button" onClick={() => { setSearch(''); apply('', 'all'); }} className="h-10 rounded-lg border border-slate-300 px-3 text-sm">Clear filters</button>}
-    </div>
-    <div className="flex flex-wrap items-center justify-between gap-2"><h2 className="text-lg font-semibold text-slate-900">Project records</h2><p className="text-sm text-slate-500">{loading ? 'Loading results…' : `${rows.length} of ${data?.count ?? 0} matching records shown`}</p></div>
-    {error && <p role="alert" className="rounded-lg border border-destructive bg-white p-4 text-sm text-destructive">{error} <button type="button" onClick={() => setRevision(n => n + 1)} className="font-semibold underline">Try again</button></p>}
-    {rows.length ? <FrameworkReportRows rows={rows} internal={internal} /> : !loading && !error && <p className="rounded-xl border border-slate-200 bg-white p-10 text-center text-sm text-slate-500">No framework projects match these filters.</p>}
-    {!loading && !error && rows.length < (data?.count ?? 0) && <button type="button" onClick={() => setPage(n => n + 1)} className="rounded-lg border border-slate-300 bg-white px-4 py-2 text-sm">Load more</button>}
-  </div>;
+ const {user}=useAuth(),allowed=INTERNAL_ROLES.includes(user?.role) || user?.role==='framework_stakeholder';
+ const [search,setSearch]=useState(''),[term,setTerm]=useState(''),[filters,setFilters]=useState({}),[days,setDays]=useState(30);
+ useEffect(()=>{const timer=setTimeout(()=>setTerm(search.trim()),400);return()=>clearTimeout(timer);},[search]);
+ const query=useQuery({queryKey:['framework-workspace','summary',user?.id,user?.role,days],enabled:allowed,queryFn:async()=>{const {data}=await base44.functions.invoke('getStakeholderFrameworkReport',{workspaceAction:'summary',days});if(data.error)throw new Error(data.error);return data;},retry:false,staleTime:60000});
+ const data=query.data || {};
+ const attentionFilter=next=>{setSearch('');setTerm('');setFilters(next);requestAnimationFrame(()=>document.getElementById('framework-projects')?.scrollIntoView({behavior:'smooth',block:'start'}));};
+ if(!allowed)return <p className="p-6 text-muted-foreground">Framework reporting is available to UKLF stakeholders and the internal team.</p>;
+ return <div className="space-y-5"><header className="flex flex-wrap items-start justify-between gap-3"><div><h1 className="font-heading text-3xl font-bold tracking-tight">UKLF</h1><p className="mt-1 text-sm text-muted-foreground">UK Leisure Framework · Project milestones and delivery outcomes</p></div><span className="rounded-lg border border-border bg-card px-4 py-2 text-xs text-muted-foreground">UK Leisure Framework</span></header>{query.error && <p role="alert" className="rounded-panel border border-border bg-card p-4 text-sm text-destructive">Framework summary unavailable. <button className="underline" onClick={()=>query.refetch()}>Try again</button></p>}{query.isPending && <p role="status" className="text-sm text-muted-foreground">Loading Framework context…</p>}<div className="grid gap-4 lg:grid-cols-2 xl:grid-cols-[1.25fr_1fr_1fr]"><FrameworkPulse data={data}/><FrameworkAttention data={data} onFilter={attentionFilter}/><FrameworkRecentActivity data={data} days={days} onDays={setDays}/></div><div className="grid gap-4 xl:grid-cols-[1.3fr_1fr]"><FrameworkJourney data={data} stage={filters.stage} onFilter={attentionFilter}/><FrameworkOutcomes data={data}/></div><FrameworkWorkspaceExplorer filters={filters} onFilter={setFilters} search={search} onSearch={setSearch} term={term} user={user}/></div>;
 }

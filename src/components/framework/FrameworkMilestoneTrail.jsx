@@ -1,0 +1,7 @@
+import React from 'react';
+import {Check,Circle} from 'lucide-react';
+export default function FrameworkMilestoneTrail({row}) {
+ const stages=[['Questionnaire',!!row.pq_date],['Agreement',!!row.aa_signed],['Call-Off',!!row.calloff_date],['Outcome',[row.completed_on_time,row.completed_to_budget,row.zero_riddor].some(v=>['Y','N'].includes(v))]];
+ const current=stages.findIndex(([,complete])=>!complete);
+ return <ol className="flex min-w-64 items-start">{stages.map(([label,complete],i)=><li key={label} className="relative flex flex-1 flex-col items-center gap-2 text-center">{i<3 && <span aria-hidden="true" className="absolute left-1/2 top-2.5 h-px w-full bg-border"/>}<span aria-label={`${label}: ${complete ? 'Complete' : i===current ? 'Current, not recorded' : 'Not reached'}`} title={`${label}: ${complete ? 'Complete' : i===current ? 'Current, not recorded' : 'Not reached'}`} className={`relative z-10 flex h-5 w-5 items-center justify-center rounded-full border ${complete ? 'border-als-navy bg-als-navy text-sidebar-foreground' : i===current ? 'border-primary bg-primary/10 text-primary' : 'border-border bg-card text-muted-foreground'}`}>{complete ? <Check className="h-3 w-3"/> : <Circle className="h-2 w-2"/>}</span><span className="text-[9px] text-muted-foreground">{label}</span></li>)}</ol>;
+}
