@@ -57,7 +57,12 @@
 @media (max-width: 767px) { .project-workspace .ws-hero-position { position: static; transform: none; max-width: none; margin-top: 16px; padding: 0 0 0 12px; border: 0; border-left: 3px solid var(--ws-orange); border-radius: 0; background: transparent; } .project-workspace .ws-hero-position dd { font-size: 16px; } }
 .project-workspace .ws-eyebrow { font-size: 13px; text-transform: uppercase; letter-spacing: .11em; color: #bbd1e4; font-weight: 750; }
 .project-workspace .ws-title { font-family: inherit; font-size: 40px; line-height: 1.08; letter-spacing: 0; font-weight: 760; margin: 13px 0 17px; }
-.project-workspace .ws-meta { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
+.project-workspace .ws-meta { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+.project-workspace .ws-project-references { display: flex; align-items: baseline; flex-wrap: wrap; gap: 6px 12px; margin-top: 14px; color: hsl(var(--sidebar-foreground) / .7); font-size: 12px; }
+.project-workspace .ws-project-references > span:last-child { padding: 0; border: 0; border-radius: 0; background: transparent; color: hsl(var(--sidebar-foreground)); font-weight: 650; }
+.project-workspace .ws-meta > .ws-pill, .project-workspace .ws-meta > span:not(.ws-pill) { padding: 6px 12px; font-size: 12px; }
+.project-workspace .ws-record-context dt { font-size: 11px; }
+.project-workspace .ws-record-context dd { line-height: 1.5; }
 .project-workspace .ws-pill { border: 1px solid #ffffff38; border-radius: 999px; padding: 8px 14px; font-size: 14px; font-weight: 650; color: #f5f9fc; }
 .project-workspace .ws-pill.ws-live { color: #d7f6e8; border-color: #69c49c66; background: #4ab28220; }
 .project-workspace .ws-description { margin-top: 17px; color: #bbd1e4; font-size: 14px; }
