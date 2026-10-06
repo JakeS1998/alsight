@@ -16,6 +16,7 @@ import DashboardAliceCard from '@/components/dashboard/DashboardAliceCard';
 import DashboardPanel from '@/components/dashboard/DashboardPanel';
 import { ProjectMap } from '@/components/dashboard/ProjectMap';
 import '@/components/dashboard/dashboard-reference.css';
+import WorkspacePageHeader from '@/components/layout/WorkspacePageHeader';
 export default function PortfolioOverview() {
   const [filters, setFilters] = useState({});
   const dashboard = useDashboardData(filters);
@@ -28,7 +29,7 @@ export default function PortfolioOverview() {
   const opportunities = data ? {count:data.opportunities.reduce((n,r)=>n+r.count,0),value:data.opportunities.reduce((n,r)=>n+(r.sum_budget || 0),0)} : null;
   const serverCount = data?.projects.reduce((n,r)=>n+r.count,0);
   const metrics = data ? {...dashboard.portfolio.metrics,projects:serverCount,live:data.projects.filter(r=>r.live_project === true).reduce((n,r)=>n+r.count,0),value:data.projects.reduce((n,r)=>n+(r.sum_estimated_value || 0),0)} : dashboard.portfolio.metrics;
-  return <div className="portfolio-reference space-y-4"><header className="flex flex-wrap items-start justify-between gap-4"><div><h1 className="font-heading text-3xl font-extrabold tracking-tight">Portfolio Overview</h1><p className="mt-1 text-sm text-muted-foreground">Live commercial and delivery position across Alliance Leisure.</p></div><OverviewFilters user={dashboard.user} filters={filters} onChange={setFilters} onRefresh={dashboard.refresh} loading={dashboard.loading || analytics.isFetching} refreshedAt={data?.refreshedAt} /></header>
+  return <div className="portfolio-reference space-y-4"><WorkspacePageHeader title="Portfolio Overview" eyebrow="Alliance Leisure" description="Live commercial and delivery position across Alliance Leisure." image="https://images.unsplash.com/photo-1530549387789-4c1017266635?auto=format&fit=crop&w=1800&q=85" imageAlt="Swimming pool and leisure facilities" actions={<OverviewFilters user={dashboard.user} filters={filters} onChange={setFilters} onRefresh={dashboard.refresh} loading={dashboard.loading || analytics.isFetching} refreshedAt={data?.refreshedAt} />} />
     {error ? <div role="alert" className="dashboard-panel text-sm text-destructive">{error}<button onClick={dashboard.refresh} className="ml-3 underline">Try again</button></div> : dashboard.loading || !data ? <DashboardSkeleton internal /> : <>
       <OverviewKpis metrics={metrics} onRisk={() => document.getElementById('overview-attention')?.scrollIntoView({behavior:'smooth',block:'center'})} />
       <div className="overview-journey-row"><PipelineTimeline projects={dashboard.portfolio.pipeline} accountMap={dashboard.accountMap} stageSummary={data.stages} opportunitySummary={opportunities} /><OverviewHealth metrics={metrics} /></div>

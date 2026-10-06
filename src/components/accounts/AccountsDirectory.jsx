@@ -6,6 +6,7 @@ import AccountList from '@/components/accounts/AccountList';
 import useAccountsView from '@/components/accounts/useAccountsView';
 import useAccountFilterOptions from '@/components/accounts/useAccountFilterOptions';
 import '@/components/accounts/accounts.css';
+import WorkspacePageHeader from '@/components/layout/WorkspacePageHeader';
 export default function AccountsDirectory() {
   const [filters,setFilters] = useState({}), [search,setSearch] = useState(''), [cursor,setCursor] = useState(null), [history,setHistory] = useState([]), [view,setView] = useState('cards');
   useEffect(() => { const timer = setTimeout(() => { setFilters(old => ({ ...old, search })); setCursor(null); setHistory([]); },500); return () => clearTimeout(timer); },[search]);
@@ -14,7 +15,7 @@ export default function AccountsDirectory() {
   const change = (key,value) => { if (key === 'search') setSearch(value); else { setFilters(old => ({ ...old,[key]:value })); setCursor(null); setHistory([]); } };
   const rows = result.data?.items || [];
   return <div className="account-directory space-y-6">
-    <div className="account-page-title"><div><h1 className="font-heading text-als-navy">Organisations</h1><p>One connected view of organisations, relationships and project activity.</p></div><div className="flex gap-2" aria-label="Account view">{['cards','list'].map(value => <Button key={value} aria-pressed={view === value} variant={view === value ? 'default' : 'outline'} onClick={() => setView(value)} className="capitalize">{value}</Button>)}</div></div>
+    <WorkspacePageHeader title="Organisations" eyebrow="Relationships / Organisations" description="One connected view of organisations, relationships and project activity." image="https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?auto=format&fit=crop&w=1800&q=85" imageAlt="Modern buildings and organisational headquarters" actions={<div className="flex gap-2" aria-label="Account view">{['cards','list'].map(value => <Button key={value} aria-pressed={view === value} variant={view === value ? 'default' : 'outline'} onClick={() => setView(value)} className="capitalize">{value}</Button>)}</div>} />
     <AccountFilters filters={{ ...filters,search }} onChange={change} options={options.data || {}} />
     <div className="flex items-center justify-between gap-3 text-sm text-muted-foreground"><p>{result.isPending ? 'Loading organisations…' : `${result.data?.total ?? 0} matching organisations`}</p><button type="button" className="font-semibold hover:underline" onClick={() => { setFilters({}); setSearch(''); setCursor(null); setHistory([]); }}>Reset filters</button></div>
     {(result.error || options.error) && <p role="alert" className="text-sm text-destructive">{result.error?.response?.data?.error || result.error?.message || options.error?.message}<button className="ml-2 underline" onClick={() => { result.refetch(); options.refetch(); }}>Try again</button></p>}

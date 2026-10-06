@@ -9,6 +9,7 @@ import { RequestDialog } from "@/components/projects/RequestDialog";
 import useProjectPage from '@/components/projects/useProjectPage';
 import FrameworkVersionBadge from '@/components/projects/FrameworkVersionBadge';
 import ProjectViewControls from '@/components/projects/ProjectViewControls';
+import WorkspacePageHeader from '@/components/layout/WorkspacePageHeader';
 import ProjectListView from '@/components/projects/ProjectListView';
 import useProjectView from '@/components/projects/useProjectView';
 import { projectStaffName } from "@/components/projects/projectStaffName";
@@ -167,19 +168,7 @@ export default function Projects() {
 
   return (
     <div className="space-y-6">
-      <div className="flex flex-wrap items-end justify-between gap-3">
-        <div>
-          <h1 className="font-heading text-2xl font-extrabold tracking-tight text-als-navy">Projects</h1>
-          <p className="mt-1 text-sm text-slate-500">
-            {canRequest ? "All projects across the UK Leisure Framework." : "Projects you're involved in."}
-          </p>
-        </div>
-        <div className="flex flex-wrap gap-2"><Button variant={meeting ? 'default' : 'outline'} aria-pressed={meeting} onClick={()=>{setMeeting(v=>!v);setView('workspace');}}>{meeting ? 'Exit Meeting Mode' : 'Meeting Mode'}</Button>{canRequest && (
-          <Button onClick={() => setRequestOpen(true)} className="bg-primary hover:bg-primary/90">
-            <Plus className="mr-1.5 h-4 w-4" /> Request Project
-          </Button>
-        )}</div>
-      </div>
+      <WorkspacePageHeader title="Projects" eyebrow="UK Leisure Framework" description={canRequest ? "All projects across the UK Leisure Framework." : "Projects you're involved in."} image="https://media.base44.com/images/public/6ab62433a194f918c54c8249/2e8f91840_AllianceChalfont98.jpg" imageAlt="Indoor cycling studio at Chalfont leisure centre" actions={<><Button variant={meeting ? 'default' : 'outline'} aria-pressed={meeting} onClick={()=>{setMeeting(v=>!v);setView('workspace');}}>{meeting ? 'Exit Meeting Mode' : 'Meeting Mode'}</Button>{canRequest && <Button onClick={() => setRequestOpen(true)} className="bg-primary hover:bg-primary/90"><Plus className="mr-1.5 h-4 w-4" /> Request Project</Button>}</>} />
 
       {(serverPaging || (!loading && projects.length > 0)) && (
         <div className="space-y-3">
