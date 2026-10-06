@@ -2,8 +2,7 @@ import React, { useState, useEffect } from "react";
 
 import { useAuth } from "@/lib/AuthContext";
 import { base44 } from "@/api/base44Client";
-import { listAll } from "@/components/data/loadAll";
-import listVisiblePortalUsers from '@/components/data/portalUserDirectory';
+import useProjectAssignmentPeople from '@/components/projects/useProjectAssignmentPeople';
 import ValuationSnapshot from '@/components/valuations/ValuationSnapshot';
 import { projectCompletionDates } from '@/components/projects/projectCompletionDates';
 import ProjectDocumentStatuses from '@/components/projects/ProjectDocumentStatuses';
@@ -11,7 +10,6 @@ import Project360Strip from '@/components/projects/Project360Strip';
 import ProjectWorkspaceFields from '@/components/projects/ProjectWorkspaceFields';
 import ProjectWorkspaceDates from '@/components/projects/ProjectWorkspaceDates';
 import ProjectBriefHistory from '@/components/projects/ProjectBriefHistory';
-import { projectStaffName } from '@/components/projects/projectStaffName';
 import useProjectTeamAssignments from '@/components/projects/useProjectTeamAssignments';
 import { formatDate, formatCurrency, regionName, INTERNAL_ROLES } from "@/lib/portal";
 import { ExternalLink } from "lucide-react";
@@ -44,22 +42,7 @@ export function ProjectGeneralTab({ project, accountMap, onProjectUpdated, singl
   const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState(false);
   const [saveError, setSaveError] = useState('');
-  const [staff, setStaff] = useState({ byAad: {}, byDv: {} });
-  const [directorName, setDirectorName] = useState('');
-
-  useEffect(() => {
-    (async () => {
-      const [contacts, users] = await Promise.all([
-        listAll(base44.entities.Contact, "-full_name").catch(() => []),
-        listVisiblePortalUsers().catch(() => []),
-      ]);
-      const byAad = {};
-      const byDv = {};
-      contacts.forEach((c) => { if (c.aad_id) byAad[c.aad_id] = c.full_name; if (c.dataverse_id) byDv[c.dataverse_id] = c.full_name; });
-      users.forEach((u) => { if (!byAad[u.id]) byAad[u.id] = u.full_name || u.email; });
-      setStaff({ byAad, byDv });
-    })();
-  }, []);
+  const people = useProjectAssignmentPeople(project);
 
   useEffect(() => {
     setRibaDates({
@@ -69,15 +52,6 @@ export function ProjectGeneralTab({ project, accountMap, onProjectUpdated, singl
       riba4_end: toDateInput(project.riba4_end),
     practical_completion_date: toDateInput(project.practical_completion_date),
     });
-  }, [project.id]);
-
-  useEffect(() => {
-    let active = true;
-    setDirectorName('');
-    base44.functions.invoke('getProjectBDMManager', { projectId: project.id })
-      .then(({ data }) => { if (active) setDirectorName(data.managerName || ''); })
-      .catch(() => { if (active) setDirectorName(''); });
-    return () => { active = false; };
   }, [project.id]);
 
   const handleSave = async () => {
@@ -129,11 +103,11 @@ export function ProjectGeneralTab({ project, accountMap, onProjectUpdated, singl
           { label: 'Project postcode', value: project.site_postcode || '—' },
         ]}
         assignments={[
-          ['BDM', projectStaffName(project.bdm_aad_id, staff.byAad)],
-          ['BSM', projectStaffName(project.bsm_aad_id, staff.byAad) || (project.bsm_aad_id ? 'Assigned BSM not identified' : null)],
-          ['Director', directorName],
-          ['Project Manager', staff.byDv[project.project_manager_id] || teamAssignments.names['Project Manager']],
-          ['Client Representative', staff.byDv[project.client_rep_id]],
+          ['BDM', people.staffName(project.bdm_aad_id)],
+          ['BSM', people.staffName(project.bsm_aad_id)],
+          ['Director', people.directorName],
+          ['Project Manager', people.contactName(project.project_manager_id) || teamAssignments.names['Project Manager']],
+          ['Client Representative', people.contactName(project.client_rep_id)],
           ...teamAssignments.assignments,
         ]}
         details={[
