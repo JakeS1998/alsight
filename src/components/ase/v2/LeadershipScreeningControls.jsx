@@ -1,0 +1,16 @@
+import React,{useState} from 'react';
+import {useMutation,useQuery,useQueryClient} from '@tanstack/react-query';
+import {Button} from '@/components/ui/button';
+import {aseV2Request} from '@/components/ase/v2/aseV2Client';
+import {aseError} from '@/components/ase/aseClient';
+import LeadershipEvidenceRecords from '@/components/ase/v2/LeadershipEvidenceRecords';
+import LeadershipManualReview from '@/components/ase/v2/LeadershipManualReview';
+export default function LeadershipScreeningControls({accountId}) {
+  const cache=useQueryClient(),[progress,setProgress]=useState(null),[confirmed,setConfirmed]=useState(false);
+  const status=useQuery({queryKey:['ase','leadership',accountId],queryFn:()=>aseV2Request('leadershipStatus',{accountId})});
+  const screen=useMutation({mutationFn:async resume=>{let run=resume ? status.data?.run : (await aseV2Request('leadershipStart',{accountId})).run;for(let step=0;run?.status==='running' && step<101;step++){setProgress({done:run.cursor,total:run.subjects.length});run=(await aseV2Request('leadershipStep',{accountId,runId:run.id})).run;}return run;},onSettled:()=>{cache.invalidateQueries({queryKey:['ase','leadership',accountId]});setProgress(null);},onSuccess:()=>setConfirmed(false)});
+  const run=status.data?.run;
+  return <div className="mt-4 rounded-md bg-muted p-3"><h4 className="text-sm font-semibold">Screen current leadership and control</h4><label className="mt-2 flex items-start gap-2 text-xs"><input type="checkbox" checked={confirmed} onChange={e=>setConfirmed(e.target.checked)}/><span>Retrieve current Companies House officers/PSCs, disqualifications, appointment histories and the official UK Sanctions List. Record only relevant, necessary evidence.</span></label><div className="mt-3 flex gap-2"><Button size="sm" disabled={!confirmed || screen.isPending || status.isPending} onClick={()=>screen.mutate(run?.status==='running')}>{screen.isPending ? 'Screening…' : run?.status==='running' ? 'Resume leadership screening' : 'Screen Leadership & Control'}</Button></div>{progress && <p role="status" className="mt-2 text-xs">{progress.done} of {progress.total} current subjects processed. Progress is saved after each person.</p>}{(screen.error || status.error) && <p role="alert" className="mt-2 text-xs text-destructive">{aseError(screen.error || status.error)} Progress remains saved; resume when the source is available.</p>}
+    {run && <details className="mt-3 text-xs"><summary className="cursor-pointer font-semibold">Current screening, {run.status}, not yet published in ASE</summary><p className="mt-2">{run.cursor} of {run.subjects.length} subjects processed. Re-run ASE v2 after screening and human review to publish the evidence.</p>{run.warnings?.map((w,i)=><p key={i} className="mt-2 text-risk-high">{w}</p>)}<LeadershipEvidenceRecords subjects={run.subjects} checks={run.checks} former={run.former_officers}/>{run.status==='completed' && <LeadershipManualReview key={run.id} accountId={accountId} run={run}/>}</details>}
+  </div>;
+}
