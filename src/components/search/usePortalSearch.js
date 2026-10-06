@@ -1,51 +1,47 @@
 import { useEffect, useRef, useState } from 'react';
 import { base44 } from '@/api/base44Client';
 import { SEARCH_SOURCES, escapeSearch } from '@/components/search/searchSources';
-import { CLIENT_HIDDEN_DOC_TYPES } from '@/lib/portal';
+import searchSource from '@/components/search/searchSource';
 
-async function resolveProjects(source, rows, role) {
-  if (!source.projectKey || role === 'project_manager') return rows.map(record => ({ record, project: { id: record.project_id } }));
-  const refs = [...new Set(rows.map(r => r[source.projectKey]).filter(Boolean))];
-  if (!refs.length) return [];
-  const key = source.projectFormat === 'dataverse' ? 'dataverse_id' : 'id';
-  const pages = await Promise.all(Array.from({ length: Math.ceil(refs.length / 40) }, (_, i) =>
-    base44.entities.Project.filter({ [key]: { $in: refs.slice(i * 40, (i + 1) * 40) }, status: { $ne: 'inactive' } }, { limit: 40, fields: ['id', 'dataverse_id', 'name'] })));
-  const byRef = new Map(pages.flatMap(page => page.items).map(p => [p[key], p]));
-  return rows.map(record => ({ record, project: byRef.get(record[source.projectKey]) })).filter(item => item.project);
-}
-
-async function searchSource(source, regex, role, cursor) {
-  const query = { $or: source.fields.map(field => ({ [field]: { $regex: regex, $options: 'i' } })),
-    ...(source.entity === 'LegalDocument' && role === 'client' ? { document_type: { $nin: CLIENT_HIDDEN_DOC_TYPES } } : {}) };
-  const page = await base44.entities[source.entity].filter(query, { limit: 12, ...(cursor ? { cursor } : {}), fields: [...new Set([...source.fields, ...(source.extra || []), ...(source.projectKey ? [source.projectKey] : [])])] });
-  const linked = await resolveProjects(source, page.items, role);
-  return { label: source.label, items: linked.map(({ record, project }) => ({
-    id: record.id, title: source.title(record), detail: source.detail?.(record) || project?.name || '',
-    path: source.path ? source.path(record) : `/projects/${project.id}?tab=${role === 'supplier' ? 'timeline' : source.tab}`,
-  })).filter(item => item.title && item.path), more: page.has_more, cursor: page.next_cursor };
-}
-
-export default function usePortalSearch(term, role) {
+export default function usePortalSearch(term, role, viewerId) {
   const [state, setState] = useState({ groups: [], loading: false, error: '' });
   const revision = useRef(0);
+  const cache = useRef(new Map());
   useEffect(() => {
     revision.current += 1;
     const value = term.trim().slice(0, 80);
     if (value.length < 2) { setState({ groups: [], loading: false, error: '' }); return; }
+    const key = JSON.stringify([viewerId, role, value.toLowerCase()]);
+    const cached = cache.current.get(key);
+    if (cached && cached.expires > Date.now()) { setState({ groups: cached.groups, loading: false, error: '' }); return; }
     let active = true;
     setState({ groups: [], loading: true, error: '' });
     const timer = setTimeout(async () => {
       const sources = SEARCH_SOURCES.filter(source => source.roles.includes(role));
-      const results = await Promise.allSettled([
-        ...sources.map(source => searchSource(source, escapeSearch(value), role)),
-        ...(role === 'framework_stakeholder' ? [base44.functions.invoke('getStakeholderFrameworkReport', { term: value, stage: 'all', page: 0 }).then(({ data }) => ({ label: 'Framework360', more: data.count > data.rows.length, cursor: data.rows.length ? 1 : null, items: data.rows.map(r => ({ id: r.id, title: r.site || r.framework_ref, detail: r.framework_ref, path: `/framework-reports/${r.id}` })) }))] : []),
-      ]);
+      const projects = new Map();
+      const tasks = sources.map(source => () => searchSource(source, escapeSearch(value), role, undefined, projects));
+      if (role === 'framework_stakeholder') tasks.push(() => base44.functions.invoke('getStakeholderFrameworkReport', { term: value, stage: 'all', page: 0 }).then(({ data }) => ({ label: 'Framework360', more: data.count > data.rows.length, cursor: data.rows.length ? 1 : null, items: data.rows.map(r => ({ id: r.id, title: r.site || r.framework_ref, detail: r.framework_ref, path: `/framework-reports/${r.id}` })) })));
+      const results = new Array(tasks.length);
+      let next = 0, failed = false;
+      const worker = async () => {
+        while (active && next < tasks.length) {
+          const index = next++;
+          try { results[index] = await tasks[index](); }
+          catch { failed = true; }
+          if (!active) return;
+          setState(previous => ({ ...previous, groups: results.filter(group => group?.items.length).map(group => previous.groups.find(existing => existing.label === group.label) || group), error: failed ? 'Some records could not be searched.' : '' }));
+        }
+      };
+      await Promise.all(Array.from({ length: Math.min(4, tasks.length) }, worker));
       if (!active) return;
-      const groups = results.filter(result => result.status === 'fulfilled').map(result => result.value).filter(group => group.items.length);
-      setState({ groups, loading: false, error: results.some(result => result.status === 'rejected') ? 'Some records could not be searched.' : '' });
-    }, 450);
+      setState(previous => ({ ...previous, loading: false }));
+      if (!failed) {
+        if (cache.current.size >= 20) cache.current.delete(cache.current.keys().next().value);
+        cache.current.set(key, { groups: results.filter(group => group?.items.length), expires: Date.now() + 30000 });
+      }
+    }, 250);
     return () => { active = false; clearTimeout(timer); };
-  }, [term, role]);
+  }, [term, role, viewerId]);
   const loadMore = async (group) => {
     if (!group.more || group.loadingMore) return;
     const current = revision.current;
