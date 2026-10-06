@@ -21,6 +21,10 @@ export default function ASECommercialFigures({data,historical=false,expandedEvid
         {available && <><div className="fill" style={{width:`${position}%`}}/><span className="marker" style={{left:`${position}%`}}/></>}
       </div>
       <div className="amounts">
+        <span aria-label={proxy ? 'Balance-sheet value' : 'Reported annual turnover'}>{Number.isFinite(data.comparison_denominator?.value ?? data.turnover?.value) ? formatCurrency(data.comparison_denominator?.value ?? data.turnover.value) : 'Unavailable'}</span>
+        <span className="text-xs">{proxy ? netAssetsProxy ? 'Balance sheet · Net assets' : 'Balance sheet · Total assets' : 'Reported annual turnover'}</span>
+      </div>
+      <div className="amounts">
         <span aria-label="Annualised contract value">{data.annualised_value==null ? 'Unavailable' : formatCurrency(data.annualised_value)}</span>
         <span className="text-xs">Annualised Alliance contract exposure</span>
       </div>
