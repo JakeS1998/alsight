@@ -92,7 +92,7 @@
 .account-list th, .account-list td { padding: 15px; border-bottom: 1px solid hsl(var(--border)); font-size: 13px; }
 .account-list th { background: hsl(var(--muted)); font-size: 12px; }
 .account-hero { position: relative; isolation: isolate; min-height: 240px; overflow: hidden; border-radius: var(--hero-radius); background: hsl(var(--als-navy)); color: hsl(var(--sidebar-foreground)); }
-.account-hero-photo { position: absolute; z-index: -2; inset: 0 0 0 35%; width: 65%; height: 100%; object-fit: cover; }
+.account-hero-photo { position: absolute; z-index: -2; inset: 0 0 0 35%; width: 65%; height: 100%; mask-image: linear-gradient(90deg, transparent 0%, rgb(0 0 0 / .4) 18%, rgb(0 0 0) 42%); -webkit-mask-image: linear-gradient(90deg, transparent 0%, rgb(0 0 0 / .4) 18%, rgb(0 0 0) 42%); }
 .account-hero::before { content: ''; position: absolute; z-index: -1; inset: 0; background: linear-gradient(90deg,hsl(var(--als-navy)) 25%,hsl(var(--als-navy) / .9) 45%,hsl(var(--als-navy) / .4) 100%); }
 @media (min-width: 1200px) { .account-hero-photo { opacity: .45; } }
 .account-hero-copy { padding: 28px 36px; max-width: 85%; }

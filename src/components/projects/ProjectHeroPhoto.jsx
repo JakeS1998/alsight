@@ -14,7 +14,7 @@ export default function ProjectHeroPhoto({ photo, project }) {
   const failed = photo.isError || (!!url && imageState === 'error');
   const message = searching ? 'Finding project image…' : loading ? 'Loading project image…' : failed ? 'Project image could not be loaded.' : !url ? 'No project image found.' : null;
   return <>
-    {url && imageState !== 'error' && <Image className="ws-heroimg" src={url} alt={photo.data.caption || `${project.name} project photograph`} loading="eager" onLoad={() => setImageState('loaded')} onError={() => setImageState('error')} />}
+    {url && imageState !== 'error' && <div className="ws-heroimg"><Image className="h-full w-full object-cover" src={url} alt={photo.data.caption || `${project.name} project photograph`} loading="eager" onLoad={() => setImageState('loaded')} onError={() => setImageState('error')} /></div>}
     {message && <div className="ws-image-status" role="status" aria-live="polite">
       {loading ? <Loader2 className="h-4 w-4 animate-spin" aria-hidden="true" /> : <ImageOff className="h-4 w-4" aria-hidden="true" />}
       <span>{message}</span>
