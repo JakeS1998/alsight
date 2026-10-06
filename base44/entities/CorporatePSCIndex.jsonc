@@ -1,0 +1,49 @@
+{
+  "name": "CorporatePSCIndex",
+  "type": "object",
+  "properties": {
+    "index_key": {
+      "type": "string"
+    },
+    "account_id": {
+      "type": "string"
+    },
+    "account_name": {
+      "type": "string"
+    },
+    "company_number": {
+      "type": "string"
+    },
+    "controller_key": {
+      "type": "string"
+    },
+    "controller_name": {
+      "type": "string"
+    },
+    "controller_kind": {
+      "type": "string",
+      "enum": [
+        "corporate",
+        "individual"
+      ]
+    },
+    "checked_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "active": {
+      "type": "boolean"
+    }
+  },
+  "required": [
+    "index_key",
+    "account_id",
+    "account_name",
+    "company_number",
+    "controller_key",
+    "controller_name",
+    "controller_kind",
+    "checked_at",
+    "active"
+  ]
+}

@@ -1,0 +1,2 @@
+export const supplierRegistryQuery={$or:[{account_type:'supplier'},{relationship_types:{$in:['supplier','contractor','consultant']}}],company_number:{$regex:'\\S'},name:{$regex:'^(?!ASE Demo)'}};
+export const registryLinkageQuery={company_number:{$regex:'\\S'},name:{$regex:'^(?!ASE Demo)'}};

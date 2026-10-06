@@ -1,0 +1,80 @@
+{
+  "name": "SupplierRegistryRun",
+  "type": "object",
+  "properties": {
+    "status": {
+      "type": "string",
+      "enum": [
+        "running",
+        "completed"
+      ]
+    },
+    "phase": {
+      "type": "string",
+      "enum": [
+        "registry",
+        "accounts",
+        "structure",
+        "linkage"
+      ]
+    },
+    "eligible_count": {
+      "type": "integer"
+    },
+    "processed_count": {
+      "type": "integer",
+      "default": 0
+    },
+    "failed_count": {
+      "type": "integer",
+      "default": 0
+    },
+    "cursor": {
+      "type": "string",
+      "default": ""
+    },
+    "finished_listing": {
+      "type": "boolean",
+      "default": false
+    },
+    "account_id": {
+      "type": "string",
+      "default": ""
+    },
+    "next_cursor": {
+      "type": "string",
+      "default": ""
+    },
+    "dispatch_token": {
+      "type": "string"
+    },
+    "retry_count": {
+      "type": "integer",
+      "default": 0
+    },
+    "requested_by": {
+      "type": "string"
+    },
+    "last_activity": {
+      "type": "string"
+    },
+    "completed_at": {
+      "type": "string"
+    },
+    "errors": {
+      "type": "array",
+      "maxItems": 40,
+      "items": {
+        "type": "object",
+        "additionalProperties": true
+      }
+    }
+  },
+  "required": [
+    "status",
+    "phase",
+    "eligible_count",
+    "requested_by",
+    "dispatch_token"
+  ]
+}

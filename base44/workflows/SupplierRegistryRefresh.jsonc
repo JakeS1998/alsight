@@ -1,0 +1,95 @@
+{
+  "name": "Supplier Companies House Refresh",
+  "description": "Resumable supplier company details, filed accounts and corporate structure refresh, followed by shared-PSC indexing across all numbered accounts.",
+  "trigger": {
+    "config": {
+      "trigger_type": "entity",
+      "entity_name": "SupplierRegistryRun",
+      "events": [
+        "create",
+        "update"
+      ]
+    },
+    "condition": "${ .trigger.data.status == \"running\" and .trigger.data.dispatch_token != .trigger.old_data.dispatch_token }"
+  },
+  "definition": {
+    "document": {
+      "dsl": "1.0.0",
+      "name": "supplier_registry_refresh",
+      "version": "1.0",
+      "namespace": "base44"
+    },
+    "do": [
+      {
+        "throttle": {
+          "wait": "PT60S",
+          "then": "refresh_source",
+          "x-base44": {
+            "title": "Space out Companies House requests"
+          }
+        }
+      },
+      {
+        "refresh_source": {
+          "call": "invoke_backend_function",
+          "with": {
+            "function_name": "manageSupplierRegistry",
+            "args": {
+              "action": "step",
+              "runId": "${ .trigger.entity_id }",
+              "token": "${ .trigger.data.dispatch_token }"
+            }
+          },
+          "then": "check_busy",
+          "x-base44": {
+            "title": "Refresh next supplier source",
+            "description": "Save progress and queue the next continuation"
+          }
+        }
+      },
+      {
+        "check_busy": {
+          "switch": [
+            {
+              "when": "${ .refresh_source.busy == true }",
+              "then": "retry_wait"
+            },
+            {
+              "when": "${ true }",
+              "then": "end"
+            }
+          ],
+          "x-base44": {
+            "title": "Check refresh availability"
+          }
+        }
+      },
+      {
+        "retry_wait": {
+          "wait": "PT60S",
+          "then": "retry_source",
+          "x-base44": {
+            "title": "Wait for active refresh"
+          }
+        }
+      },
+      {
+        "retry_source": {
+          "call": "invoke_backend_function",
+          "with": {
+            "function_name": "manageSupplierRegistry",
+            "args": {
+              "action": "step",
+              "runId": "${ .trigger.entity_id }",
+              "token": "${ .trigger.data.dispatch_token }"
+            }
+          },
+          "then": "end",
+          "x-base44": {
+            "title": "Continue saved supplier refresh"
+          }
+        }
+      }
+    ]
+  }
+}
