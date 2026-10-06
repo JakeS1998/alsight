@@ -1,6 +1,5 @@
 import {accountModel,calculate,scoreEvidence} from './asePolicy.ts';
 import {currentASESourceQuery} from './aseEvidenceSelection.ts';
-import {selectBlackflagFallback} from './aseBlackflagFallback.ts';
 import {commercialSnapshot} from './aseCommercialSnapshot.ts';
 import {commercialEvidence,commercialRule} from './aseCommercialScoring.ts';
 const canonical=value=>Array.isArray(value) ? value.map(canonical) : value && typeof value==='object' ? Object.fromEntries(Object.keys(value).sort().map(key=>[key,canonical(value[key])])) : value;
@@ -11,7 +10,7 @@ export async function prepareAssessment(base44,account,policy,review,sourceQuery
   if(review && (typeof review.preparedAt!=='string' || !Number.isFinite(Date.parse(review.preparedAt)) || Date.parse(review.preparedAt)>Date.now() || Date.now()-Date.parse(review.preparedAt)>900000 || !/^[a-f0-9]{64}$/.test(review.previewToken || ''))) throw new Error('This review has expired or is invalid. Generate a fresh assessment preview.');
   const [sourcePage,previousPage]=await Promise.all([base44.entities.ASEEvidence.filter(sourceQuery || currentASESourceQuery(account),{limit:100}),base44.entities.ASEAssessment.filter({account_id:account.id,status:'published'},{sort:'-assessment_date',limit:1})]);
   if(sourcePage.has_more) throw new Error('More than 100 source records: narrow the evidence set before assessing.');
-  const collected=model==='company' ? await selectBlackflagFallback(base44,account,sourcePage.items,new Date(preparedAt)) : sourcePage.items,previous=previousPage.items[0] || null;
+  const collected=sourcePage.items.filter(row=>row.source!=='Blackflag Alert'),previous=previousPage.items[0] || null;
   const commercial_context=await commercialSnapshot(base44,account,preparedAt);
   const derived=model==='company' ? commercialEvidence(account,commercial_context,preparedAt) : null;
   const sourceEvidence=model==='company' ? [...collected.filter(row=>row.component!==commercialRule.key),...(derived ? [derived] : [])] : collected;

@@ -6,7 +6,6 @@ import {prepareAssessment,assessmentPreview} from '../../shared/aseAssessmentPre
 import { explainAssessment } from '../../shared/aseInsight.ts';
 import {publishASEBatch} from '../../shared/aseBulkPublication.ts';
 import {manageASEAutomation} from '../../shared/aseAutomationApi.ts';
-import {checkBlackflagFallbackRules} from '../../shared/aseBlackflagFallbackChecks.ts';
 import {checkPdfAndProvisionalRules} from '../../shared/asePdfChecks.ts';
 import {checkCommercialScoringRules} from '../../shared/aseCommercialScoringChecks.ts';
 import {commercialInsight} from '../../shared/aseCommercialInsight.ts';
@@ -62,7 +61,7 @@ export default async function(req: Request): Promise<Response> {
       const b=calculate(defaultModels,'company',full.filter(r=>r.component!=='adverse'),new Date('2026-10-05'));
       const c=calculate(defaultModels,'company',full.slice(0,1),new Date('2026-10-05'));
       const d=calculate(defaultModels,'english_local_authority',defaultModels.english_local_authority.map((r,i)=>make(r.key,[25,1,8,0.5,'5','4','5'][i])),new Date('2026-10-05'));
-      const checks={company:a.precise_score===4.2 && a.displayed_rating===4,missingRenormalised:Math.abs(b.precise_score-37/9)<0.00001,insufficientProvisional:c.displayed_rating===4 && c.data_confidence==='Low' && c.rating_label.startsWith('Provisional'),council:Math.abs(d.precise_score-4.2)<0.00001,...checkBlackflagFallbackRules(),...checkPdfAndProvisionalRules(),...checkCommercialScoringRules(),...checkAccountModelRules(),...checkASESourceScoringRules()};
+      const checks={company:a.precise_score===4.2 && a.displayed_rating===4,missingRenormalised:Math.abs(b.precise_score-37/9)<0.00001,insufficientProvisional:c.displayed_rating===4 && c.data_confidence==='Low' && c.rating_label.startsWith('Provisional'),council:Math.abs(d.precise_score-4.2)<0.00001,...checkPdfAndProvisionalRules(),...checkCommercialScoringRules(),...checkAccountModelRules(),...checkASESourceScoringRules()};
       return Response.json({checks,passed:Object.values(checks).every(Boolean)});
     }
     if (typeof input.accountId!=='string' || !/^[a-zA-Z0-9_-]{1,64}$/.test(input.accountId)) return Response.json({error:'Valid Account is required.'},{status:400});

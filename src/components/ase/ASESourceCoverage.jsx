@@ -11,8 +11,7 @@ export default function ASESourceCoverage({model}) {
   ] : [
     ['Companies House registry','Automatic statutory rules','Exact company identity; explicit filing breaches and current insolvency legal status. No inferred clean adverse-event score.'],
     ['Companies House accounts','Tagged metrics + ALICE PDF fallback','Supported GBP XML/iXBRL facts take precedence. ALICE scans PDF-only accounts for company-only GBP figures with page citations; PDF-derived scores are provisional and Low confidence. Missing or ambiguous figures remain unscored.'],
-    ['Blackflag','Authenticated API required','Public-page systematic extraction is prohibited by provider terms. No proprietary R-Score is converted to ASE.'],
-    ['The Gazette','Overnight primary context','Exact company-number notice matching between 21:00 and 07:00 UK, respecting robots and crawl limits; historical notices never imply current insolvency.']
+    ['The Gazette','Overnight company-number checks','Successful zero-result insolvency searches count as clean for this check only. Collection runs between 21:00 and 07:00 UK, respecting robots and crawl limits; failed checks stay unknown and historical notices never imply current insolvency.']
   ];
   return <div className="space-y-3"><h4 className="text-sm font-semibold">Source coverage and limitations</h4><p className="text-xs text-muted-foreground">Source collection is not proof of a successful or complete check. HMRC is excluded. Missing evidence affects coverage, not component scores.</p><dl className="divide-y divide-border rounded-lg border border-border">{entries.map(([name,status,detail])=><div key={name} className="grid gap-1 p-3 sm:grid-cols-[1fr_2fr]"><dt className="text-xs font-semibold">{name}</dt><dd className="text-xs"><span className="font-medium">{status}</span><p className="mt-1 text-muted-foreground">{detail}</p></dd></div>)}</dl></div>;
 }
