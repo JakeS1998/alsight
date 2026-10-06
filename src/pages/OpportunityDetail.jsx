@@ -15,6 +15,9 @@ import OpportunityBrief from '@/components/crm/OpportunityBrief';
 import OpportunityTeam from '@/components/crm/OpportunityTeam';
 import OpportunityFee from '@/components/crm/OpportunityFee';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
+import OpportunityPeople from '@/components/commercial/OpportunityPeople';
+import OpportunityHistory from '@/components/commercial/OpportunityHistory';
+import CommercialQuickAction from '@/components/commercial/CommercialQuickAction';
 
 export default function OpportunityDetail() {
   const { opportunityId } = useParams();
@@ -31,6 +34,7 @@ export default function OpportunityDetail() {
   const [saving, setSaving] = useState(false);
   const [outcome, setOutcome] = useState(null);
   const [reviewOpen, setReviewOpen] = useState(false);
+  const [quickAction,setQuickAction]=useState(null);
   const savePlan = async patch => {
     setSaving(true); setSaved(false); setPlanError('');
     try {
@@ -80,21 +84,24 @@ export default function OpportunityDetail() {
   const canEdit = ['admin', 'director', 'bdm', 'bsm'].includes(user?.role);
   return <div className="min-w-0 space-y-6">
     <Link to="/crm/opportunities" className="text-sm text-primary hover:underline">← All opportunities</Link>
-    <OpportunityHeader key={item.id} item={item} account={account} contacts={contacts} canEdit={canEdit} canConvert={['admin','director','bdm'].includes(user?.role)} busy={saving} onSave={savePlan} onStage={changeStage} onOutcome={setOutcome} onConvert={() => setReviewOpen(true)} onActivity={()=>setTab('activity')} />
+    <OpportunityHeader key={item.id} item={item} account={account} contacts={contacts} canEdit={canEdit} canConvert={['admin','director','bdm'].includes(user?.role)} busy={saving} onSave={savePlan} onStage={changeStage} onOutcome={setOutcome} onConvert={() => setReviewOpen(true)} onActivity={()=>setTab('activity')} onAction={()=>setQuickAction({item,kind:'action'})} />
     {planError && <p role="alert" className="text-sm text-destructive">{planError}</p>}
     {saved && <p role="status" className="text-sm text-emerald-700">Planning saved.</p>}
     <OpportunityAttention item={item} user={user} canEdit={canEdit} onActivity={()=>setTab('activity')} onReview={()=>document.getElementById('opportunity-context')?.scrollIntoView({block:'start'})}/>
-    <Tabs value={['overview','activity','brief','team','fees','handover'].includes(params.get('tab')) ? params.get('tab') : 'overview'} onValueChange={setTab} className="space-y-4">
+    <Tabs value={['overview','activity','people','history','brief','team','fees','handover'].includes(params.get('tab')) ? params.get('tab') : 'overview'} onValueChange={setTab} className="space-y-4">
       <TabsList className="flex h-auto flex-wrap justify-start gap-1">
-        <TabsTrigger value="overview">Overview</TabsTrigger><TabsTrigger value="activity">Activity</TabsTrigger><TabsTrigger value="brief">Opportunity &amp; Scoping</TabsTrigger><TabsTrigger value="team">Design Team</TabsTrigger><TabsTrigger value="fees">Fee Proposal</TabsTrigger><TabsTrigger value="handover">Handover</TabsTrigger>
+        <TabsTrigger value="overview">Overview</TabsTrigger><TabsTrigger value="activity">Activity</TabsTrigger><TabsTrigger value="people">People</TabsTrigger><TabsTrigger value="history">History</TabsTrigger><TabsTrigger value="brief">Opportunity &amp; Scoping</TabsTrigger><TabsTrigger value="team">Design Team</TabsTrigger><TabsTrigger value="fees">Commercial</TabsTrigger><TabsTrigger value="handover">Handover</TabsTrigger>
       </TabsList>
       <TabsContent value="overview"><OpportunityOverview item={item} account={account} contacts={contacts} user={user} canEdit={canEdit} /></TabsContent>
       <TabsContent value="activity"><CRMActivityTimeline item={item} user={user} canEdit={canEdit} /></TabsContent>
+      <TabsContent value="people"><OpportunityPeople key={item.contact_id || 'none'} item={item} account={account} contacts={contacts} canEdit={canEdit} onSave={savePlan} busy={saving}/></TabsContent>
+      <TabsContent value="history"><OpportunityHistory item={item}/></TabsContent>
       <TabsContent value="brief"><OpportunityBrief item={item} onSave={savePlan} canEdit={canEdit} saving={saving} /></TabsContent>
       <TabsContent value="team"><OpportunityTeam item={item} onSave={savePlan} canEdit={canEdit} saving={saving} /></TabsContent>
       <TabsContent value="fees"><OpportunityFee item={item} account={account} onSave={savePlan} canEdit={canEdit} saving={saving} /></TabsContent>
       <TabsContent value="handover"><div className="rounded-xl border border-border bg-card p-5"><h2 className="font-semibold">Project handover</h2><p className="mt-2 text-sm text-muted-foreground">{item.status === 'won' ? 'This opportunity is won. Review the details before creating the project.' : 'Mark the opportunity Won after client confirmation to begin project handover.'}</p>{item.status === 'won' && !item.project_id && ['admin','director','bdm'].includes(user?.role) && <button onClick={() => setReviewOpen(true)} className="mt-3 rounded-lg bg-primary px-4 py-2 text-sm font-semibold text-primary-foreground">Review &amp; convert</button>}{item.project_id && <Link to={`/projects/${item.project_id}`} className="mt-3 block text-sm text-primary hover:underline">View converted project →</Link>}</div></TabsContent>
     </Tabs>
+    {quickAction && <CommercialQuickAction selection={quickAction} user={user} onClose={()=>setQuickAction(null)} onSaved={async()=>{await cache.invalidateQueries({queryKey:['commercial-next-action',item.id]});await cache.invalidateQueries({queryKey:['commercial-workspace']});setTab('overview');}}/>}
     {outcome && <OpportunityOutcome type={outcome} onClose={() => setOutcome(null)} onSubmit={submitOutcome} busy={saving} />}
     {reviewOpen && <OpportunityConversionReview open={reviewOpen} onClose={() => setReviewOpen(false)} onConfirm={convert} busy={saving} item={item} account={account} contacts={contacts} />}
   </div>;

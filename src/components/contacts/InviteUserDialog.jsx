@@ -8,6 +8,7 @@ import {
 } from "@/components/ui/dialog";
 import { FormField, formInputClass } from "@/components/forms/PowerForm";
 import { AccountCombobox } from "@/components/contacts/AccountCombobox";
+import PortalOrganisationSelect from '@/components/relationships/PortalOrganisationSelect';
 import { REGION_OPTIONS } from "@/lib/portal";
 import { Loader2, Mail, CheckCircle2, ShieldCheck, UserPlus } from "lucide-react";
 
@@ -66,11 +67,15 @@ export function InviteUserDialog({ open, onOpenChange, contact, accounts, existi
     e.preventDefault();
     const address = email.trim().toLowerCase();
     if (!address || !confirmed) return;
-    const companyNumber = role === 'supplier' ? (accounts.find(a => a.dataverse_id === accountId)?.company_number || null) : null;
+
     const linkedAccountId = role === 'framework_stakeholder' ? null : accountId || null;
     setSubmitting(true);
     setError("");
     try {
+      const administrator=await base44.auth.me();
+      if(administrator.role!=='admin')throw new Error('Only administrators can manage portal access.');
+      const organisation=accountId ? await base44.entities.Account.filter({dataverse_id:accountId},{limit:1}).then(p=>p.items[0]) : null;
+      const companyNumber=role==='supplier' ? organisation?.company_number || null : null;
       const staffLine = ['bsm', 'bdm'].includes(role)
         ? await base44.entities.StaffReportingLine.filter({ contact_id: contact.id }, { limit: 1 }).then(page => page.items[0])
         : null;
@@ -125,6 +130,7 @@ export function InviteUserDialog({ open, onOpenChange, contact, accounts, existi
           await base44.entities.Contact.update(contact.id, { email: address });
         }
       }
+      await base44.entities.CRMActivity.create({contact_id:contact.id,owner_id:administrator.id,author_id:administrator.id,author_name:administrator.full_name || administrator.email,type:'system',occurred_at:new Date().toISOString(),subject:existingUser || pendingAssignment ? 'Portal access updated' : 'Portal invitation sent',description:`Person: ${contact.full_name}\nPortal role: ${role}\nOrganisation access: ${organisation?.name || 'Not assigned'}`});
       setSuccess(true);
       onDone?.(address);
     } catch (err) {
@@ -208,11 +214,7 @@ export function InviteUserDialog({ open, onOpenChange, contact, accounts, existi
                 label="Organisation access"
                 description="Determines which projects and documents this user can access"
               >
-                <AccountCombobox
-                  value={accountId}
-                  onChange={setAccountId}
-                  accounts={filteredAccounts}
-                />
+                <PortalOrganisationSelect value={accountId} onChange={setAccountId} role={role}/>
               </FormField>
             )}
 

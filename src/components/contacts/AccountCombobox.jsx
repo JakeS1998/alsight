@@ -4,7 +4,7 @@ import { Command, CommandInput, CommandList, CommandEmpty, CommandGroup, Command
 import { Check, ChevronsUpDown } from "lucide-react";
 import { cn } from "@/lib/utils";
 
-export function AccountCombobox({ value, onChange, accounts, placeholder = "— Select account —" }) {
+export function AccountCombobox({ value, onChange, accounts, placeholder = "Select organisation" }) {
   const [open, setOpen] = useState(false);
   const selected = accounts.find((a) => a.dataverse_id === value);
 
@@ -25,9 +25,9 @@ export function AccountCombobox({ value, onChange, accounts, placeholder = "— 
       </PopoverTrigger>
       <PopoverContent className="p-0" align="start" style={{ width: "var(--radix-popover-trigger-width)" }}>
         <Command>
-          <CommandInput placeholder="Search accounts..." />
+          <CommandInput placeholder="Search organisations..." />
           <CommandList>
-            <CommandEmpty>No accounts found.</CommandEmpty>
+            <CommandEmpty>No organisations found.</CommandEmpty>
             <CommandGroup>
               <CommandItem
                 onSelect={() => { onChange(""); setOpen(false); }}

@@ -70,7 +70,8 @@
       "maximum": 100
     },
     "expected_decision_date": {
-      "type": "string"
+      "type": "string",
+      "format": "date"
     },
     "alliance_fee": {
       "type": "number"

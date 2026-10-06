@@ -14,6 +14,7 @@ export async function logCRMActivity(item, user, type, subject, description = ''
   return base44.entities.CRMActivity.create({ opportunity_id: item.id, account_id: item.account_id, type, occurred_at: new Date().toISOString(), subject, description, ...(item.contact_id ? {contact_id:item.contact_id} : {}), owner_id: item.owner_id || user?.id, line_manager_id: item.line_manager_id || user?.data?.line_manager_id || user?.line_manager_id || '', author_id: user?.id || '', author_name: user?.full_name || user?.email || 'Team member' });
 }
 export async function updateCRMOpportunity(item, patch, user) {
+  if(patch.expected_decision_date==='')patch.expected_decision_date=null;
   const next = { ...item, ...patch };
   if (patch.stage && patch.stage !== (item.stage || 'lead')) {
     patch.stage_entered_at = new Date().toISOString();
@@ -34,5 +35,5 @@ export async function createCRMOpportunity(data, user) {
   const stage = data.stage || 'lead';
   const currentUser = await base44.auth.me();
   const probability = STAGES.find(s => s.value === stage)?.probability ?? 10;
-  return base44.entities.Opportunity.create({ ...data, title: data.title.trim(), owner_id: currentUser.id, owner_name: (user?.id === currentUser.id && user.full_name) || currentUser.full_name || currentUser.email, line_manager_id: currentUser.data?.line_manager_id || currentUser.line_manager_id || '', stage, probability, stage_entered_at: new Date().toISOString(), status: 'open', weighted_value: Math.round((Number(data.budget) || 0) * probability) / 100, weighted_alliance_fee: 0 });
+  return base44.entities.Opportunity.create({ ...data, expected_decision_date:data.expected_decision_date || null, title: data.title.trim(), owner_id: currentUser.id, owner_name: (user?.id === currentUser.id && user.full_name) || currentUser.full_name || currentUser.email, line_manager_id: currentUser.data?.line_manager_id || currentUser.line_manager_id || '', stage, probability, stage_entered_at: new Date().toISOString(), status: 'open', weighted_value: Math.round((Number(data.budget) || 0) * probability) / 100, weighted_alliance_fee: 0 });
 }

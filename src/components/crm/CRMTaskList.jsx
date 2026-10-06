@@ -1,12 +1,15 @@
 import React, { useEffect, useState } from 'react';
 import { base44 } from '@/api/base44Client';
 import { Button } from '@/components/ui/button';
+import {useQueryClient} from '@tanstack/react-query';
 import { isoToday, logCRMActivity } from '@/components/crm/crm';
 
 export default function CRMTaskList({ item, user, canEdit }) {
+  const cache=useQueryClient();
+  const refresh=()=>{cache.invalidateQueries({queryKey:['commercial-next-action',item.id]});cache.invalidateQueries({queryKey:['commercial-workspace']});};
   const [tasks, setTasks] = useState([]), [loading, setLoading] = useState(true), [busy, setBusy] = useState(false), [error, setError] = useState('');
   const [form, setForm] = useState({ title: '', due_date: '', priority: 'normal', description: '' });
-  const load = async () => { setLoading(true); try { const page = await base44.entities.CRMTask.filter({ opportunity_id: item.id }, { sort: 'due_date', limit: 50 }); setTasks(page.items); } catch (e) { setError(e.message); } finally { setLoading(false); } };
+  const load = async () => { setLoading(true); try { const page = await base44.entities.CRMTask.filter({ opportunity_id: item.id }, { sort: 'due_date', limit: 50 }); setTasks(page.items);refresh(); } catch (e) { setError(e.message); } finally { setLoading(false); } };
   useEffect(() => { load(); }, [item.id]);
   const add = async e => { e.preventDefault(); setBusy(true); setError(''); try { const currentUser = await base44.auth.me(); await base44.entities.CRMTask.create({ ...form, opportunity_id: item.id, account_id: item.account_id, owner_id: currentUser.id, owner_name: (user?.id === currentUser.id && user.full_name) || currentUser.full_name || currentUser.email, line_manager_id: currentUser.data?.line_manager_id || currentUser.line_manager_id || '', status: 'open' }); setForm({ title: '', due_date: '', priority: 'normal', description: '' }); await load(); } catch (e) { setError(e.message); } finally { setBusy(false); } };
   const complete = async task => { setBusy(true); setError(''); try { await base44.entities.CRMTask.update(task.id, { status: 'completed', completed_at: new Date().toISOString() }); await logCRMActivity(item, user, 'task_completed', `Task completed: ${task.title}`); await load(); } catch (e) { setError(e.message); } finally { setBusy(false); } };

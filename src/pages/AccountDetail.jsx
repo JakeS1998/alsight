@@ -127,6 +127,7 @@ export default function AccountDetail() {
                 {c.email && <p className="mt-1 flex items-center gap-1 text-xs text-slate-500"><Mail className="h-3 w-3" /> {c.email}</p>}
                 {c.phone && <p className="text-xs text-slate-500">{c.phone}</p>}
                 {c.officer_role && <p className="mt-1 text-xs text-slate-400">Officer: {c.officer_role}</p>}
+                {user?.role==='admin' && <Link to={`/accounts/${account.id}/contacts/${c.id}?tab=portal`} className="mt-3 inline-block rounded-full bg-secondary px-2 py-1 text-xs hover:bg-muted">{c.aad_id ? 'Linked portal identity' : 'Review portal access'}</Link>}
               </div>
             ))}
           </div>
