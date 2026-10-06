@@ -2,7 +2,6 @@ import React from 'react';
 import { Link } from 'react-router-dom';
 import { ArrowLeft } from 'lucide-react';
 import ProjectHeroPhoto from '@/components/projects/ProjectHeroPhoto';
-import ProjectPOReferences from '@/components/projects/ProjectPOReferences';
 import FrameworkVersionBadge from '@/components/projects/FrameworkVersionBadge';
 import SourceOpportunityLink from '@/components/crm/SourceOpportunityLink';
 import { INTERNAL_ROLES } from '@/lib/portal';
@@ -24,7 +23,6 @@ export default function ProjectWorkspaceHeader({ project, user, isSupplier, clie
           {typeof project.procurement_route === 'boolean' && <span className="ws-pill">{project.procurement_route ? 'Framework' : 'Direct'}</span>}
           <FrameworkVersionBadge projectNumber={project.project_number} />
         </div>
-        <div className="ws-project-references"><span>Project references</span><ProjectPOReferences project={project} /></div>
         <ProjectRecordContext project={project} client={client} user={user} isSupplier={isSupplier}/>
         {!isSupplier && project.description && <p className="ws-description">{project.description}</p>}
         {INTERNAL_ROLES.includes(user?.role) && <SourceOpportunityLink projectId={project.id} />}

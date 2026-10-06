@@ -31,9 +31,11 @@ export default function ProjectHeroPosition({ project }) {
         {stage && <div className="ws-hero-stage-reference">{stage}</div>}
       </dl>
     </button>
-    <dl id={detailsId} className="ws-hero-stage-dates" hidden={!expanded}>
-      {dates.map(([label, date]) => <div key={label}><dt>{label}</dt><dd>{date ? formatDate(date) : 'Not recorded'}</dd></div>)}
-      {term != null && <div><dt>Stage duration</dt><dd>{term} weeks</dd></div>}
-    </dl>
+    <div id={detailsId} className="ws-hero-stage-details" data-expanded={expanded} aria-hidden={!expanded}>
+      <div className="ws-hero-stage-details-inner"><dl className="ws-hero-stage-dates">
+        {dates.map(([label, date]) => <div key={label}><dt>{label}</dt><dd>{date ? formatDate(date) : 'Not recorded'}</dd></div>)}
+        {term != null && <div><dt>Stage duration</dt><dd>{term} weeks</dd></div>}
+      </dl></div>
+    </div>
   </section>;
 }
