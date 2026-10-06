@@ -16,6 +16,7 @@ import {ratingExplanation,publishedRatingExplanation,confidenceRating} from '../
 import {checkAccountModelRules} from '../../shared/aseAccountModelChecks.ts';
 import {checkASESourceScoringRules} from '../../shared/aseSourceScoringChecks.ts';
 import {checkBroaderEvidenceRules} from '../../shared/aseBroaderEvidenceChecks.ts';
+import {dataRequestError} from '../../shared/dataRequestError.ts';
 export default async function(req: Request): Promise<Response> {
   try {
     const base44=createClientFromRequest(req), user=await base44.auth.me();
@@ -99,5 +100,5 @@ export default async function(req: Request): Promise<Response> {
     const hmrc=await hmrcStatus(base44,account);
     const displayedAssessment=assessment ? {...assessment,explanation:ratingExplanation(componentPage.items,assessment.policy_snapshot?.[assessment.model] || [],assessment.precise_score,assessment.displayed_rating,evidencePage.items)} : null;
     return Response.json({account:{id:account.id,name:account.name},model,policy,current:confidenceRating(current),assessment:confidenceRating(displayedAssessment),components:componentPage.items,evidence:evidencePage.items,history:{...history,items:history.items.map(confidenceRating)},sourceEvidence:sourceEvidence.items,sourceHasMore:sourceEvidence.has_more,hmrc});
-  } catch(error) {return Response.json({error:error.message || 'Unable to complete ASE operation.'},{status:400});}
+  } catch(error) {return dataRequestError(error,'Unable to complete ASE operation.',400);}
 }

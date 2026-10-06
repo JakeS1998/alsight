@@ -41,25 +41,26 @@ export default function AccountDetail() {
 
   useEffect(() => {
     let active = true;
+    if (!user?.id) return;
     setLoading(true);
     setContacts([]);
     setContactPage(null);
     (async () => {
       try {
-        const acc = await base44.entities.Account.get(accountId);
+        const acc = await cache.fetchQuery({queryKey:['account-record',user.id,user.role,accountId],queryFn:()=>base44.entities.Account.get(accountId)});
         if (!active) return;
         setAccount(acc);
-        const dvId = acc.dataverse_id;
+        const dvId = acc.dataverse_id || acc.id;
                  const projectAccountId = dvId || acc.id;
 
         const contactQuery = accountContactQuery(acc);
-        const [contactResults, directProjects, d, w, j] = await Promise.all([
+        const [contactResults, directProjects, d, w, j] = await cache.fetchQuery({queryKey:['account-related-records',user.id,user.role,accountId],queryFn:()=>Promise.all([
           Promise.all([base44.entities.Contact.filter(contactQuery, {sort:'full_name',limit:50}), base44.entities.Contact.count(contactQuery)]),
           filterAll(base44.entities.Project, { $or: [{ client_account_id: projectAccountId }, { account_id: projectAccountId }], status: { $ne: "inactive" } }).catch(() => []),
           filterAll(base44.entities.LegalDocument, { $or: [{ account_id: dvId }, { client_account_id: dvId }], status: { $in: ["active", "inactive"] } }).catch(() => []),
           filterAll(base44.entities.Warranty, { $or: [{ account_id: dvId }, { supplier_id: dvId }, { client_account_id: dvId }] }).catch(() => []),
           filterAll(base44.entities.JCT, { $or: [{ account_id: dvId }, { contractor_id: dvId }, { client_account_id: dvId }] }).catch(() => []),
-        ]);
+        ])});
 
         const [contactsPage, totalContacts] = contactResults;
 
@@ -88,7 +89,7 @@ export default function AccountDetail() {
       }
     })();
     return () => { active = false; };
-  }, [accountId]);
+  }, [accountId,user?.id,user?.role,cache]);
 
   if (loading) {
     return <div className="flex justify-center py-20"><div className="h-8 w-8 animate-spin rounded-full border-4 border-slate-200 border-t-primary" /></div>;

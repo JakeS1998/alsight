@@ -1,6 +1,17 @@
 import { createClientFromRequest } from 'npm:@base44/sdk@0.8.52';
 import { internalRoles } from '../../shared/asePolicy.ts';
+import { accountDetailSignals } from '../../shared/accountDetailSignals.ts';
+import { dataRequestError } from '../../shared/dataRequestError.ts';
 const signalCache = new Map();
+function cachedSignals(key,load) {
+ const cached=signalCache.get(key);
+ if(cached && (cached.pending || cached.expires>Date.now()))return cached.promise;
+ if(signalCache.size>=100)signalCache.delete(signalCache.keys().next().value);
+ const entry={pending:true,expires:0,promise:null};
+ entry.promise=load().then(reports=>{entry.pending=false;entry.expires=Date.now()+60000;return reports;}).catch(error=>{if(signalCache.get(key)===entry)signalCache.delete(key);throw error;});
+ signalCache.set(key,entry);
+ return entry.promise;
+}
 export default async function(req: Request): Promise<Response> {
   try {
     const base44 = createClientFromRequest(req);
@@ -34,8 +45,8 @@ export default async function(req: Request): Promise<Response> {
     const visibleMoney = ['admin','director','regional_director','bsm','finance','bdm','client'].includes(user.role);
     const liveQuery = { status: { $ne: 'inactive' }, live_project: true, approval_status: { $nin: ['complete','completed'] }, $or: [{ practical_completion_date: { $exists: false } }, { practical_completion_date: { $in: [null,''] } }, { practical_completion_date: { $gte: new Date().toISOString() } }] };
     const cacheKey = JSON.stringify([user.id,user.role,user.account_id,user.data?.account_id,user.region,user.data?.region,user.delegate_of,user.data?.delegate_of,user.delegate_region,user.data?.delegate_region,user.staff_aad_id,user.data?.staff_aad_id,Number.isSafeInteger(input.revision) ? input.revision : 0]);
-    const cached = signalCache.get(cacheKey);
-    const reports = cached && cached.expires > Date.now() ? cached.reports : await Promise.all([
+    if(input.accountId)return Response.json(await cachedSignals(`${cacheKey}:${input.accountId}`,()=>accountDetailSignals(base44,input.accountId,internal,visibleMoney)));
+    const reports = await cachedSignals(cacheKey,()=>Promise.all([
       base44.entities.Project.aggregate({ query: liveQuery, groupBy: ['id','dataverse_id','client_account_id','account_id'], ...(visibleMoney ? { sum: 'estimated_value' } : {}), limit: 1000 }),
       base44.entities.Opportunity.aggregate({ query: { status: 'open' }, groupBy: 'account_id', limit: 1000 }),
       base44.entities.CRMActivity.aggregate({ groupBy: 'account_id', max: 'occurred_at', limit: 1000 }),
@@ -43,12 +54,8 @@ export default async function(req: Request): Promise<Response> {
       base44.entities.LegalDocument.aggregate({ groupBy: ['account_id','client_account_id','project_id'], limit: 1000 }),
       base44.entities.Warranty.aggregate({ groupBy: ['account_id','supplier_id','client_account_id','project_id'], limit: 1000 }),
       base44.entities.JCT.aggregate({ groupBy: ['account_id','contractor_id','client_account_id','project_id'], limit: 1000 }),
-    ]);
+    ]));
     const [projects, opportunities, activities, conversations, legal, warranties, contracts] = reports;
-    if (!cached || cached.expires <= Date.now()) {
-      if (signalCache.size >= 100) signalCache.delete(signalCache.keys().next().value);
-      signalCache.set(cacheKey,{ reports,expires: Date.now() + 60000 });
-    }
     if ([projects,opportunities,activities,conversations,legal,warranties,contracts].some(result => result.truncated)) return Response.json({ error: 'Account summaries exceed the reporting limit. Account reporting needs a narrower reporting scope.' }, { status: 422 });
     const links = new Map();
     for (const row of [...legal.rows,...warranties.rows,...contracts.rows]) {
@@ -90,5 +97,5 @@ export default async function(req: Request): Promise<Response> {
       return { account, signals: { activeProjects: related.reduce((sum,row) => sum + row.count, 0), openOpportunities: open.reduce((sum,row) => sum + row.count, 0), ...(visibleMoney ? { liveValue: related.reduce((sum,row) => sum + (row.sum_estimated_value || 0), 0) } : {}), lastInteraction: recent, owner: owner?.full_name || (account.account_manager_aad_id ? 'Assigned owner' : 'Not assigned') } };
     });
     return Response.json({ items, total, next_cursor: page.next_cursor, has_more: page.has_more });
-  } catch (error) { return Response.json({ error: error.message || 'Unable to load accounts' }, { status: 500 }); }
+  } catch (error) { return dataRequestError(error,'Unable to load accounts'); }
 }

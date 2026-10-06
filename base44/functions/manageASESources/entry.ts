@@ -12,6 +12,7 @@ import {collectASESource} from '../../shared/aseCollectSource.ts';
 import {publishAutomatically} from '../../shared/aseAutomaticPublication.ts';
 import {withASEAutomationLease} from '../../shared/aseAutomationLease.ts';
 import {alsightSafety} from '../../shared/alsightSafety.ts';
+import {dataRequestError} from '../../shared/dataRequestError.ts';
 export default async function(req: Request): Promise<Response> {
   let base44,attempt;
   try {
@@ -88,6 +89,6 @@ export default async function(req: Request): Promise<Response> {
   } catch(error) {
     const message=String(error.message || 'Source operation failed.').slice(0,1000);
     if(base44 && attempt) await base44.entities.ASESourceRefresh.update(attempt.id,{status:'failed',error:message});
-    return Response.json({error:message},{status:400});
+    return dataRequestError(error,'Source operation failed.',400);
   }
 }
