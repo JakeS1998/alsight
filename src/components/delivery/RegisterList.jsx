@@ -12,6 +12,8 @@ import { riskIndex } from '@/components/delivery/riskRegisterColumns';
 import { riskHeat } from '@/components/delivery/riskHeat';
 import RiskIndexBadge from '@/components/delivery/RiskIndexBadge';
 import RegisterSortHeading from '@/components/delivery/RegisterSortHeading';
+import RegisterStatusDropdown from '@/components/delivery/RegisterStatusDropdown';
+import { useAuth } from '@/lib/AuthContext';
 
 const emptyForm = (columns) => Object.fromEntries(columns.map((c) => [c.key, c.type === "boolean" ? false : ""]));
 
@@ -25,6 +27,8 @@ const coerce = (columns, form) => {
 };
 
 export function RegisterList({ title, description, entityName, projectId, project, columns, tableColumns, sortBy = "-created_date", addLabel = "Add", preparePayload = value => value, onChanged, paginated = false, sortable = false }) {
+  const { user } = useAuth();
+  const canUpdateStatus = ['admin', 'director', 'bdm', 'bsm'].includes(user?.role) && ['ProjectAction', 'ProjectDecision', 'ProjectRisk'].includes(entityName);
   const [rows, setRows] = useState([]);
   const [loading, setLoading] = useState(true);
   const [open, setOpen] = useState(false);
@@ -124,6 +128,7 @@ export function RegisterList({ title, description, entityName, projectId, projec
     const v = col.type === 'calculated' ? col.calculate(row) : row[col.key];
     if (entityName === 'ProjectRisk' && col.key === 'risk_index') return <RiskIndexBadge index={v} />;
     if (col.type === "date") return formatDate(v);
+    if (col.key === 'status' && col.type === 'select' && canUpdateStatus) return <RegisterStatusDropdown entityName={entityName} row={row} options={col.options} onSaved={async () => { await load(); onChanged?.(); }} />;
     if (col.type === "select") return col.options.find((o) => String(o.value) === String(v))?.label || "—";
     if (col.type === "boolean") return v ? "Yes" : "No";
     return v === '' || v == null ? '—' : v;
