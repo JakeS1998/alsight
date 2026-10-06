@@ -1,6 +1,6 @@
 const escape = value => String(value).replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
 const normalise = value => String(value || '').trim().toLowerCase();
-const sharedDomains = new Set(['gmail.com','googlemail.com','outlook.com','hotmail.com','live.com','yahoo.com','yahoo.co.uk','icloud.com','aol.com','gov.uk','org.uk','co.uk']);
+const sharedDomains = new Set(['gmail.com','googlemail.com','outlook.com','hotmail.com','hotmail.co.uk','live.com','yahoo.com','yahoo.co.uk','icloud.com','aol.com','msn.com','btinternet.com','proton.me','protonmail.com','mail.com','gov.uk','org.uk','co.uk']);
 export function accountContactDomains(account) {
   let websiteDomain = '';
   if (account.website) {

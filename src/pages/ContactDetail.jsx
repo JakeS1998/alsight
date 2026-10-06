@@ -18,6 +18,7 @@ import ContactKeyDates from '@/components/crm/contact360/ContactKeyDates';
 import ContactOpportunityForm from '@/components/crm/contact360/ContactOpportunityForm';
 import ContactOpportunities from '@/components/crm/ContactOpportunities';
 import { contactBelongsToAccount } from '@/components/accounts/accountContactQuery';
+import contactAccountQuery, {resolveContactAccount} from '@/components/accounts/contactAccountQuery';
 
 export default function ContactDetail() {
   const { accountId, contactId } = useParams();
@@ -48,9 +49,9 @@ export default function ContactDetail() {
     (async () => {
       const c = await base44.entities.Contact.get(contactId);
       if (!c || !active) { if (active) setContact(null); return; }
-      const matches = [c.company_number && { company_number: c.company_number }, c.company_name && { company_name: c.company_name }, c.company_name && {name:c.company_name}].filter(Boolean);
+      const matches = contactAccountQuery(c);
       const [a, p, s, o] = await Promise.all([
-        accountId ? base44.entities.Account.get(accountId) : matches.length ? base44.entities.Account.filter({ $or: matches }, { limit: 1 }).then(page => page.items[0] || null) : Promise.resolve(null),
+        accountId ? base44.entities.Account.get(accountId) : base44.entities.Account.filter(matches, { limit: 50, fields:['name','company_name','company_number','primary_contact_id','website','email','account_type','dataverse_id'] }).then(page => page.has_more ? null : resolveContactAccount(page.items,c)),
         internal ? base44.entities.ContactProfile.filter({ contact_id: contactId }, { limit: 1 }) : Promise.resolve({ items: [] }),
         internal ? base44.entities.Contact.filter({ portal_role: { $in: ['admin','director','regional_director','bsm','finance','bdm'] } }, { sort: 'full_name', limit: 100, fields: ['full_name','portal_role'] }) : Promise.resolve({ items: [] }),
         internal ? base44.entities.Opportunity.filter({ contact_id: contactId }, { sort: '-created_date', limit: 50, fields: ['title','stage','status','account_id'] }) : Promise.resolve({ items: [] }),
