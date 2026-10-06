@@ -2,6 +2,7 @@ import {uklfReportScope} from './uklfReportScope.ts';
 import {workspaceFields,workspaceQuery,safeWorkspaceRow} from './frameworkWorkspaceRules.ts';
 import {frameworkWorkspaceSummary} from './frameworkWorkspaceSummary.ts';
 import {frameworkCommercialSummary} from './frameworkCommercialSummary.ts';
+import {frameworkDocumentMilestones,withFrameworkDocumentMilestones} from './frameworkDocumentMilestones.ts';
 import {scopedReadCache,invalidateScopedRead} from './scopedReadCache.ts';
 export async function frameworkWorkspace(base44,user,body) {
  const internal=user.role!=='framework_stakeholder',source=internal ? base44.entities.FrameworkProjectReport : base44.asServiceRole.entities.FrameworkProjectReport;
@@ -14,8 +15,9 @@ export async function frameworkWorkspace(base44,user,body) {
   if(!withinScope(record))return Response.json({report:null});
   let project=null;
   if(record.project_id && /^[a-f0-9]{24}$/i.test(record.project_id))project=await base44.entities.Project.get(record.project_id).catch(()=>null);
-  else if(record.project_id){const page=await base44.entities.Project.filter({dataverse_id:record.project_id},{limit:1,fields:['latitude','longitude']});project=page.items[0];}
-  return Response.json({report:safeWorkspaceRow(record,project)});
+  else if(record.project_id){const page=await base44.entities.Project.filter({dataverse_id:record.project_id},{limit:1,fields:['latitude','longitude','dataverse_id','pq_approval_date','aa_executed_date','practical_completion_date']});project=page.items[0];}
+     const milestones=await frameworkDocumentMilestones(base44.entities,project ? [project] : []);
+     return Response.json({report:withFrameworkDocumentMilestones(safeWorkspaceRow(record,project),project,milestones)});
  }
  if(body.workspaceAction==='link') {
   if(user.role!=='admin')return Response.json({error:'Only authorised Framework administrators can link records.'},{status:403});
@@ -43,9 +45,10 @@ export async function frameworkWorkspace(base44,user,body) {
  const ids=page.items.map(r=>r.project_id).filter(id=>typeof id==='string' && /^[a-f0-9]{24}$/i.test(id));
  const legacy=page.items.map(r=>r.project_id).filter(id=>typeof id==='string' && id && !/^[a-f0-9]{24}$/i.test(id));
  const projects=[];
- if(ids.length){const p=await base44.entities.Project.filter({id:{$in:ids}},{limit:50,fields:['project_number','latitude','longitude','dataverse_id']});projects.push(...p.items);}
- if(legacy.length){const p=await base44.entities.Project.filter({dataverse_id:{$in:legacy}},{limit:50,fields:['project_number','latitude','longitude','dataverse_id']});projects.push(...p.items);}
- const rows=page.items.map(r=>safeWorkspaceRow(r,projects.find(p=>p.id===r.project_id || p.dataverse_id===r.project_id)));
+ if(ids.length){const p=await base44.entities.Project.filter({id:{$in:ids}},{limit:50,fields:['project_number','latitude','longitude','dataverse_id','pq_approval_date','aa_executed_date','practical_completion_date']});projects.push(...p.items);}
+ if(legacy.length){const p=await base44.entities.Project.filter({dataverse_id:{$in:legacy}},{limit:50,fields:['project_number','latitude','longitude','dataverse_id','pq_approval_date','aa_executed_date','practical_completion_date']});projects.push(...p.items);}
+ const milestones=await frameworkDocumentMilestones(base44.entities,projects);
+  const rows=page.items.map(r=>{const project=projects.find(p=>p.id===r.project_id || p.dataverse_id===r.project_id);return withFrameworkDocumentMilestones(safeWorkspaceRow(r,project),project,milestones);});
  if(body.workspaceAction==='detail')return Response.json({report:rows[0] || null});
  return Response.json({rows,next_cursor:page.next_cursor,has_more:page.has_more,count:await source.count(query)});
 }

@@ -12,7 +12,7 @@ import FrameworkPhotoGallery from '@/components/framework/FrameworkPhotoGallery'
 import organisationQueryPolicy from '@/components/data/organisationQueryPolicy';
 export default function FrameworkRecordDetail({reportId}) {
  const {user}=useAuth(),cache=useQueryClient(),[link,setLink]=useState(false),[edit,setEdit]=useState(false);
- const query=useQuery({queryKey:['framework-workspace','detail',user?.id,user?.role,reportId],queryFn:async()=>{const {data}=await base44.functions.invoke('getStakeholderFrameworkReport',{workspaceAction:'detail',reportId});if(data.error)throw new Error(data.error);return data.report;},enabled:!!user?.id && !!reportId,...organisationQueryPolicy,staleTime:60000});
+ const query=useQuery({queryKey:['framework-workspace','detail',user?.id,user?.role,reportId,'document-milestones'],queryFn:async()=>{const {data}=await base44.functions.invoke('getStakeholderFrameworkReport',{workspaceAction:'detail',reportId});if(data.error)throw new Error(data.error);return data.report;},enabled:!!user?.id && !!reportId,...organisationQueryPolicy,staleTime:60000});
  if(query.isPending)return <p role="status" className="p-8 text-sm text-muted-foreground">Loading Framework record…</p>;
  if(query.error)return <p role="alert" className="p-5 text-sm text-destructive">Record unavailable. <button className="underline" onClick={()=>query.refetch()}>Try again</button></p>;
  const row=query.data;if(!row)return <p className="p-8 text-muted-foreground">No accessible Framework record was found.</p>;
