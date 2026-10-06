@@ -92,7 +92,7 @@ const AuthenticatedApp = () => {
           <Route path="/accounts" element={<Accounts />} />
           <Route path="/accounts/:accountId" element={<AccountDetail />} />
           <Route element={<CRMRoute />}>
-            <Route path="/crm" element={<CRMHome />} />
+            <Route path="/crm" element={<Navigate to="/crm/opportunities" replace />} />
             <Route path="/crm/opportunities" element={<CRMOpportunities />} />
             <Route path="/crm/pipeline" element={<Navigate to="/crm/opportunities" replace />} />
             <Route path="/crm/tasks" element={<CRMTasks />} />
