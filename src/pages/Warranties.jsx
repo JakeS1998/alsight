@@ -87,7 +87,7 @@ export default function Warranties() {
                     {accountMap[w.account_id]?.name || accountMap[w.supplier_id]?.name || "—"}
                   </td>
                   <td className="hidden px-4 py-3 sm:table-cell"><WarrantyCategoryBadge status={w.category} /></td>
-                  <td className="px-4 py-3"><WarrantyStatusBadge status={w.warranty_status} /></td>
+                  <td className="px-4 py-3"><WarrantyStatusBadge status={w.warranty_status} dateOfExecution={w.date_of_execution} /></td>
                   <td className="hidden px-4 py-3 text-sm text-slate-600 lg:table-cell">{formatDate(w.jct_signed)}</td>
                   <td className="hidden px-4 py-3 text-sm text-slate-600 lg:table-cell">{formatDate(w.warranty_due)}</td>
                   <td className="px-4 py-3 text-right">

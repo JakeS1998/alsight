@@ -23,7 +23,7 @@ export function WarrantyCard({ warranty, accountMap, hideCommentsAndLinks = fals
               </div>
             </div>
           </div>
-          <WarrantyStatusBadge status={warranty.warranty_status} />
+          <WarrantyStatusBadge status={warranty.warranty_status} dateOfExecution={warranty.date_of_execution} />
         </div>
       </button>
       {open && (

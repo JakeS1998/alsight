@@ -122,6 +122,9 @@ export const WARRANTY_STATUS = {
   in_review: { label: "In Review", code: "760820004", className: "bg-blue-50 text-blue-700 border-blue-200" },
   sent_for_seal: { label: "Sent for Seal", code: "760820005", className: "bg-violet-50 text-violet-700 border-violet-200" },
   drafted: { label: "Drafted", code: "760820011", className: "bg-sky-50 text-sky-700 border-sky-200" },
+  sealed: { label: "Sealed", className: "bg-success/10 text-success border-success/20" },
+  executed: { label: "Executed", className: "bg-success/10 text-success border-success/20" },
+  product_warranty: { label: "Product Warranty", className: "bg-secondary text-secondary-foreground border-border" },
 };
 
 export const WARRANTY_STATUS_BY_CODE = {

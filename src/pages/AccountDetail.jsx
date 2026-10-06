@@ -224,7 +224,7 @@ export default function AccountDetail() {
                       <p className="truncate text-xs text-slate-500">{w.services || "—"}</p>
                       {proj && <p className="truncate text-xs text-blue-600">{proj.name}</p>}
                     </div>
-                    <WarrantyStatusBadge status={w.warranty_status} />
+                    <WarrantyStatusBadge status={w.warranty_status} dateOfExecution={w.date_of_execution} />
                   </div>
                 );
                 return proj ? (

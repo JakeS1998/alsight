@@ -18,7 +18,7 @@ export const DocTypeBadge = ({ type, projectNumber }) => {
 
 export const ExecutedBadge = ({ status }) => <StatusBadge status={status} map={EXECUTED_STATUS} />;
 export const PSOCheckBadge = ({ status }) => <StatusBadge status={status} map={PSO_CHECK} />;
-export const WarrantyStatusBadge = ({ status }) => <StatusBadge status={status} map={WARRANTY_STATUS} />;
+export const WarrantyStatusBadge = ({ status, dateOfExecution }) => <StatusBadge status={dateOfExecution ? 'executed' : status} map={WARRANTY_STATUS} />;
 export const WarrantyCategoryBadge = ({ status }) => <StatusBadge status={status} map={WARRANTY_CATEGORY} />;
 export const FormOfJCTBadge = ({ status }) => <StatusBadge status={status} map={FORM_OF_JCT} />;
 export const RIBAStageBadge = ({ status }) => <StatusBadge status={status} map={RIBA_STAGE} />;
