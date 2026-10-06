@@ -18,11 +18,35 @@ export default async function(req: Request): Promise<Response> {
       return Response.json({ error: 'Invalid project' }, { status: 400 });
     const project = await base44.entities.Project.get(projectId).catch(() => null);
     if (!project) return Response.json({ error: 'Project not available' }, { status: 404 });
+    if (payload.action === 'staff_names') {
+      if (user.role === 'supplier') return Response.json({ error: 'Staff names not available' }, { status: 403 });
+      const ids = [...new Set([project.bdm_aad_id, project.bsm_aad_id].filter(Boolean))];
+      const names = {};
+      if (!ids.length) return Response.json({ names });
+      const users = await base44.asServiceRole.entities.User.filter({ $or: [{ id: { $in: ids } }, { staff_aad_id: { $in: ids } }] });
+      for (const person of users) {
+        const name = String(person.full_name || '').trim();
+        if (!name) continue;
+        for (const id of [person.id, person.staff_aad_id, person.data?.staff_aad_id]) {
+          if (ids.includes(id)) names[id] = name;
+        }
+      }
+      const unresolved = ids.filter(id => !names[id]);
+      if (unresolved.length) {
+        const contacts = await base44.asServiceRole.entities.Contact.filter({ aad_id: { $in: unresolved } }, { limit: 10, fields: ['aad_id', 'full_name', 'first_name', 'last_name'] });
+        for (const person of contacts.items) {
+          const name = String(person.full_name || [person.first_name, person.last_name].filter(Boolean).join(' ')).trim();
+          if (name && unresolved.includes(person.aad_id) && !names[person.aad_id]) names[person.aad_id] = name;
+        }
+      }
+      return Response.json({ names });
+    }
     if (!project.bdm_aad_id) return Response.json({ managerName: '' });
     const line = await resolveStaffReportingLine(base44.asServiceRole.entities, project.bdm_aad_id);
     return Response.json({ managerName: line?.manager_name || '' });
   } catch (error) {
     console.error('Unable to resolve BDM manager', error);
-    return Response.json({ error: 'Unable to load BDM manager' }, { status: 500 });
+    const rateLimited = Number(error?.response?.status || error?.status) === 429 || /rate limit|too many requests/i.test(error?.message || '');
+    return Response.json({ error: rateLimited ? 'Rate limit exceeded' : 'Unable to load BDM manager' }, { status: rateLimited ? 429 : 500 });
   }
 }
