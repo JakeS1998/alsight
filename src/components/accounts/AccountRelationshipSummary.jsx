@@ -7,7 +7,7 @@ export default function AccountRelationshipSummary({ account, signals, loading, 
     <h2>Our relationship</h2>
     <p className="whitespace-pre-wrap text-sm text-muted-foreground">{account.relationship_summary || account.comments || 'No relationship summary has been recorded.'}</p>
     {account.relationship_summary && account.comments && account.relationship_summary.trim() !== account.comments.trim() && <><h3>Existing account notes</h3><p className="mt-2 whitespace-pre-wrap text-sm text-muted-foreground">{account.comments}</p></>}
-    {loading ? <p role="status" className="mt-4 text-sm text-muted-foreground">Loading account totals…</p> : error ? <div role="alert" className="mt-4 text-sm text-destructive"><p>Account totals could not be loaded.</p><p className="mt-1 text-xs">{error.response?.data?.error || error.message}</p>{onRetry && <button type="button" className="mt-2 underline" onClick={onRetry}>Try again</button>}</div> : signals && <dl className="account-relationship-totals">
+    {loading ? <p role="status" className="mt-4 text-sm text-muted-foreground">Loading account totals…</p> : error && !signals ? <div role="alert" className="mt-4 text-sm text-destructive"><p>Account totals could not be loaded.</p><p className="mt-1 text-xs">{error.response?.data?.error || error.message}</p>{onRetry && <button type="button" className="mt-2 underline" onClick={onRetry}>Try again</button>}</div> : signals && <dl className="account-relationship-totals">
       <div><dt>Active projects</dt><dd>{signals.activeProjects}</dd></div>
       <div><dt>Open opportunities</dt><dd>{signals.openOpportunities}</dd></div>
       {signals.liveValue != null && <div><dt>Live project value</dt><dd>{formatCurrency(signals.liveValue)}</dd></div>}

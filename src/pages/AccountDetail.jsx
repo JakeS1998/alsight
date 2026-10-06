@@ -27,7 +27,8 @@ export default function AccountDetail() {
   const { user } = useAuth();
   const cache = useQueryClient();
   const summary = useAccountsView({ accountId });
-  const signals = summary.data?.items.find(row => row.account.id === accountId)?.signals;
+  const summaryRow = summary.data?.items.find(row => row.account.id === accountId);
+  const signals = summaryRow?.signals;
   const [account, setAccount] = useState(null);
   const [contacts, setContacts] = useState([]);
   const [contactPage, setContactPage] = useState(null);
@@ -115,7 +116,7 @@ export default function AccountDetail() {
           {['Overview','Contacts','Projects',...(['admin','director','regional_director','bsm','finance','bdm'].includes(user?.role) ? ['Opportunities'] : []),...(['admin','director','regional_director','bsm','finance','bdm','client'].includes(user?.role) ? ['Financials'] : []),'Activity','Documents'].map(title => <TabsTrigger key={title} value={title.toLowerCase()}>{title==='Contacts' ? 'People' : title}</TabsTrigger>)}
         </TabsList>
       </div>
-      <TabsContent value="overview"><AccountOverview account={account} contacts={contacts} projects={projects} signals={signals} user={user} summaryLoading={summary.isPending} summaryError={summary.error} onSummaryRetry={()=>summary.refetch()} onAccountEnriched={updated=>setAccount(current=>({...current,...updated}))} /></TabsContent>
+      <TabsContent value="overview"><AccountOverview account={summaryRow?.account ? {...account,_ase:summaryRow.account._ase} : account} contacts={contacts} projects={projects} signals={signals} user={user} summaryLoading={summary.isPending} summaryError={summary.error} onSummaryRetry={()=>summary.refetch()} onAccountEnriched={updated=>setAccount(current=>({...current,...updated}))} /></TabsContent>
       <TabsContent value="contacts" className="space-y-6">
       {/* Linked Contacts */}
       <Section icon={Users} title="People at this organisation" count={contactTotal}>

@@ -3,6 +3,7 @@ import { internalRoles } from '../../shared/asePolicy.ts';
 import { accountDetailSignals } from '../../shared/accountDetailSignals.ts';
 import { dataRequestError } from '../../shared/dataRequestError.ts';
 import {recordIds} from '../../shared/recordIds.ts';
+import {v2DisplayRatings} from '../../shared/aseV2Display.ts';
 const signalCache = new Map();
 function cachedSignals(key,load) {
  const cached=signalCache.get(key);
@@ -45,7 +46,7 @@ export default async function(req: Request): Promise<Response> {
     const visibleMoney = ['admin','director','regional_director','bsm','finance','bdm','client'].includes(user.role);
     const liveQuery = { status: { $ne: 'inactive' }, live_project: true, approval_status: { $nin: ['complete','completed'] }, $or: [{ practical_completion_date: { $exists: false } }, { practical_completion_date: { $in: [null,''] } }, { practical_completion_date: { $gte: new Date().toISOString() } }] };
     const cacheKey = JSON.stringify([user.id,user.role,user.account_id,user.data?.account_id,user.region,user.data?.region,user.delegate_of,user.data?.delegate_of,user.delegate_region,user.data?.delegate_region,user.staff_aad_id,user.data?.staff_aad_id,Number.isSafeInteger(input.revision) ? input.revision : 0]);
-    if(input.accountId)return Response.json(await cachedSignals(`${cacheKey}:${input.accountId}`,()=>accountDetailSignals(base44,input.accountId,internal,visibleMoney)));
+    if(input.accountId)return Response.json(await cachedSignals(`${cacheKey}:${input.accountId}`,async()=>{const saved=signalCache.get(cacheKey);const reports=saved && (saved.pending || saved.expires>Date.now()) ? await saved.promise : null;return accountDetailSignals(base44,input.accountId,internal,visibleMoney,reports?.some(report=>report.truncated) ? null : reports);}));
     const reports = await cachedSignals(cacheKey,()=>Promise.all([
       base44.entities.Project.aggregate({ query: liveQuery, groupBy: ['id','dataverse_id','client_account_id','account_id'], ...(visibleMoney ? { sum: 'estimated_value' } : {}), limit: 1000 }),
       base44.entities.Opportunity.aggregate({ query: { status: 'open' }, groupBy: 'account_id', limit: 1000 }),
@@ -87,9 +88,10 @@ export default async function(req: Request): Promise<Response> {
     const ownerRecordIds=recordIds(ownerIds);
     const owners = ownerIds.length ? await base44.entities.Contact.filter({ $or: [{ aad_id: { $in: ownerIds } }, { dataverse_id: { $in: ownerIds } }, ...(ownerRecordIds.length ? [{ id: { $in: ownerRecordIds } }] : [])] }, { limit: 100, fields: ['full_name','aad_id','dataverse_id'] }) : { items: [] };
     const v2ratings = internal && page.items.length ? await base44.entities.ASEV2Current.filter({account_id:{$in:page.items.map(a=>a.id)}},{limit:30}) : {items:[]};
+    const displayRatings=internal ? await v2DisplayRatings(base44.entities,v2ratings.items) : [];
     const items = page.items.map(rawAccount => {
       const {ase_score,ase_reason,ase_assessed_at,...safeAccount}=rawAccount;
-      const account = internal ? {...safeAccount,_ase:v2ratings.items.find(r=>r.account_id===rawAccount.id) || null} : safeAccount;
+      const account = internal ? {...safeAccount,_ase:displayRatings.find(r=>r.account_id===rawAccount.id) || null} : safeAccount;
       const keys = [account.id,account.dataverse_id].filter(Boolean);
       const related = groupedProjects.filter(row => row.accountKeys.some(key => keys.includes(key)));
       const open = opportunities.rows.filter(row => keys.includes(row.account_id));

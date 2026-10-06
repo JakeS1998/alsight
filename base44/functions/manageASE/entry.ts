@@ -17,6 +17,8 @@ import {checkAccountModelRules} from '../../shared/aseAccountModelChecks.ts';
 import {checkASESourceScoringRules} from '../../shared/aseSourceScoringChecks.ts';
 import {checkBroaderEvidenceRules} from '../../shared/aseBroaderEvidenceChecks.ts';
 import {dataRequestError} from '../../shared/dataRequestError.ts';
+import {v2DisplayRatings} from '../../shared/aseV2Display.ts';
+import {scopedReadCache,invalidateScopedRead} from '../../shared/scopedReadCache.ts';
 export default async function(req: Request): Promise<Response> {
   try {
     const base44=createClientFromRequest(req), user=await base44.auth.me();
@@ -34,13 +36,14 @@ export default async function(req: Request): Promise<Response> {
       if(input.cursor!=null && (typeof input.cursor!=='string' || input.cursor.length>4096)) return Response.json({error:'Invalid cursor.'},{status:400});
       const account=await base44.entities.Account.get(input.accountId);
       if(!account) return Response.json({error:'Account unavailable.'},{status:404});
-      if(input.action==='commercial') return Response.json(await commercialInsight(base44,account,{cursor:input.cursor}));
+      const readKey=JSON.stringify([user.id,user.role,user.account_id,user.data?.account_id,user.region,user.data?.region,user.delegate_of,user.data?.delegate_of,user.delegate_region,user.data?.delegate_region,user.staff_aad_id,user.data?.staff_aad_id,account.id]);
+      if(input.action==='commercial') return Response.json(await scopedReadCache(`${readKey}:${input.cursor || ''}`,()=>commercialInsight(base44,account,{cursor:input.cursor})));
       if(input.action==='commercialContracts') return Response.json(await contractCandidates(base44,account,input.cursor));
-      if(input.action==='reviewCommercialTerms') return Response.json(await reviewCommercialTerms(base44,account,input,user));
+      if(input.action==='reviewCommercialTerms') {const result=await reviewCommercialTerms(base44,account,input,user);invalidateScopedRead(`${readKey}:`);return Response.json(result);}
       if(input.action==='structure') return Response.json(await groupStructure(base44,account));
       return Response.json(await hmrcStatus(base44,account));
     }
-    if(input.action==='summary') {if(typeof input.accountId!=='string' || !/^[a-zA-Z0-9_-]{1,64}$/.test(input.accountId))return Response.json({error:'Valid Account is required.'},{status:400});const account=await base44.entities.Account.get(input.accountId);if(!account)return Response.json({error:'Account unavailable.'},{status:404});const v2=await base44.entities.ASEV2Current.filter({account_id:account.id},{limit:1});return Response.json({current:v2.items[0] || null,model:accountModel(account),methodology:'ASE v2'});}
+    if(input.action==='summary') {if(typeof input.accountId!=='string' || !/^[a-zA-Z0-9_-]{1,64}$/.test(input.accountId))return Response.json({error:'Valid Account is required.'},{status:400});const account=await base44.entities.Account.get(input.accountId);if(!account)return Response.json({error:'Account unavailable.'},{status:404});const v2=await base44.entities.ASEV2Current.filter({account_id:account.id},{limit:1});const ratings=await v2DisplayRatings(base44.entities,v2.items);return Response.json({current:ratings[0] || null,model:accountModel(account),methodology:'ASE v2'});}
     const policy=await getPolicy(base44);
     if (input.action==='policy') return Response.json({policy});
     if (input.action==='bulkPublish') return Response.json(await publishASEBatch(base44,policy,user,input));
