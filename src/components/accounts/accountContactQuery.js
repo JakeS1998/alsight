@@ -13,8 +13,8 @@ export default function accountContactQuery(account) {
   const clauses = [];
   if (account.company_number?.trim()) clauses.push({ company_number: { $regex: `^${escape(account.company_number.trim())}$`, $options: 'i' } });
   for (const name of new Set([account.company_name,account.name].map(normalise).filter(Boolean))) clauses.push({ company_name: { $regex: `^${escape(name)}$`, $options: 'i' } });
-  for (const domain of accountContactDomains(account)) clauses.push({ email: { $regex: `@${escape(domain)}$`, $options: 'i' } });
-  if (account.primary_contact_id) clauses.push({ dataverse_id: account.primary_contact_id });
+  for (const domain of accountContactDomains(account)) for (const field of ['email','email2','email3']) clauses.push({ [field]: { $regex: `@${escape(domain)}$`, $options: 'i' } });
+  if (account.primary_contact_id) {clauses.push({ dataverse_id: account.primary_contact_id });if(/^[a-f0-9]{24}$/i.test(account.primary_contact_id)) clauses.push({id:account.primary_contact_id});}
   return clauses.length ? { $or: clauses } : { company_number: '__no_recorded_account_identity__' };
 }
 export function contactBelongsToAccount(account,contact) {
@@ -22,5 +22,5 @@ export function contactBelongsToAccount(account,contact) {
   return !!(account.primary_contact_id && [contact.id,contact.dataverse_id].includes(account.primary_contact_id))
     || !!(normalise(account.company_number) && normalise(account.company_number) === normalise(contact.company_number))
     || [account.name,account.company_name].some(name => normalise(name) && normalise(name) === normalise(contact.company_name))
-    || accountContactDomains(account).includes(normalise(contact.email).split('@')[1]);
+    || ['email','email2','email3'].some(field=>accountContactDomains(account).includes(normalise(contact[field]).split('@')[1]));
 }

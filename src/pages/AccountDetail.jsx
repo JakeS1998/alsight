@@ -54,7 +54,7 @@ export default function AccountDetail() {
                  const projectAccountId = dvId || acc.id;
 
         const contactQuery = accountContactQuery(acc);
-        const [contactResults, directProjects, d, w, j] = await cache.fetchQuery({queryKey:['account-related-records',user.id,user.role,accountId],queryFn:()=>Promise.all([
+        const [contactResults, directProjects, d, w, j] = await cache.fetchQuery({queryKey:['account-related-records','all-organisation-contacts',user.id,user.role,accountId],queryFn:()=>Promise.all([
           Promise.all([base44.entities.Contact.filter(contactQuery, {sort:'full_name',limit:50}), base44.entities.Contact.count(contactQuery)]),
           filterAll(base44.entities.Project, { $or: [{ client_account_id: projectAccountId }, { account_id: projectAccountId }], status: { $ne: "inactive" } }).catch(() => []),
           filterAll(base44.entities.LegalDocument, { $or: [{ account_id: dvId }, { client_account_id: dvId }], status: { $in: ["active", "inactive"] } }).catch(() => []),
