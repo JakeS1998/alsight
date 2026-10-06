@@ -36,6 +36,7 @@ const AccountDetail = lazy(() => import('@/pages/AccountDetail'));
 const OpportunityDetail = lazy(() => import('@/pages/OpportunityDetail'));
 const CRMHome = lazy(() => import('@/pages/CRMHome'));
 const CRMOpportunities = lazy(() => import('@/pages/CRMOpportunities'));
+const LostOpportunities = lazy(() => import('@/pages/LostOpportunities'));
 const CRMPipeline = lazy(() => import('@/pages/CRMPipeline'));
 const CRMTasks = lazy(() => import('@/pages/CRMTasks'));
 const CRMActivities = lazy(() => import('@/pages/CRMActivities'));
@@ -94,6 +95,7 @@ const AuthenticatedApp = () => {
           <Route element={<CRMRoute />}>
             <Route path="/crm" element={<Navigate to="/crm/opportunities" replace />} />
             <Route path="/crm/opportunities" element={<CRMOpportunities />} />
+            <Route path="/crm/opportunities/lost" element={<LostOpportunities />} />
             <Route path="/crm/pipeline" element={<Navigate to="/crm/opportunities" replace />} />
             <Route path="/crm/tasks" element={<CRMTasks />} />
             <Route path="/crm/activities" element={<CRMActivities />} />

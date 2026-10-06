@@ -1,4 +1,6 @@
-export default async function commercialBoard(db,query,stageTotals,selectedStages,cursors={}) {
+import {groupedCommercialBoard} from './commercialBoardGroups.ts';
+export default async function commercialBoard(db,query,stageTotals,selectedStages,cursors={},grouped=false) {
+  if(grouped) return groupedCommercialBoard(db,query,stageTotals,selectedStages,cursors);
   const pages=[];
   for(const stage of selectedStages) {
     const populated=stageTotals.rows.some(row=>(row.stage || 'lead')===stage && row.count>0);
