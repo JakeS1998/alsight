@@ -2,6 +2,7 @@ import { useEffect, useRef } from 'react';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { base44 } from '@/api/base44Client';
 import { INTERNAL_ROLES } from '@/lib/portal';
+import organisationQueryPolicy from '@/components/data/organisationQueryPolicy';
 
 export default function useProjectHeroPhoto(project, user) {
   const queryClient = useQueryClient();
@@ -17,7 +18,15 @@ export default function useProjectHeroPhoto(project, user) {
       retryRequested.current = false;
       let reportId = null;
       if (canReadUploads) {
-        const { data } = await base44.functions.invoke('getStakeholderFrameworkReport', { projectId: project.id });
+        const data = await queryClient.fetchQuery({
+          queryKey: ['framework-project-detail', user.id, user.role, project.id, undefined],
+          ...organisationQueryPolicy, staleTime: 60000,
+          queryFn: async () => {
+            const { data } = await base44.functions.invoke('getStakeholderFrameworkReport', { projectId: project.id });
+            if (data.error) throw new Error(data.error);
+            return data;
+          },
+        });
         reportId = data.report?.id || null;
         if (reportId) {
           const page = await base44.entities.FrameworkProjectPhoto.filter({ report_id: reportId }, { sort: '-created_date', limit: 1, fields: ['file_uri', 'caption', 'report_id'] });
