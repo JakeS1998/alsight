@@ -28,7 +28,13 @@ export async function readImpact(base44,input) {
   return {projects:totals.rows.reduce((n,r)=>n+r.count,0),live:totals.rows.find(r=>r.live_project===true)?.count || 0,completed,estimatedInvestment:valued ? totals.rows.reduce((n,r)=>n+(r.sum_estimated_value || 0),0) : null,valuedProjects:valued,purposes:purposes.items};
 }
 export async function readHome(base44,input,user) {
-  const page=await base44.asServiceRole.entities.AlliancePulseItem.filter({status:'published'},{sort:'-created_date',limit:10,...(input.cursor ? {cursor:input.cursor} : {})});
+  const query={status:'published'};
+  if(input.hashtag) {
+    if(typeof input.hashtag!=='string' || !/^[A-Za-z0-9_]{1,80}$/.test(input.hashtag)) throw new Error('Choose a valid hashtag.');
+    const match={$regex:`#${input.hashtag}(?![A-Za-z0-9_])`,$options:'i'};
+    query.$or=[{title:match},{summary:match}];
+  }
+  const page=await base44.asServiceRole.entities.AlliancePulseItem.filter(query,{sort:'-created_date',limit:10,...(input.cursor ? {cursor:input.cursor} : {})});
   const pulse=await allowedPulse(base44,page.items);
   if(input.cursor) return {pulse,next_cursor:page.next_cursor,has_more:page.has_more};
   const impact=await readImpact(base44,input);

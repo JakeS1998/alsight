@@ -5,7 +5,7 @@ import ProjectDetailGroups from '@/components/projects/ProjectDetailGroups';
 export default function ProjectWorkspaceFields({ summary, assignments, details }) {
   return <>
     <section className="ws-overview">
-      <div className="ws-sectionhead"><h2 className="ws-sectiontitle">Project 360</h2></div>
+      <div className="ws-sectionhead"><h2 className="ws-sectiontitle">Delivery 360</h2></div>
       <div className="ws-card ws-summary">{summary.map(field => <div className="ws-field" key={field.label}>
         <div className="ws-label">{field.label}</div>
         <div className="ws-value">{field.to ? <Link to={field.to}>{field.value}</Link> : field.value}</div>

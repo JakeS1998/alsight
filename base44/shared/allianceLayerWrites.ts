@@ -1,4 +1,5 @@
 import {text,stages,pulseTypes,themes,projectAccess,linkedRecord} from './allianceLayerAccess.ts';
+import {secrets} from 'base44:runtime';
 export async function addLesson(base44,user,input) {
   const project=await projectAccess(base44,input.projectId),value=input.lesson || {};
   if(!stages.includes(value.pathway_stage || '') || !['','RIBA 0','RIBA 1','RIBA 2','RIBA 3','RIBA 4','RIBA 5','RIBA 6','RIBA 7'].includes(value.riba_stage || '')) throw new Error('Choose a recognised stage.');
@@ -11,7 +12,13 @@ export async function addPulse(base44,user,input) {
   if(!pulseTypes.includes(value.type) || !['none','project','person','lesson'].includes(value.related_entity_type)) throw new Error('Choose a recognised update and record type.');
   if(value.is_story && value.related_entity_type==='none') throw new Error('An Alliance Story must link to an existing record.');
   await linkedRecord(base44,value.related_entity_type,value.related_entity_id);
-  return {item:await base44.asServiceRole.entities.AlliancePulseItem.create({type:value.type,title:text(value.title,200,true),summary:text(value.summary,1500,true),related_entity_type:value.related_entity_type,related_entity_id:value.related_entity_type==='none' ? '' : value.related_entity_id,author_id:user.id,author_name:user.full_name || 'Alliance colleague',status:'published',is_story:value.is_story===true})};
+  const images=value.images || [],prefix=`mp/private/${secrets.get('BASE44_APP_ID')}/`;
+  if(!Array.isArray(images) || images.length>4) throw new Error('Share up to four images per update.');
+  const attachments=images.map(image=>{
+    if(!image || typeof image.file_uri!=='string' || image.file_uri.length>500 || !image.file_uri.startsWith(prefix) || !/\.(png|jpe?g|webp|gif)$/i.test(image.file_uri)) throw new Error('Images must be uploaded privately to this app.');
+    return {file_uri:image.file_uri,name:text(image.name || 'Shared Alliance image',200,true)};
+  });
+  return {item:await base44.asServiceRole.entities.AlliancePulseItem.create({type:value.type,title:text(value.title,200,true),summary:text(value.summary,1500,true),images:attachments,related_entity_type:value.related_entity_type,related_entity_id:value.related_entity_type==='none' ? '' : value.related_entity_id,author_id:user.id,author_name:user.full_name || 'Alliance colleague',status:'published',is_story:value.is_story===true})};
 }
 export async function removeItem(base44,user,input) {
   if(!['lesson','pulse'].includes(input.kind) || typeof input.id!=='string' || !/^[a-f0-9]{24}$/i.test(input.id)) throw new Error('Invalid item.');
