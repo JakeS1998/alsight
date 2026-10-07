@@ -1,13 +1,21 @@
 export function plannerDay(value = Date.now()) {
-  return new Intl.DateTimeFormat('en-CA', { timeZone: 'Europe/London', year: 'numeric', month: '2-digit', day: '2-digit' }).format(new Date(value));
+  const date = new Date(value);
+  if (!Number.isFinite(date.getTime())) return '';
+  const parts = new Intl.DateTimeFormat('en-GB', { timeZone: 'Europe/London', year: 'numeric', month: '2-digit', day: '2-digit' }).formatToParts(date);
+  const get = type => parts.find(part => part.type === type).value;
+  return `${get('year')}-${get('month')}-${get('day')}`;
 }
 export function plannerDayEnd(value = Date.now()) {
   const day = plannerDay(value);
-  const offset = new Intl.DateTimeFormat('en-GB', { timeZone: 'Europe/London', timeZoneName: 'longOffset' }).formatToParts(new Date(`${day}T12:00:00Z`)).find(part => part.type === 'timeZoneName').value.replace('GMT', '') || '+00:00';
-  return new Date(`${day}T23:59:59.999${offset}`).toISOString();
+  const [year, month, date] = day.split('-').map(Number);
+  const noon = new Date(Date.UTC(year, month - 1, date, 12));
+  const londonHour = Number(new Intl.DateTimeFormat('en-GB', { timeZone: 'Europe/London', hour: '2-digit', hour12: false }).format(noon));
+  return new Date(Date.UTC(year, month - 1, date, 23 - (londonHour - 12), 59, 59, 999)).toISOString();
 }
 export function plannerTime(value) {
-  return new Intl.DateTimeFormat('en-GB', { timeZone: 'Europe/London', hour: '2-digit', minute: '2-digit' }).format(new Date(value));
+  const date = new Date(value);
+  if (!value || !Number.isFinite(date.getTime())) return 'No time';
+  return new Intl.DateTimeFormat('en-GB', { timeZone: 'Europe/London', hour: '2-digit', minute: '2-digit' }).format(date);
 }
 export const calendarPreview = [
   { key: 'calendar-1', time: '09:00', end: '09:30', title: 'Daily project catch-up', detail: 'Teams · Review priorities and unblock the team' },
