@@ -4,6 +4,7 @@ import useDashboardData from '@/components/dashboard/useDashboardData';
 import useOverviewAnalytics from '@/components/dashboard/useOverviewAnalytics';
 import useAssignedTasks from '@/components/tasks/useAssignedTasks';
 import HomeJourneyHero from '@/components/dashboard/HomeJourneyHero';
+import ProjectStickyHeader from '@/components/projects/ProjectStickyHeader';
 import HomeWelcome from '@/components/dashboard/HomeWelcome';
 import HomeJourney from '@/components/dashboard/HomeJourney';
 import HomeQuickActions from '@/components/dashboard/HomeQuickActions';
@@ -23,8 +24,8 @@ export default function Home() {
   const recentIds = JSON.parse(localStorage.getItem(`als-recent-projects:${dashboard.user.id}`) || '[]');
   const opportunityCount = analytics.data?.opportunities.reduce((n,r) => n+r.count,0);
   return <div className="home-reference space-y-4">
+    <ProjectStickyHeader className="home-sticky-hero"><HomeJourneyHero /></ProjectStickyHeader>
     <div className="home-intro-grid space-y-4">
-      <HomeJourneyHero />
       <HomeWelcome user={dashboard.user} metrics={dashboard.portfolio.metrics} opportunities={opportunityCount} tasks={tasks} internal={dashboard.internal} />
     </div>
     <HomeJourney internal={dashboard.internal} />

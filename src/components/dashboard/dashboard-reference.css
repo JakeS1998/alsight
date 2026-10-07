@@ -5,6 +5,22 @@
 .home-reference .home-hero-copy { max-width: 680px; padding: 36px 42px; }
 .home-reference .home-hero h2 { font-size: clamp(38px, 3.6vw, 66px); }
 .home-welcome { display: grid; grid-template-columns: minmax(180px, 1.15fr) repeat(4, minmax(0, 1fr)); gap: 12px; padding: 14px; }
+@media (min-width: 1024px) {
+  .home-reference { overflow-anchor: none; }
+  .home-reference .home-sticky-hero { container-type: inline-size; padding-block: 0; overflow-anchor: none; }
+  .home-reference .home-sticky-hero .home-hero { min-height: max(420px, 39.32cqw); transition: min-height 240ms ease; }
+  .home-reference .home-sticky-hero .home-hero-copy { transition: padding 240ms ease; }
+  .home-reference .home-sticky-hero .home-hero h2 { transition: font-size 240ms ease; }
+  .home-reference .home-sticky-hero .home-hero-copy > :not(h2) { max-height: 120px; opacity: 1; overflow: hidden; transition: max-height 240ms ease, opacity 160ms ease, margin 240ms ease, visibility 240ms; }
+  .home-reference .home-sticky-hero[data-compact="true"] .home-hero { min-height: 76px; }
+  .home-reference .home-sticky-hero[data-compact="true"] .home-hero-copy { padding: 18px 28px; }
+  .home-reference .home-sticky-hero[data-compact="true"] .home-hero h2 { font-size: 24px; }
+  .home-reference .home-sticky-hero[data-compact="true"] .home-hero h2 br { display: none; }
+  .home-reference .home-sticky-hero[data-compact="true"] .home-hero-copy > :not(h2) { max-height: 0; opacity: 0; visibility: hidden; margin-block: 0; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .home-reference .home-sticky-hero :is(.home-hero, .home-hero-copy, .home-hero h2, .home-hero-copy > :not(h2)) { transition: none; }
+}
 @media (min-width: 1280px) {
   .home-reference > :not([hidden]) ~ :not([hidden]), .home-reference .home-main-stack > :not([hidden]) ~ :not([hidden]), .home-reference .home-sidebar > :not([hidden]) ~ :not([hidden]) { margin-top: 12px; }
   .home-reference .home-intro-grid { display: grid; grid-template-columns: minmax(0, 1fr); gap: 12px; }
