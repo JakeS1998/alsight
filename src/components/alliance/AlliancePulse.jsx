@@ -1,16 +1,17 @@
 import React,{useState,useEffect} from 'react';
 import {Button} from '@/components/ui/button';
 import PulseComposer from '@/components/alliance/PulseComposer';
+import PulseGroupManage from '@/components/alliance/PulseGroupManage';
 import PulsePost from '@/components/alliance/PulsePost';
 import allianceRequest,{allianceError} from '@/components/alliance/allianceClient';
-export default function AlliancePulse({data,user,onRefresh,onMore,loadingMore,hasMore,hashtag='',onClearHashtag,group,postId=''}) {
+export default function AlliancePulse({data,user,onRefresh,onMore,loadingMore,hasMore,hashtag='',onClearHashtag,group,postId='',onLeftGroup}) {
   const [error,setError]=useState(''),[removing,setRemoving]=useState(false);
   const remove=async item=>{if(!window.confirm('Remove this Alliance update from Pulse and Stories?')) return;setRemoving(true);setError('');try{await allianceRequest('remove',{kind:'pulse',id:item.id});onRefresh();}catch(e){setError(allianceError(e));}finally{setRemoving(false);}};
   const events=[...(data.pulse || []),...(data.milestones || []).map(p=>({id:`completion-${p.id}`,type:'Completion',title:`${p.name} · practical completion recorded`,summary:'The recorded practical completion date has been reached.',created_date:p.practical_completion_date,href:`/projects/${p.id}?tab=general`,system:true})),...(data.lessons || []).map(l=>({id:`knowledge-${l.id}`,type:'Knowledge',title:`Learning from ${l.project_name}`,summary:l.what_happened,created_date:l.created_date,href:l.href,author_name:l.author_name,system:true}))].sort((a,b)=>a.id===postId ? -1 : b.id===postId ? 1 : new Date(b.created_date)-new Date(a.created_date));
   const focused=events.some(item=>item.id===postId);
   useEffect(()=>{if(postId && focused) document.getElementById(`pulse-post-${postId}`)?.scrollIntoView({block:'center'});},[postId,focused]);
   return <section aria-label="Alliance update feed" className="min-w-0 space-y-4">
-    <PulseComposer user={user} groupId={group?.id || ''} onSaved={onRefresh}/>
+    <PulseComposer user={user} groupId={group?.id || ''} groupName={group?.name || ''} groupActions={group && <PulseGroupManage key={group.id} group={group} user={user} onUpdated={onRefresh} onLeft={onLeftGroup}/>} onSaved={onRefresh}/>
     <header className="flex items-center justify-between gap-3 border-b border-border px-1 pb-3"><h2 className="break-words text-sm font-bold">{hashtag ? `Updates tagged #${hashtag}` : 'Latest updates'}</h2>{hashtag ? <button type="button" onClick={onClearHashtag} className="shrink-0 text-xs font-semibold text-chart-2 hover:underline">Clear filter</button> : <span className="text-xs text-muted-foreground">Across Alliance</span>}</header>
     {postId && !focused && <p role="status" className="rounded-panel border border-border bg-card p-4 text-sm text-muted-foreground">This update is no longer available, or you do not have access to it.</p>}
     {error && <p role="alert" className="rounded-panel border border-border bg-card p-4 text-sm text-destructive">{error}</p>}

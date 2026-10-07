@@ -6,7 +6,6 @@ import AllianceImpact from '@/components/alliance/AllianceImpact';
 import AllianceKnowledge from '@/components/alliance/AllianceKnowledge';
 import AllianceStories from '@/components/alliance/AllianceStories';
 import PulseGroupNav from '@/components/alliance/PulseGroupNav';
-import PulseGroupManage from '@/components/alliance/PulseGroupManage';
 import allianceRequest,{allianceError,refreshAlliance} from '@/components/alliance/allianceClient';
 export default function AllianceHome({user,projectIds}) {
   const cache=useQueryClient(),[params,setParams]=useSearchParams(),hashtag=params.get('hashtag') || '',groupId=params.get('group') || '',postId=params.get('post') || '';
@@ -20,8 +19,7 @@ export default function AllianceHome({user,projectIds}) {
       <PulseGroupNav user={user} groupId={groupId} onSelect={selectGroup}/>
       <div className="min-w-0 space-y-4">
         {query.isPending ? <div role="status" className="rounded-panel border border-border bg-card p-6 text-sm text-muted-foreground">Loading Alliance updates…</div> : query.error ? <div role="alert" className="rounded-panel border border-border bg-card p-6 text-sm text-destructive">{allianceError(query.error)} <button type="button" className="underline" onClick={()=>query.refetch()}>Try again</button>{groupId && <button type="button" className="ml-3 underline" onClick={()=>selectGroup('')}>Back to All Alliance</button>}</div> : <>
-          {first.group && <PulseGroupManage key={first.group.id} group={first.group} user={user} onUpdated={refresh} onLeft={()=>{selectGroup('');refresh();}}/>}
-          <AlliancePulse postId={postId} key={groupId || 'all-alliance'} data={hashtag ? {...data,milestones:[],lessons:[]} : data} user={user} group={first.group} hashtag={hashtag} onClearHashtag={clearHashtag} onRefresh={refresh} onMore={()=>query.fetchNextPage()} loadingMore={query.isFetchingNextPage} hasMore={query.hasNextPage}/>
+          <AlliancePulse onLeftGroup={()=>{selectGroup('');refresh();}} postId={postId} key={groupId || 'all-alliance'} data={hashtag ? {...data,milestones:[],lessons:[]} : data} user={user} group={first.group} hashtag={hashtag} onClearHashtag={clearHashtag} onRefresh={refresh} onMore={()=>query.fetchNextPage()} loadingMore={query.isFetchingNextPage} hasMore={query.hasNextPage}/>
         </>}
       </div>
       {!groupId && data?.impact && <aside aria-label="Alliance impact, stories and learning" className="min-w-0 space-y-5 lg:col-start-2 xl:col-start-auto"><AllianceImpact compact data={data.impact}/><AllianceStories data={data}/><AllianceKnowledge lessons={data.lessons}/></aside>}
