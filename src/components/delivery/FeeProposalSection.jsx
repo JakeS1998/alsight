@@ -78,7 +78,9 @@ export function FeeProposalSection({ projectId, project, onChanged, deliveryTeam
   const { user } = useAuth();
   const queryCache = useQueryClient();
   const fsf = useSupplierFsf(user, selectedId, projectId);
-  const agreement = frameworkAgreementRoute(legalDocs, dmas, project.project_number);
+  const linkedAgreement = frameworkAgreementRoute(legalDocs, dmas, project.project_number);
+  const agreement = !linkedAgreement.route && legalDocs.some(doc => doc.document_type === 'access_agreement')
+    ? { route: 'dma', message: '' } : linkedAgreement;
   const singleTask = agreement.route === 'single_task';
   const frameworkFees = useFrameworkFees(frameworkVersion(project.project_number), agreement.route);
 
@@ -137,7 +139,9 @@ export function FeeProposalSection({ projectId, project, onChanged, deliveryTeam
   }, [pos]);
 
   const contractorBuild = useMemo(() => singleTask ? null : computeContractorBuildUp(deliveryTeam, ohpSurveysPct, ohpRiba57Pct, ohpSurveysType, ohpSurveysFixed), [singleTask, deliveryTeam, ohpSurveysPct, ohpRiba57Pct, ohpSurveysType, ohpSurveysFixed]);
-  const automaticSettings = !loading && selectedId && agreement.route && !frameworkFees.loading && !frameworkFees.error && frameworkFees.settings?.bands?.length ? frameworkFees.settings : null;
+  const provisionalFee = selected?.status !== 'accepted' || (agreement.route === 'dma' && !dmas.some(dma => dma.executed === 'yes'));
+  const liveSettings = frameworkFees.settings ? { ...frameworkFees.settings, provisional: provisionalFee } : null;
+  const automaticSettings = !loading && selectedId && agreement.route && !frameworkFees.loading && !frameworkFees.error && liveSettings?.bands?.length ? liveSettings : null;
   const items = useMemo(() => automaticFrameworkFeeLines(storedItems, feeProposalTotals(supplierLines, [], contractorBuild).supplierFees, automaticSettings, singleTask), [storedItems, supplierLines, contractorBuild, automaticSettings, singleTask]);
   const totals = useMemo(() => feeProposalTotals(supplierLines, items, contractorBuild), [supplierLines, items, contractorBuild]);
   const fsfContractors = useMemo(() => singleTask ? taskFees.contractors : contractorFsfRows(deliveryTeam, contractorBuild), [singleTask, taskFees, deliveryTeam, contractorBuild]);
@@ -314,7 +318,7 @@ export function FeeProposalSection({ projectId, project, onChanged, deliveryTeam
             {frameworkFees.error && <p role="alert" className="text-sm text-destructive">{frameworkFees.error}</p>}
             {frameworkFees.loading && <p role="status" className="text-sm text-muted-foreground">Loading framework fee bands…</p>}
             {agreement.message && <p role="status" className="rounded-lg border border-border bg-muted/50 p-3 text-sm text-muted-foreground">{agreement.message} Existing fee lines are unchanged.</p>}
-            {agreement.route && frameworkFees.settings && !frameworkFees.loading && !frameworkFees.error && <FrameworkFeeCalculator supplierFees={totals.supplierFees} feeLines={items} settings={frameworkFees.settings} />}
+            {agreement.route && frameworkFees.settings && !frameworkFees.loading && !frameworkFees.error && <FrameworkFeeCalculator supplierFees={totals.supplierFees} feeLines={items} settings={liveSettings} />}
 
             {/* Supplier fees (from delivery team) */}
             <SupplierFeeTable singleTask={singleTask} lines={supplierLines} getSupplierName={supplierName} fsf={fsf.allowed ? fsf : undefined} contractors={fsf.allowed ? fsfContractors : undefined} />
