@@ -9,7 +9,9 @@ export default function ProjectStickyHeader({ children, className = '' }) {
     const origin = element.getBoundingClientRect().top + window.scrollY;
     const update = () => {
       const stickyTop = parseFloat(window.getComputedStyle(element).top) || 0;
-      setCompact(window.matchMedia('(min-width: 1024px)').matches && window.scrollY > Math.max(0, origin - stickyTop));
+      const threshold = Math.max(0, origin - stickyTop);
+      const desktop = window.matchMedia('(min-width: 1024px)').matches;
+      setCompact(current => desktop && (current ? window.scrollY > threshold : window.scrollY > threshold + 32));
     };
     update();
     window.addEventListener('scroll', update, { passive: true });
