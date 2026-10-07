@@ -1,6 +1,8 @@
 import { createClientFromRequest } from 'npm:@base44/sdk@0.8.52';
 import { portfolioCachedRead, projectOverviewRollups } from '../../shared/portfolioOverviewReads.ts';
 import { readPortfolioStages } from '../../shared/portfolioStageSummary.ts';
+import { portfolioFinancialFigures, portfolioStatusRollups } from '../../shared/portfolioKeyFigures.ts';
+import { portfolioBusinessContext } from '../../shared/portfolioBusinessContext.ts';
 export default async function(req) {
   try {
     const base44 = createClientFromRequest(req);
@@ -21,7 +23,7 @@ export default async function(req) {
       async () => projectOverviewRollups(await base44.entities.Project.aggregate({ query, groupBy: ['live_project', 'department_id'], sum: 'estimated_value', limit: 1000 })),
       () => base44.entities.Opportunity.aggregate({ query: opportunitiesQuery, groupBy: 'stage', sum: ['budget','alliance_fee'], avg: ['budget','probability'] }),
       () => base44.entities.ProjectDelivery.aggregate({ query: related, groupBy: 'client_handover', avg: 'pct_programme' }),
-      () => base44.entities.ProjectAction.aggregate({ query: related, groupBy: 'status' }),
+      () => base44.entities.ProjectAction.aggregate({ query: related, groupBy: ['project_id','status','due_date','priority'], limit: 1000 }),
       () => base44.entities.ProjectDecision.aggregate({ query: related, groupBy: 'status' }),
       () => base44.entities.ProjectRisk.aggregate({ query: related, groupBy: 'status' }),
       () => base44.entities.Project.filter({ ...query, ...(typeof input.since === 'string' && !isNaN(Date.parse(input.since)) ? { updated_date: { $gt: input.since } } : {}) }, { sort: '-updated_date', limit: 4, fields: ['name','updated_date'] }),
@@ -38,6 +40,9 @@ export default async function(req) {
       }
       return results;
     })();
-    return Response.json({ stages, projects: projectRollups.projects, regions: projectRollups.regions, opportunities: opportunities.rows, delivery: delivery.rows, actions: actions.rows, decisions: decisions.rows, risks: risks.rows, recent: recent.items, milestones: milestones.items, coverage, refreshedAt: now });
+    if(actions.truncated) throw new Error('Portfolio flag figures exceeded their reporting limit.');
+    const keyFigures=await cachedRead('key-figures:v1',()=>portfolioFinancialFigures(base44.entities,related,actions.rows,now));
+    const businessContext=await portfolioBusinessContext(base44,user,now);
+    return Response.json({ stages, projects: projectRollups.projects, regions: projectRollups.regions, opportunities: opportunities.rows, delivery: delivery.rows, actions: portfolioStatusRollups(actions.rows), decisions: decisions.rows, risks: risks.rows, recent: recent.items, milestones: milestones.items, coverage, keyFigures, businessContext, refreshedAt: now });
   } catch (error) { return Response.json({ error: error.message }, { status: /rate limit|too many requests/i.test(error.message) ? 429 : 500 }); }
 }
