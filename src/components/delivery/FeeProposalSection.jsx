@@ -139,8 +139,7 @@ export function FeeProposalSection({ projectId, project, onChanged, deliveryTeam
   }, [pos]);
 
   const contractorBuild = useMemo(() => singleTask ? null : computeContractorBuildUp(deliveryTeam, ohpSurveysPct, ohpRiba57Pct, ohpSurveysType, ohpSurveysFixed), [singleTask, deliveryTeam, ohpSurveysPct, ohpRiba57Pct, ohpSurveysType, ohpSurveysFixed]);
-  const provisionalFee = selected?.status !== 'accepted' || (agreement.route === 'dma' && !dmas.some(dma => dma.executed === 'yes'));
-  const liveSettings = frameworkFees.settings ? { ...frameworkFees.settings, provisional: provisionalFee } : null;
+  const liveSettings = frameworkFees.settings;
   const automaticSettings = !loading && selectedId && agreement.route && !frameworkFees.loading && !frameworkFees.error && liveSettings?.bands?.length ? liveSettings : null;
   const items = useMemo(() => automaticFrameworkFeeLines(storedItems, feeProposalTotals(supplierLines, [], contractorBuild).supplierFees, automaticSettings, singleTask), [storedItems, supplierLines, contractorBuild, automaticSettings, singleTask]);
   const totals = useMemo(() => feeProposalTotals(supplierLines, items, contractorBuild), [supplierLines, items, contractorBuild]);

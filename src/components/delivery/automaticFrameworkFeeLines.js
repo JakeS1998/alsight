@@ -10,7 +10,7 @@ export default function automaticFrameworkFeeLines(lines, supplierFees, settings
   const stage = singleTask ? 'Task' : 'RIBA 5-7';
   const feeLine = {
     ...existing,
-    description: `${settings.uklf}${settings.provisional ? ' · Provisional' : ''} (${settings.calculation === 'progressive' ? 'progressive single-task bands' : `${pct}% of contract value`})`,
+    description: `${settings.uklf} (${settings.calculation === 'progressive' ? 'progressive single-task bands' : `${pct}% of contract value`})`,
     riba_stage: stage,
     stage_fees: { [stage]: amount },
     internal_fee: amount,

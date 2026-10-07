@@ -36,9 +36,8 @@ export default function FrameworkFeeCalculator({ supplierFees, feeLines, setting
   return <div className="rounded-lg border border-primary/30 bg-primary/5 p-3">
     <div className="flex flex-wrap items-center justify-between gap-2">
       <div>
-        <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">UKLF {settings.version} · {agreementFeeLabel(settings.version, settings.route)} fee ({settings.provisional ? 'provisional · live calculation' : 'live calculation'})</p>
+        <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">UKLF {settings.version} · {agreementFeeLabel(settings.version, settings.route)} fee (live calculation)</p>
         <p className="mt-0.5 text-sm text-muted-foreground">Based on current supplier, contractor and additional fees across every RIBA stage, excluding UKLF fee and contingency. Updates with every proposal change.</p>
-        {settings.provisional && <p className="mt-1 text-xs text-muted-foreground">Provisional until the fee proposal is accepted{settings.route === 'dma' ? ' and the development agreement is executed' : ''}. Save builder to retain the latest calculation.</p>}
       </div>
       <div className="text-right">
         <p className="text-lg font-semibold text-primary">{formatCurrency(feeAmount)}</p>
