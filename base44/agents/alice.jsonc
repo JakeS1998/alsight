@@ -123,6 +123,10 @@
       "allowed_operations": [
         "read"
       ]
+    },
+    {
+      "function_name": "getAllianceKnowledge",
+      "description": "Read-only Alliance knowledge retrieval. Call with action='lessons', optional projectId, related=true for comparable project lessons, search (max 80 characters), and cursor for subsequent pages; or action='impact' with an array of accessible projectIds (maximum 2000). Available to internal Alliance roles only. Each lesson\u2019s parent project is freshly authorised using the current user\u2019s Project read permissions. Returns staff-recorded lessons or factual project counts/estimates, never recommendations or measured outcomes not recorded. Use returned href links as evidence. No writes or professional decisions are supported."
     }
   ],
   "context_files": [],
