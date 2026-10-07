@@ -3,6 +3,7 @@ import { useInfiniteQuery, useQuery, useQueryClient } from '@tanstack/react-quer
 import { base44 } from '@/api/base44Client';
 import { TASK_SOURCES, assignedTaskQuery, taskRow } from '@/components/tasks/assignedTaskQueries';
 import organisationQueryPolicy from '@/components/data/organisationQueryPolicy';
+import { plannerDayEnd } from '@/components/dashboard/plannerDates';
 export default function useAssignedTasks(user, dueOnly = false, loadRows = true) {
   const client = useQueryClient();
   const [now, setNow] = useState(() => Math.floor(Date.now() / 60000) * 60000);
@@ -11,7 +12,7 @@ export default function useAssignedTasks(user, dueOnly = false, loadRows = true)
     const alternatives = [{ aad_id: user.id }, ...(user.email ? [{ email: user.email }] : [])];
     return (await base44.entities.Contact.filter({ $or: alternatives }, { limit: 20, fields: ['full_name', 'aad_id'] })).items;
   } });
-  const horizon = dueOnly ? new Date(now + 48 * 3600000).toISOString() : null;
+  const horizon = dueOnly === 'today' ? plannerDayEnd(now) : dueOnly ? new Date(now + 48 * 3600000).toISOString() : null;
   const key = ['assigned-tasks', scope, dueOnly, horizon];
   const queries = TASK_SOURCES.map(s => assignedTaskQuery(s, user || {}, identity.data || [], horizon));
   const enabled = !!user?.id && identity.isSuccess;
