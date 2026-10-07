@@ -31,7 +31,7 @@ export function useProjectCashFlow(projectId) {
 export default function ProjectCashFlow({ entries, commitments = [], loading, error }) {
   return <section className="rounded-2xl border border-border bg-card p-5 space-y-5">
     <div><h3 className="font-heading text-base font-semibold text-card-foreground">Money in & out</h3>
-      <p className="text-xs text-muted-foreground">Cumulative client payments, money out and net cash balance. Approved or issued POs are treated as outgoing payments at their net value, alongside recorded spending.</p></div>
+      <p className="text-xs text-muted-foreground">Cumulative client payments, money out and net cash balance. Approved or issued POs are treated as paid outgoings at their net value because they are raised after payment approval, alongside recorded spending.</p></div>
     {loading ? <p className="py-12 text-center text-sm text-muted-foreground">Loading cash flow…</p> : error ? <p role="alert" className="text-sm text-destructive">{error}</p> : <CashFlowChart entries={[...entries, ...commitments.map(entry => ({ ...entry, type: 'spent' }))]} />}
   </section>;
 }

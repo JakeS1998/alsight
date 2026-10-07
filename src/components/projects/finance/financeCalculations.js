@@ -57,8 +57,9 @@ export function commercialSummary(delivery, decisions, valuations, risks) {
 }
 
 // Derive a non-arbitrary commercial health status from live factors
-export function commercialHealth(summary, valuations) {
+export function commercialHealth(summary, valuations, paymentBalance) {
   const factors = [];
+  if (paymentBalance?.net < 0) factors.push({ label: `Negative net payment balance of ${formatCurrency(paymentBalance.net)}: client receipts are below recorded spending and approved/issued POs, treated as paid outgoings.`, level: 'risk' });
   const today = new Date().toISOString().slice(0, 10);
   if (summary.contractSum == null) factors.push({ label: 'Contract sum not recorded', level: 'watch' });
   if (summary.forecastFinalCost != null && summary.currentContractValue != null && summary.forecastFinalCost > summary.currentContractValue)

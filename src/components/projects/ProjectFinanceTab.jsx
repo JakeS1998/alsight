@@ -5,6 +5,7 @@ import { loadProjectPOs, isLegacyProject } from '@/components/projects/poLinking
 import { formatCurrency } from "@/lib/portal";
 import ProjectCashFlow, { useProjectCashFlow } from '@/components/projects/ProjectCashFlow';
 import InvoiceReceipts from '@/components/projects/InvoiceReceipts';
+import useProjectPaymentBalance from '@/components/projects/finance/useProjectPaymentBalance';
 import { useFinanceData } from './finance/useFinanceData';
 import { commercialSummary, commercialHealth, commercialAlerts, commercialMilestones, consultantFees, retentionInfo } from './finance/financeCalculations';
 import CommercialSummary from './finance/CommercialSummary';
@@ -33,6 +34,7 @@ export function ProjectFinanceTab({ project }) {
   const [accounts, setAccounts] = useState([]);
   const [loading, setLoading] = useState(true);
   const cashFlow = useProjectCashFlow(project.id);
+  const payments = useProjectPaymentBalance(project);
   const fin = useFinanceData(project);
 
   useEffect(() => {
@@ -78,13 +80,13 @@ export function ProjectFinanceTab({ project }) {
 
   const delivery = fin.deliveries?.[0];
   const summary = useMemo(() => commercialSummary(delivery, fin.decisions || [], fin.valuations || [], fin.risks || []), [delivery, fin.decisions, fin.valuations, fin.risks]);
-  const health = useMemo(() => commercialHealth(summary, fin.valuations || []), [summary, fin.valuations]);
+  const health = useMemo(() => payments.error ? { status: 'watch', factors: [{ label: 'Payment balance could not be verified; commercial health is not confirmed.', level: 'watch' }] } : commercialHealth(summary, fin.valuations || [], payments.data), [summary, fin.valuations, payments.data, payments.error]);
   const consultants = useMemo(() => consultantFees(delivery), [delivery]);
   const alerts = useMemo(() => commercialAlerts(summary, fin.valuations || [], pos, project, consultants), [summary, fin.valuations, pos, project, consultants]);
   const milestones = useMemo(() => commercialMilestones(project, fin.feeProposals || [], pos, fin.jcts || [], fin.valuations || [], delivery), [project, fin.feeProposals, pos, fin.jcts, fin.valuations, delivery]);
   const retention = useMemo(() => retentionInfo(fin.valuations || [], project), [fin.valuations, project]);
 
-  if (loading || fin.loading) return <Spinner />;
+  if (loading || fin.loading || payments.isPending) return <Spinner />;
 
   return (
     <div className="ws-subsection ws-finance space-y-6">

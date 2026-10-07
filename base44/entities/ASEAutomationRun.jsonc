@@ -12,6 +12,14 @@
     "account_id": {
       "type": "string"
     },
+    "source_mode": {
+      "type": "string",
+      "enum": [
+        "assessment",
+        "gazette"
+      ],
+      "default": "assessment"
+    },
     "status": {
       "type": "string",
       "enum": [

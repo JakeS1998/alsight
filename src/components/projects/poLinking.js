@@ -24,14 +24,20 @@ export const findProjectForPO = (po, projects) => {
   return matches.length === 1 ? matches[0] : null;
 };
 
+export function projectPOQuery(project) {
+  if (!project.project_number) return { legal_project_id: '__unlinked_project__' };
+  if (!isLegacyProject(project)) return { project_ref: project.project_number };
+  const words = legacyName(project).split(' ').filter(Boolean);
+  const pattern = words.length ? `(?:^|[^a-z0-9])${words.join('[^a-z0-9]+')}(?:[^a-z0-9]|$)` : '(?!)';
+  return { $or: [
+    { legal_project_id: project.id },
+    { legal_project_id: { $in: [null, ''] }, notes: { $regex: pattern, $options: 'i' } },
+  ] };
+}
+
 export async function loadProjectPOs(project, supplierCompanyNumber) {
   if (!project.project_number) return [];
-  const query = isLegacyProject(project)
-    ? { $or: [
-      { legal_project_id: project.id },
-      { notes: { $regex: legacyName(project).split(' ')[0], $options: 'i' } },
-    ] }
-    : { project_ref: project.project_number };
+  const query = projectPOQuery(project);
   if (supplierCompanyNumber) query.supplier_company_number = supplierCompanyNumber;
   const orders = await filterAll(base44.entities.PurchaseOrder, query);
   return orders.filter(po => matchesProjectPO(po, project));

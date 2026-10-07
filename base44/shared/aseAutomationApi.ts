@@ -1,4 +1,4 @@
-import {aseAutomationScope,validASEId} from './aseAutomationScope.ts';
+import {aseAutomationScope,validASEId,aseModeQuery} from './aseAutomationScope.ts';
 import {withASEAutomationLease} from './aseAutomationLease.ts';
 import {advanceASEAutomation} from './aseAutomationStep.ts';
 import {automaticEvidence} from './aseAutomaticEvidence.ts';
@@ -6,6 +6,9 @@ import {dispatchASEContinuation} from './aseAutomationDispatch.ts';
 import {resumeNightlyASE,stalledASERun,nightlyProgressRules} from './aseNightlyProgress.ts';
 import {accountsCacheRules} from './aseAccountsCache.ts';
 export async function manageASEAutomation(base44,user,input) {
+  const sourceMode=input.sourceMode || 'assessment';
+  if(!['assessment','gazette'].includes(sourceMode)) throw new Error('Invalid ASE source mode.');
+  const modeQuery=aseModeQuery(sourceMode);
   if(input.action==='automationRules') {
     const now=new Date('2026-10-05T12:00:00Z'),account={company_number:'12345678',local_authority_code:'E08000032'};
     const fact={component:'financial_strength',value:'25',reporting_period:'2026-03-31',source_date:'2026-06-01',confidence:'High',currency:'GBP'};
@@ -19,7 +22,7 @@ export async function manageASEAutomation(base44,user,input) {
   if(input.action==='automationStart') {
     if(input.confirmed!==true) throw new Error('Confirm automatic source refresh and publication.');
     const result=await withASEAutomationLease(base44,async()=>{
-      const active=await base44.entities.ASEAutomationRun.filter({status:{$in:['queued','running']}},{limit:1});
+      const active=await base44.entities.ASEAutomationRun.filter({...modeQuery,status:{$in:['queued','running']}},{limit:1});
       if(active.items.length) {
         if(input.scheduled===true) {
           const run=active.items[0];
@@ -29,11 +32,11 @@ export async function manageASEAutomation(base44,user,input) {
         throw new Error('An ASE run is already active. Pause it or wait for completion before starting another.');
       }
       if(input.scheduled===true) {
-        const unfinished=await base44.entities.ASEAutomationRun.filter({scope:'portfolio',status:'paused'},{sort:'created_date',limit:1});
+        const unfinished=await base44.entities.ASEAutomationRun.filter({...modeQuery,scope:'portfolio',status:'paused',pause_requested:{$ne:true}},{sort:'-created_date',limit:1});
         if(unfinished.items[0]) return resumeNightlyASE(base44,unfinished.items[0]);
       }
-      const scope=await aseAutomationScope(base44,input.accountId);
-      return {run:await base44.entities.ASEAutomationRun.create({...scope,scheduled:input.scheduled===true,status:scope.eligible_count ? 'queued' : 'completed',requested_by:user.id,requested_by_name:user.full_name || user.id,processed_count:0,cursor:'',active_job_id:'',finished_listing:false,last_activity:new Date().toISOString()})};
+      const scope=await aseAutomationScope(base44,input.accountId,sourceMode);
+      return {run:await base44.entities.ASEAutomationRun.create({...scope,source_mode:sourceMode,scheduled:input.scheduled===true,status:scope.eligible_count ? 'queued' : 'completed',requested_by:user.id,requested_by_name:user.full_name || user.id,processed_count:0,cursor:'',active_job_id:'',finished_listing:false,last_activity:new Date().toISOString()})};
     });
     if(result.busy) {
       if(input.scheduled===true) return {skipped:true,reason:'An ASE source operation is in progress; no overlapping nightly run was started.'};
@@ -45,7 +48,7 @@ export async function manageASEAutomation(base44,user,input) {
   if(input.action==='automationStatus') {
     let run;
     if(input.runId) run=await base44.entities.ASEAutomationRun.get(input.runId);
-    else {const query=input.accountId ? {scope:'account',account_id:input.accountId} : {scope:'portfolio'};const page=await base44.entities.ASEAutomationRun.filter(query,{sort:'-created_date',limit:1});run=page.items[0];}
+    else {const query=input.accountId ? {...modeQuery,scope:'account',account_id:input.accountId} : {...modeQuery,scope:'portfolio'};const page=await base44.entities.ASEAutomationRun.filter(query,{sort:'-created_date',limit:1});run=page.items[0];}
     if(!run) return {run:null};
     if(input.cursor!=null && (typeof input.cursor!=='string' || input.cursor.length>4096)) throw new Error('Invalid report cursor.');
     if(input.outcome && !['processing','rated','not_assessed','failed','skipped'].includes(input.outcome)) throw new Error('Invalid coverage filter.');
@@ -68,7 +71,7 @@ export async function manageASEAutomation(base44,user,input) {
       await base44.entities.ASEAutomationAccount.update(job.id,{outcome:'processing',stage:'Retrying frozen publication',completed_at:''});
       await base44.entities.ASEAutomationRun.update(run.id,{active_job_id:job.id});
     } else if(run.status==='completed') throw new Error('This run has completed. Start a new refresh instead.');
-    const active=await base44.entities.ASEAutomationRun.filter({status:{$in:['queued','running']}},{limit:10,fields:['id']});
+    const active=await base44.entities.ASEAutomationRun.filter({...aseModeQuery(run.source_mode),status:{$in:['queued','running']}},{limit:10,fields:['id']});
     if(active.items.some(item=>item.id!==run.id)) throw new Error('Another ASE run is active. Pause it before resuming this run.');
     if(run.status==='running') await base44.entities.ASEAutomationRun.update(run.id,{status:'paused'});
     return {run:await base44.entities.ASEAutomationRun.update(run.id,{status:'queued',pause_requested:false,dispatch_token:'',error:'',waiting_until:'',completed_at:''})};

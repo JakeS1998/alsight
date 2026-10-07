@@ -4,11 +4,11 @@ import {createASEV2Assessment} from './aseV2Assessment.ts';
 import {sourceIdentifier} from './aseSourceCommon.ts';
 import {collectASESource} from './aseCollectSource.ts';
 import {gazetteWaitSeconds} from './aseProviderPolicy.ts';
-const companySources=['registry','accounts','gazette'],councilSources=['local_authority','council_governance'];
+const companySources=['registry','accounts'],councilSources=['local_authority','council_governance'];
 export async function advanceASEAccount(base44,run,job,user,assertLease) {
   const account=await base44.entities.Account.get(job.account_id),model=account && accountModel(account);
   if(!account || account.status==='inactive' || account.name.startsWith('ASE Demo') || !model || model!==job.model) {await base44.entities.ASEAutomationAccount.update(job.id,{outcome:'skipped',stage:'Skipped',blockers:['Account became unavailable, inactive, a demo or changed organisation model.'],completed_at:new Date().toISOString()});return {done:true};}
-  const keys=model==='company' ? companySources : councilSources,key=keys.find(candidate=>!(job.sources || []).some(source=>source.key===candidate));
+  const keys=run.source_mode==='gazette' ? ['gazette'] : model==='company' ? companySources : councilSources,key=keys.find(candidate=>!(job.sources || []).some(source=>source.key===candidate));
   if(key) {
     let outcome;
     try {

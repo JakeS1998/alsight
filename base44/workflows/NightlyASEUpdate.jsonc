@@ -1,33 +1,6 @@
 {
-  "definition": {
-    "document": {
-      "dsl": "1.0.0",
-      "name": "nightly_ase_update",
-      "version": "1.2",
-      "namespace": "base44"
-    },
-    "do": [
-      {
-        "start_portfolio_update": {
-          "call": "invoke_backend_function",
-          "with": {
-            "function_name": "manageASE",
-            "args": {
-              "action": "automationStart",
-              "confirmed": true,
-              "scheduled": true
-            }
-          },
-          "then": "end",
-          "x-base44": {
-            "title": "Resume or start overnight ASE update",
-            "description": "Saved position; check new Companies House accounts"
-          }
-        }
-      }
-    ]
-  },
-  "description": "At 21:15 Europe/London each night, resumes the unfinished portfolio cycle at its saved company and source, or starts a new cycle only after completion. Checks Companies House for new filed accounts and extracts the latest disclosed turnover, reusing integrity-checked unchanged filings. Scheduled collection pauses at 07:00 and continues the next night; manually paused runs stay paused. Demos and HMRC are excluded, legacy assessments are preserved, and live work is not duplicated.",
+  "description": "At 21:15 Europe/London, starts or resumes a separate Gazette-only company refresh. Companies House and council source assessments continue independently during the daytime. Gazette collection stops at 07:00 and resumes from saved progress the next night; manual pauses, provider limits, existing evidence freshness and legacy assessments are preserved.",
+  "name": "Nightly ASE Update",
   "trigger": {
     "condition": null,
     "config": {
@@ -45,5 +18,33 @@
       "ends_after_count": null
     }
   },
-  "name": "Nightly ASE Update"
+  "definition": {
+    "document": {
+      "dsl": "1.0.0",
+      "name": "nightly_ase_update",
+      "version": "1.3",
+      "namespace": "base44"
+    },
+    "do": [
+      {
+        "start_portfolio_update": {
+          "call": "invoke_backend_function",
+          "with": {
+            "function_name": "manageASE",
+            "args": {
+              "action": "automationStart",
+              "confirmed": true,
+              "scheduled": true,
+              "sourceMode": "gazette"
+            }
+          },
+          "then": "end",
+          "x-base44": {
+            "title": "Resume or start Gazette-only refresh",
+            "description": "Stored progress; no daytime source refreshes"
+          }
+        }
+      }
+    ]
+  }
 }
