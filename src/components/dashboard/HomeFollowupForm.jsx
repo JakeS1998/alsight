@@ -3,13 +3,13 @@ import { base44 } from '@/api/base44Client';
 import { Dialog, DialogContent, DialogTitle, DialogDescription } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-export default function HomeFollowupForm({ user, initial, onClose, onSaved }) {
+export default function HomeFollowupForm({ user, initial, contactId, onClose, onSaved }) {
   const [subject, setSubject] = useState(initial), [when, setWhen] = useState('');
   const [busy, setBusy] = useState(false), [error, setError] = useState('');
   const save = async event => {
     event.preventDefault(); setBusy(true); setError('');
     try {
-      await base44.entities.CRMReminder.create({ user_id: user.id, subject: subject.trim(), remind_at: new Date(when).toISOString() });
+      await base44.entities.CRMReminder.create({ user_id: user.id, subject: subject.trim(), remind_at: new Date(when).toISOString(), ...(contactId ? { contact_id: contactId } : {}) });
       await onSaved(); onClose();
     } catch (err) { setError(err.message || 'Could not schedule your follow-up.'); }
     finally { setBusy(false); }
