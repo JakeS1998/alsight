@@ -5,9 +5,9 @@ export default function PurposeSources({text}) {
   return <div className="mt-3 space-y-2 whitespace-normal">
     <p className="text-xs font-semibold text-muted-foreground">Sources</p>
     <ReactMarkdown components={{
-      ol:({children})=><ol className="flex list-none flex-wrap gap-2 p-0">{children}</ol>,
-      ul:({children})=><ul className="flex list-none flex-wrap gap-2 p-0">{children}</ul>,
-      li:({children})=><li className="contents">{children}</li>,
+      ol:({children,start=1})=><ol className="flex list-none flex-wrap gap-2 p-0" style={{counterReset:`source ${start-1}`}}>{children}</ol>,
+      ul:({children})=><ul className="flex list-none flex-wrap gap-2 p-0 [counter-reset:source]">{children}</ul>,
+      li:({children})=><li className="contents before:hidden [counter-increment:source] [&_a]:before:mr-1 [&_a]:before:content-['['counter(source)']']">{children}</li>,
       p:({children})=><span className="contents">{children}</span>,
       a:({href,children})=>{
         const title=React.Children.toArray(children).join('');
