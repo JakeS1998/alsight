@@ -1,0 +1,103 @@
+{
+  "name": "AllianceLesson",
+  "type": "object",
+  "properties": {
+    "project_id": {
+      "type": "string"
+    },
+    "pathway_stage": {
+      "type": "string",
+      "enum": [
+        "",
+        "Scope",
+        "Fee",
+        "Prepare",
+        "Design",
+        "Programme",
+        "Act",
+        "Decide",
+        "De-risk",
+        "Build",
+        "Handover"
+      ]
+    },
+    "riba_stage": {
+      "type": "string",
+      "enum": [
+        "",
+        "RIBA 0",
+        "RIBA 1",
+        "RIBA 2",
+        "RIBA 3",
+        "RIBA 4",
+        "RIBA 5",
+        "RIBA 6",
+        "RIBA 7"
+      ]
+    },
+    "region": {
+      "type": "string"
+    },
+    "project_type": {
+      "type": "string",
+      "maxLength": 100
+    },
+    "theme": {
+      "type": "string",
+      "maxLength": 100
+    },
+    "what_happened": {
+      "type": "string",
+      "maxLength": 2000
+    },
+    "what_worked": {
+      "type": "string",
+      "maxLength": 2000
+    },
+    "what_didnt": {
+      "type": "string",
+      "maxLength": 2000
+    },
+    "what_we_would_do_differently": {
+      "type": "string",
+      "maxLength": 2000
+    },
+    "what_we_should_repeat": {
+      "type": "string",
+      "maxLength": 2000
+    },
+    "author_id": {
+      "type": "string"
+    },
+    "author_name": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "project_id",
+    "what_happened",
+    "author_id"
+  ],
+  "rls": {
+    "read": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "create": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "update": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "delete": {
+      "user_condition": {
+        "role": "admin"
+      }
+    }
+  }
+}

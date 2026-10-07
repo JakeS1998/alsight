@@ -1,0 +1,88 @@
+{
+  "name": "AlliancePulseItem",
+  "type": "object",
+  "properties": {
+    "type": {
+      "type": "string",
+      "enum": [
+        "Project milestone",
+        "Team recognition",
+        "Project win",
+        "Impact",
+        "Knowledge",
+        "Team news",
+        "New project",
+        "Completion",
+        "Client success"
+      ]
+    },
+    "title": {
+      "type": "string",
+      "maxLength": 200
+    },
+    "summary": {
+      "type": "string",
+      "maxLength": 1500
+    },
+    "related_entity_type": {
+      "type": "string",
+      "enum": [
+        "none",
+        "project",
+        "person",
+        "lesson"
+      ]
+    },
+    "related_entity_id": {
+      "type": "string"
+    },
+    "author_id": {
+      "type": "string"
+    },
+    "author_name": {
+      "type": "string"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "published",
+        "archived"
+      ],
+      "default": "published"
+    },
+    "is_story": {
+      "type": "boolean",
+      "default": false
+    }
+  },
+  "required": [
+    "type",
+    "title",
+    "summary",
+    "related_entity_type",
+    "author_id",
+    "status"
+  ],
+  "rls": {
+    "read": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "create": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "update": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "delete": {
+      "user_condition": {
+        "role": "admin"
+      }
+    }
+  }
+}

@@ -31,6 +31,8 @@ import PMProjectPathway from '@/components/delivery/PMProjectPathway';
 import ProjectChanges from '@/components/alice/ProjectChanges';
 import DocumentInsight from '@/components/alice/DocumentInsight';
 import ProjectAttention from '@/components/projects/ProjectAttention';
+import ProjectPurpose from '@/components/alliance/ProjectPurpose';
+import ProjectLessons from '@/components/alliance/ProjectLessons';
 
 
 export default function ProjectDetail() {
@@ -101,9 +103,11 @@ export default function ProjectDetail() {
           <ProjectWorkspaceNav user={user} project={project} isSupplier={isSupplier} isExternalPM={isExternalPM} canSeeValuations={canSeeValuations} />
         </ProjectStickyHeader>
         <TabsContent value="general" className="ws-content space-y-6">
+          <ProjectPurpose key={project.id} project={project} onUpdated={updated=>setProject(current=>({...current,...updated}))} />
           {INTERNAL_ROLES.includes(user?.role) && <ProjectAttention project={project}/>}
           {INTERNAL_ROLES.includes(user?.role) && <ProjectChanges key={project.id} project={project} legalDocs={legalDocs} dmas={dmas} jcts={jcts} />}
           <ProjectGeneralTab project={project} singleTask={frameworkAgreementRoute(legalDocs, dmas, project.project_number).route === 'single_task'} accountMap={accountMap} legalDocs={legalDocs} jcts={jcts} onProjectUpdated={updated => setProject(current => ({ ...current, ...updated }))} />
+          {INTERNAL_ROLES.includes(user?.role) && <ProjectLessons key={project.id} project={project} />}
         </TabsContent>
         <TabsContent value="timeline" className="ws-content mt-6 space-y-6">
           {INTERNAL_ROLES.includes(user?.role) && <ProjectChanges key={project.id} project={project} legalDocs={legalDocs} dmas={dmas} jcts={jcts} />}

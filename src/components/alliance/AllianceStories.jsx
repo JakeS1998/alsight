@@ -1,0 +1,7 @@
+import React from 'react';
+import {Link} from 'react-router-dom';
+import AlliancePanel from '@/components/alliance/AlliancePanel';
+export default function AllianceStories({data}) {
+  const stories=[...(data.stories || []).map(s=>({id:s.id,title:s.title,body:s.summary,theme:s.type,href:s.href})),...(data.impact?.purposes || []).map(p=>({id:p.id,title:p.name,body:p.why_this_matters,theme:'People • Place • Purpose',href:`/projects/${p.id}?tab=general`}))].slice(0,3);
+  return <AlliancePanel title="Alliance Stories" eyebrow="The work behind the records"><p className="mb-4 text-sm text-muted-foreground">Projects, people and experiences that explain why our work matters.</p><div className="space-y-3">{stories.map(story=><Link key={story.id} to={story.href} className="block min-w-0 rounded-xl border border-border bg-muted/50 p-4 transition-colors hover:border-primary"><p className="text-[10px] font-bold uppercase tracking-wide text-muted-foreground">{story.theme}</p><h3 className="mt-2 break-words text-base font-bold">{story.title}</h3><p className="mt-2 line-clamp-4 whitespace-pre-line break-words text-sm leading-relaxed text-muted-foreground">{story.body}</p><span className="mt-3 block text-xs font-semibold">Read the story in ALSight →</span></Link>)}{!stories.length && <p className="text-sm text-muted-foreground">Stories are waiting to be captured. Record a project’s purpose or feature a record-linked Alliance update.</p>}</div></AlliancePanel>;
+}

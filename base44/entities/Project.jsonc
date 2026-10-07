@@ -11,6 +11,25 @@
     "description": {
       "type": "string"
     },
+    "why_this_matters": {
+      "type": "string",
+      "maxLength": 4000
+    },
+    "impact_themes": {
+      "type": "array",
+      "maxItems": 6,
+      "items": {
+        "type": "string",
+        "enum": [
+          "Health & wellbeing",
+          "Community",
+          "Place",
+          "Inclusion",
+          "Sustainability",
+          "Social value"
+        ]
+      }
+    },
     "request_brief_file_uri": {
       "type": "string",
       "description": "Private JSON archive of the originating ALICE conversation, source document references and submitted request"

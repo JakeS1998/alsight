@@ -17,6 +17,7 @@ import DashboardPanel from '@/components/dashboard/DashboardPanel';
 import { ProjectMap } from '@/components/dashboard/ProjectMap';
 import '@/components/dashboard/dashboard-reference.css';
 import WorkspacePageHeader from '@/components/layout/WorkspacePageHeader';
+import PortfolioImpact from '@/components/alliance/PortfolioImpact';
 export default function PortfolioOverview() {
   const [filters, setFilters] = useState({});
   const dashboard = useDashboardData(filters);
@@ -31,6 +32,7 @@ export default function PortfolioOverview() {
   const metrics = data ? {...dashboard.portfolio.metrics,projects:serverCount,live:data.projects.filter(r=>r.live_project === true).reduce((n,r)=>n+r.count,0),value:data.projects.reduce((n,r)=>n+(r.sum_estimated_value || 0),0)} : dashboard.portfolio.metrics;
   return <div className="portfolio-reference space-y-4"><WorkspacePageHeader title="Portfolio Overview" eyebrow="Alliance 360" description="Live commercial and delivery position across Alliance Leisure." image="https://images.unsplash.com/photo-1530549387789-4c1017266635?auto=format&fit=crop&w=1800&q=85" imageAlt="Swimming pool and leisure facilities" /><OverviewFilters user={dashboard.user} filters={filters} onChange={setFilters} onRefresh={dashboard.refresh} loading={dashboard.loading || analytics.isFetching} refreshedAt={data?.refreshedAt} />
     {error ? <div role="alert" className="dashboard-panel text-sm text-destructive">{error}<button onClick={dashboard.refresh} className="ml-3 underline">Try again</button></div> : dashboard.loading || !data ? <DashboardSkeleton internal /> : <>
+      <PortfolioImpact projectIds={dashboard.projects.map(p=>p.id)} />
       <OverviewKpis metrics={metrics} onRisk={() => document.getElementById('overview-attention')?.scrollIntoView({behavior:'smooth',block:'center'})} />
       <div className="overview-journey-row"><PipelineTimeline projects={dashboard.portfolio.pipeline} accountMap={dashboard.accountMap} stageSummary={data.stages} opportunitySummary={opportunities} /><OverviewHealth metrics={metrics} /></div>
       <div className="overview-middle"><OverviewRegions rows={data.regions} /><OverviewCommercial rows={data.opportunities} poNet={metrics.poNet} /><OverviewReadiness data={data} metrics={metrics} fees={dashboard.portfolio.fees} /></div>

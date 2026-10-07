@@ -1,0 +1,4 @@
+export const IMPACT_THEMES = ['Health & wellbeing', 'Community', 'Place', 'Inclusion', 'Sustainability', 'Social value'];
+export const LESSON_PROMPTS = [['what_happened', 'What happened'], ['what_worked', 'What worked'], ['what_didnt', 'What didn’t'], ['what_we_would_do_differently', 'What we’d do differently'], ['what_we_should_repeat', 'What we should repeat']];
+export const PULSE_TYPES = ['Project milestone', 'Team recognition', 'Project win', 'Impact', 'Knowledge', 'Team news', 'New project', 'Completion', 'Client success'];
+export const IMPACT_CONTEXT = {'Health & wellbeing':'Healthier, more active communities.', Community:'Leisure facilities as hubs for local communities.', Place:'Transforming leisure assets and the places around them.', Sustainability:'Environmental outcomes and sustainable long-term leisure.', 'Social value':'Local skills, employment and community investment.'};

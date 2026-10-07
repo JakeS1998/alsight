@@ -1,0 +1,41 @@
+import {allowedLessons,allowedPulse,projectAccess} from './allianceLayerAccess.ts';
+export async function readLessons(base44,input) {
+  const project=input.projectId ? await projectAccess(base44,input.projectId) : null;
+  const related=[];
+  if(project?.department_id) related.push({region:project.department_id});
+  if(project?.impact_themes?.length) related.push({theme:{$in:project.impact_themes}});
+  const query=input.related ? (related.length ? {$and:[{project_id:{$ne:project.id}},{$or:related}]} : {project_id:'__no_similarity_metadata__'}) : project ? {project_id:project.id} : {};
+  if(input.search) query.what_happened={$regex:String(input.search).replace(/[.*+?^${}()|[\]\\]/g,'\\$&'),$options:'i'};
+  const page=await base44.asServiceRole.entities.AllianceLesson.filter(query,{sort:'-created_date',limit:20,...(input.cursor ? {cursor:input.cursor} : {})});
+  const items=await allowedLessons(base44,page.items);
+  const total=project && !input.related ? await base44.asServiceRole.entities.AllianceLesson.count(query) : null;
+  let focused=null;
+  if(project && !input.related && !input.cursor && input.lessonId && !items.some(item=>item.id===input.lessonId)) {
+    if(typeof input.lessonId!=='string' || !/^[a-f0-9]{24}$/i.test(input.lessonId)) throw new Error('Invalid lesson selection.');
+    const selected=await base44.asServiceRole.entities.AllianceLesson.filter({id:input.lessonId,project_id:project.id},{limit:1});
+    focused=(await allowedLessons(base44,selected.items))[0] || null;
+  }
+  return {items,total,focused,next_cursor:page.next_cursor,has_more:page.has_more};
+}
+export async function readImpact(base44,input) {
+  if(!Array.isArray(input.projectIds) || input.projectIds.length>2000 || input.projectIds.some(id=>typeof id!=='string' || !/^[a-f0-9]{24}$/i.test(id))) throw new Error('Invalid portfolio selection.');
+  const query={id:{$in:input.projectIds.length ? input.projectIds : ['000000000000000000000000']},status:{$ne:'inactive'}};
+  const totals=await base44.entities.Project.aggregate({query,groupBy:'live_project',sum:'estimated_value'});
+  if(totals.truncated) throw new Error('Impact totals are unavailable for this selection.');
+  const completed=await base44.entities.Project.count({...query,practical_completion_date:{$exists:true,$nin:[null,''],$lte:new Date().toISOString()}});
+  const valued=await base44.entities.Project.count({...query,estimated_value:{$gt:0}});
+  const purposes=await base44.entities.Project.filter({...query,why_this_matters:{$exists:true,$nin:[null,'']}},{sort:'-updated_date',limit:6,fields:['name','why_this_matters','impact_themes']});
+  return {projects:totals.rows.reduce((n,r)=>n+r.count,0),live:totals.rows.find(r=>r.live_project===true)?.count || 0,completed,estimatedInvestment:valued ? totals.rows.reduce((n,r)=>n+(r.sum_estimated_value || 0),0) : null,valuedProjects:valued,purposes:purposes.items};
+}
+export async function readHome(base44,input,user) {
+  const page=await base44.asServiceRole.entities.AlliancePulseItem.filter({status:'published'},{sort:'-created_date',limit:10,...(input.cursor ? {cursor:input.cursor} : {})});
+  const pulse=await allowedPulse(base44,page.items);
+  if(input.cursor) return {pulse,next_cursor:page.next_cursor,has_more:page.has_more};
+  const impact=await readImpact(base44,input);
+  const curated=await base44.asServiceRole.entities.AlliancePulseItem.filter({status:'published',is_story:true},{sort:'-created_date',limit:4});
+  const stories=await allowedPulse(base44,curated.items);
+  const lessons=await readLessons(base44,{});
+  const ids=input.projectIds.length ? input.projectIds : ['000000000000000000000000'];
+  const milestones=await base44.entities.Project.filter({id:{$in:ids},status:{$ne:'inactive'},practical_completion_date:{$exists:true,$nin:[null,''],$lte:new Date().toISOString()}},{sort:'-practical_completion_date',limit:3,fields:['name','practical_completion_date']});
+  return {impact,pulse,stories,lessons:lessons.items.slice(0,3),milestones:milestones.items,userId:user.id,next_cursor:page.next_cursor,has_more:page.has_more};
+}

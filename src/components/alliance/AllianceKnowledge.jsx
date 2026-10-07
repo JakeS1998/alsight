@@ -1,0 +1,6 @@
+import React from 'react';
+import {Link} from 'react-router-dom';
+import AlliancePanel from '@/components/alliance/AlliancePanel';
+export default function AllianceKnowledge({lessons}) {
+  return <AlliancePanel title="What We’ve Learned" eyebrow="Experience becomes shared knowledge"><p className="mb-4 text-sm text-muted-foreground">What worked. What didn’t. What we’d repeat. Recorded by Alliance people, not invented by AI.</p><div className="space-y-4">{lessons.map(lesson=><Link key={lesson.id} to={lesson.href} className="block min-w-0 rounded-lg border border-border p-3 hover:border-primary"><p className="text-[10px] font-bold uppercase tracking-wide text-muted-foreground">{[lesson.pathway_stage,lesson.riba_stage,lesson.theme].filter(Boolean).join(' · ') || 'Project learning'}</p><p className="mt-2 line-clamp-3 break-words text-sm font-semibold">{lesson.what_happened}</p><p className="mt-2 text-xs text-muted-foreground">{lesson.project_name}</p><span className="mt-2 block text-xs font-semibold">View lesson →</span></Link>)}{!lessons.length && <p className="text-sm text-muted-foreground">No accessible lessons have been captured yet. Use “Add lesson” in a project overview or Project Pathway.</p>}</div></AlliancePanel>;
+}

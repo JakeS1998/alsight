@@ -6,6 +6,7 @@ import useAssignedTasks from '@/components/tasks/useAssignedTasks';
 import HomeJourneyHero from '@/components/dashboard/HomeJourneyHero';
 import HomeWelcome from '@/components/dashboard/HomeWelcome';
 import HomeJourney from '@/components/dashboard/HomeJourney';
+import AllianceHome from '@/components/alliance/AllianceHome';
 import HomeQuickActions from '@/components/dashboard/HomeQuickActions';
 import DashboardAliceCard from '@/components/dashboard/DashboardAliceCard';
 import HomeToday from '@/components/dashboard/TodayPlanner.jsx';
@@ -27,6 +28,7 @@ export default function Home() {
     <HomeWelcome user={dashboard.user} metrics={dashboard.portfolio.metrics} opportunities={opportunityCount} tasks={tasks} internal={dashboard.internal} />
     {dashboard.internal && <HomeToday user={dashboard.user} tasks={tasks} />}
     <HomeJourney internal={dashboard.internal} />
+    {dashboard.internal && <AllianceHome user={dashboard.user} projectIds={dashboard.projects.map(p=>p.id)} />}
     <div className="home-actions-row"><HomeQuickActions project={dashboard.portfolio.pipeline[0]} role={dashboard.role} /><DashboardAliceCard /></div>
     <div className="grid gap-4 lg:grid-cols-2"><HomeProjectsPanel projects={dashboard.projects} recentIds={recentIds} atRisk={dashboard.portfolio.atRisk} /><HomeMilestones rows={analytics.data?.milestones} loading={dashboard.internal && analytics.isPending} error={analytics.error} /></div>
   </div>;
