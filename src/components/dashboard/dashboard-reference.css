@@ -8,7 +8,8 @@
 @media (min-width: 1024px) {
   .home-reference { overflow-anchor: none; }
   .home-reference .home-sticky-hero { container-type: inline-size; padding-block: 0; overflow-anchor: none; }
-  .home-reference .home-sticky-hero .home-hero { min-height: max(420px, 39.32cqw); transition: min-height 240ms ease; }
+  .home-reference .home-sticky-hero .home-hero { min-height: max(300px, 18.36cqw); transition: min-height 240ms ease; }
+  .home-reference .home-sticky-hero .home-hero > [data-base44-image] { height: max(300px, 18.36cqw); bottom: auto; }
   .home-reference .home-sticky-hero .home-hero-copy { transition: padding 240ms ease; }
   .home-reference .home-sticky-hero .home-hero h2 { transition: font-size 240ms ease; }
   .home-reference .home-sticky-hero .home-hero-copy > :not(h2) { max-height: 120px; opacity: 1; overflow: hidden; transition: max-height 240ms ease, opacity 160ms ease, margin 240ms ease, visibility 240ms; }
