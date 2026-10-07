@@ -22,14 +22,18 @@ export function contractorFsfRows(team, build) {
     });
   });
   const grouped = new Map();
-  members.forEach(({ member, amounts }) => {
+  members.forEach(({ member, bases, amounts }) => {
     const key = contractorFsfKey(member);
-    if (!grouped.has(key)) grouped.set(key, { key, supplier: member.supplier_company_number || member.role || 'Contractor', role: member.role || 'Contractor', fee_proposal_link: member.fee_proposal_link, stageAmounts: {} });
+    if (!grouped.has(key)) grouped.set(key, { key, supplier: member.supplier_company_number || member.role || 'Contractor', role: member.role || 'Contractor', fee_proposal_link: member.fee_proposal_link, stageAmounts: {}, rawStageAmounts: {} });
     const row = grouped.get(key);
-    Object.entries(amounts).forEach(([stage, amount]) => { row.stageAmounts[stage] = round((row.stageAmounts[stage] || 0) + amount); });
+    Object.entries(amounts).forEach(([stage, amount]) => {
+      row.stageAmounts[stage] = round((row.stageAmounts[stage] || 0) + bases[stage] + amount);
+      row.rawStageAmounts[stage] = round((row.rawStageAmounts[stage] || 0) + bases[stage]);
+    });
   });
   return scopeContractorFsf([...grouped.values()]);
 }
 export function scopeContractorFsf(rows = [], includeRiba57 = true) {
-  return rows.map(row => ({ ...row, base: round(Object.entries(row.stageAmounts).reduce((sum, [stage, amount]) => sum + (includeRiba57 || stage !== 'riba_5_7' ? amount : 0), 0)) }));
+  const total = amounts => round(Object.entries(amounts || {}).reduce((sum, [stage, amount]) => sum + (includeRiba57 || stage !== 'riba_5_7' ? amount : 0), 0));
+  return rows.map(row => ({ ...row, base: total(row.stageAmounts), rawBase: total(row.rawStageAmounts) }));
 }

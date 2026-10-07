@@ -27,7 +27,11 @@ export async function linkedRecord(base44,kind,id) {
   if(kind==='lesson') { const lesson=await base44.asServiceRole.entities.AllianceLesson.get(id);const visible=await allowedLessons(base44,[lesson]);if(!visible.length) throw new Error('No matching accessible lesson.');return {href:visible[0].href,label:visible[0].project_name}; }
   throw new Error('Invalid linked record type.');
 }
-export async function allowedPulse(base44,items) {
+export async function allowedPulse(base44,items,user) {
+  const groupIds=[...new Set(items.map(item=>item.group_id).filter(Boolean))];
+  const groups=groupIds.length && user ? (await base44.asServiceRole.entities.AlliancePulseGroup.filter({id:{$in:groupIds},member_ids:user.id},{limit:50,fields:['name']})).items : [];
+  const visibleGroups=new Set(groups.map(group=>group.id));
+  items=items.filter(item=>!item.group_id || visibleGroups.has(item.group_id));
   const lessonIds=[...new Set(items.filter(i=>i.related_entity_type==='lesson').map(i=>i.related_entity_id))];
   const lessons=lessonIds.length ? (await base44.asServiceRole.entities.AllianceLesson.filter({id:{$in:lessonIds}},{limit:50})).items : [];
   const projectIds=[...new Set([...items.filter(i=>i.related_entity_type==='project').map(i=>i.related_entity_id),...lessons.map(l=>l.project_id)])];

@@ -2,6 +2,7 @@ import {createClientFromRequest} from 'npm:@base44/sdk@0.8.52';
 import {internalRoles} from '../../shared/allianceLayerAccess.ts';
 import {readLessons,readImpact,readHome} from '../../shared/allianceLayerReads.ts';
 import {addLesson,addPulse,removeItem,savePurpose} from '../../shared/allianceLayerWrites.ts';
+import {managePulseGroups} from '../../shared/pulseGroupActions.ts';
 export default async function(req) {
   try {
     const base44=createClientFromRequest(req),user=await base44.auth.me();
@@ -11,6 +12,7 @@ export default async function(req) {
     if(input.search && (typeof input.search!=='string' || input.search.length>80)) return Response.json({error:'Search must be 80 characters or fewer.'},{status:400});
     if(input.related && !input.projectId) return Response.json({error:'Select a project for similar lessons.'},{status:400});
     if(input.cursor && (typeof input.cursor!=='string' || input.cursor.length>4000)) return Response.json({error:'Invalid continuation.'},{status:400});
+    if(['groups','groupCreate','groupPeople','groupMembers','groupMemberAdd','groupMemberRemove','groupOwner','groupLeave'].includes(input.action)) return Response.json(await managePulseGroups(base44,user,input));
     if(input.action==='lessons') return Response.json(await readLessons(base44,input));
     if(input.action==='impact') return Response.json(await readImpact(base44,input));
     if(input.action==='home') return Response.json(await readHome(base44,input,user));

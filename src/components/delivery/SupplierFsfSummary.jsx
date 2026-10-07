@@ -17,7 +17,7 @@ export default function SupplierFsfSummary({ alsFee, fsfTotal, loading, error, o
       <div><p className="text-xs text-muted-foreground">Supplier FSF commission</p><p className="text-lg font-semibold">{loading ? 'Loading…' : formatCurrency(fsfTotal)}</p></div>
       <div><p className="text-xs text-muted-foreground">Total ALS Value</p><p className="text-lg font-semibold">{loading ? 'Loading…' : formatCurrency(alsFee + fsfTotal)}</p></div>
     </div>}
-    <p className="text-xs text-muted-foreground">Contractor FSF applies to OHP only; other supplier FSF applies to base fees. Save builder or save FSF rates to retain changes.</p>
+    <p className="text-xs text-muted-foreground">FSF applies to each supplier’s full fees. Contractor fees include surveys, consultants, authorised activities and OHP. Save builder or save FSF rates to retain changes.</p>
     {saveError && <p role="alert" className="text-sm text-destructive">{saveError}</p>}
     <Button type="button" variant="outline" size="sm" disabled={loading || !!error || saving} onClick={save}>{saving ? 'Saving…' : 'Save FSF rates'}</Button>
   </div>;

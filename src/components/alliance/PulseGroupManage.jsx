@@ -1,0 +1,17 @@
+import React,{useState} from 'react';
+import {Lock} from 'lucide-react';
+import {Button} from '@/components/ui/button';
+import PulsePeoplePicker from '@/components/alliance/PulsePeoplePicker';
+import PulseGroupMembers from '@/components/alliance/PulseGroupMembers';
+import allianceRequest,{allianceError} from '@/components/alliance/allianceClient';
+export default function PulseGroupManage({group,user,onUpdated,onLeft}) {
+  const [open,setOpen]=useState(false),[person,setPerson]=useState(null),[busy,setBusy]=useState(false),[error,setError]=useState(''),[notice,setNotice]=useState('');
+  const owner=group.owner_id===user.id;
+  const change=async(action,personId)=>{
+    if(action==='groupOwner' && !window.confirm(`Transfer ownership to ${person.full_name}? You will stay a member and can then leave.`)) return;
+    if(action==='groupLeave' && !window.confirm('Leave this private group? You will need another invitation to return.')) return;
+    setBusy(true);setError('');setNotice('');
+    try{await allianceRequest(action,{groupId:group.id,personId});setPerson(null);if(action==='groupLeave') onLeft();else {await onUpdated();setNotice(action==='groupOwner' ? 'Ownership transferred. You can now leave if needed.' : action==='groupMemberAdd' ? 'Colleague invited and added to the group.' : 'Member removed.');}}catch(error){setError(allianceError(error));}finally{setBusy(false);}
+  };
+  return <section className="space-y-4 rounded-panel border border-border bg-card p-5"><div className="flex flex-wrap items-start justify-between gap-3"><div><p className="flex items-center gap-2 text-xs font-semibold text-muted-foreground"><Lock className="h-3.5 w-3.5"/>Private · Invite-only</p><h2 className="mt-2 break-words font-heading text-lg font-bold">{group.name}</h2>{group.description && <p className="mt-2 whitespace-pre-line text-sm text-muted-foreground">{group.description}</p>}</div><Button type="button" size="sm" variant="outline" onClick={()=>setOpen(!open)}>{open ? 'Close details' : owner ? 'Manage group' : 'Members'}</Button></div>{open && <div className="space-y-4 border-t border-border pt-4"><PulseGroupMembers group={group} user={user} busy={busy} onRemove={member=>{if(window.confirm(`Remove ${member.full_name} from this group?`)) change('groupMemberRemove',member.id);}}/>{owner && <div className="space-y-3 border-t border-border pt-4"><h3 className="text-sm font-bold">Invite or assign a new owner</h3><PulsePeoplePicker groupId={group.id} disabled={busy} onSelect={setPerson}/>{person && <p className="text-sm">Selected: <strong>{person.full_name}</strong></p>}<div className="flex flex-wrap gap-2"><Button type="button" size="sm" disabled={busy || !person} onClick={()=>change('groupMemberAdd',person.id)}>Invite colleague</Button><Button type="button" size="sm" variant="outline" disabled={busy || !person || person.id===user.id} onClick={()=>change('groupOwner',person.id)}>Transfer ownership</Button></div><p className="text-xs text-muted-foreground">Any internal colleague can own the group. Transferring ownership also adds them as a member.</p></div>}<div className="border-t border-border pt-3"><Button type="button" size="sm" variant="ghost" disabled={busy || owner} onClick={()=>change('groupLeave')}>{busy ? 'Saving…' : 'Leave group'}</Button>{owner && <p className="mt-1 text-xs text-muted-foreground">Transfer ownership before leaving.</p>}</div></div>}{error && <p role="alert" className="text-sm text-destructive">{error}</p>}{notice && <p role="status" className="text-sm text-success">{notice}</p>}</section>;
+}

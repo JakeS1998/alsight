@@ -1,0 +1,8 @@
+import React,{useState} from 'react';
+import {Button} from '@/components/ui/button';
+import allianceRequest,{allianceError} from '@/components/alliance/allianceClient';
+export default function PulseGroupCreate({onCreated,onCancel}) {
+  const [name,setName]=useState(''),[description,setDescription]=useState(''),[busy,setBusy]=useState(false),[error,setError]=useState('');
+  const submit=async event=>{event.preventDefault();setBusy(true);setError('');try{const result=await allianceRequest('groupCreate',{name,description});onCreated(result.group);}catch(error){setError(allianceError(error));}finally{setBusy(false);}};
+  return <form onSubmit={submit} className="space-y-3 rounded-lg border border-border bg-muted p-3"><h3 className="text-sm font-bold">Create a private group</h3><label className="block text-xs font-semibold">Group name<input required maxLength={100} value={name} disabled={busy} onChange={event=>setName(event.target.value)} className="mt-1 w-full rounded-md border border-input bg-card p-2 text-sm"/></label><label className="block text-xs font-semibold">Description<textarea maxLength={500} value={description} disabled={busy} onChange={event=>setDescription(event.target.value)} className="mt-1 w-full rounded-md border border-input bg-card p-2 text-sm"/></label><p className="text-xs text-muted-foreground">Invite-only. You can invite colleagues and transfer ownership after creating the group.</p>{error && <p role="alert" className="text-xs text-destructive">{error}</p>}<div className="flex flex-wrap gap-2"><Button size="sm" disabled={busy}>{busy ? 'Creating…' : 'Create group'}</Button><Button type="button" size="sm" variant="ghost" disabled={busy} onClick={onCancel}>Cancel</Button></div></form>;
+}

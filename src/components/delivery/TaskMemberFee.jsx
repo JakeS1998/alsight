@@ -9,7 +9,7 @@ export default function TaskMemberFee({ member, onChange }) {
     <FormField label="Task fee total (£)" help="One total for the task, including any contractor OHP.">
       <input aria-label={`${member.role || 'Supplier'} task fee total`} type="number" min="0" step="0.01" value={member.task_fee ?? total} onChange={event => onChange({ task_fee: event.target.value, task_ohp: Math.min(Number(event.target.value) || 0, ohp) })} className={formInputClass} />
     </FormField>
-    {isContractorMember(member) && <FormField label="OHP included in total (£)" help="For internal FSF calculation only; not added again to the task total.">
+    {isContractorMember(member) && <FormField label="OHP included in total (£)" help="Already included in the task total, not added again. FSF applies to the full task fee.">
       <input aria-label="OHP included in task total" type="number" min="0" max={total} step="0.01" value={member.task_ohp ?? ohp} onChange={event => onChange({ task_fee: total, task_ohp: Math.min(total, Math.max(0, Number(event.target.value) || 0)) })} className={formInputClass} />
     </FormField>}
   </div>;

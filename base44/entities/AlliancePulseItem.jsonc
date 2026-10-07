@@ -24,6 +24,9 @@
       "type": "string",
       "maxLength": 1500
     },
+    "group_id": {
+      "type": "string"
+    },
     "images": {
       "type": "array",
       "maxItems": 4,

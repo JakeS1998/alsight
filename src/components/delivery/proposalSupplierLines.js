@@ -9,7 +9,7 @@ export default function proposalSupplierLines(team = [], supplierName) {
       role: member.role || 'Supplier',
       description: `${member.role || 'Supplier'}${name ? ' — ' + name : ''}${fee.supplier ? ' · ' + (supplierName(fee.supplier) || fee.supplier) : ''}${fee.description ? ' — ' + fee.description : ''}`,
       supplier_company_number: fee.supplier || member.supplier_company_number || '',
-      fsf_supplier_key: !fee.supplier || fee.supplier === member.supplier_company_number ? contractorFsfKey(member) : undefined,
+      fsf_supplier_key: contractorFsfKey(member),
       fee_category: fee.type, item_description: fee.description || '', supplier_fee: Number(fee.amount) || 0, fee_proposal_link: member.fee_proposal_link || '',
     }));
     return Object.entries(STAGES).map(([stage, label]) => ({

@@ -1,4 +1,5 @@
 import {allowedLessons,allowedPulse,projectAccess} from './allianceLayerAccess.ts';
+import {pulseGroupAccess} from './pulseGroupAccess.ts';
 export async function readLessons(base44,input) {
   const project=input.projectId ? await projectAccess(base44,input.projectId) : null;
   const related=[];
@@ -28,18 +29,19 @@ export async function readImpact(base44,input) {
   return {projects:totals.rows.reduce((n,r)=>n+r.count,0),live:totals.rows.find(r=>r.live_project===true)?.count || 0,completed,estimatedInvestment:valued ? totals.rows.reduce((n,r)=>n+(r.sum_estimated_value || 0),0) : null,valuedProjects:valued,purposes:purposes.items};
 }
 export async function readHome(base44,input,user) {
-  const query={status:'published'};
+  const group=input.groupId ? await pulseGroupAccess(base44,user,input.groupId) : null;
+  const query={status:'published',group_id:group ? group.id : {$in:['',null]}};
   if(input.hashtag) {
     if(typeof input.hashtag!=='string' || !/^[A-Za-z0-9_]{1,80}$/.test(input.hashtag)) throw new Error('Choose a valid hashtag.');
     const match={$regex:`#${input.hashtag}(?![A-Za-z0-9_])`,$options:'i'};
     query.$or=[{title:match},{summary:match}];
   }
   const page=await base44.asServiceRole.entities.AlliancePulseItem.filter(query,{sort:'-created_date',limit:10,...(input.cursor ? {cursor:input.cursor} : {})});
-  const pulse=await allowedPulse(base44,page.items);
-  if(input.cursor) return {pulse,next_cursor:page.next_cursor,has_more:page.has_more};
+  const pulse=await allowedPulse(base44,page.items,user);
+  if(group || input.cursor) return {pulse,group,impact:null,stories:[],lessons:[],milestones:[],next_cursor:page.next_cursor,has_more:page.has_more};
   const impact=await readImpact(base44,input);
-  const curated=await base44.asServiceRole.entities.AlliancePulseItem.filter({status:'published',is_story:true},{sort:'-created_date',limit:4});
-  const stories=await allowedPulse(base44,curated.items);
+  const curated=await base44.asServiceRole.entities.AlliancePulseItem.filter({status:'published',is_story:true,group_id:{$in:['',null]}},{sort:'-created_date',limit:4});
+  const stories=await allowedPulse(base44,curated.items,user);
   const lessons=await readLessons(base44,{});
   const ids=input.projectIds.length ? input.projectIds : ['000000000000000000000000'];
   const milestones=await base44.entities.Project.filter({id:{$in:ids},status:{$ne:'inactive'},practical_completion_date:{$exists:true,$nin:[null,''],$lte:new Date().toISOString()}},{sort:'-practical_completion_date',limit:3,fields:['name','practical_completion_date']});
