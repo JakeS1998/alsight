@@ -8,7 +8,7 @@ import HomeWelcome from '@/components/dashboard/HomeWelcome';
 import HomeJourney from '@/components/dashboard/HomeJourney';
 import HomeQuickActions from '@/components/dashboard/HomeQuickActions';
 import DashboardAliceCard from '@/components/dashboard/DashboardAliceCard';
-import HomeToday from '@/components/dashboard/HomeToday';
+import HomeToday from '@/components/dashboard/TodayPlanner.jsx';
 import HomeProjectsPanel from '@/components/dashboard/HomeProjectsPanel';
 import HomeMilestones from '@/components/dashboard/HomeMilestones';
 import DashboardSkeleton from '@/components/dashboard/DashboardSkeleton';

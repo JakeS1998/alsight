@@ -4,7 +4,7 @@ import usePlannerReminders from '@/components/dashboard/usePlannerReminders';
 import HomeAgenda from '@/components/dashboard/HomeAgenda';
 import HomePlannerFollowups from '@/components/dashboard/HomePlannerFollowups';
 import HomeFollowupForm from '@/components/dashboard/HomeFollowupForm';
-export default function HomeToday({ user, tasks }) {
+export default function TodayPlanner({ user, tasks }) {
   const reminders = usePlannerReminders(user);
   const [draft, setDraft] = useState(null), [busy, setBusy] = useState(''), [error, setError] = useState(''), [notice, setNotice] = useState('');
   const schedule = subject => { setDraft(subject); setNotice(''); setError(''); };
