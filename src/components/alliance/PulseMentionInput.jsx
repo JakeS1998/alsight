@@ -8,7 +8,7 @@ export default function PulseMentionInput({value,setValue,groupId}) {
   const ref=useRef(null),{user}=useAuth(),[match,setMatch]=useState(null),[term,setTerm]=useState(''),[selected,setSelected]=useState(0),[notice,setNotice]=useState('');
   useEffect(()=>{const timer=setTimeout(()=>setTerm(match?.search || ''),250);return()=>clearTimeout(timer);},[match?.search]);
   useEffect(()=>{if(!value.summary) {setMatch(null);setNotice('');}},[value.summary]);
-  const query=useQuery({queryKey:['alliance-layer','mention-people',user?.id,user?.role,groupId,term],enabled:!!match && term===match.search,queryFn:()=>allianceRequest('mentionPeople',{groupId,search:term}),staleTime:30000});
+  const query=useQuery({queryKey:['alliance-layer','mention-people-full-names',user?.id,user?.role,groupId,term],enabled:!!match && term===match.search,queryFn:()=>allianceRequest('mentionPeople',{groupId,search:term}),staleTime:30000});
   const people=term===match?.search ? [...('everyone'.startsWith(term.toLowerCase().trim()) ? [{user_id:'everyone',name:'everyone'}] : []),...(query.data?.items || [])] : [];
   const detect=target=>{
     const end=target.selectionStart,prefix=target.value.slice(0,end),found=prefix.match(/(?:^|\s)@([^@\n]{0,80})$/);
