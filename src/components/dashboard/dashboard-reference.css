@@ -7,15 +7,12 @@
 .home-welcome { display: grid; grid-template-columns: minmax(180px, 1.15fr) repeat(4, minmax(0, 1fr)); gap: 12px; padding: 14px; }
 @media (min-width: 1280px) {
   .home-reference > :not([hidden]) ~ :not([hidden]), .home-reference .home-main-stack > :not([hidden]) ~ :not([hidden]), .home-reference .home-sidebar > :not([hidden]) ~ :not([hidden]) { margin-top: 12px; }
-  .home-reference .home-intro-grid { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.4fr); gap: 12px; }
+  .home-reference .home-intro-grid { display: grid; grid-template-columns: minmax(0, 1fr); gap: 12px; }
   .home-reference .home-intro-grid > :not([hidden]) ~ :not([hidden]) { margin-top: 0; }
   .home-reference .home-hero { min-height: 220px; }
   .home-reference .home-hero-copy { max-width: 620px; padding: 22px 26px; }
   .home-reference .home-hero h2 { font-size: clamp(30px, 2.2vw, 42px); }
-  .home-reference .home-welcome { grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 8px; align-content: center; }
-  .home-reference .home-welcome > div:first-child { grid-column: 1 / -1; display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); align-items: center; column-gap: 14px; padding: 0 4px 8px; }
-  .home-reference .home-welcome > div:first-child > :not(time) { grid-column: 1; }
-  .home-reference .home-welcome > div:first-child > time { grid-column: 2; grid-row: 1 / span 3; margin-top: 0; font-size: 14px; }
+  .home-reference .home-welcome { grid-template-columns: minmax(180px, 1.15fr) repeat(4, minmax(0, 1fr)); gap: 8px; align-content: center; }
   .home-reference .home-welcome > a { gap: 8px; padding: 12px; }
   .home-reference .home-work-grid { display: grid; grid-template-columns: minmax(0, 1.85fr) minmax(0, 1fr); gap: 12px; align-items: start; }
   .home-reference .home-work-grid > :not([hidden]) ~ :not([hidden]) { margin-top: 0; }
