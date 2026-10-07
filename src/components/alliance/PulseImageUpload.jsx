@@ -3,7 +3,7 @@ import {ImagePlus,X} from 'lucide-react';
 import {base44} from '@/api/base44Client';
 import PulseImage from '@/components/alliance/PulseImage';
 
-export default function PulseImageUpload({images=[],onChange,onBusyChange,disabled}) {
+export default function PulseImageUpload({images=[],onChange,onBusyChange,disabled,compact=false}) {
   const id=useId(),[busy,setBusy]=useState(false),[error,setError]=useState('');
   const upload=async event=>{
     const files=Array.from(event.target.files || []);event.target.value='';setError('');
@@ -21,8 +21,8 @@ export default function PulseImageUpload({images=[],onChange,onBusyChange,disabl
     finally {setBusy(false);onBusyChange(false);}
   };
   return <section className="space-y-3" aria-label="Post images">
-    <div className="flex flex-wrap items-center justify-between gap-3"><p className="text-xs font-semibold">Images</p><label htmlFor={id} className={`inline-flex items-center gap-2 rounded-md border border-input px-3 py-2 text-xs font-semibold ${disabled || busy || images.length===4 ? 'pointer-events-none opacity-50' : 'cursor-pointer hover:bg-secondary'}`}><ImagePlus className="h-4 w-4"/>{busy ? 'Uploading…' : 'Add images'}</label><input id={id} type="file" accept="image/jpeg,image/png,image/webp,image/gif" multiple className="sr-only" disabled={disabled || busy || images.length===4} onChange={upload}/></div>
-    <p className="text-xs text-muted-foreground">Up to four images, 5 MB each. Shared privately with people who can view this post.</p>
+    <div className="flex flex-wrap items-center justify-between gap-3"><p className="text-xs font-semibold">{compact ? 'Add to your post' : 'Images'}</p><label htmlFor={id} className={`inline-flex items-center gap-2 rounded-md border border-input px-3 py-2 text-xs font-semibold ${disabled || busy || images.length===4 ? 'pointer-events-none opacity-50' : 'cursor-pointer hover:bg-secondary'}`}><ImagePlus className="h-4 w-4"/>{busy ? 'Uploading…' : compact ? 'Photo' : 'Add images'}</label><input id={id} type="file" accept="image/jpeg,image/png,image/webp,image/gif" multiple className="sr-only" disabled={disabled || busy || images.length===4} onChange={upload}/></div>
+    {(!compact || !!images.length) && <p className="text-xs text-muted-foreground">Up to four images, 5 MB each. Shared privately with people who can view this post.</p>}
     {busy && <p role="status" className="text-xs text-muted-foreground">Uploading your images…</p>}
     {error && <p role="alert" className="text-xs text-destructive">{error}</p>}
     {!!images.length && <div className="grid grid-cols-2 gap-3">{images.map((image,index)=><div key={image.file_uri} className="relative min-w-0"><PulseImage image={image} className="aspect-square w-full"/><button type="button" aria-label={`Remove ${image.name}`} disabled={disabled || busy} className="absolute right-2 top-2 rounded-full border border-border bg-card p-1.5 disabled:opacity-50" onClick={()=>onChange(images.filter((_,position)=>position!==index))}><X className="h-4 w-4"/></button><p className="mt-1 truncate text-[10px] text-muted-foreground">{image.name}</p></div>)}</div>}
