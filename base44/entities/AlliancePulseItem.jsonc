@@ -5,6 +5,10 @@
     "type": {
       "type": "string",
       "enum": [
+        "Project Update",
+        "Recognition",
+        "Lessons Learned",
+        "Social",
         "Project milestone",
         "Team recognition",
         "Project win",
@@ -23,6 +27,26 @@
     "summary": {
       "type": "string",
       "maxLength": 1500
+    },
+    "mentions": {
+      "type": "array",
+      "maxItems": 10,
+      "items": {
+        "type": "object",
+        "properties": {
+          "user_id": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string",
+            "maxLength": 200
+          }
+        },
+        "required": [
+          "user_id",
+          "name"
+        ]
+      }
     },
     "group_id": {
       "type": "string"
