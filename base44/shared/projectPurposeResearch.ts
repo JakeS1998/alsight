@@ -1,6 +1,6 @@
-import {projectAccess,text} from './allianceLayerAccess.ts';
+import {internalRoles,projectAccess,text} from './allianceLayerAccess.ts';
 export async function researchProjectPurpose(base44,user,input) {
-  if(!['admin','director','bdm'].includes(user.role)) throw new Error('Project purpose editing is not permitted.');
+  if(!internalRoles.includes(user.role)) throw new Error('Project research is available to Alliance colleagues only.');
   const project=await projectAccess(base44,input.projectId);
   const context={name:String(project.name || '').slice(0,200),postcode:String(project.site_postcode || '').slice(0,20),client:String(project.client_name || '').slice(0,200),brief:String(project.description || '').slice(0,3000)};
   const result=await base44.asServiceRole.integrations.Core.InvokeLLM({

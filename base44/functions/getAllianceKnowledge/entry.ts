@@ -1,6 +1,7 @@
 import {createClientFromRequest} from 'npm:@base44/sdk@0.8.52';
 import {internalRoles} from '../../shared/allianceLayerAccess.ts';
 import {readLessons,readImpact} from '../../shared/allianceLayerReads.ts';
+import {researchProjectPurpose} from '../../shared/projectPurposeResearch.ts';
 export default async function(req) {
   try {
     const base44=createClientFromRequest(req),user=await base44.auth.me();
@@ -12,6 +13,7 @@ export default async function(req) {
     if(input.related && !input.projectId) return Response.json({error:'Select a project for similar lessons.'},{status:400});
     if(input.action==='lessons') return Response.json(await readLessons(base44,input));
     if(input.action==='impact') return Response.json(await readImpact(base44,input));
-    return Response.json({error:'This knowledge operation is read-only; choose lessons or impact.'},{status:400});
+    if(input.action==='purposeResearch') return Response.json(await researchProjectPurpose(base44,user,input));
+    return Response.json({error:'This knowledge operation is read-only; choose lessons, impact or purposeResearch.'},{status:400});
   } catch(error) { return Response.json({error:error.message || 'No matching accessible evidence.'},{status:/rate limit|too many requests/i.test(error.message) ? 429 : 400}); }
 }
