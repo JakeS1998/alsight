@@ -25,6 +25,9 @@
       "type": "string",
       "maxLength": 200
     },
+    "has_heading": {
+      "type": "boolean"
+    },
     "summary": {
       "type": "string",
       "maxLength": 1500

@@ -8,6 +8,7 @@ import PulseText from '@/components/alliance/PulseText';
 export default function PulsePost({item,user,onRemove,removing,groupOwnerId}) {
   const author=item.author_name || (item.system ? 'Alliance Insider' : 'Alliance team');
   const initials=author.split(/\s+/).slice(0,2).map(part=>part[0]).join('').toUpperCase();
+  const showHeading=item.system || (item.has_heading ?? (item.title?.trim() !== item.summary?.trim().split('\n')[0].slice(0,200)));
   const canRemove=!item.system && (user.id===item.author_id || user.id===groupOwnerId || ['admin','director'].includes(user.role));
   const label=item.related_entity_type==='person' ? 'View person' : item.related_entity_type==='lesson' || item.type==='Knowledge' ? 'View lesson' : item.type==='Impact' ? 'View project impact' : 'View project';
   return <article id={`pulse-post-${item.id}`} className="scroll-mt-28 min-w-0 overflow-hidden rounded-panel border border-border bg-card shadow-sm">
@@ -18,7 +19,7 @@ export default function PulsePost({item,user,onRemove,removing,groupOwnerId}) {
     </header>
     <div className="px-5 pb-5 pt-4">
       <span className="inline-block rounded-full bg-secondary px-3 py-1 text-[11px] font-semibold text-chart-2">{item.type}</span>
-      <h3 className="mt-3 break-words font-heading text-lg font-bold leading-snug"><PulseText text={item.title} mentions={item.mentions}/></h3>
+      {showHeading && item.title && <h3 className="mt-3 break-words font-heading text-lg font-bold leading-snug"><PulseText text={item.title} mentions={item.mentions}/></h3>}
       <p className="mt-3 whitespace-pre-line break-words text-sm leading-7 text-foreground"><PulseText text={item.summary} mentions={item.mentions}/></p>
       {!!item.images?.length && <div className={item.images.length===1 ? 'mt-4 grid grid-cols-1 gap-3' : 'mt-4 grid grid-cols-2 gap-3'}>{item.images.map(image=><PulseImage key={image.file_uri} image={image} className={item.images.length===1 ? 'aspect-[16/10] w-full' : 'aspect-square w-full'}/>)}</div>}
     </div>

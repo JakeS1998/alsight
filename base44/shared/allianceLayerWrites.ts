@@ -2,6 +2,7 @@ import {text,stages,pulseTypes,themes,projectAccess,linkedRecord} from './allian
 import {secrets} from 'base44:runtime';
 import {pulseGroupAccess} from './pulseGroupAccess.ts';
 import {validateMentions} from './pulseMentions.ts';
+import {withPortalUserNames} from './portalUserNames.ts';
 export async function addLesson(base44,user,input) {
   const project=await projectAccess(base44,input.projectId),value=input.lesson || {};
   if(!stages.includes(value.pathway_stage || '') || !['','RIBA 0','RIBA 1','RIBA 2','RIBA 3','RIBA 4','RIBA 5','RIBA 6','RIBA 7'].includes(value.riba_stage || '')) throw new Error('Choose a recognised stage.');
@@ -23,7 +24,9 @@ export async function addPulse(base44,user,input) {
     if(!image || typeof image.file_uri!=='string' || image.file_uri.length>500 || !image.file_uri.startsWith(prefix) || !/\.(png|jpe?g|webp|gif)$/i.test(image.file_uri)) throw new Error('Images must be uploaded privately to this app.');
     return {file_uri:image.file_uri,name:text(image.name || 'Shared Alliance image',200,true)};
   });
-  return {item:await base44.asServiceRole.entities.AlliancePulseItem.create({type:value.type,title:text(value.title,200,true),summary:text(value.summary,1500,true),mentions,images:attachments,group_id:group?.id || '',related_entity_type:value.related_entity_type,related_entity_id:value.related_entity_type==='none' ? '' : value.related_entity_id,author_id:user.id,author_name:user.full_name || 'Alliance colleague',status:'published',is_story:!group && value.is_story===true})};
+  const heading=text(value.title || '',200),summary=text(value.summary,1500,true);
+  const [author]=await withPortalUserNames(base44.asServiceRole.entities,[user]);
+  return {item:await base44.asServiceRole.entities.AlliancePulseItem.create({type:value.type,title:heading || summary.split('\n')[0].slice(0,200),has_heading:!!heading,summary,mentions,images:attachments,group_id:group?.id || '',related_entity_type:value.related_entity_type,related_entity_id:value.related_entity_type==='none' ? '' : value.related_entity_id,author_id:user.id,author_name:author.full_name || 'Alliance colleague',status:'published',is_story:!group && value.is_story===true})};
 }
 export async function removeItem(base44,user,input) {
   if(!['lesson','pulse'].includes(input.kind) || typeof input.id!=='string' || !/^[a-f0-9]{24}$/i.test(input.id)) throw new Error('Invalid item.');

@@ -1,3 +1,4 @@
+import {withPulseAuthorNames} from './pulseAuthorNames.ts';
 export const internalRoles=['admin','director','regional_director','bsm','finance','bdm'];
 export const themes=['Health & wellbeing','Community','Place','Inclusion','Sustainability','Social value'];
 export const stages=['','Scope','Fee','Prepare','Design','Programme','Act','Decide','De-risk','Build','Handover'];
@@ -39,7 +40,7 @@ export async function allowedPulse(base44,items,user) {
   const projects=projectIds.length ? (await base44.entities.Project.filter({id:{$in:projectIds},status:{$ne:'inactive'}},{limit:50,fields:['name']})).items : [];
   const people=personIds.length ? (await base44.entities.Contact.filter({id:{$in:personIds}},{limit:50,fields:['full_name']})).items : [];
   const pMap=new Map(projects.map(p=>[p.id,p])),cMap=new Map(people.map(p=>[p.id,p])),lMap=new Map(lessons.map(l=>[l.id,l]));
-  return items.flatMap(item=>{
+  const visible=items.flatMap(item=>{
     const kind=item.related_entity_type,id=item.related_entity_id;
     if(kind==='none') return [{...item,href:null,label:null}];
     if(kind==='project' && pMap.has(id)) return [{...item,href:`/projects/${id}?tab=general`,label:pMap.get(id).name}];
@@ -49,4 +50,5 @@ export async function allowedPulse(base44,items,user) {
     if(item.type==='Company Update') return [{...item,href:null,label:null}];
     return [];
   });
+  return withPulseAuthorNames(base44,visible);
 }
