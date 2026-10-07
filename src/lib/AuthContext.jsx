@@ -126,6 +126,11 @@ export const AuthProvider = ({ children }) => {
     }
   };
 
+  const updateProfilePicture = async fileUri => {
+    await base44.auth.updateMe({ profile_picture_uri: fileUri });
+    setUser(current => ({ ...current, profile_picture_uri: fileUri }));
+  };
+
   const navigateToLogin = () => {
     // Use the SDK's redirectToLogin method
     base44.auth.redirectToLogin(window.location.href);
@@ -143,7 +148,8 @@ export const AuthProvider = ({ children }) => {
       logout,
       navigateToLogin,
       checkUserAuth,
-      checkAppState
+      checkAppState,
+      updateProfilePicture
     }}>
       {children}
     </AuthContext.Provider>

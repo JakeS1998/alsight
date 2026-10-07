@@ -54,6 +54,11 @@
     "line_manager_id": {
       "type": "string",
       "description": "Direct line manager's portal user ID; assigned by an administrator for pipeline visibility"
+    },
+    "profile_picture_uri": {
+      "type": "string",
+      "maxLength": 500,
+      "description": "Private storage URI for the user's profile picture"
     }
   }
 }
