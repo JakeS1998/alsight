@@ -5,6 +5,7 @@ import {addLesson,addPulse,removeItem,savePurpose} from '../../shared/allianceLa
 import {managePulseGroups} from '../../shared/pulseGroupActions.ts';
 import {researchProjectPurpose} from '../../shared/projectPurposeResearch.ts';
 import {mentionPeople} from '../../shared/pulseMentions.ts';
+import {updateAllianceNotification} from '../../shared/allianceNotificationActions.ts';
 export default async function(req) {
   try {
     const base44=createClientFromRequest(req),user=await base44.auth.me();
@@ -15,6 +16,7 @@ export default async function(req) {
     if(input.related && !input.projectId) return Response.json({error:'Select a project for similar lessons.'},{status:400});
     if(input.cursor && (typeof input.cursor!=='string' || input.cursor.length>4000)) return Response.json({error:'Invalid continuation.'},{status:400});
     if(['groups','groupCreate','groupPeople','groupMembers','groupMemberAdd','groupMemberRemove','groupOwner','groupLeave'].includes(input.action)) return Response.json(await managePulseGroups(base44,user,input));
+    if(input.action==='notificationRead') return Response.json(await updateAllianceNotification(base44,user,input));
     if(input.action==='mentionPeople') return Response.json(await mentionPeople(base44,user,input));
     if(input.action==='lessons') return Response.json(await readLessons(base44,input));
     if(input.action==='impact') return Response.json(await readImpact(base44,input));

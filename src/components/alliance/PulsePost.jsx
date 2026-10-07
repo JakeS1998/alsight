@@ -10,7 +10,7 @@ export default function PulsePost({item,user,onRemove,removing,groupOwnerId}) {
   const initials=author.split(/\s+/).slice(0,2).map(part=>part[0]).join('').toUpperCase();
   const canRemove=!item.system && (user.id===item.author_id || user.id===groupOwnerId || ['admin','director'].includes(user.role));
   const label=item.related_entity_type==='person' ? 'View person' : item.related_entity_type==='lesson' || item.type==='Knowledge' ? 'View lesson' : item.type==='Impact' ? 'View project impact' : 'View project';
-  return <article className="min-w-0 overflow-hidden rounded-panel border border-border bg-card shadow-sm">
+  return <article id={`pulse-post-${item.id}`} className="scroll-mt-28 min-w-0 overflow-hidden rounded-panel border border-border bg-card shadow-sm">
     <header className="flex items-start gap-3 px-5 pt-5">
       <span aria-hidden="true" className={`flex h-11 w-11 shrink-0 items-center justify-center rounded-full text-sm font-bold ${item.system ? 'bg-secondary text-chart-2' : 'bg-primary/15 text-foreground'}`}>{item.system ? <Activity className="h-5 w-5"/> : initials}</span>
       <div className="min-w-0 flex-1"><p className="break-words text-sm font-bold">{author}</p><time dateTime={item.created_date} className="mt-1 block text-xs text-muted-foreground">{new Date(item.created_date).toLocaleDateString('en-GB',{day:'numeric',month:'long',year:'numeric'})}{item.system && ' · Recorded in ALSight'}</time></div>

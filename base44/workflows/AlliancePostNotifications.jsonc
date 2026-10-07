@@ -1,0 +1,40 @@
+{
+  "name": "Alliance Insider Notifications",
+  "description": "Adds private Notification Centre alerts for Company Updates, individual mentions and @everyone posts.",
+  "trigger": {
+    "config": {
+      "trigger_type": "entity",
+      "entity_name": "AlliancePulseItem",
+      "events": [
+        "create"
+      ]
+    },
+    "condition": "${ .trigger.data.status == \"published\" }"
+  },
+  "definition": {
+    "document": {
+      "dsl": "1.0.0",
+      "name": "alliance_insider_notifications",
+      "version": "1.0",
+      "namespace": "base44"
+    },
+    "do": [
+      {
+        "notify_colleagues": {
+          "call": "invoke_backend_function",
+          "with": {
+            "function_name": "notifyAlliancePost",
+            "args": {
+              "postId": "${ .trigger.entity_id }"
+            }
+          },
+          "then": "end",
+          "x-base44": {
+            "title": "Notify Alliance colleagues",
+            "description": "Company updates and mentions"
+          }
+        }
+      }
+    ]
+  }
+}

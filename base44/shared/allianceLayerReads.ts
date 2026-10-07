@@ -37,7 +37,12 @@ export async function readHome(base44,input,user) {
     query.$or=[{title:match},{summary:match}];
   }
   const page=await base44.asServiceRole.entities.AlliancePulseItem.filter(query,{sort:'-created_date',limit:10,...(input.cursor ? {cursor:input.cursor} : {})});
-  const pulse=await allowedPulse(base44,page.items,user);
+  let pulse=await allowedPulse(base44,page.items,user);
+  if(input.postId && !input.cursor) {
+    if(typeof input.postId!=='string' || !/^[a-f0-9]{24}$/i.test(input.postId)) throw new Error('Invalid post selection.');
+    const selected=await base44.asServiceRole.entities.AlliancePulseItem.get(input.postId);
+    if(selected?.status==='published' && (selected.group_id || '')===(group?.id || '') && !pulse.some(item=>item.id===selected.id)) pulse=[...(await allowedPulse(base44,[selected],user)),...pulse];
+  }
   if(group || input.cursor) return {pulse,group,impact:null,stories:[],lessons:[],milestones:[],next_cursor:page.next_cursor,has_more:page.has_more};
   const impact=await readImpact(base44,input);
   const curated=await base44.asServiceRole.entities.AlliancePulseItem.filter({status:'published',is_story:true,group_id:{$in:['',null]}},{sort:'-created_date',limit:4});

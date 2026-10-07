@@ -5,6 +5,7 @@
     "type": {
       "type": "string",
       "enum": [
+        "Company Update",
         "Project Update",
         "Recognition",
         "Lessons Learned",

@@ -13,6 +13,7 @@ export async function addPulse(base44,user,input) {
   const value=input.item || {};
   const group=value.group_id ? await pulseGroupAccess(base44,user,value.group_id) : null;
   if(!pulseTypes.includes(value.type) || !['none','project','person','lesson'].includes(value.related_entity_type)) throw new Error('Choose a recognised update and record type.');
+  if(value.type==='Company Update' && (!['admin','director','regional_director'].includes(user.role) || group)) throw new Error('Only administrators, directors and regional directors can share company updates with All Alliance.');
   if(value.is_story && value.related_entity_type==='none') throw new Error('An Alliance Story must link to an existing record.');
   await linkedRecord(base44,value.related_entity_type,value.related_entity_id);
   const mentions=await validateMentions(base44,value,group);
