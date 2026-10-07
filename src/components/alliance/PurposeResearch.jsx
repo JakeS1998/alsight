@@ -1,0 +1,11 @@
+import React,{useEffect,useRef,useState} from 'react';
+import {Sparkles} from 'lucide-react';
+import {Button} from '@/components/ui/button';
+import PurposeText from '@/components/alliance/PurposeText';
+import allianceRequest,{allianceError} from '@/components/alliance/allianceClient';
+export default function PurposeResearch({projectId,onApply,onBusyChange,autoStart=false}) {
+  const [busy,setBusy]=useState(false),[result,setResult]=useState(null),[error,setError]=useState(''),started=useRef(false);
+  const research=async()=>{setBusy(true);onBusyChange(true);setError('');setResult(null);try{setResult(await allianceRequest('purposeResearch',{projectId}));}catch(error){setError(allianceError(error));}finally{setBusy(false);onBusyChange(false);}};
+  useEffect(()=>{if(autoStart && !started.current){started.current=true;research();}},[autoStart,projectId]);
+  return <section aria-label="ALICE purpose research" className="space-y-3 rounded-lg border border-border bg-muted/50 p-4"><div className="flex flex-wrap items-center justify-between gap-3"><h3 className="flex items-center gap-2 text-sm font-bold"><Sparkles className="h-4 w-4 text-assistant"/>ALICE research</h3><Button type="button" size="sm" variant="outline" disabled={busy} onClick={research}>{busy ? 'Researching…' : result ? 'Research again' : 'Research why it matters'}</Button></div><p className="text-xs leading-relaxed text-muted-foreground">Local population, dated statistics and relevant recent investment, with sources. This creates a draft for you to review, not a saved purpose or proof of delivered outcomes.</p>{busy && <p role="status" aria-live="polite" className="text-sm text-muted-foreground">ALICE is researching the project’s local context…</p>}{error && <p role="alert" className="text-sm text-destructive">{error}</p>}{result && <><div className="rounded-md border border-border bg-card p-3"><PurposeText text={result.purpose}/></div>{result.warnings?.length>0 && <div className="text-xs text-muted-foreground"><p className="font-semibold">Evidence gaps</p><ul className="mt-1 list-disc space-y-1 pl-4">{result.warnings.map((warning,index)=><li key={index}>{warning}</li>)}</ul></div>}<Button type="button" size="sm" onClick={()=>{if(onApply(result.purpose)!==false) setResult(null);}}>Use this draft</Button></>}</section>;
+}

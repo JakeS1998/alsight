@@ -103,9 +103,9 @@ export default function ProjectDetail() {
           <ProjectWorkspaceNav user={user} project={project} isSupplier={isSupplier} isExternalPM={isExternalPM} canSeeValuations={canSeeValuations} />
         </ProjectStickyHeader>
         <TabsContent value="general" className="ws-content space-y-6">
-          <ProjectPurpose key={project.id} project={project} onUpdated={updated=>setProject(current=>({...current,...updated}))} />
           {INTERNAL_ROLES.includes(user?.role) && <ProjectAttention project={project}/>}
           {INTERNAL_ROLES.includes(user?.role) && <ProjectChanges key={project.id} project={project} legalDocs={legalDocs} dmas={dmas} jcts={jcts} />}
+          {!INTERNAL_ROLES.includes(user?.role) && <ProjectPurpose key={project.id} project={project} onUpdated={updated=>setProject(current=>({...current,...updated}))} />}
           <ProjectGeneralTab project={project} singleTask={frameworkAgreementRoute(legalDocs, dmas, project.project_number).route === 'single_task'} accountMap={accountMap} legalDocs={legalDocs} jcts={jcts} onProjectUpdated={updated => setProject(current => ({ ...current, ...updated }))} />
           {INTERNAL_ROLES.includes(user?.role) && <ProjectLessons key={project.id} project={project} />}
         </TabsContent>

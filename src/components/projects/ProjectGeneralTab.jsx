@@ -93,7 +93,7 @@ export function ProjectGeneralTab({ project, accountMap, onProjectUpdated, singl
 
   return (
     <div className="ws-general">
-      {INTERNAL_ROLES.includes(role) && <Project360Strip project={project} singleTask={singleTask} />}
+      {INTERNAL_ROLES.includes(role) && <Project360Strip project={project} singleTask={singleTask} onProjectUpdated={onProjectUpdated} />}
       <ProjectWorkspaceFields
         summary={[
           { label: 'Client', value: client?.name || project.client_name || '—', to: client ? `/accounts/${client.id}` : undefined },
