@@ -13,6 +13,15 @@
 .project-workspace .ws-main { min-width: 0; padding: 34px 48px 70px; display: grid; align-content: start; gap: 27px; }
 .project-workspace .ws-sticky-header { display: grid; gap: 27px; padding: 0; background: var(--ws-canvas); }
 .project-workspace .ws-sticky-header > :not([hidden]) ~ :not([hidden]) { margin-top: 0; }
+@media (min-width: 1024px) {
+  .project-workspace .ws-sticky-header[data-compact="true"] { gap: 12px; }
+  .project-workspace .ws-sticky-header[data-compact="true"] .ws-topline,
+  .project-workspace .ws-sticky-header[data-compact="true"] .ws-herotext > :not(.ws-title),
+  .project-workspace .ws-sticky-header[data-compact="true"] .ws-image-status { display: none; }
+  .project-workspace .ws-sticky-header[data-compact="true"] .ws-hero { min-height: 76px; grid-template-columns: minmax(0, 1fr); }
+  .project-workspace .ws-sticky-header[data-compact="true"] .ws-hero .ws-herotext { padding: 18px 28px; }
+  .project-workspace .ws-sticky-header[data-compact="true"] .ws-title { margin: 0; font-size: 24px; }
+}
 @media (max-width: 767px) { .project-workspace .ws-sticky-header { gap: 20px; } }
 .project-workspace .ws-topline { display: flex; align-items: center; gap: 20px; color: #557086; font-size: 15px; font-weight: 650; }
 .project-workspace .ws-back { color: #557086; cursor: pointer; transition: color .18s; display: inline-flex; align-items: center; gap: 12px; }
