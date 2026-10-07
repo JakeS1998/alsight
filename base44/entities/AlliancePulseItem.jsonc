@@ -32,6 +32,10 @@
       "type": "string",
       "maxLength": 1500
     },
+    "lookout_issue_id": {
+      "type": "string",
+      "description": "Published internal Lookout issue linked to this company update"
+    },
     "mentions": {
       "type": "array",
       "maxItems": 10,

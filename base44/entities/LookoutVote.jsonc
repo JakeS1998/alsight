@@ -1,0 +1,50 @@
+{
+  "name": "LookoutVote",
+  "type": "object",
+  "properties": {
+    "vote_key": {
+      "type": "string"
+    },
+    "issue_id": {
+      "type": "string"
+    },
+    "user_id": {
+      "type": "string"
+    },
+    "option": {
+      "type": "string",
+      "maxLength": 100
+    }
+  },
+  "required": [
+    "vote_key",
+    "issue_id",
+    "user_id",
+    "option"
+  ],
+  "rls": {
+    "read": {
+      "$or": [
+        {
+          "data.user_id": "{{user.id}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    },
+    "create": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "update": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "delete": false
+  }
+}

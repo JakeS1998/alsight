@@ -46,6 +46,8 @@ const AccountSettings = lazy(() => import('@/pages/AccountSettings'));
 const RiskApprovalReview = lazy(() => import('@/pages/RiskApprovalReview'));
 const Help = lazy(() => import('@/pages/Help'));
 const Pulse = lazy(() => import('@/pages/Pulse'));
+const Lookout = lazy(() => import('@/pages/Lookout'));
+const LookoutAdmin = lazy(() => import('@/pages/LookoutAdmin'));
 
 const AuthenticatedApp = () => {
   const { isLoadingAuth, isLoadingPublicSettings, authError, user } = useAuth();
@@ -88,6 +90,7 @@ const AuthenticatedApp = () => {
           <Route path="/" element={<Home />} />
           <Route path="/portfolio-overview" element={<PortfolioOverview />} />
           <Route path="/pulse" element={<Pulse />} />
+          <Route path="/lookout/:issueId" element={<Lookout />} />
           <Route path="/projects" element={<Projects />} />
           <Route path="/documents" element={<LegalDocuments />} />
           <Route path="/warranties" element={<Warranties />} />
@@ -107,6 +110,7 @@ const AuthenticatedApp = () => {
           </Route>
           <Route element={<AdminContactsRoute />}>
             <Route path="/admin" element={<Admin />} />
+            <Route path="/admin/lookout" element={<LookoutAdmin />} />
 
           </Route>
           <Route element={<PeopleRoute />}>

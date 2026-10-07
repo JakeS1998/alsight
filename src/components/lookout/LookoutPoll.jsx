@@ -1,0 +1,11 @@
+import React,{useState} from 'react';
+import {useQuery,useQueryClient} from '@tanstack/react-query';
+import {useAuth} from '@/lib/AuthContext';
+import lookoutRequest from '@/components/lookout/lookoutClient';
+export default function LookoutPoll({issue}) {
+  const {user}=useAuth(),cache=useQueryClient(),[choice,setChoice]=useState(''),[busy,setBusy]=useState(false),[error,setError]=useState('');
+  const key=['lookout-poll',issue.id,user?.id],live=issue.status==='published';
+  const query=useQuery({queryKey:key,enabled:live,queryFn:()=>lookoutRequest('poll',{id:issue.id}),staleTime:30000});
+  const vote=async event=>{event.preventDefault();setBusy(true);setError('');try{const result=await lookoutRequest('vote',{id:issue.id,option:choice});cache.setQueryData(key,result);}catch(e){setError(e.message);}finally{setBusy(false);}};
+  return <div><h3 className="font-semibold">{issue.content.poll.question}</h3>{live ? <form onSubmit={vote} className="mt-3 space-y-3">{issue.content.poll.options.map(option=><label key={option} className="flex items-center gap-2"><input type="radio" name={`lookout-poll-${issue.id}`} value={option} checked={(choice || query.data?.option)===option} onChange={()=>setChoice(option)} disabled={busy}/>{option}</label>)}<button type="submit" className="lookout-button" disabled={busy || !choice}>{busy ? 'Submitting…' : query.data?.option ? 'Update vote' : 'Submit vote'}</button>{query.isPending && <p role="status">Loading poll…</p>}{query.data?.option && <p role="status" className="text-xs">Your vote: {query.data.option}. Results are anonymous.</p>}{query.data?.results?.map(row=><p key={row.option} className="text-xs">{row.option}: {row.count}</p>)}{(error || query.error) && <p role="alert" className="text-sm">{error || query.error.message} <button type="button" className="underline" onClick={()=>query.refetch()}>Retry</button></p>}</form> : <><ul className="mt-2 list-inside list-disc">{issue.content.poll.options.map(option=><li key={option}>{option}</li>)}</ul><p className="lookout-muted mt-2 text-xs">Voting opens after publication.</p></>}</div>;
+}

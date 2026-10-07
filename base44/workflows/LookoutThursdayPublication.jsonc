@@ -1,0 +1,47 @@
+{
+  "definition": {
+    "document": {
+      "dsl": "1.0.0",
+      "name": "lookout_thursday_publication",
+      "version": "1.0",
+      "namespace": "base44"
+    },
+    "do": [
+      {
+        "publish_approved_issue": {
+          "call": "invoke_backend_function",
+          "with": {
+            "function_name": "manageLookout",
+            "args": {
+              "action": "scheduledPublish"
+            }
+          },
+          "then": "end",
+          "x-base44": {
+            "title": "Publish approved Lookout",
+            "description": "Release approved PDF, Insider post and staff notifications"
+          }
+        }
+      }
+    ]
+  },
+  "name": "The Lookout Thursday Publication",
+  "description": "Publishes approved issues at Thursday 1pm UK time to Insider and internal notifications. Unapproved issues remain on hold.",
+  "trigger": {
+    "condition": null,
+    "config": {
+      "trigger_type": "scheduled",
+      "events": [],
+      "schedule_mode": "recurring",
+      "cron_expression": "0 13 * * 4",
+      "one_time_date": null,
+      "timezone": "Europe/London",
+      "interval_value": null,
+      "interval_unit": null,
+      "interval_anchor": null,
+      "ends_type": "never",
+      "ends_on_date": null,
+      "ends_after_count": null
+    }
+  }
+}

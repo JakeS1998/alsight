@@ -13,6 +13,13 @@ module.exports = {
   			sm: 'calc(var(--radius) - 4px)'
   		},
   		colors: {
+            lookout: {
+                navy: 'rgb(var(--lookout-navy))',
+                orange: 'rgb(var(--lookout-orange))',
+                grey: 'rgb(var(--lookout-grey))',
+                mid: 'rgb(var(--lookout-mid))',
+                white: 'rgb(var(--lookout-white))'
+            },
   			background: 'hsl(var(--background))',
   			foreground: 'hsl(var(--foreground))',
   			card: {

@@ -1,0 +1,18 @@
+import React,{useState} from 'react';
+import {Link,Navigate} from 'react-router-dom';
+import {useInfiniteQuery,useQuery,useQueryClient} from '@tanstack/react-query';
+import {useAuth} from '@/lib/AuthContext';
+import LookoutEditor from '@/components/lookout/LookoutEditor';
+import lookoutRequest from '@/components/lookout/lookoutClient';
+import '@/components/lookout/lookout.css';
+export default function LookoutAdmin() {
+  const {user}=useAuth(),cache=useQueryClient(),[selected,setSelected]=useState(''),[busy,setBusy]=useState(false),[error,setError]=useState('');
+  const enabled=user?.role==='admin';
+  const list=useInfiniteQuery({queryKey:['lookout','admin',user?.id],enabled,initialPageParam:null,queryFn:({pageParam})=>lookoutRequest('list',{admin:true,cursor:pageParam}),getNextPageParam:page=>page.has_more?page.next_cursor:undefined,staleTime:30000});
+  const issues=list.data?.pages.flatMap(page=>page.items) || [],id=selected || issues[0]?.id;
+  const query=useQuery({queryKey:['lookout','editor',id],enabled:enabled && !!id,queryFn:()=>lookoutRequest('get',{id})});
+  const updated=issue=>{cache.setQueryData(['lookout','editor',issue.id],{issue});};
+  const generate=async()=>{setBusy(true);setError('');try{const {issue}=await lookoutRequest('generate');updated(issue);setSelected(issue.id);await cache.invalidateQueries({queryKey:['lookout','admin']});}catch(e){setError(e.message);}finally{setBusy(false);}};
+  if(user && !enabled) return <Navigate to="/" replace/>;
+  return <div className="lookout-theme space-y-5"><header className="lookout-section"><Link to="/admin" className="text-xs underline">Administration</Link><h1 className="mt-3 text-2xl font-extrabold">The Lookout · Editorial Desk</h1><p className="lookout-muted mt-2 text-sm">Weekly internal publication. Add next-release content, review the complete PDF, then approve. Nothing publishes without administrator approval.</p><button type="button" disabled={busy} onClick={generate} className="lookout-button mt-4">{busy?'Generating from ALSight…':'Prepare / refresh next draft'}</button></header>{error && <p role="alert" className="lookout-section">{error}</p>}{list.isPending?<p role="status">Loading issues…</p>:list.error?<p role="alert">{list.error.message} <button className="underline" onClick={()=>list.refetch()}>Retry</button></p>:<><label className="block text-sm font-semibold">Select issue<select value={id || ''} onChange={e=>setSelected(e.target.value)} className="ml-3 rounded-md border border-lookout-grey bg-lookout-white p-2 text-lookout-navy"><option value="" disabled>No issues yet</option>{issues.map(issue=><option key={issue.id} value={issue.id}>Issue {String(issue.issue_number).padStart(3,'0')} · {issue.publication_date} · {issue.status}</option>)}</select></label>{list.hasNextPage && <button className="text-xs underline" disabled={list.isFetchingNextPage} onClick={()=>list.fetchNextPage()}>Older issues</button>}{!issues.length && <p className="lookout-section">Prepare the next draft to start collecting department submissions.</p>}</>}{id && (query.isPending?<p role="status">Loading editorial content…</p>:query.error?<p role="alert">{query.error.message} <button className="underline" onClick={()=>query.refetch()}>Retry</button></p>:<LookoutEditor key={`${query.data.issue.id}-${query.data.issue.revision}-${query.data.issue.status}`} issue={query.data.issue} onUpdated={updated}/>)}</div>;
+}

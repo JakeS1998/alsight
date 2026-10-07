@@ -42,7 +42,7 @@ export async function allowedPulse(base44,items,user) {
   const pMap=new Map(projects.map(p=>[p.id,p])),cMap=new Map(people.map(p=>[p.id,p])),lMap=new Map(lessons.map(l=>[l.id,l]));
   const visible=items.flatMap(item=>{
     const kind=item.related_entity_type,id=item.related_entity_id;
-    if(kind==='none') return [{...item,href:null,label:null}];
+    if(kind==='none') return [{...item,href:item.lookout_issue_id && /^[a-f0-9]{24}$/i.test(item.lookout_issue_id) ? `/lookout/${item.lookout_issue_id}` : null,label:item.lookout_issue_id ? 'Read The Lookout' : null}];
     if(kind==='project' && pMap.has(id)) return [{...item,href:`/projects/${id}?tab=general`,label:pMap.get(id).name}];
     if(kind==='person' && cMap.has(id)) return [{...item,href:`/people/${id}`,label:cMap.get(id).full_name}];
     const lesson=lMap.get(id);

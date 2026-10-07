@@ -1,0 +1,13 @@
+import React,{useState} from 'react';
+import {useQueryClient} from '@tanstack/react-query';
+import LookoutEditorialFields from '@/components/lookout/LookoutEditorialFields';
+import LookoutApprovalActions from '@/components/lookout/LookoutApprovalActions';
+import LookoutPublication from '@/components/lookout/LookoutPublication';
+import lookoutRequest,{downloadLookout} from '@/components/lookout/lookoutClient';
+export default function LookoutEditor({issue,onUpdated}) {
+  const [inputs,setInputs]=useState(issue.inputs || {}),[busy,setBusy]=useState(false),[error,setError]=useState(''),[notice,setNotice]=useState('');
+  const cache=useQueryClient(),dirty=JSON.stringify(inputs)!==JSON.stringify(issue.inputs || {}),locked=['published','publishing'].includes(issue.status);
+  const action=async kind=>{setBusy(true);setError('');setNotice('');try{const result=await lookoutRequest(kind,{id:issue.id,revision:issue.revision,inputs});onUpdated(result.issue);cache.invalidateQueries({queryKey:['lookout']});cache.invalidateQueries({queryKey:['alliance-layer']});cache.invalidateQueries({queryKey:['alliance-notifications']});setNotice(kind==='save'?'Editorial content saved. Review the updated publication below.':kind==='approve'?'Approved PDF saved. Publication remains held until the release time.':'Published to Insider and internal staff notifications.');}catch(e){setError(e.message);}finally{setBusy(false);}};
+  const pdf=async()=>{setBusy(true);setError('');try{await downloadLookout(issue);}catch(e){setError(e.message);}finally{setBusy(false);}};
+  return <div className="lookout-theme space-y-5"><LookoutApprovalActions issue={issue} busy={busy} dirty={dirty} onAction={action} onPdf={pdf}/>{error && <p role="alert" className="lookout-section text-sm">{error}</p>}{notice && <p role="status" className="lookout-section text-sm">{notice}</p>}{!locked && <details className="lookout-section" open><summary className="cursor-pointer font-bold">Editorial desk · content for this release</summary><p className="lookout-muted mb-5 mt-3 text-xs">Add department submissions and items that have no reliable source in ALSight. Figures and programme dates are generated from recorded data; private group posts, personal task lists and HR records are not harvested.</p><LookoutEditorialFields value={inputs} onChange={setInputs} disabled={busy}/><button type="button" disabled={busy || !dirty} onClick={()=>action('save')} className="lookout-button mt-5">{busy?'Working…':'Save editorial content'}</button></details>}<h2 className="lookout-heading">Publication preview · saved content</h2><LookoutPublication issue={issue}/></div>;
+}
