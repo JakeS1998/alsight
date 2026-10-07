@@ -9,7 +9,7 @@ import UserMenu from '@/components/UserMenu';
 import PortalSearch from '@/components/search/PortalSearch';
 import UKLFIcon from '@/components/framework/UKLFIcon';
 import RelationshipNavigation from '@/components/relationships/RelationshipNavigation';
-import { LayoutDashboard, FolderKanban, Building2, UserCircle, Menu, X, Users, BriefcaseBusiness, CircleHelp, House, Activity } from 'lucide-react';
+import { LayoutDashboard, FolderKanban, Building2, UserCircle, Menu, X, Users, BriefcaseBusiness, CircleHelp, House, MessagesSquare } from 'lucide-react';
 
 const ALL_ROLES = ['admin', 'director', 'regional_director', 'bsm', 'finance', 'bdm', 'client', 'supplier', 'project_manager'];
 const NAV_ITEMS = [
@@ -19,7 +19,7 @@ const NAV_ITEMS = [
   { label: 'Projects', path: '/projects', icon: FolderKanban, roles: ALL_ROLES },
   { label: 'Portfolio', path: '/portfolio-overview', icon: LayoutDashboard, roles: INTERNAL_ROLES },
   { label: 'Framework', path: '/framework-reports', icon: UKLFIcon, roles: INTERNAL_ROLES.concat(['framework_stakeholder']) },
-  { label: 'Pulse', path: '/pulse', icon: Activity, roles: INTERNAL_ROLES },
+  { label: 'Insider', path: '/pulse', icon: MessagesSquare, roles: INTERNAL_ROLES },
   { label: 'My Account', path: '/account', icon: UserCircle, roles: ['client'] },
   { label: 'Contacts', path: '/contacts', icon: Users, roles: ['admin'] },
   { label: 'Help', path: '/help', icon: CircleHelp, roles: ALL_ROLES.concat(['framework_stakeholder']) },

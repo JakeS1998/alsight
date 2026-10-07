@@ -6,7 +6,7 @@ import PulseImage from '@/components/alliance/PulseImage';
 import PulseText from '@/components/alliance/PulseText';
 
 export default function PulsePost({item,user,onRemove,removing,groupOwnerId}) {
-  const author=item.author_name || (item.system ? 'Alliance Pulse' : 'Alliance team');
+  const author=item.author_name || (item.system ? 'Alliance Insider' : 'Alliance team');
   const initials=author.split(/\s+/).slice(0,2).map(part=>part[0]).join('').toUpperCase();
   const canRemove=!item.system && (user.id===item.author_id || user.id===groupOwnerId || ['admin','director'].includes(user.role));
   const label=item.related_entity_type==='person' ? 'View person' : item.related_entity_type==='lesson' || item.type==='Knowledge' ? 'View lesson' : item.type==='Impact' ? 'View project impact' : 'View project';
