@@ -25,6 +25,7 @@ export async function pmPathway(db, project) {
     pmPathwayRegister(db, projectId, 'actions'), pmPathwayRegister(db, projectId, 'decisions'), pmPathwayRegister(db, projectId, 'risks'),
     approvalSummary(db, projectId),
   ]);
+  const pdBrPage = await db.AppointmentApplicabilityDecision.filter({ project_id: projectId, appointment_type: 'appointment_pd_br' }, { sort: '-created_date', limit: 1 });
   const raw = deliveryPage.items[0] || {};
   let team = [];
   try { const parsed = JSON.parse(raw.delivery_team || '[]'); if (Array.isArray(parsed)) team = parsed; } catch {}
@@ -41,6 +42,7 @@ export async function pmPathway(db, project) {
   const delivery = { ...pick(raw, deliveryFields), delivery_team: JSON.stringify(contractors) };
   const proposal = proposalPage.items[0];
   return {
+    pdBrDecision: pdBrPage.items[0] || null,
     delivery, contractors, team: team.map(member => ({ role: member.role || 'Team member', name: supplierName(member.supplier_company_number) || 'Not recorded' })),
     contractorOhp: proposal ? pick(proposal, ['ohp_surveys_pct','ohp_riba57_pct','ohp_surveys_type','ohp_surveys_fixed']) : {},
     feeProposals: proposal ? [pick(proposal, ['id','status','is_current','revision_number','client_approval_date','date_issued'])] : [],

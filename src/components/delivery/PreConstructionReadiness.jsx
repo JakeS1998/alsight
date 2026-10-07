@@ -9,6 +9,7 @@ import contractorAppointment from '@/components/delivery/contractorAppointment';
 import agreementNames from '@/components/projects/agreementNames';
 
 import { preConstructionAppointments } from '@/components/delivery/preConstructionAppointments';
+import PDbrApplicability from '@/components/delivery/PDbrApplicability';
 
 const GATEWAYS = [
   { key: "pq", label: "Project Questionnaire (PQ)" },
@@ -17,10 +18,11 @@ const GATEWAYS = [
   { key: "dma", label: "DMA" },
 ];
 
-export function PreConstructionReadiness({ project, legalDocs, dmas, jcts, warranties, feeProposals, delivery, deliveryTeam = [], suppliers = [], accountMap = {}, setField, onSave, saving }) {
+export function PreConstructionReadiness({ project, legalDocs, dmas, jcts, warranties, feeProposals, delivery, deliveryTeam = [], suppliers = [], accountMap = {}, setField, onSave, saving, pdBrReview }) {
+  const pdBrDecision = pdBrReview?.decision;
   const items = useMemo(() => {
     const aa = legalDocs.find((d) => d.document_type === "access_agreement");
-    const appts = preConstructionAppointments(legalDocs);
+    const appts = preConstructionAppointments(legalDocs, pdBrDecision);
     const appointment = contractorAppointment({ deliveryTeam, suppliers, accountMap, legalDocs });
     const pcsa = appointment.document;
     const dma = dmas[0];
@@ -29,7 +31,7 @@ export function PreConstructionReadiness({ project, legalDocs, dmas, jcts, warra
     const contractor = appointment.identified || jcts.length > 0 || warranties.some((w) => w.category === "contractor");
     const riba2 = !!project.riba2_end;
 
-    const details = readinessChecklistDetails({ project, legalDocs, dmas, jcts, warranties, feeProposals, appointment });
+    const details = readinessChecklistDetails({ project, legalDocs, dmas, jcts, warranties, feeProposals, appointment, pdBrDecision });
     const names = agreementNames(project.project_number);
     const mk = (label, done, partial, extra) => ({ label: label === 'Access Agreement' ? names.access : label === 'DMA' ? names.developmentShort : label, status: done ? "done" : partial ? "partial" : "pending", extra, details: details[label] });
     return [
@@ -41,7 +43,7 @@ export function PreConstructionReadiness({ project, legalDocs, dmas, jcts, warra
       mk("Programme (RIBA 2)", riba2, false),
       mk("Contractor identified", contractor, false),
     ];
-  }, [project, legalDocs, dmas, jcts, warranties, feeProposals, deliveryTeam, suppliers, accountMap]);
+  }, [project, legalDocs, dmas, jcts, warranties, feeProposals, deliveryTeam, suppliers, accountMap, pdBrDecision]);
 
   const doneCount = items.filter((i) => i.status === "done").length;
   const pct = Math.round((doneCount / items.length) * 100);
@@ -66,6 +68,8 @@ export function PreConstructionReadiness({ project, legalDocs, dmas, jcts, warra
         <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
           {items.map((it) => <ReadinessItem key={it.label} {...it} />)}
         </div>
+
+        {pdBrReview && <PDbrApplicability review={pdBrReview} />}
 
         {/* PSO sign-off gateways */}
         <div className="rounded-xl border border-slate-200 bg-white p-4">

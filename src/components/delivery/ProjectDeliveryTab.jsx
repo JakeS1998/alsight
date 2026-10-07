@@ -16,6 +16,7 @@ import DeliveryJourney from '@/components/delivery/DeliveryJourney';
 import { FormSection } from '@/components/forms/PowerForm';
 import frameworkAgreementRoute from '@/components/delivery/frameworkAgreementRoute';
 import SingleTaskDelivery from '@/components/delivery/SingleTaskDelivery';
+import usePDbrApplicability from '@/components/delivery/usePDbrApplicability';
 
 const DELIVERY_DEFAULT = {
   funding_route: "", scope_summary: "", client_objectives: "", initial_constraints: "",
@@ -60,6 +61,7 @@ const DECISION_TABLE = ["decision_title", "requested_by", "required_by", "date_a
 
 export function ProjectDeliveryTab({ project, legalDocs, dmas, jcts, warranties, accountMap }) {
   const projectId = project.id;
+  const pdBrReview = usePDbrApplicability(project);
   const [delivery, setDelivery] = useState(DELIVERY_DEFAULT);
   const [deliveryId, setDeliveryId] = useState(null);
   const [savedDelivery, setSavedDelivery] = useState(null);
@@ -130,13 +132,13 @@ export function ProjectDeliveryTab({ project, legalDocs, dmas, jcts, warranties,
     handover={<ProjectHandoverPack embedded project={project} savingDelivery={savingDelivery} onStarted={loadDelivery} />} />;
 
   return (
-    <DeliveryJourney key={projectId} project={project} delivery={savedDelivery} feeProposals={feeProposals} legalDocs={legalDocs} dmas={dmas} jcts={jcts} warranties={warranties} suppliers={suppliers} accountMap={accountMap}>
+    <DeliveryJourney key={projectId} pdBrDecision={pdBrReview.decision} project={project} delivery={savedDelivery} feeProposals={feeProposals} legalDocs={legalDocs} dmas={dmas} jcts={jcts} warranties={warranties} suppliers={suppliers} accountMap={accountMap}>
       <DeliveryScoping project={project} accountMap={accountMap} bdmName={bdmName} delivery={delivery} setField={setField} onSave={saveDelivery} saving={savingDelivery} />
       <FeeProposalSection projectId={projectId} project={project} onChanged={setFeeProposals} deliveryTeam={deliveryTeam} suppliers={suppliers} legalDocs={legalDocs} dmas={dmas}>
         <DeliveryTeam embedded project={project} delivery={delivery} setField={setField} onSave={saveDelivery} saving={savingDelivery} suppliers={suppliers} />
       </FeeProposalSection>
-      <PreConstructionReadiness deliveryTeam={deliveryTeam} suppliers={suppliers} accountMap={accountMap} project={project} legalDocs={legalDocs} dmas={dmas} jcts={jcts} warranties={warranties} feeProposals={feeProposals} delivery={delivery} setField={setField} onSave={saveDelivery} saving={savingDelivery} />
-      <DesignTeam legalDocs={legalDocs} jcts={jcts} warranties={warranties} accountMap={accountMap} deliveryTeam={deliveryTeam} suppliers={suppliers} />
+      <PreConstructionReadiness pdBrReview={pdBrReview} deliveryTeam={deliveryTeam} suppliers={suppliers} accountMap={accountMap} project={project} legalDocs={legalDocs} dmas={dmas} jcts={jcts} warranties={warranties} feeProposals={feeProposals} delivery={delivery} setField={setField} onSave={saveDelivery} saving={savingDelivery} />
+      <DesignTeam pdBrDecision={pdBrReview.decision} legalDocs={legalDocs} jcts={jcts} warranties={warranties} accountMap={accountMap} deliveryTeam={deliveryTeam} suppliers={suppliers} />
       <ProgrammeMilestones project={project} feeProposals={feeProposals} jcts={jcts} delivery={delivery} />
       <FormSection title="06 · Act"><RegisterList title="Action" description="The simple action log BDMs use every day" entityName="ProjectAction" projectId={projectId} project={project} columns={ACTION_COLS} tableColumns={ACTION_TABLE} sortBy="-due_date" addLabel="Add action" /></FormSection>
       <FormSection title="07 · Decide"><RegisterList title="Decision" description="Lightweight decision & client-approval register" entityName="ProjectDecision" projectId={projectId} project={project} columns={DECISION_COLS} tableColumns={DECISION_TABLE} sortBy="-date_requested" addLabel="Add decision" /></FormSection>

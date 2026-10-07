@@ -2,7 +2,8 @@ import React from 'react';
 import { CheckCircle2, XCircle, FileText, PoundSterling, PenLine } from 'lucide-react';
 import { formatCurrency } from '@/lib/portal';
 
-export default function DesignTeamCard({ label, appointed, account, fee, signed, po, link, untracked }) {
+export default function DesignTeamCard({ label, appointed, account, fee, signed, po, link, untracked, notApplicable }) {
+  if (notApplicable) return <div className="h-full rounded-xl border border-border bg-muted p-3"><p className="text-sm font-semibold text-foreground">{label}</p><p className="mt-2 text-xs font-medium text-muted-foreground">Not applicable</p><p className="mt-1 text-xs text-muted-foreground">Excluded from appointment progress by legal decision.</p></div>;
   const hasFee = fee != null;
   return <div className={`h-full rounded-xl border p-3 ${appointed ? 'border-slate-200 bg-white' : 'border-dashed border-slate-300 bg-slate-50'}`}>
     <div className="flex items-center justify-between">

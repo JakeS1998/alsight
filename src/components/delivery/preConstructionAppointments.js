@@ -4,9 +4,13 @@ export const REQUIRED_PRE_CONSTRUCTION_APPOINTMENTS = [
   ['appointment_pd_br', 'Principal Designer BR'],
 ];
 
-export function preConstructionAppointments(legalDocs) {
-  const total = REQUIRED_PRE_CONSTRUCTION_APPOINTMENTS.length;
-  const completed = REQUIRED_PRE_CONSTRUCTION_APPOINTMENTS.filter(([type]) =>
+export const pdBrNotApplicable = decision => decision?.applicability === 'not_applicable';
+export const requiredAppointments = decision => REQUIRED_PRE_CONSTRUCTION_APPOINTMENTS.filter(([type]) => type !== 'appointment_pd_br' || !pdBrNotApplicable(decision));
+
+export function preConstructionAppointments(legalDocs, pdBrDecision) {
+  const roles = requiredAppointments(pdBrDecision);
+  const total = roles.length;
+  const completed = roles.filter(([type]) =>
     legalDocs.some(doc => doc.document_type === type && doc.executed === 'yes')
   ).length;
   return { completed, total, done: completed === total };

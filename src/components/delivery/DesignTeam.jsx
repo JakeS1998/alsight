@@ -5,6 +5,7 @@ import { designTeamFees } from '@/components/delivery/designTeamFees';
 import ChecklistHover from '@/components/delivery/ChecklistHover';
 import { documentChecklistDetails } from '@/components/delivery/checklistDetails';
 import contractorAppointment from '@/components/delivery/contractorAppointment';
+import { pdBrNotApplicable } from '@/components/delivery/preConstructionAppointments';
 
 const APPT_ROLES = [
   { label: "Project Manager", type: "appointment_pm" },
@@ -13,11 +14,15 @@ const APPT_ROLES = [
   { label: "Architect", type: "appointment_architect", optional: true },
 ];
 
-export function DesignTeam({ legalDocs, jcts, warranties, accountMap, deliveryTeam = [], suppliers = [] }) {
+export function DesignTeam({ legalDocs, jcts, warranties, accountMap, deliveryTeam = [], suppliers = [], pdBrDecision }) {
   const cards = useMemo(() => {
     const out = [];
     APPT_ROLES.forEach((role) => {
       const doc = legalDocs.find((d) => d.document_type === role.type);
+      if (role.type === 'appointment_pd_br' && pdBrNotApplicable(pdBrDecision)) {
+        out.push({ label: role.label, optional: true, notApplicable: true, details: [`Not applicable: ${pdBrDecision.reason}`, `Recorded by: ${pdBrDecision.recorded_by_name}`] });
+        return;
+      }
       out.push({
         label: role.label,
         optional: !!role.optional,
@@ -47,8 +52,8 @@ export function DesignTeam({ legalDocs, jcts, warranties, accountMap, deliveryTe
 
     // Roles not yet tracked as dedicated docs
     ["Cost Consultant", "Structural Engineer", "M&E"].forEach((label) => out.push({ label, appointed: false, untracked: true, details: ['This role is not tracked by a dedicated appointment type in this matrix.', 'No appointment sign-off is available here; this does not confirm that the role is unappointed.'] }));
-    return out.map(card => ({ ...designTeamFees(card, deliveryTeam, suppliers), label: card.optional ? `${card.label} (optional)` : card.label }));
-  }, [legalDocs, jcts, warranties, accountMap, deliveryTeam, suppliers]);
+    return out.map(card => ({ ...designTeamFees(card, deliveryTeam, suppliers), label: card.optional && !card.notApplicable ? `${card.label} (optional)` : card.label }));
+  }, [legalDocs, jcts, warranties, accountMap, deliveryTeam, suppliers, pdBrDecision]);
 
   return (
     <FormSection title="04 · Design" completed={cards.filter(card => !card.untracked && !card.optional).every(card => card.signed || card.po)} description="Reuses your appointment documents — no duplicate data entry">

@@ -10,10 +10,10 @@ import JourneyProgressBreakdown from '@/components/delivery/JourneyProgressBreak
 import PathwayInsight from '@/components/alice/PathwayInsight';
 import ProjectLessons from '@/components/alliance/ProjectLessons';
 import {INTERNAL_ROLES} from '@/lib/portal';
-export default function DeliveryJourney({ project, delivery, feeProposals, legalDocs, dmas, jcts, warranties, suppliers, accountMap, children }) {
+export default function DeliveryJourney({ project, delivery, feeProposals, legalDocs, dmas, jcts, warranties, suppliers, accountMap, pdBrDecision, children }) {
   const { user } = useAuth();
   const { registers, error, loading } = useJourneyRegisters(project.id);
-  const stages = deliveryJourneyProgress({ project, delivery: delivery || {}, feeProposals, legalDocs, dmas, jcts, warranties, registers, suppliers, accountMap });
+  const stages = deliveryJourneyProgress({ project, delivery: delivery || {}, feeProposals, legalDocs, dmas, jcts, warranties, registers, suppliers, accountMap, pdBrDecision });
   const riba = projectStage(project);
   const key = `als-delivery-selection:v1:${user?.id}:${project.id}`;
   const requested = Number(new URLSearchParams(window.location.search).get('stage'));

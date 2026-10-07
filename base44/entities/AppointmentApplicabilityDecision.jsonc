@@ -1,0 +1,116 @@
+{
+  "name": "AppointmentApplicabilityDecision",
+  "type": "object",
+  "properties": {
+    "project_id": {
+      "type": "string"
+    },
+    "client_account_id": {
+      "type": "string"
+    },
+    "appointment_type": {
+      "type": "string",
+      "enum": [
+        "appointment_pd_br"
+      ]
+    },
+    "applicability": {
+      "type": "string",
+      "enum": [
+        "required",
+        "not_applicable"
+      ]
+    },
+    "reason": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 2000
+    },
+    "recorded_by_name": {
+      "type": "string",
+      "maxLength": 200
+    }
+  },
+  "required": [
+    "project_id",
+    "appointment_type",
+    "applicability",
+    "reason",
+    "recorded_by_name"
+  ],
+  "rls": {
+    "read": {
+      "$or": [
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        },
+        {
+          "user_condition": {
+            "role": "director"
+          }
+        },
+        {
+          "user_condition": {
+            "role": "regional_director"
+          }
+        },
+        {
+          "user_condition": {
+            "role": "bsm"
+          }
+        },
+        {
+          "user_condition": {
+            "role": "bdm"
+          }
+        },
+        {
+          "user_condition": {
+            "role": "finance"
+          }
+        },
+        {
+          "$and": [
+            {
+              "user_condition": {
+                "role": "client"
+              }
+            },
+            {
+              "data.client_account_id": {
+                "$exists": true,
+                "$nin": [
+                  null,
+                  ""
+                ]
+              }
+            },
+            {
+              "data.client_account_id": "{{user.data.account_id}}"
+            }
+          ]
+        }
+      ]
+    },
+    "create": {
+      "$and": [
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        },
+        {
+          "created_by_id": "{{user.id}}"
+        }
+      ]
+    },
+    "update": {
+      "user_condition": {
+        "role": "appointment_audit_maintenance"
+      }
+    },
+    "delete": false
+  }
+}

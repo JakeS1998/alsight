@@ -1,6 +1,6 @@
 import { formatDate, DOCUMENT_TYPE } from '@/lib/portal';
 import agreementNames from '@/components/projects/agreementNames';
-import { REQUIRED_PRE_CONSTRUCTION_APPOINTMENTS } from '@/components/delivery/preConstructionAppointments';
+import { requiredAppointments, pdBrNotApplicable } from '@/components/delivery/preConstructionAppointments';
 
 export function documentChecklistDetails(record, label) {
   if (!record) return [`Missing: ${label} record.`, 'Sign-off cannot be confirmed until a record is added.'];
@@ -16,14 +16,14 @@ export function documentChecklistDetails(record, label) {
   return details;
 }
 
-export function readinessChecklistDetails({ project, legalDocs, dmas, jcts, warranties, feeProposals, appointment }) {
+export function readinessChecklistDetails({ project, legalDocs, dmas, jcts, warranties, feeProposals, appointment, pdBrDecision }) {
   const accepted = feeProposals.find(f => f.status === 'accepted');
   const fee = accepted || feeProposals.find(f => f.is_current) || feeProposals[0];
-  const roles = REQUIRED_PRE_CONSTRUCTION_APPOINTMENTS;
+  const roles = requiredAppointments(pdBrDecision);
   return {
     'Access Agreement': documentChecklistDetails(legalDocs.find(d => d.document_type === 'access_agreement'), agreementNames(project.project_number).access),
     'Fee Proposal': fee ? [accepted ? 'Signed off: fee proposal accepted.' : `Outstanding: client acceptance (current status: ${(fee.status || 'draft').replaceAll('_', ' ')}).`, `Revision: R${fee.revision_number || 1}`, fee.client_approval_date ? `Client approval: ${formatDate(fee.client_approval_date)}` : 'Client approval date not recorded.'] : ['Missing: fee proposal revision.', 'Outstanding: client acceptance.'],
-    Appointments: ['Architect appointment is optional and does not affect pre-construction completion.', ...roles.flatMap(([type, label]) => {
+    Appointments: ['Architect appointment is optional and does not affect pre-construction completion.', ...(pdBrNotApplicable(pdBrDecision) ? [`Principal Designer BR: not applicable. ${pdBrDecision.reason}`, `Recorded by ${pdBrDecision.recorded_by_name} on ${formatDate(pdBrDecision.created_date)}.`] : []), ...roles.flatMap(([type, label]) => {
       const docs = legalDocs.filter(d => d.document_type === type);
       const signed = docs.filter(d => d.executed === 'yes');
       return [`${label}: ${signed.length ? 'signed' : docs.length ? 'signature outstanding' : 'appointment missing'}${signed.length > 1 ? ` (${signed.length} signed records)` : ''}.`, ...signed.filter(d => d.date_of_execution).map(d => `${label} executed: ${formatDate(d.date_of_execution)}`)];
