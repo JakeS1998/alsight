@@ -13,7 +13,7 @@ import { LayoutDashboard, FolderKanban, Building2, UserCircle, Menu, X, Users, B
 
 const ALL_ROLES = ['admin', 'director', 'regional_director', 'bsm', 'finance', 'bdm', 'client', 'supplier', 'project_manager'];
 const NAV_ITEMS = [
-  { label: 'Home', path: '/', icon: House, roles: INTERNAL_ROLES.concat(['client', 'supplier']) },
+  { label: 'Today', path: '/', icon: House, roles: INTERNAL_ROLES.concat(['client', 'supplier']) },
   { label: 'Portfolio', path: '/portfolio-overview', icon: LayoutDashboard, roles: INTERNAL_ROLES },
   { label: 'Projects', path: '/projects', icon: FolderKanban, roles: ALL_ROLES },
   { label: 'Framework', path: '/framework-reports', icon: UKLFIcon, roles: INTERNAL_ROLES.concat(['framework_stakeholder']) },
