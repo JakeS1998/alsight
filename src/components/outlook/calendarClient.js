@@ -1,5 +1,5 @@
 import { base44 } from '@/api/base44Client';
-export const OUTLOOK_CONNECTOR_ID = '6a8315682b9286e588aab2e1';
+export const OUTLOOK_CONNECTOR_ID = '6ac767410e11df12db6e136f';
 export const calendarTimeZone = Intl.DateTimeFormat().resolvedOptions().timeZone || 'UTC';
 export default async function calendarRequest(action, input = {}) {
   try {

@@ -1,6 +1,6 @@
 import { createClientFromRequest } from 'npm:@base44/sdk@0.8.52';
 
-const connectorId = '6a8315682b9286e588aab2e1';
+const connectorId = '6ac767410e11df12db6e136f';
 const fields = 'id,subject,start,end,isAllDay,location,bodyPreview,attendees,isOrganizer,webLink,type';
 export default async function(req) {
   try {
