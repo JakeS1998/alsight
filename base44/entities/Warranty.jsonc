@@ -33,6 +33,9 @@
       "type": "string",
       "enum": [
         "council",
+        "als",
+        "operator",
+        "trust",
         ""
       ],
       "default": "council"

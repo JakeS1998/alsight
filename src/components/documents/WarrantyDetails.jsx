@@ -15,7 +15,7 @@ export function WarrantyDetails({ warranty: w, accountMap, hideCommentsAndLinks 
         <Row label="Supplier" value={accountMap[w.supplier_id]?.name} />
         <Row label="Account" value={accountMap[w.account_id]?.name} />
         <Row label="Services" value={w.services} />
-        <Row label="Beneficiary" value={w.beneficiary === "council" ? "Council" : w.beneficiary} />
+        <Row label="Beneficiary" value={({ council: 'Council', als: 'ALS', operator: 'Operator', trust: 'Trust' })[w.beneficiary] || w.beneficiary} />
         <Row label="Format" value={w.format === "deed" ? "Deed" : w.format} />
       </div>
       <div className="space-y-1.5">
