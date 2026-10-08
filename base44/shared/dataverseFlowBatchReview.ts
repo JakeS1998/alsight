@@ -22,7 +22,7 @@ export async function prepareFlowBatch(base44, context, table, settings, rows, s
     const sourceId = row[settings.primaryId], old = previous.items.find(review => review.source_id === sourceId);
     if (table === 'users' && old?.status === 'rejected') { counts.rejected++; return; }
     const linked = targets.filter(target => target[identity]?.toLowerCase() === sourceId.toLowerCase() && (table !== 'users' || normalisedEmail(target.email) === normalisedEmail(row.internalemailaddress)));
-    const account = accountFlowValues(table, resolved[index].value, linked.length === 1 ? linked[0] : null);
+    const account = accountFlowValues(table, resolved[index].value, linked.length === 1 ? linked[0] : null, !settings.dataverseOnly || settings.columnPlans?.account_type === 'base44_only');
     resolved[index].value = account.value;
     const error = errors[index] || resolved[index].error || (linked.length > 1 ? 'Multiple ALSight records have this Dataverse ID.' : '') || account.error || (table !== 'users' && !linked.length && (typeof resolved[index].value?.[spec.required] !== 'string' || !resolved[index].value[spec.required].trim()) ? 'The new source record is missing its required name or document ID.' : '');
     if (table !== 'users' && !linked.length && !error) {

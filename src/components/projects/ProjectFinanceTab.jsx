@@ -17,6 +17,7 @@ import RetentionSummary from './finance/RetentionSummary';
 import CommercialMilestones from './finance/CommercialMilestones';
 import CommercialAlerts from './finance/CommercialAlerts';
 import FinanceInsight from '@/components/alice/FinanceInsight';
+import FinanceComingSoon from '@/components/projects/FinanceComingSoon';
 
 function Spinner() {
   return (
@@ -86,9 +87,10 @@ export function ProjectFinanceTab({ project }) {
   const milestones = useMemo(() => commercialMilestones(project, fin.feeProposals || [], pos, fin.jcts || [], fin.valuations || [], delivery), [project, fin.feeProposals, pos, fin.jcts, fin.valuations, delivery]);
   const retention = useMemo(() => retentionInfo(fin.valuations || [], project), [fin.valuations, project]);
 
-  if (loading || fin.loading || payments.isPending) return <Spinner />;
+  if (loading || fin.loading || payments.isPending) return <FinanceComingSoon><Spinner /></FinanceComingSoon>;
 
   return (
+    <FinanceComingSoon>
     <div className="ws-subsection ws-finance space-y-6">
       <div className="ws-panelhead"><h2 className="ws-sectiontitle">Finance</h2></div>
       <FinanceInsight project={project} summary={summary} health={health} delivery={delivery} />
@@ -120,6 +122,7 @@ export function ProjectFinanceTab({ project }) {
 
       <InvoiceReceipts invoices={cashFlow.invoices} loading={cashFlow.loading} error={cashFlow.error} />
     </div>
+    </FinanceComingSoon>
   );
 }
 

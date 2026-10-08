@@ -22,7 +22,7 @@ export async function cleanDataverseDMA(base44, context, config, preview = true)
   const retained = local.items.filter(record => live.has(record.dataverse_id?.toLowerCase()));
   const updates = [];
   for (const record of retained) {
-    const row = live.get(record.dataverse_id.toLowerCase()), values = dmaSourceBlanks();
+    const row = live.get(record.dataverse_id.toLowerCase()), values = dmaSourceBlanks(settings);
     for (const mapping of settings.mappings) {
       try { Object.assign(values, mappedFlowValues('dma', { ...settings, mappings: [mapping], dataverseOnly: false }, row)); }
       catch (error) { values[mapping.local] = ['String', 'Memo', 'Lookup'].includes(mapping.localType) ? '' : null; warnings.add(error.message); }

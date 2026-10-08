@@ -34,7 +34,7 @@ export async function decideFlowReview(base44, user, context, table, settings, i
   if (linked.some(record => record.id !== target.id)) throw new Error('This source record is already linked to another ALSight record.');
   const resolved = (await resolveFlowStaffReferences(base44, table, [mappedFlowValues(table, settings, row)], context))[0];
   if (resolved.error) throw new Error(resolved.error);
-  const account = accountFlowValues(table, resolved.value, target);
+  const account = accountFlowValues(table, resolved.value, target, !settings.dataverseOnly || settings.columnPlans?.account_type === 'base44_only');
   if (account.error) throw new Error(account.error);
   resolved.value = account.value;
   await base44.entities.DataverseSyncReview.update(review.id, { ...decision, target_id: target.id, status: 'approved', error: '' });
@@ -45,5 +45,5 @@ export async function decideFlowReview(base44, user, context, table, settings, i
     await base44.entities.DataverseSyncReview.update(review.id, { status: 'error', error: String(error.message).slice(0, 500) });
     throw error;
   }
-  return { notice: 'Approved and refreshed from Dataverse. Unmapped fields were preserved.' };
+  return { notice: settings.dataverseOnly ? 'Approved and refreshed from Dataverse. Base44-only fields were preserved; unmapped source fields were cleared.' : 'Approved and refreshed from Dataverse. Unmapped fields were preserved.' };
 }

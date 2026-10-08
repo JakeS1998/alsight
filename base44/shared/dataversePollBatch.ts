@@ -4,7 +4,7 @@ import { flowSelection } from './dataverseFlowValues.ts';
 import { prepareFlowBatch } from './dataverseFlowBatchReview.ts';
 import { applyFlowUpdates } from './dataverseFlowApply.ts';
 export async function pollFlowBatch(base44, context, table, settings, previous = {}, preview = false) {
-  const bytes = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(JSON.stringify(['guid-auto-import-v1', context.environment, settings.logicalName, settings.mappings])));
+  const bytes = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(JSON.stringify(['dataverse-authority-v1', context.environment, settings.logicalName, settings.mappings, Boolean(settings.dataverseOnly), settings.columnPlans || {}])));
   const fingerprint = Array.from(new Uint8Array(bytes), byte => byte.toString(16).padStart(2, '0')).join('');
   const checkpoint = previous.fingerprint === fingerprint ? previous : {};
   const windowEnd = checkpoint.window_end || new Date(Date.now() - 30000).toISOString();

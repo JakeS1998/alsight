@@ -1,11 +1,12 @@
 import { flowSpecs, validateFlowValue } from './dataverseFlowFields.ts';
-import { dmaSourceBlanks } from './dataverseDMASource.ts';
+import { sourceFlowBlanks } from './dataverseSourceValues.ts';
 export function flowSelection(settings, table) {
   return [...new Set([settings.primaryId, ...settings.mappings.map(m => m.queryName || m.source), ...(table === 'users' ? ['internalemailaddress', 'fullname'] : [])])].join(',');
 }
 export function mappedFlowValues(table, settings, row) {
-  const values = table === 'dma' && settings.dataverseOnly ? dmaSourceBlanks() : {}, spec = flowSpecs[table];
+  const values = sourceFlowBlanks(table, settings), spec = flowSpecs[table];
   for (const m of settings.mappings) {
+    if (settings.columnPlans?.[m.local] === 'base44_only') continue;
     let value = row[m.queryName || m.source] ?? null;
     if (value !== null && m.values) {
       if (!Object.prototype.hasOwnProperty.call(m.values, String(value))) throw new Error(`Unmapped Dataverse choice for ${m.local}. Review this field's option mapping.`);
