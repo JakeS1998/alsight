@@ -1,0 +1,5 @@
+import React from 'react';
+const display = value => value === null || value === undefined || value === '' ? '(blank)' : String(value);
+export default function FlowReviewComparison({ data }) {
+  return <div className="overflow-x-auto"><table className="w-full text-left text-xs"><thead><tr className="border-b border-border"><th className="p-2">Mapped field</th><th className="p-2">Current ALSight value</th><th className="p-2">Live Dataverse value</th></tr></thead><tbody>{Object.entries(data.values).map(([field, value]) => <tr key={field} className={JSON.stringify(data.local?.[field]) !== JSON.stringify(value) ? 'border-b border-border bg-primary/10' : 'border-b border-border'}><th className="p-2 font-medium">{field.replaceAll('_', ' ')}</th><td className="max-w-xs break-words p-2">{data.local ? display(data.local[field]) : 'Choose a target'}</td><td className="max-w-xs break-words p-2">{display(value)}</td></tr>)}</tbody></table><p className="mt-2 text-xs text-muted-foreground">Blank mapped source values clear the ALSight value. Unmapped fields are untouched.</p></div>;
+}

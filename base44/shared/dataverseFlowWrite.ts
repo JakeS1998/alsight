@@ -1,6 +1,7 @@
 import { flowSpecs, isGuid, validateFlowValue } from './dataverseFlowFields.ts';
 import { personalDataverseContext, getPersonalDataverseToken } from './dataverseUserAuth.ts';
 import { flowRequest } from './dataverseFlowApi.ts';
+import { flowSelection, mappedFlowValues } from './dataverseFlowValues.ts';
 export async function writeFlowContext(base44, user, config, input) {
   const spec = flowSpecs[input.table], settings = config?.tables?.[input.table];
   if (!settings?.mappings?.length) throw new Error('An administrator must confirm this table’s mapping first.');
@@ -16,11 +17,11 @@ export async function writeFlowContext(base44, user, config, input) {
 }
 export async function loadFlowRecord(context) {
   const { settings, environment, token, record } = context;
-  const select = [...new Set([settings.primaryId, ...settings.mappings.map(m => m.source)])].join(',');
+  const select = flowSelection(settings, context.spec.entity === 'User' ? 'users' : Object.keys(flowSpecs).find(key => flowSpecs[key].entity === context.spec.entity));
   const data = await flowRequest(environment, token, `${settings.entitySet}(${record.dataverse_id})?$select=${select}`);
   const etag = data['@odata.etag'];
   if (typeof etag !== 'string' || !/^W\/"[0-9]+"$/.test(etag)) throw new Error('Dataverse did not return a version for safe editing.');
-  const values = Object.fromEntries(settings.mappings.map(m => [m.local, data[m.source] ?? null]));
+  const values = mappedFlowValues(Object.keys(flowSpecs).find(key => flowSpecs[key].entity === context.spec.entity), settings, data);
   return { values, etag, fields: settings.mappings, recordId: record.id, title: record[context.spec.required] };
 }
 export async function saveFlowRecord(base44, context, input) {

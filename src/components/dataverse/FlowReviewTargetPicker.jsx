@@ -1,0 +1,10 @@
+import React, { useState } from 'react';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import useFlowOperation from '@/components/dataverse/useFlowOperation';
+export default function FlowReviewTargetPicker({ table, review, selected, onSelect }) {
+  const { run, busy, error } = useFlowOperation(), [search, setSearch] = useState(review.source_label || ''), [page, setPage] = useState(null), [items, setItems] = useState([]);
+  const find = async cursor => { const result = await run('reviewTargets', { table, reviewId: review.id, search, ...(cursor ? { cursor } : {}) }); if (result) { setPage(result); setItems(old => cursor ? [...old, ...result.items] : result.items); } };
+  const choice = record => <button type="button" key={record.id} disabled={Boolean(busy)} onClick={() => onSelect(record.id)} className={`block w-full rounded border p-2 text-left text-xs ${selected === record.id ? 'border-primary bg-primary/10' : 'border-border bg-card'}`}>{record.label}{selected === record.id ? ' · Selected' : ''}</button>;
+  return <div className="space-y-2"><p className="text-xs font-medium">Choose an existing ALSight record. Nothing is replaced until you approve.</p>{review.candidates?.length > 0 && <div className="space-y-1">{review.candidates.map(choice)}</div>}<div className="flex gap-2">{table !== 'users' && <Input aria-label="Find an existing placeholder" value={search} onChange={e => setSearch(e.target.value)} placeholder="Search existing placeholders…" />}<Button type="button" variant="outline" disabled={Boolean(busy)} onClick={() => find()}>{table === 'users' ? 'Check exact email match' : 'Find existing record'}</Button></div>{page && <div className="space-y-1">{items.length ? items.map(choice) : <p className="text-xs text-muted-foreground">No eligible existing records. No new record or login will be created.</p>}</div>}{page?.has_more && <Button type="button" variant="outline" disabled={Boolean(busy)} onClick={() => find(page.next_cursor)}>More matches</Button>}{error && <p role="alert" className="text-xs text-destructive">{error}</p>}</div>;
+}

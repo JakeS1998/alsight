@@ -1,0 +1,2 @@
+export const compatibleFlowType = (local, source) => local === source || (['String', 'Memo'].includes(local) && ['String', 'Memo', 'Uniqueidentifier', 'Lookup', 'Picklist', 'State', 'Status', 'Boolean'].includes(source)) || (local === 'Lookup' && ['Lookup', 'Uniqueidentifier'].includes(source)) || (['Money', 'Decimal', 'Double'].includes(local) && ['Money', 'Decimal', 'Double', 'Integer', 'BigInt'].includes(source));
+export const normalisedChoice = value => String(value).toLowerCase().replace(/[^a-z0-9]/g, '');

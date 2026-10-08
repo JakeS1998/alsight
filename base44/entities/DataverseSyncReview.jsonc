@@ -1,0 +1,122 @@
+{
+  "name": "DataverseSyncReview",
+  "type": "object",
+  "properties": {
+    "review_key": {
+      "type": "string"
+    },
+    "table": {
+      "type": "string",
+      "enum": [
+        "users",
+        "projects",
+        "contacts",
+        "dma",
+        "jct",
+        "warranties",
+        "accounts"
+      ]
+    },
+    "environment_url": {
+      "type": "string"
+    },
+    "logical_name": {
+      "type": "string"
+    },
+    "mapping_revision": {
+      "type": "string"
+    },
+    "source_id": {
+      "type": "string"
+    },
+    "source_label": {
+      "type": "string"
+    },
+    "source_email": {
+      "type": "string"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "pending",
+        "unmatched",
+        "approved",
+        "rejected",
+        "applied",
+        "error"
+      ]
+    },
+    "target_id": {
+      "type": "string"
+    },
+    "candidates": {
+      "type": "array",
+      "maxItems": 10,
+      "items": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "label": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "label"
+        ]
+      }
+    },
+    "preview": {
+      "type": "object",
+      "additionalProperties": true
+    },
+    "error": {
+      "type": "string",
+      "maxLength": 500
+    },
+    "reviewed_by": {
+      "type": "string"
+    },
+    "reviewed_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "applied_at": {
+      "type": "string",
+      "format": "date-time"
+    }
+  },
+  "required": [
+    "review_key",
+    "table",
+    "environment_url",
+    "logical_name",
+    "mapping_revision",
+    "source_id",
+    "status"
+  ],
+  "rls": {
+    "read": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "create": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "update": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "delete": {
+      "user_condition": {
+        "role": "admin"
+      }
+    }
+  }
+}
