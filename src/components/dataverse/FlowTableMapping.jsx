@@ -6,6 +6,7 @@ import FlowMappingPreview from '@/components/dataverse/FlowMappingPreview';
 import useFlowOperation from '@/components/dataverse/useFlowOperation';
 import FlowReviewQueue from '@/components/dataverse/FlowReviewQueue';
 import FlowMappingCoverage from '@/components/dataverse/FlowMappingCoverage';
+import { matchFlowChoices } from '@/components/dataverse/flowMappingTypes';
 export default function FlowTableMapping({ table, spec, settings, onUpdated }) {
   const { run, busy, error, notice } = useFlowOperation();
   const queryClient = useQueryClient();
@@ -15,7 +16,7 @@ export default function FlowTableMapping({ table, spec, settings, onUpdated }) {
   useEffect(() => { setMappings(settings?.mappings || []); setColumnPlans(settings?.columnPlans || {}); }, [settings?.mappings, settings?.columnPlans]);
   const dirty = JSON.stringify(mappings) !== JSON.stringify(settings?.mappings || []) || JSON.stringify(columnPlans) !== JSON.stringify(settings?.columnPlans || {});
   const discover = async () => { const data = await run('discover', { table }); if (data) { setCandidates(data.tables); if (data.tables.length === 1) setLogicalName(data.tables[0].LogicalName); } };
-  const inspect = async () => { const data = await run('inspect', { table, logicalName }); if (data) { setMetadata(data); if (logicalName !== settings?.logicalName) setMappings(data.suggestions || []); } };
+  const inspect = async () => { const data = await run('inspect', { table, logicalName }); if (data) { setMetadata(data); setMappings(current => (logicalName !== settings?.logicalName ? data.suggestions || [] : current).map(mapping => { const source = data.fields.find(field => field.name === mapping.source); return ['Picklist', 'State', 'Status'].includes(source?.type) ? { ...mapping, values: matchFlowChoices(source.options, spec.enums?.[mapping.local], mapping.values) } : mapping; })); } };
   const save = async () => { const data = await run('mapping', { table, logicalName: metadata?.logicalName || settings?.logicalName, mappings, columnPlans }); if (data) onUpdated(); };
   const sync = async restart => { const data = await run('sync', { table, restart }); if (data) { queryClient.invalidateQueries(); onUpdated(); } };
   return <section className="space-y-4 rounded-panel border border-border bg-card p-5">

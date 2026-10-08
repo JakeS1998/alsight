@@ -4,6 +4,7 @@ import { dataverseSourceType } from './dataverseSourceTypes.ts';
 import { flowChoiceMetadata } from './dataverseChoiceMetadata.ts';
 import { suggestFlowMappings } from './dataverseFlowSuggestions.ts';
 import { flowLookupMetadata } from './dataverseLookupMetadata.ts';
+import { matchFlowChoices } from './dataverseChoiceMatching.ts';
 export async function discoverFlowTables(context, table) {
   const names = flowSpecs[table]?.sourceNames || [];
   const filter = names.flatMap(name => [`LogicalName eq '${name}'`, `EntitySetName eq '${name}'`]).join(' or ');
@@ -34,10 +35,10 @@ export function validateMapping(table, inspected, mappings) {
     if (item.write && source.type === 'Lookup' && !lookupTarget) throw new Error(`Choose a lookup target table for ${item.local}.`);
     let values;
     if (['Picklist', 'State', 'Status'].includes(source.type)) {
-      values = {};
+      values = matchFlowChoices(source.options, spec.enums?.[item.local], item.values);
       for (const option of source.options) {
-        const value = spec.enums?.[item.local] ? item.values?.[option.value] : option.label;
-        if (typeof value !== 'string' || (spec.enums?.[item.local] && !spec.enums[item.local].includes(value))) throw new Error(`Map every choice for ${item.local}, or leave the field unmapped.`);
+        const value = values[option.value];
+        if (typeof value !== 'string' || (spec.enums?.[item.local] && !spec.enums[item.local].includes(value))) throw new Error(`No clear ALSight match for “${option.label}” in ${item.local}. Choose a value for this option, or leave the field unmapped.`);
         values[option.value] = value;
       }
       if (!source.options.length) throw new Error('Dataverse did not return choices for this field.');
