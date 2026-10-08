@@ -2,6 +2,7 @@ import {createClientFromRequest} from 'npm:@base44/sdk@0.8.52';
 import {approvalList,approvalSummary,approvalOptions,approvalDetail} from '../../shared/documentApprovalReads.ts';
 import {decideDocumentApproval} from '../../shared/documentApprovalDecision.ts';
 import {receiveDocumentApproval} from '../../shared/documentApprovalIntake.ts';
+import {syncDocumentApprovalPage} from '../../shared/documentApprovalSync.ts';
 const address=value=>typeof value==='string' ? value.trim().toLowerCase() : '';
 const validId=value=>typeof value==='string' && /^[a-zA-Z0-9_-]{1,100}$/.test(value);
 export default async function(req: Request): Promise<Response> {
@@ -23,6 +24,10 @@ export default async function(req: Request): Promise<Response> {
    if(previous.items[0] && previous.items[0].contact_id!==contact.id)return Response.json({error:'This portal email is already linked to another person’s approval access. Review the duplicate person records first.'},{status:409});
    await grants.upsert([{email:contactEmail,contact_id:contact.id,enabled:input.enabled,changed_by:user.id,changed_at:new Date().toISOString()}],{key:'email'});
    return Response.json({email:contactEmail,enabled:input.enabled});
+  }
+  if(input.action==='syncDocuments'){
+   if(user.role!=='admin')return Response.json({error:'Only administrators can synchronise document approvals.'},{status:403});
+   return Response.json(await syncDocumentApprovalPage(base44,input));
   }
   if(input.action==='receive')return Response.json(await receiveDocumentApproval(base44,user,input));
   const enabled=(await grants.count({email,enabled:true}))>0;

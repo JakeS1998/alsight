@@ -14,7 +14,7 @@ export async function syncFlowBatch(base44, context, table, config, restart) {
   if (!Array.isArray(data.value) || data.value.length > 50) throw new Error('Dataverse returned an unexpectedly large batch.');
   if (data.value.some(row => !isGuid(row[settings.primaryId]))) throw new Error('Dataverse returned an invalid record identity.');
   const { updates, counts, appliedReviews } = await prepareFlowBatch(base44, context, table, settings, data.value);
-  await applyFlowUpdates(base44, table, spec, updates, appliedReviews);
+  await applyFlowUpdates(base44, table, spec, updates, appliedReviews, data.value.map(row=>row[settings.primaryId]));
   const next = data['@odata.nextLink'] || '';
   if (next && (new URL(next).origin !== context.environment || new URL(next).pathname !== `/api/data/v9.2/${settings.entitySet}`)) throw new Error('Dataverse returned an invalid continuation address.');
   const tables = { ...config.tables, [table]: { ...settings, cursor: next, last_synced_at: new Date().toISOString(), processed: (restart ? 0 : settings.processed || 0) + data.value.length, updated: (restart ? 0 : settings.updated || 0) + counts.updated + counts.created, queued: (restart ? 0 : settings.queued || 0) + counts.pending + counts.unmatched + counts.errors, last_batch: counts, complete: !next } };

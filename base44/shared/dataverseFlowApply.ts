@@ -1,5 +1,6 @@
 import { propagateFlowProjectAccess } from './dataverseProjectReferences.ts';
-export async function applyFlowUpdates(base44, table, spec, updates, appliedReviews) {
+import {syncDocumentApprovals} from './documentApprovalSync.ts';
+export async function applyFlowUpdates(base44, table, spec, updates, appliedReviews, sourceIds=updates.map(row=>row.dataverse_id)) {
   if (table === 'users') {
     for (let start = 0; start < updates.length; start += 4) {
       await Promise.all(updates.slice(start, start + 4).map(({ id, ...values }) => base44.entities.User.update(id, values)));
@@ -8,5 +9,9 @@ export async function applyFlowUpdates(base44, table, spec, updates, appliedRevi
     await base44.entities[spec.entity].upsert(updates.map(({ id, ...values }) => values), { key: 'dataverse_id' });
   }
   if (table === 'projects' && updates.length) await propagateFlowProjectAccess(base44, updates);
+  if (['documents','dma','warranties'].includes(table) && sourceIds.length) {
+    const page=await base44.entities[spec.entity].filter({dataverse_id:{$in:sourceIds}},{limit:50});
+    await syncDocumentApprovals(base44,table,page.items);
+  }
   if (appliedReviews.length) await base44.entities.DataverseSyncReview.bulkUpdate(appliedReviews.map(id => ({ id, status: 'applied', error: '', applied_at: new Date().toISOString() })));
 }

@@ -25,6 +25,10 @@
       "type": "string",
       "maxLength": 200
     },
+    "source_requires_approval": {
+      "type": "boolean",
+      "default": true
+    },
     "drafted_date": {
       "type": "string",
       "format": "date-time"

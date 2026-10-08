@@ -1,4 +1,4 @@
-import {approvalSource,approvalAudit} from './documentApprovalRecords.ts';
+import {approvalSource,approvalAudit,approvalEntity} from './documentApprovalRecords.ts';
 import {flowConfig,flowRequest} from './dataverseFlowApi.ts';
 import {personalDataverseContext,getPersonalDataverseToken} from './dataverseUserAuth.ts';
 const responses=['Approve','Reject','Approved - Subject to Comments','Further Review Required'];
@@ -25,7 +25,7 @@ export async function decideDocumentApproval(base44,user,input) {
   if(!demo)await writeDocumentDecision(base44,user,request,{...values,decided_at:decidedAt});
   const status=statusOf(response);
   await approvalAudit(base44,request,user,retry ? 'Decision retry confirmed' : response,{new_status:status,comment:comments,integration_result:demo ? 'Demo: Dataverse unchanged' : 'Confirmed in Dataverse'});
-  await db.update(request.id,{...values,status,writeback_status:demo ? 'not_required' : 'confirmed',integration_error:'',decision_lock:'',decision_lock_until:'1970-01-01T00:00:00.000Z'});
+  await db.update(request.id,{...values,status,...(!demo ? {source_requires_approval:false} : {}),writeback_status:demo ? 'not_required' : 'confirmed',integration_error:'',decision_lock:'',decision_lock_until:'1970-01-01T00:00:00.000Z'});
   return {ok:true,is_demo:demo,status};
  } catch(error){
   const message=String(error.message || 'Dataverse did not confirm this decision.').slice(0,1000);
@@ -52,4 +52,6 @@ async function writeDocumentDecision(base44,user,request,decision) {
  if(!matches)await flowRequest(environment,token,path,{method:'PATCH',headers:{'If-Match':request.source_version},body:JSON.stringify(payload)});
  const confirmed=await flowRequest(environment,token,`${path}?$select=${mappings.map(m=>m.source).join(',')}`);
  if(!mappings.every(m=>m.local==='approval_date' ? Date.parse(confirmed[m.source])===Date.parse(values[m.local]) : (confirmed[m.source] || '')===values[m.local]))throw new Error('Dataverse has not confirmed the recorded decision.');
+ const {document}=await approvalSource(base44,request);
+ await base44.asServiceRole.entities[approvalEntity(request.source_table)].update(document.id,values);
 }

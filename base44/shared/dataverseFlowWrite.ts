@@ -3,6 +3,7 @@ import { personalDataverseContext, getPersonalDataverseToken } from './dataverse
 import { flowRequest } from './dataverseFlowApi.ts';
 import { flowSelection, mappedFlowValues } from './dataverseFlowValues.ts';
 import { addFlowWriteValue } from './dataverseWritePayload.ts';
+import {syncDocumentApprovals} from './documentApprovalSync.ts';
 export async function writeFlowContext(base44, user, config, input) {
   const spec = flowSpecs[input.table], settings = config?.tables?.[input.table];
   if (!settings?.mappings?.length) throw new Error('An administrator must confirm this table’s mapping first.');
@@ -45,5 +46,7 @@ export async function saveFlowRecord(base44, context, input) {
   const localValues = Object.fromEntries(context.settings.mappings.map(m => [m.local, validateFlowValue(m.localType, fresh.values[m.local], m.local === context.spec.required)]));
   try { await base44.entities[context.spec.entity].update(context.record.id, localValues); }
   catch { return { ...fresh, notice: 'Saved in Dataverse under your account. The ALSight copy could not refresh; ask an administrator to synchronise this table.' }; }
+  const table=Object.keys(flowSpecs).find(key=>flowSpecs[key].entity===context.spec.entity);
+  if(['documents','dma','warranties'].includes(table))await syncDocumentApprovals(base44,table,[{...context.record,...localValues}]);
   return { ...fresh, notice: 'Saved in Dataverse under your connected account and refreshed in ALSight.' };
 }

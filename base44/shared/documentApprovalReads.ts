@@ -1,5 +1,5 @@
 import {approvalSource,approvalView,approvalMetadata} from './documentApprovalRecords.ts';
-const own = user => ({approver_email:user.email.trim().toLowerCase()});
+const own = user => ({approver_email:user.email.trim().toLowerCase(),source_requires_approval:{$ne:false}});
 export function approvalQuery(user,input) {
  let query=own(user);
  if(input.view==='approved')query={...query,status:'approved',decided_by_id:user.id};
@@ -26,11 +26,11 @@ export async function approvalList(base44,user,input) {
  const documents=[];
  for(const table of ['documents','dma','warranties']){
   const ids=page.items.filter(r=>r.source_table===table).map(r=>r.source_id);
-  if(ids.length){const entity=table==='documents' ? 'LegalDocument' : table==='dma' ? 'DMA' : 'Warranty';const docs=await base44.entities[entity].filter({dataverse_id:{$in:ids}},{limit:50,fields:['dataverse_id','project_id']});documents.push(...docs.items.map(d=>({...d,table})));}
+  if(ids.length){const entity=table==='documents' ? 'LegalDocument' : table==='dma' ? 'DMA' : 'Warranty';const docs=await base44.entities[entity].filter({dataverse_id:{$in:ids}},{limit:50,fields:['dataverse_id','project_id','drafted_date','approval_date']});documents.push(...docs.items.map(d=>({...d,table})));}
  }
  const parentIds=[...new Set(documents.map(d=>d.project_id).filter(Boolean))];
  const projects=parentIds.length ? (await base44.entities.Project.filter({$or:[{dataverse_id:{$in:parentIds}},{id:{$in:parentIds}}]},{limit:50,fields:['dataverse_id']})).items : [];
- const items=page.items.filter(r=>documents.some(d=>d.table===r.source_table && d.dataverse_id===r.source_id && projects.some(p=>p.dataverse_id===d.project_id || p.id===d.project_id))).map(approvalView);
+ const items=page.items.filter(r=>documents.some(d=>d.table===r.source_table && d.dataverse_id===r.source_id && d.drafted_date && !String(d.approval_date || '').trim() && projects.some(p=>p.dataverse_id===d.project_id || p.id===d.project_id))).map(approvalView);
  return {...page,items};
 }
 export async function approvalSummary(base44,user) {
@@ -47,7 +47,7 @@ export async function approvalOptions(base44,user) {
 }
 export async function approvalDetail(base44,user,id) {
  const request=await base44.entities.DocumentApprovalRequest.get(id);
- if(!request || request.approver_email!==user.email.trim().toLowerCase())throw new Error('Approval not found in your inbox.');
+ if(!request || request.source_requires_approval===false || request.approver_email!==user.email.trim().toLowerCase())throw new Error('Approval is no longer in your inbox. Its recorded history has been retained.');
  const {document,project}=await approvalSource(base44,request);
  const history=await base44.asServiceRole.entities.DocumentApprovalEvent.filter({approval_id:request.id},{sort:'occurred_at',limit:50});
  const url=document.link_to_file;

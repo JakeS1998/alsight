@@ -20,6 +20,6 @@ export async function pollFlowBatch(base44, context, table, settings, previous =
   if (next) { const url = new URL(next); if (url.origin !== context.environment || url.pathname !== address.pathname) throw new Error('Invalid Dataverse continuation address.'); }
   if (preview) return { table, sampled: data.value.length, has_more: Boolean(next) };
   const { updates, counts, appliedReviews } = await prepareFlowBatch(base44, context, table, settings, data.value, true);
-  await applyFlowUpdates(base44, table, flowSpecs[table], updates, appliedReviews);
+  await applyFlowUpdates(base44, table, flowSpecs[table], updates, appliedReviews, data.value.map(row=>row[settings.primaryId]));
   return { fingerprint, watermark: next ? checkpoint.watermark || '' : windowEnd, window_end: next ? windowEnd : '', cursor: next, last_checked_at: new Date().toISOString(), last_batch: counts, initial_scan: Boolean(next && !checkpoint.watermark), processed: (checkpoint.cursor ? checkpoint.processed || 0 : 0) + data.value.length };
 }

@@ -6,6 +6,7 @@ export async function approvalSource(base44, request) {
  const page=await base44.entities[entity].filter({dataverse_id:request.source_id},{limit:2});
  if(page.items.length!==1)throw new Error('This document is not available under your current ALSight permissions.');
  const document=page.items[0];
+ if(!String(document.drafted_date || '').trim() || String(document.approval_date || '').trim())throw new Error('This document no longer requires approval: it has an approval date or no drafted date.');
  const projects=await base44.entities.Project.filter({$or:[{dataverse_id:document.project_id},{id:document.project_id}]},{limit:2});
  if(projects.items.length!==1)throw new Error('The linked project is not available under your current ALSight permissions.');
  return {document,project:projects.items[0]};
