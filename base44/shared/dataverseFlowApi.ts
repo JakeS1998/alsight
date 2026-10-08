@@ -9,7 +9,12 @@ export async function flowRequest(environment, token, path, options = {}) {
   const response = await dataverseRequest('Dataverse data flow', url.href, { redirect: 'manual', signal: AbortSignal.timeout(20000), ...options, headers: { Authorization: `Bearer ${token}`, Accept: 'application/json', 'OData-MaxVersion': '4.0', 'OData-Version': '4.0', 'Content-Type': 'application/json', ...options.headers } }, [token]);
   if (!response.ok) {
     const code = response.status === 412 ? 'conflict' : [401, 403].includes(response.status) ? 'access' : 'dataverse';
-    const message = response.status === 412 ? 'This record changed in Dataverse. Reload it and review your changes before saving again.' : response.status === 401 ? 'Your Microsoft session has expired. Reconnect the relevant Dataverse account.' : response.status === 403 ? 'Dataverse refused this operation. Check the connected account’s record and field permissions.' : response.status === 429 ? 'Dataverse is busy. Wait a moment before trying again.' : response.status === 404 ? 'Dataverse could not find this table or record. Review the table mapping.' : `Dataverse could not complete the operation (HTTP ${response.status}).`;
+    let message = response.status === 412 ? 'This record changed in Dataverse. Reload it and review your changes before saving again.' : response.status === 401 ? 'Your Microsoft session has expired. Reconnect the relevant Dataverse account.' : response.status === 403 ? 'Dataverse refused this operation. Check the connected account’s record and field permissions.' : response.status === 429 ? 'Dataverse is busy. Wait a moment before trying again.' : response.status === 404 ? 'Dataverse could not find this table or record. Review the table mapping.' : `Dataverse could not complete the operation (HTTP ${response.status}).`;
+    if (response.status === 400) {
+      const details = await response.json().catch(() => null);
+      const detail = details?.error?.message;
+      if (typeof detail === 'string') message = `Dataverse rejected the values: ${detail.split(token).join('[redacted]').slice(0, 300)}`;
+    }
     const error = new Error(message); error.code = code; error.status = response.status; throw error;
   }
   return response.status === 204 ? null : await response.json();
@@ -24,14 +29,9 @@ export async function sharedFlowContext(base44, config) {
   return { environment: config.environment_url, token, record };
 }
 export async function confirmJake(base44, user) {
-  let owner = user;
-  let context = await personalDataverseContext(base44, owner);
-  if (context.record?.status !== 'connected') {
-    const users = await base44.entities.User.filter({ email: 'jake@allianceleisure.co.uk' });
-    owner = users.find(candidate => candidate.role === 'admin');
-    if (!owner) throw new Error('Jake must connect his work Dataverse account in Account Settings first.');
-    context = await personalDataverseContext(base44, owner);
-  }
+  const users = await base44.entities.User.filter({ email: 'jake@allianceleisure.co.uk' });
+  const owner = users.find(candidate => candidate.role === 'admin') || user;
+  const context = await personalDataverseContext(base44, owner);
   const { environment, record } = context;
   const token = await getPersonalDataverseToken(base44, owner, environment, record);
   const identity = await delegatedDataverseIdentity(environment, token);
