@@ -6,7 +6,7 @@ export async function portfolioBusinessContext(base44,user,now) {
   // Explicitly authorised business-wide numeric context only. No records or IDs leave this helper.
   return scopedReadCache('portfolio-business-key-figures:v1',async()=>{
     const entities=base44.asServiceRole.entities;
-    const query={$and:[{status:{$ne:'inactive'}},{$nor:[{approval_status:{$regex:'^\\s*(?:complete|completed)\\s*$',$options:'i'}},{practical_completion_date:{$gt:'',$lt:now}}]}]};
+    const query={$and:[{status:{$ne:'inactive'}},{dataverse_id:{$exists:true,$nin:[null,'']}},{$nor:[{approval_status:{$regex:'^\\s*(?:complete|completed)\\s*$',$options:'i'}},{practical_completion_date:{$gt:'',$lt:now}}]}]};
     const projects=await entities.Project.aggregate({query,groupBy:['id','live_project'],sum:'estimated_value',limit:1000});
     if(projects.truncated)throw new Error('Business-wide key figures exceeded their reporting limit.');
     const related={project_id:{$in:projects.rows.length ? projects.rows.map(row=>row.id) : ['000000000000000000000000']}};

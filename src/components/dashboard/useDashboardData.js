@@ -16,8 +16,8 @@ export default function useDashboardData(filters = {}) {
   const scopeKey = JSON.stringify([user?.id, role, user?.staff_aad_id, user?.data, user?.region, user?.delegate_of, revision]);
   const key = JSON.stringify([scopeKey, filters]);
   const directory = useDashboardDirectory(user, scopeKey);
-  const query = useQuery({ queryKey: ['dashboard-data', key], enabled: !!user?.id && role !== 'project_manager' && directory.identityReady, staleTime: 60000, refetchOnMount: false, queryFn: async () => {
-    const clauses = [{ status: { $ne: 'inactive' } }, projectScope(user, directory.contact?.aad_id)];
+  const query = useQuery({ queryKey: ['dashboard-data', key], enabled: !!user?.id && role !== 'project_manager' && directory.identityReady, staleTime: 60000, refetchOnMount: true, queryFn: async () => {
+    const clauses = [{ status: { $ne: 'inactive' } }, { dataverse_id: { $exists: true, $nin: [null, ''] } }, projectScope(user, directory.contact?.aad_id)];
     if (filters.region) clauses.push({ department_id: filters.region });
     if (filters.bdm) clauses.push({ bdm_aad_id: filters.bdm });
     if (filters.status) clauses.push({ live_project: filters.status === 'live' });

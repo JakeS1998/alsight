@@ -5,6 +5,7 @@ import PortalFooter from '@/components/PortalFooter';
 import { useAuth } from '@/lib/AuthContext';
 import AliceWidget from '@/components/alice/AliceWidget';
 import aliceAccessKey from '@/components/alice/aliceAccessKey';
+import usePortalDataRefresh from '@/components/data/usePortalDataRefresh';
 import '@/components/layout/portal-responsive.css';
 import '@/components/layout/portal-design.css';
 import '@/components/layout/portal-header.css';
@@ -12,6 +13,7 @@ import '@/components/layout/portal-header.css';
 export default function PortalLayout() {
   const { user } = useAuth();
   const { pathname } = useLocation();
+  usePortalDataRefresh(user?.id, pathname);
   useEffect(() => {
     const match = pathname.match(/^\/projects\/([^/]+)$/);
     if (!match || !user?.id) return;
