@@ -1,12 +1,15 @@
 import React, { useState } from "react";
 import { FORM_OF_JCT, formatDate, JCT_CHECKLIST_ITEMS } from "@/lib/portal";
 import { jctName } from "@/components/documents/documentNames";
+import DataverseRecordEdit from '@/components/dataverse/DataverseRecordEdit';
+import useEditableRecord from '@/components/dataverse/useEditableRecord';
 import { ExecutedBadge, FormOfJCTBadge } from "@/components/StatusBadge";
 import { ProgressTracker, getJCTSteps } from "@/components/documents/ProgressTracker";
 import { ChecklistGrid } from "@/components/documents/TriStateToggle";
 import { ChevronDown, ChevronRight, FileText, ExternalLink } from "lucide-react";
 
-export function JCTCard({ doc, projectName, accountName, contractorName, hideCommentsAndLinks = false }) {
+export function JCTCard({ doc: sourceDoc, projectName, accountName, contractorName, hideCommentsAndLinks = false }) {
+  const [doc, setDoc] = useEditableRecord(sourceDoc);
   const [open, setOpen] = useState(false);
   const steps = getJCTSteps(doc);
 
@@ -30,6 +33,7 @@ export function JCTCard({ doc, projectName, accountName, contractorName, hideCom
       </button>
       {open && (
         <div className="border-t border-slate-100 bg-slate-50/60 p-4 space-y-4">
+          <DataverseRecordEdit table="jct" record={doc} onUpdated={setDoc} />
           <ProgressTracker steps={steps} />
           <div className="grid gap-4 sm:grid-cols-3">
             <div className="space-y-1.5">

@@ -1,5 +1,7 @@
 import React, { useState } from "react";
 import agreementNames from '@/components/projects/agreementNames';
+import DataverseRecordEdit from '@/components/dataverse/DataverseRecordEdit';
+import useEditableRecord from '@/components/dataverse/useEditableRecord';
 import { formatDate, DMA_PSO_ITEMS } from "@/lib/portal";
 import { dmaName } from "@/components/documents/documentNames";
 import { ExecutedBadge } from "@/components/StatusBadge";
@@ -7,7 +9,8 @@ import { ProgressTracker, getDMASteps } from "@/components/documents/ProgressTra
 import { ChecklistGrid, TriStateDisplay } from "@/components/documents/TriStateToggle";
 import { ChevronDown, ChevronRight, FileText, ExternalLink, AlertCircle } from "lucide-react";
 
-export function DMACard({ doc, projectName, projectNumber, psoOutstanding }) {
+export function DMACard({ doc: sourceDoc, projectName, projectNumber, psoOutstanding }) {
+  const [doc, setDoc] = useEditableRecord(sourceDoc);
   const [open, setOpen] = useState(false);
   const steps = getDMASteps(doc);
 
@@ -35,6 +38,7 @@ export function DMACard({ doc, projectName, projectNumber, psoOutstanding }) {
       </button>
       {open && (
         <div className="border-t border-slate-100 bg-slate-50/60 p-4 space-y-4">
+          <DataverseRecordEdit table="dma" record={doc} onUpdated={setDoc} />
           <ProgressTracker steps={steps} />
           <div className="grid gap-4 sm:grid-cols-3">
             <div className="space-y-1.5">

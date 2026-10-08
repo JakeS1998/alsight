@@ -11,6 +11,7 @@ import AccountCRM from '@/components/crm/AccountCRM';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
 import { useQueryClient } from '@tanstack/react-query';
 import AccountHeader from '@/components/accounts/AccountHeader';
+import DataverseRecordEdit from '@/components/dataverse/DataverseRecordEdit';
 import AccountClassification from '@/components/accounts/AccountClassification';
 import AccountOverview from '@/components/accounts/AccountOverview';
 import AccountFinancials from '@/components/accounts/AccountFinancials';
@@ -125,7 +126,7 @@ export default function AccountDetail() {
           {['Overview','Contacts','Projects',...(['admin','director','regional_director','bsm','finance','bdm'].includes(user?.role) ? ['Opportunities'] : []),...(['admin','director','regional_director','bsm','finance','bdm','client'].includes(user?.role) ? ['Financials'] : []),'Activity','Documents'].map(title => <TabsTrigger key={title} value={title.toLowerCase()}>{title==='Contacts' ? 'People' : title}</TabsTrigger>)}
         </TabsList>
       </div>
-      <TabsContent value="overview"><AccountOverview account={summaryRow?.account ? {...account,_ase:summaryRow.account._ase} : account} contacts={contacts} projects={projects} signals={signals} user={user} summaryLoading={summary.isPending} summaryError={summary.error} onSummaryRetry={()=>summary.refetch()} onAccountEnriched={updated=>setAccount(current=>({...current,...updated}))} /></TabsContent>
+      <TabsContent value="overview" className="space-y-4"><DataverseRecordEdit table="accounts" record={account} onUpdated={setAccount} /><AccountOverview account={summaryRow?.account ? {...account,_ase:summaryRow.account._ase} : account} contacts={contacts} projects={projects} signals={signals} user={user} summaryLoading={summary.isPending} summaryError={summary.error} onSummaryRetry={()=>summary.refetch()} onAccountEnriched={updated=>setAccount(current=>({...current,...updated}))} /></TabsContent>
       <TabsContent value="contacts" className="space-y-6">
       {/* Linked Contacts */}
       <Section icon={Users} title="People at this organisation" count={contactTotal}>
@@ -203,6 +204,7 @@ export default function AccountDetail() {
                     <tr key={d.id} className="hover:bg-slate-50">
                       <td className="px-4 py-3 text-sm font-medium text-slate-900">
                         {proj ? <Link to={`/projects/${proj.id}?tab=${user?.role === 'supplier' ? 'timeline' : 'drafting'}`} className="text-blue-600 hover:underline">{d.document_id}</Link> : d.document_id}
+                         <div className="mt-2"><DataverseRecordEdit table="documents" record={d} onUpdated={updated => setDocs(current => current.map(item => item.id === updated.id ? updated : item))} /></div>
                       </td>
                       <td className="px-4 py-3 text-sm text-slate-600">
                         {proj ? <Link to={`/projects/${proj.id}?tab=${user?.role === 'supplier' ? 'timeline' : 'drafting'}`} className="text-blue-600 hover:underline">{proj.name}</Link> : "—"}
@@ -236,9 +238,9 @@ export default function AccountDetail() {
                     <WarrantyStatusBadge status={w.warranty_status} dateOfExecution={w.date_of_execution} />
                   </div>
                 );
-                return proj ? (
+                return <div key={w.id} className="space-y-2"><DataverseRecordEdit table="warranties" record={w} onUpdated={updated => setWarranties(current => current.map(item => item.id === updated.id ? updated : item))} />{proj ? (
                   <Link key={w.id} to={`/projects/${proj.id}?tab=${user?.role === 'supplier' ? 'timeline' : 'warranties'}`} className="group block">{inner}</Link>
-                ) : <div key={w.id}>{inner}</div>;
+                ) : <div>{inner}</div>}</div>;
               })}
             </div>
           )}
@@ -259,9 +261,9 @@ export default function AccountDetail() {
                     <ExecutedBadge status={j.executed} />
                   </div>
                 );
-                return proj ? (
+                return <div key={j.id} className="space-y-2"><DataverseRecordEdit table="jct" record={j} onUpdated={updated => setJcts(current => current.map(item => item.id === updated.id ? updated : item))} />{proj ? (
                   <Link key={j.id} to={`/projects/${proj.id}?tab=${user?.role === 'supplier' ? 'timeline' : 'drafting'}`} className="group block">{inner}</Link>
-                ) : <div key={j.id}>{inner}</div>;
+                ) : <div>{inner}</div>}</div>;
               })}
             </div>
           )}

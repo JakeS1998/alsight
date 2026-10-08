@@ -1,12 +1,15 @@
 import React, { useState } from "react";
 import agreementNames from '@/components/projects/agreementNames';
+import DataverseRecordEdit from '@/components/dataverse/DataverseRecordEdit';
+import useEditableRecord from '@/components/dataverse/useEditableRecord';
 import { DOCUMENT_TYPE, formatDate } from "@/lib/portal";
 import { legalDocumentName } from "@/components/documents/documentNames";
 import { DocTypeBadge, ExecutedBadge } from "@/components/StatusBadge";
 import { ProgressTracker, getLegalDocSteps } from "@/components/documents/ProgressTracker";
 import { ChevronDown, ChevronRight, Download, ExternalLink, FileText, AlertCircle } from "lucide-react";
 
-export function LegalDocumentCard({ doc, projectName, projectNumber, accountName, psoOutstanding, hideCommentsAndLinks = false, hideFinancials = false }) {
+export function LegalDocumentCard({ doc: sourceDoc, projectName, projectNumber, accountName, psoOutstanding, hideCommentsAndLinks = false, hideFinancials = false }) {
+  const [doc, setDoc] = useEditableRecord(sourceDoc);
   const [open, setOpen] = useState(false);
   const steps = getLegalDocSteps(doc);
   const typeCfg = doc.document_type === 'access_agreement' ? { label: agreementNames(projectNumber).access } : DOCUMENT_TYPE[doc.document_type] || { label: doc.document_type };
@@ -38,6 +41,7 @@ export function LegalDocumentCard({ doc, projectName, projectNumber, accountName
       </button>
       {open && (
         <div className="border-t border-slate-100 bg-slate-50/60 p-3 space-y-3">
+          <DataverseRecordEdit table="documents" record={doc} onUpdated={setDoc} />
           <ProgressTracker steps={steps} />
           <div className="grid gap-4 sm:grid-cols-3 items-start">
             <DetailColumn title="Document & Execution">

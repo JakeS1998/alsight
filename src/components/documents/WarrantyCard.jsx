@@ -1,11 +1,14 @@
 import React, { useState } from "react";
 import { warrantyName } from "@/components/documents/documentNames";
+import DataverseRecordEdit from '@/components/dataverse/DataverseRecordEdit';
+import useEditableRecord from '@/components/dataverse/useEditableRecord';
 import { WarrantyStatusBadge, WarrantyCategoryBadge } from "@/components/StatusBadge";
 import { ProgressTracker, getWarrantySteps } from "@/components/documents/ProgressTracker";
 import { WarrantyDetails } from "@/components/documents/WarrantyDetails";
 import { ChevronDown, ChevronRight, ShieldCheck } from "lucide-react";
 
-export function WarrantyCard({ warranty, accountMap, hideCommentsAndLinks = false }) {
+export function WarrantyCard({ warranty: sourceWarranty, accountMap, hideCommentsAndLinks = false }) {
+  const [warranty, setWarranty] = useEditableRecord(sourceWarranty);
   const [open, setOpen] = useState(false);
   const supplierName = accountMap[warranty.supplier_id]?.name || accountMap[warranty.account_id]?.name;
   return (
@@ -28,6 +31,7 @@ export function WarrantyCard({ warranty, accountMap, hideCommentsAndLinks = fals
       </button>
       {open && (
         <div className="space-y-4 border-t border-slate-100 bg-slate-50/60 p-4">
+          <DataverseRecordEdit table="warranties" record={warranty} onUpdated={setWarranty} />
           <ProgressTracker steps={getWarrantySteps(warranty)} />
           <WarrantyDetails warranty={warranty} accountMap={accountMap} hideCommentsAndLinks={hideCommentsAndLinks} />
         </div>

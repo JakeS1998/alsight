@@ -5,6 +5,7 @@ import { listAll } from "@/components/data/loadAll";
 import { formatDate, WARRANTY_STATUS } from "@/lib/portal";
 import { WarrantyStatusBadge, WarrantyCategoryBadge } from "@/components/StatusBadge";
 import { ShieldCheck, ExternalLink } from "lucide-react";
+import DataverseRecordEdit from '@/components/dataverse/DataverseRecordEdit';
 
 export default function Warranties() {
   const { user } = useAuth();
@@ -91,6 +92,7 @@ export default function Warranties() {
                   <td className="hidden px-4 py-3 text-sm text-slate-600 lg:table-cell">{formatDate(w.jct_signed)}</td>
                   <td className="hidden px-4 py-3 text-sm text-slate-600 lg:table-cell">{formatDate(w.warranty_due)}</td>
                   <td className="px-4 py-3 text-right">
+                    <DataverseRecordEdit table="warranties" record={w} onUpdated={updated => setWarranties(current => current.map(item => item.id === updated.id ? updated : item))} />
                     {user?.role !== 'supplier' && w.link_to_file && (
                       <a href={w.link_to_file} target="_blank" rel="noreferrer" className="inline-flex items-center text-blue-600 hover:underline">
                         <ExternalLink className="h-4 w-4" />

@@ -31,7 +31,7 @@ export async function saveFlowRecord(base44, context, input) {
   if (typeof input.etag !== 'string' || !/^W\/"[0-9]+"$/.test(input.etag)) throw new Error('Reload this record before saving.');
   if (!input.values || typeof input.values !== 'object' || Array.isArray(input.values)) throw new Error('Invalid changes.');
   const entries = Object.entries(input.values);
-  if (!entries.length || entries.length > 25) throw new Error('Choose between one and 25 fields to update.');
+  if (!entries.length || entries.length > 100) throw new Error('Choose between one and 100 mapped fields to update.');
   const payload = {};
   for (const [local, value] of entries) {
     const mapping = context.settings.mappings.find(m => m.local === local && m.write);

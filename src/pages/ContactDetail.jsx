@@ -21,6 +21,7 @@ import { contactBelongsToAccount } from '@/components/accounts/accountContactQue
 import {useQueryClient} from '@tanstack/react-query';
 import {Button} from '@/components/ui/button';
 import loadPersonDetail from '@/components/relationships/loadPersonDetail';
+import DataverseRecordEdit from '@/components/dataverse/DataverseRecordEdit';
 
 export default function ContactDetail() {
   const { accountId, contactId } = useParams();
@@ -82,6 +83,7 @@ export default function ContactDetail() {
     <nav className="flex flex-wrap gap-2 text-xs text-muted-foreground" aria-label="Breadcrumb"><Link to="/people" className="hover:text-primary">Relationships / People</Link>{accountId && account && <><span>/</span><Link className="hover:text-primary" to={`/accounts/${account.id}?tab=contacts`}>{account.name}</Link></>}<span>/ {contact.full_name}</span></nav>
     {signalError && <p role="alert" className="rounded-lg border border-border bg-card p-3 text-sm text-destructive">Relationship summary unavailable: {signalError} <button className="underline" onClick={()=>refreshSignals(true).catch(e=>setSignalError(e.message))}>Try again</button></p>}
     <ContactHeader contact={contact} account={account} profile={profile} owner={owner} last={last} next={next} health={health} canEdit={canEdit} onAction={key => { setEditingSection(null);setTab(['log','note'].includes(key) ? 'activity' : 'overview'); setAction(key); }} />
+    <DataverseRecordEdit table="contacts" record={contact} onUpdated={setContact} />
     <div id="contact-action-panel">{action === 'opportunity' && account?.account_type === 'client' && <ContactOpportunityForm contact={contact} account={account} user={user} onCancel={() => setAction('')} onSaved={() => { setAction(''); refreshPerson(); }} />}</div>
     <Tabs value={tabs.includes(params.get('tab')) && (params.get('tab')!=='portal' || user?.role==='admin') ? params.get('tab') : 'overview'} onValueChange={setTab} className="space-y-5">
       <TabsList className="flex h-auto flex-wrap justify-start gap-2 border-b border-border bg-transparent p-0 pb-2"><TabsTrigger value="overview">Overview</TabsTrigger><TabsTrigger value="activity">Activity</TabsTrigger><TabsTrigger value="opportunities">Opportunities</TabsTrigger><TabsTrigger value="projects">Projects</TabsTrigger>{user?.role==='admin' && <TabsTrigger value="portal">Portal Account</TabsTrigger>}</TabsList>

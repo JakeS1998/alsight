@@ -33,6 +33,7 @@ import DocumentInsight from '@/components/alice/DocumentInsight';
 import ProjectAttention from '@/components/projects/ProjectAttention';
 import ProjectPurpose from '@/components/alliance/ProjectPurpose';
 import ProjectLessons from '@/components/alliance/ProjectLessons';
+import DataverseRecordEdit from '@/components/dataverse/DataverseRecordEdit';
 
 
 export default function ProjectDetail() {
@@ -103,6 +104,7 @@ export default function ProjectDetail() {
           <ProjectWorkspaceNav user={user} project={project} isSupplier={isSupplier} isExternalPM={isExternalPM} canSeeValuations={canSeeValuations} />
         </ProjectStickyHeader>
         <TabsContent value="general" className="ws-content space-y-6">
+          <DataverseRecordEdit table="projects" record={project} onUpdated={setProject} />
           {INTERNAL_ROLES.includes(user?.role) && <ProjectAttention project={project}/>}
           {INTERNAL_ROLES.includes(user?.role) && <ProjectChanges key={project.id} project={project} legalDocs={legalDocs} dmas={dmas} jcts={jcts} />}
           {!INTERNAL_ROLES.includes(user?.role) && <ProjectPurpose key={project.id} project={project} onUpdated={updated=>setProject(current=>({...current,...updated}))} />}
