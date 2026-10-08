@@ -11,10 +11,7 @@ export async function findFlowTargets(base44, table, settings, rows, values) {
     return result.filter(user => emails.includes(normalisedEmail(user.email)));
   }
   const alternatives = [{ [identity]: { $in: ids } }];
-  for (const field of spec.matchFields || [spec.required]) {
-    const wanted = [...new Set(values.map(value => value?.[field]).filter(v => typeof v === 'string' && v.trim()))];
-    if (wanted.length) alternatives.push({ [field]: { $in: wanted } });
-  }
+
   const page = await base44.entities[spec.entity].filter({ $or: alternatives }, { limit: 500, fields: [...new Set([identity, spec.required, spec.labelField || spec.required, ...(spec.matchFields || []), ...settings.mappings.map(m => m.local)])] });
   if (page.has_more) throw new Error('Too many possible placeholder matches. Use a more specific identifier mapping.');
   return page.items;

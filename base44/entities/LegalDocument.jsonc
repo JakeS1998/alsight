@@ -154,13 +154,12 @@
             },
             {
               "data.document_type": {
-                "$nin": [
-                  "appointment_pm",
-                  "appointment_pd_cdm",
-                  "appointment_architect",
-                  "appointment_pd_br",
-                  "pcsa",
-                  "loi"
+                "$in": [
+                  "access_agreement",
+                  "additional_works",
+                  "equipment_only_agreement",
+                  "single_task_agreement",
+                  "other"
                 ]
               }
             }

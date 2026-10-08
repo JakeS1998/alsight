@@ -7,7 +7,7 @@ import { discoverFlowTables, inspectFlowTable, validateMapping } from '../../sha
 import { syncFlowBatch } from '../../shared/dataverseFlowSync.ts';
 import { pollDataverse } from '../../shared/dataversePollRun.ts';
 import { cleanDataverseDMA } from '../../shared/dataverseDMACleanup.ts';
-import { configureFlowRelationships } from '../../shared/dataverseRelationshipMappings.ts';
+import { configureFlowRelationships, addFlowRelationships } from '../../shared/dataverseRelationshipMappings.ts';
 import { writeFlowContext, loadFlowRecord, saveFlowRecord } from '../../shared/dataverseFlowWrite.ts';
 import { flowSelection, mappedFlowValues } from '../../shared/dataverseFlowValues.ts';
 import { listFlowReviews, decideFlowReview } from '../../shared/dataverseFlowReview.ts';
@@ -64,7 +64,7 @@ export default async function(req) {
     if (input.action === 'inspect') return Response.json(await inspectFlowTable(context, input.table, input.logicalName));
     if (input.action === 'mapping') {
       const inspected = await inspectFlowTable(context, input.table, input.logicalName);
-      const mappings = validateMapping(input.table, inspected, input.mappings);
+      const mappings = validateMapping(input.table, inspected, addFlowRelationships(input.table, { mappings: input.mappings }, inspected));
       const columnPlans = validateColumnPlans(input.table, mappings, input.columnPlans ?? config.tables?.[input.table]?.columnPlans ?? {});
       const { fields, suggestions, warning, ...meta } = inspected;
       const previous = config.tables?.[input.table];

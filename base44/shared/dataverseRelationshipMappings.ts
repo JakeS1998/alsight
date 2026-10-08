@@ -8,7 +8,8 @@ const relationshipColumns = {
   warranties: { project_id: ['bss_project'] }
 };
 export function addFlowRelationships(table, settings, inspected) {
-  let mappings = [...(settings.mappings || [])];
+  if (!Array.isArray(settings.mappings)) throw new Error('Choose a valid list of mapped fields.');
+  let mappings = [...settings.mappings];
   if (table === 'projects') {
     const client = mappings.find(m => m.local === 'client_name' && m.type === 'Lookup');
     if (client && !mappings.some(m => m.local === 'client_account_id')) mappings = mappings.map(m => m === client ? { ...m, local: 'client_account_id', localType: 'Lookup', write: false } : m);

@@ -31,7 +31,7 @@ export async function decideFlowReview(base44, user, context, table, settings, i
   if (typeof input.localUpdatedAt !== 'string' || input.localUpdatedAt !== target.updated_date) { const error = new Error('The ALSight record changed since the comparison. Reload before approving.'); error.status = 412; throw error; }
   const linked = table === 'users' ? await base44.entities.User.filter({ [identity]: review.source_id }) : (await base44.entities[spec.entity].filter({ [identity]: review.source_id }, { limit: 2, fields: [spec.required] })).items;
   if (linked.some(record => record.id !== target.id)) throw new Error('This source record is already linked to another ALSight record.');
-  const resolved = (await resolveFlowStaffReferences(base44, table, [mappedFlowValues(table, settings, row)]))[0];
+  const resolved = (await resolveFlowStaffReferences(base44, table, [mappedFlowValues(table, settings, row)], context))[0];
   if (resolved.error) throw new Error(resolved.error);
   await base44.entities.DataverseSyncReview.update(review.id, { ...decision, target_id: target.id, status: 'approved', error: '' });
   try {
