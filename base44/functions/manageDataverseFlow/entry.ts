@@ -26,7 +26,7 @@ export default async function(req) {
     let config = await flowConfig(base44);
     if (input.action === 'status') {
       const pollState = user.role === 'admin' ? (await base44.entities.DataversePollState.filter({ key: 'primary' }, { limit: 1, fields: ['status', 'last_activity', 'last_completed_at', 'error'] })).items[0] || null : null;
-      return Response.json({ configured: Boolean(config?.source_connection_id), ...(user.role === 'admin' ? { config, specs: flowSpecs, pollState } : { tables: Object.fromEntries(Object.entries(flowSpecs).map(([key, spec]) => [key, { enabled: Boolean(config?.tables?.[key]?.mappings?.some(m => m.write)), canWrite: spec.writeRoles.includes(user.role) }])) }) });
+      return Response.json({ configured: Boolean(config?.source_connection_id), ...(user.role === 'admin' ? { config, specs: flowSpecs, pollState } : { tables: Object.fromEntries(Object.entries(flowSpecs).map(([key, spec]) => [key, { label: spec.label, enabled: Boolean(config?.tables?.[key]?.mappings?.some(m => m.write)), canWrite: spec.writeRoles.includes(user.role) }])) }) });
     }
     if (input.action === 'poll') return Response.json(await pollDataverse(base44, config, input));
     if (input.action === 'relationships') return Response.json(await configureFlowRelationships(base44, await sharedFlowContext(base44, config), config));

@@ -1,6 +1,6 @@
 import { flowSpecs } from './dataverseFlowFields.ts';
 export function sameFlowMapping(table, previous, mappings, logicalName) {
-  const canonical = items => (items || []).map(m => ({ local: m.local, source: m.source, type: m.type, write: Boolean(m.write), localType: m.localType || flowSpecs[table].fields[m.local], queryName: m.queryName || m.source, values: Object.entries(m.values || {}).sort(([a], [b]) => a.localeCompare(b)) })).sort((a, b) => a.local.localeCompare(b.local));
+  const canonical = items => (items || []).map(m => ({ local: m.local, source: m.source, type: m.type, write: Boolean(m.write), localType: m.localType || flowSpecs[table].fields[m.local], queryName: m.queryName || m.source, lookupTarget: m.lookupTarget || null, choiceOptions: m.choiceOptions || [], values: Object.entries(m.values || {}).sort(([a], [b]) => a.localeCompare(b)) })).sort((a, b) => a.local.localeCompare(b.local));
   return previous?.logicalName === logicalName && JSON.stringify(canonical(previous.mappings)) === JSON.stringify(canonical(mappings));
 }
 export function validateColumnPlans(table, mappings, plans = {}) {
