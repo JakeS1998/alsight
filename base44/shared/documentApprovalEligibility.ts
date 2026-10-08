@@ -1,0 +1,1 @@
+export const documentNeedsApproval = document => !!String(document.drafted_date || '').trim() && !String(document.approval_date || '').trim() && String(document.approval_status || '').trim().toLowerCase()==='approval pending';

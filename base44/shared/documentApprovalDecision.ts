@@ -7,7 +7,7 @@ export async function decideDocumentApproval(base44,user,input) {
  const db=base44.asServiceRole.entities.DocumentApprovalRequest;
  const request=await base44.entities.DocumentApprovalRequest.get(input.requestId);
  if(!request || request.approver_email!==user.email.trim().toLowerCase())throw new Error('Approval not found in your inbox.');
- await approvalSource(base44,request);
+ const {document}=await approvalSource(base44,request);
  const retry=input.action==='retry',demo=request.request_key?.startsWith('demo:');
  if(retry){const recoverable=request.writeback_status==='error' || (request.writeback_status==='pending' && Date.parse(request.decision_lock_until || '')<Date.now());if(!recoverable || request.decided_by_id!==user.id || !request.response)throw new Error('This decision is not available for retry.');}
  else {
@@ -22,7 +22,7 @@ export async function decideDocumentApproval(base44,user,input) {
  try {
   const values={response,decision_comments:comments,decided_by_id:user.id,decided_by_name:(user.full_name || user.email).slice(0,200),decided_at:decidedAt};
   if(!retry){await db.update(request.id,values);await approvalAudit(base44,request,user,'Decision recorded',{comment:comments,integration_result:demo ? 'Demo: ALSight only' : 'Integration pending'});}
-  if(!demo)await writeDocumentDecision(base44,user,request,{...values,decided_at:decidedAt});
+  if(!demo)await writeDocumentDecision(base44,user,request,{...values,decided_at:decidedAt},document);
   const status=statusOf(response);
   await approvalAudit(base44,request,user,retry ? 'Decision retry confirmed' : response,{new_status:status,comment:comments,integration_result:demo ? 'Demo: Dataverse unchanged' : 'Confirmed in Dataverse'});
   await db.update(request.id,{...values,status,...(!demo ? {source_requires_approval:false} : {}),writeback_status:demo ? 'not_required' : 'confirmed',integration_error:'',decision_lock:'',decision_lock_until:'1970-01-01T00:00:00.000Z'});
@@ -34,7 +34,7 @@ export async function decideDocumentApproval(base44,user,input) {
   return {ok:false,integration_failed:true,message};
  }
 }
-async function writeDocumentDecision(base44,user,request,decision) {
+async function writeDocumentDecision(base44,user,request,decision,document) {
  const config=await flowConfig(base44),settings=config?.tables?.[request.source_table];
  const required=['approval_status','approval_date','approval_comments','approvers_name'];
  const mappings=required.map(field=>settings?.mappings?.find(m=>m.local===field && m.write));
@@ -49,9 +49,12 @@ async function writeDocumentDecision(base44,user,request,decision) {
  const path=`${settings.entitySet}(${request.source_id})`;
  const current=await flowRequest(environment,token,`${path}?$select=${mappings.map(m=>m.source).join(',')}`);
  const matches=mappings.every(m=>m.local==='approval_date' ? Date.parse(current[m.source])===Date.parse(values[m.local]) : (current[m.source] || '')===values[m.local]);
- if(!matches)await flowRequest(environment,token,path,{method:'PATCH',headers:{'If-Match':request.source_version},body:JSON.stringify(payload)});
+ if(!matches){
+  const field=local=>mappings.find(m=>m.local===local).source;
+  if(String(current[field('approval_status')] || '').trim().toLowerCase()!=='approval pending' || String(current[field('approval_date')] || '').trim())throw new Error('This document is no longer marked Approval Pending in Dataverse. Refresh your inbox.');
+  await flowRequest(environment,token,path,{method:'PATCH',headers:{'If-Match':request.source_version},body:JSON.stringify(payload)});
+ }
  const confirmed=await flowRequest(environment,token,`${path}?$select=${mappings.map(m=>m.source).join(',')}`);
  if(!mappings.every(m=>m.local==='approval_date' ? Date.parse(confirmed[m.source])===Date.parse(values[m.local]) : (confirmed[m.source] || '')===values[m.local]))throw new Error('Dataverse has not confirmed the recorded decision.');
- const {document}=await approvalSource(base44,request);
  await base44.asServiceRole.entities[approvalEntity(request.source_table)].update(document.id,values);
 }

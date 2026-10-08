@@ -22,7 +22,7 @@ export async function refreshDocumentApprovalDates(base44,table,documents) {
   const values=Object.fromEntries(mappings.map(m=>[m.local,row[m.queryName || m.source] ?? null]));
   if(Object.values(values).some(value=>value!==null && typeof value!=='string'))throw new Error('Dataverse returned an invalid document approval field.');
   if(Object.entries(values).some(([field,value])=>document[field]!==value))changes.push({id:document.id,...values});
-  return {...document,...values};
+  return {...document,...values,approval_source_version:row['@odata.etag']};
  });
  if(changes.length)await base44.asServiceRole.entities[approvalEntity(table)].bulkUpdate(changes);
  return {documents:refreshed,checked:rows.size,missing:ids.length-rows.size};
