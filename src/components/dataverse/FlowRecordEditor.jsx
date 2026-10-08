@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { Button } from '@/components/ui/button';
 import FlowFieldInput from '@/components/dataverse/FlowFieldInput';
+import FlowEditableField from '@/components/dataverse/FlowEditableField';
 import useFlowOperation from '@/components/dataverse/useFlowOperation';
 import { useQueryClient } from '@tanstack/react-query';
 export default function FlowRecordEditor({ table, recordId, writableOnly = false, onSaved }) {
@@ -11,8 +12,8 @@ export default function FlowRecordEditor({ table, recordId, writableOnly = false
   const changes = record ? Object.fromEntries(record.fields.filter(f => f.write && values[f.local] !== ({ ...record.values, ...record.choiceValues })[f.local]).map(f => [f.local, values[f.local]])) : {};
   const save = async e => { e.preventDefault(); const data = await run('save', { table, recordId, etag: record.etag, values: changes }); if (data) { setRecord(data.refreshRequired ? null : data); setValues({ ...data.values, ...data.choiceValues }); queryClient.invalidateQueries(); await onSaved?.(data); } };
   return <form onSubmit={save} className="space-y-4 rounded-panel border border-border bg-card p-5">
-    <header><h2 className="text-lg font-semibold">{record?.title || 'Dataverse record'}</h2><p className="text-sm text-muted-foreground">Loaded directly using your account. Changes are saved as your Dataverse identity.</p></header>
-    {record && <div className="grid gap-4 md:grid-cols-2">{record.fields.filter(field => !writableOnly || field.write).map(field => <FlowFieldInput key={field.local} field={field} value={values[field.local]} disabled={Boolean(busy)} onChange={value => setValues(old => ({ ...old, [field.local]: value }))} />)}</div>}
+    <header><h2 className="text-lg font-semibold">{record?.title || 'Record fields'}</h2><p className="text-sm text-muted-foreground">Use the pencil beside a field to edit it, then save to Dataverse under your connected account.</p></header>
+    {record && <div className="grid gap-4 md:grid-cols-2">{record.fields.filter(field => !writableOnly || field.write).map(field => field.write ? <FlowEditableField key={field.local} field={field} value={values[field.local]} disabled={Boolean(busy)} resetKey={record.etag} onChange={value => setValues(old => ({ ...old, [field.local]: value }))} onCancel={() => setValues(old => ({ ...old, [field.local]: ({ ...record.values, ...record.choiceValues })[field.local] }))} /> : <FlowFieldInput key={field.local} field={field} value={values[field.local]} disabled />)}</div>}
     <div className="flex flex-wrap gap-2">{record && <Button type="submit" disabled={Boolean(busy) || !Object.keys(changes).length}>Save to Dataverse</Button>}<Button type="button" variant="outline" disabled={Boolean(busy)} onClick={reload}>Reload latest record</Button></div>
     {busy && <p role="status" className="text-sm text-muted-foreground">{busy === 'save' ? 'Saving under your Dataverse account…' : 'Loading latest Dataverse record…'}</p>}{error && <p role="alert" className="text-sm text-destructive">{error}</p>}{notice && <p role="status" className="text-sm text-success">{notice}</p>}
   </form>;
