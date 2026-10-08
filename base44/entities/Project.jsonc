@@ -243,6 +243,34 @@
         {
           "$and": [
             {
+              "user_condition": {
+                "role": "bdm"
+              }
+            },
+            {
+              "data.bdm_aad_id": {
+                "$exists": true,
+                "$nin": [
+                  null,
+                  ""
+                ]
+              }
+            },
+            {
+              "$or": [
+                {
+                  "data.bdm_aad_id": "{{user.data.staff_aad_id}}"
+                },
+                {
+                  "data.bdm_aad_id": "{{user.data.dataverse_systemuser_id}}"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "$and": [
+            {
               "$or": [
                 {
                   "user_condition": {
