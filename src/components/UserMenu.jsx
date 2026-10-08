@@ -1,6 +1,6 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
-import { ChevronDown, KeyRound, LogOut, UserCog } from 'lucide-react';
+import { CalendarDays, ChevronDown, KeyRound, LogOut, UserCog } from 'lucide-react';
 import ProfilePicture from '@/components/profile/ProfilePicture';
 import { ROLE_LABELS, ROLE_BADGE_CLASS, INTERNAL_ROLES } from '@/lib/portal';
 import { DropdownMenu, DropdownMenuTrigger, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator } from '@/components/ui/dropdown-menu';
@@ -17,6 +17,7 @@ export default function UserMenu({ user, onSignOut, onNavigate, mobile = false }
     </DropdownMenuTrigger>
     <DropdownMenuContent align={mobile ? 'start' : 'end'} className="w-52">
       <DropdownMenuItem asChild><Link to="/account-settings" onClick={onNavigate}><KeyRound /> Account settings</Link></DropdownMenuItem>
+      <DropdownMenuItem asChild><Link to="/calendar" onClick={onNavigate}><CalendarDays /> My calendar</Link></DropdownMenuItem>
       {INTERNAL_ROLES.includes(role) && <DropdownMenuItem asChild><Link to="/delegation" onClick={onNavigate}><UserCog /> Delegation</Link></DropdownMenuItem>}
       {role === 'admin' && <DropdownMenuItem asChild><Link to="/admin" onClick={onNavigate}><UserCog /> Admin</Link></DropdownMenuItem>}
       {role === 'client' && <DropdownMenuItem asChild><Link to="/account" onClick={onNavigate}>My Account</Link></DropdownMenuItem>}
