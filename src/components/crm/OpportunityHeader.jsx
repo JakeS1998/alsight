@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import RecordUpdatedAt from '@/components/RecordUpdatedAt';
 import { Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import SearchableSelect from '@/components/forms/SearchableSelect';
@@ -13,6 +14,7 @@ export default function OpportunityHeader({ item, account, contacts, canEdit, ca
   return <div id="opportunity-context" className="space-y-5 rounded-xl border border-border bg-card p-5 sm:p-6">
     <div className="flex flex-wrap items-start justify-between gap-4"><div className="min-w-0 break-words"><p className="mb-2 text-xs font-semibold uppercase tracking-wide text-muted-foreground">Commercial opportunity · {item.status}</p><Link to={`/accounts/${account.id}`} className="text-sm text-primary hover:underline">{account.name}</Link><h1 className="font-heading text-2xl font-semibold sm:text-3xl">{item.title}</h1><p className="text-sm text-muted-foreground">Owner: {item.owner_name || 'Unassigned'} · {item.location || item.site_postcode || 'Location not set'}</p></div><OpportunityRecordActions item={item} canEdit={canEdit} canConvert={canConvert} busy={busy} onUpdate={()=>setEditing(v=>!v)} onActivity={onActivity} onStage={onStage} onOutcome={onOutcome} onConvert={onConvert}/></div>
     <div className="grid grid-cols-2 gap-3 sm:grid-cols-5">{[['Stage', stageLabel(stage)], ['Value', formatCurrency(item.budget)], ['Probability', `${chance(item)}%`], ['Expected close', item.expected_decision_date || 'Not set'], ['Opportunity owner', item.owner_name || 'Not assigned']].map(([label,value]) => <div key={label} className="min-w-0 rounded-lg bg-muted p-3"><p className="text-xs text-muted-foreground">{label}</p><p className="mt-1 break-words text-sm font-semibold">{value}</p></div>)}</div>
+    <RecordUpdatedAt record={item} />
     <OpportunityNextAction item={item} canEdit={canEdit} onAction={onAction}/>
     <details className="text-xs text-muted-foreground"><summary className="cursor-pointer font-medium">Review commercial context</summary><p className="mt-2">Recorded probability: {chance(item)}% · Weighted value: {formatCurrency(weighted(item))}</p></details>
     {item.stage_entered_at && Number.isFinite(Date.parse(item.stage_entered_at)) && <p className="text-xs text-muted-foreground">Age in recorded stage: {Math.max(0,Math.floor((Date.now()-Date.parse(item.stage_entered_at))/86400000))} days</p>}

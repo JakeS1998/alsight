@@ -1,5 +1,6 @@
 import React, { useState } from "react";
 import agreementNames from '@/components/projects/agreementNames';
+import RecordUpdatedAt from '@/components/RecordUpdatedAt';
 import DataverseRecordEdit from '@/components/dataverse/DataverseRecordEdit';
 import useEditableRecord from '@/components/dataverse/useEditableRecord';
 import { formatDate, DMA_PSO_ITEMS } from "@/lib/portal";
@@ -38,6 +39,7 @@ export function DMACard({ doc: sourceDoc, projectName, projectNumber, psoOutstan
       </button>
       {open && (
         <div className="border-t border-slate-100 bg-slate-50/60 p-4 space-y-4">
+          <RecordUpdatedAt record={doc} />
           <DataverseRecordEdit table="dma" record={doc} onUpdated={setDoc} />
           <ProgressTracker steps={steps} />
           <div className="grid gap-4 sm:grid-cols-3">

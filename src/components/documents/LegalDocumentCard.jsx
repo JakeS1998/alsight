@@ -1,5 +1,6 @@
 import React, { useState } from "react";
 import agreementNames from '@/components/projects/agreementNames';
+import RecordUpdatedAt from '@/components/RecordUpdatedAt';
 import DataverseRecordEdit from '@/components/dataverse/DataverseRecordEdit';
 import useEditableRecord from '@/components/dataverse/useEditableRecord';
 import { DOCUMENT_TYPE, formatDate } from "@/lib/portal";
@@ -41,6 +42,7 @@ export function LegalDocumentCard({ doc: sourceDoc, projectName, projectNumber, 
       </button>
       {open && (
         <div className="border-t border-slate-100 bg-slate-50/60 p-3 space-y-3">
+          <RecordUpdatedAt record={doc} />
           <DataverseRecordEdit table="documents" record={doc} onUpdated={setDoc} />
           <ProgressTracker steps={steps} />
           <div className="grid gap-4 sm:grid-cols-3 items-start">
@@ -58,6 +60,7 @@ export function LegalDocumentCard({ doc: sourceDoc, projectName, projectNumber, 
               <DetailRow label="Approval Status" value={doc.approval_status || "—"} />
               <DetailRow label="Approver" value={doc.approvers_name || "—"} />
               <DetailRow label="Approval Date" value={formatDate(doc.approval_date)} />
+              {!hideFinancials && <DetailRow label="Fee Proposal Date" value={formatDate(doc.fee_proposal_date)} />}
               <DetailRow label="BSM Owner" value={doc.is_bsm_document_owner ? "Yes" : "No"} />
             </DetailColumn>
             {!hideCommentsAndLinks && <DetailColumn title="Comments & Links">

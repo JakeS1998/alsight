@@ -1,5 +1,6 @@
 import React, { useState } from "react";
 import { warrantyName } from "@/components/documents/documentNames";
+import RecordUpdatedAt from '@/components/RecordUpdatedAt';
 import DataverseRecordEdit from '@/components/dataverse/DataverseRecordEdit';
 import useEditableRecord from '@/components/dataverse/useEditableRecord';
 import { WarrantyStatusBadge, WarrantyCategoryBadge } from "@/components/StatusBadge";
@@ -31,6 +32,7 @@ export function WarrantyCard({ warranty: sourceWarranty, accountMap, hideComment
       </button>
       {open && (
         <div className="space-y-4 border-t border-slate-100 bg-slate-50/60 p-4">
+          <RecordUpdatedAt record={warranty} />
           <DataverseRecordEdit table="warranties" record={warranty} onUpdated={setWarranty} />
           <ProgressTracker steps={getWarrantySteps(warranty)} />
           <WarrantyDetails warranty={warranty} accountMap={accountMap} hideCommentsAndLinks={hideCommentsAndLinks} />

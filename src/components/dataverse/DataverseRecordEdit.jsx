@@ -25,7 +25,7 @@ export default function DataverseRecordEdit({ table, record, onUpdated }) {
     <DialogContent className="max-h-[90dvh] w-[calc(100%-2rem)] max-w-3xl overflow-y-auto">
       <DialogHeader><DialogTitle>Edit {record.name || record.full_name || record.document_id || record.warranty_id || 'record'}</DialogTitle><DialogDescription>Only fields enabled for write-back are editable. Changes are saved using your own Dataverse account.</DialogDescription></DialogHeader>
       <Link to="/account-settings" className="text-sm text-primary underline">Manage your Dataverse connection</Link>
-      <FlowRecordEditor table={table} recordId={record.id} writableOnly onSaved={saved} />
+      <FlowRecordEditor table={table} recordId={record.id} onSaved={saved} />
     </DialogContent>
   </Dialog>;
 }

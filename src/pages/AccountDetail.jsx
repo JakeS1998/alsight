@@ -11,6 +11,8 @@ import AccountCRM from '@/components/crm/AccountCRM';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
 import { useQueryClient } from '@tanstack/react-query';
 import AccountHeader from '@/components/accounts/AccountHeader';
+import RecordUpdatedAt from '@/components/RecordUpdatedAt';
+import DocumentDates from '@/components/documents/DocumentDates';
 import DataverseRecordEdit from '@/components/dataverse/DataverseRecordEdit';
 import AccountClassification from '@/components/accounts/AccountClassification';
 import AccountOverview from '@/components/accounts/AccountOverview';
@@ -138,6 +140,7 @@ export default function AccountDetail() {
                 {c.job_title && <p className="text-xs text-slate-500">{c.job_title}</p>}
                 {c.email && <p className="mt-1 flex items-center gap-1 text-xs text-slate-500"><Mail className="h-3 w-3" /> {c.email}</p>}
                 {c.phone && <p className="text-xs text-slate-500">{c.phone}</p>}
+                 <RecordUpdatedAt record={c} className="mt-2" />
                 {c.officer_role && <p className="mt-1 text-xs text-slate-400">Officer: {c.officer_role}</p>}
                 {user?.role==='admin' && <Link to={`/accounts/${account.id}/contacts/${c.id}?tab=portal`} className="mt-3 inline-block rounded-full bg-secondary px-2 py-1 text-xs hover:bg-muted">{c.aad_id ? 'Linked portal identity' : 'Review portal access'}</Link>}
               </div>
@@ -173,6 +176,7 @@ export default function AccountDetail() {
                   <span className={p.live_project ? "rounded-full border border-emerald-200 bg-emerald-50 px-2 py-0.5 text-[10px] font-medium text-emerald-700" : "rounded-full border border-orange-200 bg-orange-50 px-2 py-0.5 text-[10px] font-medium text-orange-700"}>{p.live_project ? "Live" : "On Hold"}</span>
                 </div>
                 <p className="mt-1.5 text-sm font-semibold text-slate-900 group-hover:text-primary">{p.name}</p>
+                <RecordUpdatedAt record={p} className="mt-1" />
                 {user?.role !== 'supplier' && <p className="text-xs text-slate-500">{formatCurrency(p.estimated_value)}</p>}
               </Link>
             ))}
@@ -204,6 +208,8 @@ export default function AccountDetail() {
                     <tr key={d.id} className="hover:bg-slate-50">
                       <td className="px-4 py-3 text-sm font-medium text-slate-900">
                         {proj ? <Link to={`/projects/${proj.id}?tab=${user?.role === 'supplier' ? 'timeline' : 'drafting'}`} className="text-blue-600 hover:underline">{d.document_id}</Link> : d.document_id}
+                         <RecordUpdatedAt record={d} className="mt-2" />
+                         <DocumentDates doc={d} hideFinancials={user?.role === 'supplier'} />
                          <div className="mt-2"><DataverseRecordEdit table="documents" record={d} onUpdated={updated => setDocs(current => current.map(item => item.id === updated.id ? updated : item))} /></div>
                       </td>
                       <td className="px-4 py-3 text-sm text-slate-600">
@@ -232,6 +238,7 @@ export default function AccountDetail() {
                   <div className="flex items-center justify-between rounded-lg border border-slate-200 bg-white px-4 py-3 transition-shadow group-hover:shadow-sm">
                     <div className="min-w-0">
                       <p className="text-sm font-medium text-slate-900">{w.warranty_id}</p>
+                       <RecordUpdatedAt record={w} className="mt-1" />
                       <p className="truncate text-xs text-slate-500">{w.services || "—"}</p>
                       {proj && <p className="truncate text-xs text-blue-600">{proj.name}</p>}
                     </div>
@@ -255,6 +262,7 @@ export default function AccountDetail() {
                   <div className="flex items-center justify-between rounded-lg border border-slate-200 bg-white px-4 py-3 transition-shadow group-hover:shadow-sm">
                     <div className="min-w-0">
                       <p className="text-sm font-medium text-slate-900">{j.document_id}</p>
+                       <RecordUpdatedAt record={j} className="mt-1" />
                       <p className="truncate text-xs text-slate-500">{j.form_of_jct || "—"}</p>
                       {proj && <p className="truncate text-xs text-blue-600">{proj.name}</p>}
                     </div>

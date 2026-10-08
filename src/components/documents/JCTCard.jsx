@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import { FORM_OF_JCT, formatDate, JCT_CHECKLIST_ITEMS } from "@/lib/portal";
 import { jctName } from "@/components/documents/documentNames";
+import RecordUpdatedAt from '@/components/RecordUpdatedAt';
 import DataverseRecordEdit from '@/components/dataverse/DataverseRecordEdit';
 import useEditableRecord from '@/components/dataverse/useEditableRecord';
 import { ExecutedBadge, FormOfJCTBadge } from "@/components/StatusBadge";
@@ -33,6 +34,7 @@ export function JCTCard({ doc: sourceDoc, projectName, accountName, contractorNa
       </button>
       {open && (
         <div className="border-t border-slate-100 bg-slate-50/60 p-4 space-y-4">
+          <RecordUpdatedAt record={doc} />
           <DataverseRecordEdit table="jct" record={doc} onUpdated={setDoc} />
           <ProgressTracker steps={steps} />
           <div className="grid gap-4 sm:grid-cols-3">

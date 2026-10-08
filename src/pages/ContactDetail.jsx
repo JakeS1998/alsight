@@ -21,6 +21,7 @@ import { contactBelongsToAccount } from '@/components/accounts/accountContactQue
 import {useQueryClient} from '@tanstack/react-query';
 import {Button} from '@/components/ui/button';
 import loadPersonDetail from '@/components/relationships/loadPersonDetail';
+import RecordUpdatedAt from '@/components/RecordUpdatedAt';
 import DataverseRecordEdit from '@/components/dataverse/DataverseRecordEdit';
 
 export default function ContactDetail() {
@@ -73,7 +74,7 @@ export default function ContactDetail() {
   if (!contact || (accountId && !account)) return <p className="p-8 text-muted-foreground">Person not found.</p>;
   const belongs = !accountId || contactBelongsToAccount(account,contact);
   if (!belongs) return <p>This person is not linked to this organisation.</p>;
-  if (!internal) return <div className="rounded-xl border border-border bg-card p-6"><h1 className="font-heading text-2xl font-semibold">{contact.full_name}</h1><p>{contact.job_title} · {contact.company_name}</p>{contact.email && <a className="text-primary" href={`mailto:${contact.email}`}>{contact.email}</a>}</div>;
+  if (!internal) return <div className="rounded-xl border border-border bg-card p-6"><h1 className="font-heading text-2xl font-semibold">{contact.full_name}</h1><p>{contact.job_title} · {contact.company_name}</p>{contact.email && <a className="text-primary" href={`mailto:${contact.email}`}>{contact.email}</a>}<RecordUpdatedAt record={contact} className="mt-3" /></div>;
   const owner = staff.find(s => s.id === profile?.relationship_owner_contact_id)?.full_name;
   const days = last ? Math.max(0, Math.floor((Date.now() - new Date(last).getTime()) / 86400000)) : null;
   const health = signalError ? 'Relationship summary temporarily unavailable' : days == null ? 'No interaction recorded yet' : `${days} days since the last recorded interaction${openCount ? ' · Linked to a live opportunity' : ''}`;

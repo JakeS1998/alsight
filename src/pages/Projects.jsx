@@ -11,6 +11,7 @@ import FrameworkVersionBadge from '@/components/projects/FrameworkVersionBadge';
 import ProjectViewControls from '@/components/projects/ProjectViewControls';
 import WorkspacePageHeader from '@/components/layout/WorkspacePageHeader';
 import ProjectListView from '@/components/projects/ProjectListView';
+import RecordUpdatedAt from '@/components/RecordUpdatedAt';
 import useProjectView from '@/components/projects/useProjectView';
 import { projectStaffName } from "@/components/projects/projectStaffName";
 import ProjectsOperationalWorkspace from '@/components/projects/workspace/ProjectsOperationalWorkspace';
@@ -246,6 +247,7 @@ export default function Projects() {
                                              </span>
                     </div>
                     <p className="mt-1.5 truncate text-sm font-semibold text-slate-900">{p.name}</p>
+                    <RecordUpdatedAt record={p} className="mt-1" />
                   </div>
                   <ArrowRight className="h-4 w-4 text-slate-300 transition-colors group-hover:text-primary" />
                 </div>

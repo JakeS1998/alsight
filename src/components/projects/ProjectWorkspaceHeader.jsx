@@ -1,4 +1,5 @@
 import React from 'react';
+import RecordUpdatedAt from '@/components/RecordUpdatedAt';
 import { Link } from 'react-router-dom';
 import { ArrowLeft } from 'lucide-react';
 import ProjectHeroPhoto from '@/components/projects/ProjectHeroPhoto';
@@ -26,6 +27,7 @@ export default function ProjectWorkspaceHeader({ project, user, isSupplier, clie
           <FrameworkVersionBadge projectNumber={project.project_number} />
         </div>
         <ProjectRecordContext project={project} client={client} user={user} isSupplier={isSupplier}/>
+         <RecordUpdatedAt record={project} className="mt-2 text-sidebar-foreground/70" />
         {!isSupplier && project.description && <p className="ws-description">{project.description}</p>}
         {INTERNAL_ROLES.includes(user?.role) && <SourceOpportunityLink projectId={project.id} />}
         </div></div>

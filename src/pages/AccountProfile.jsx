@@ -7,6 +7,7 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { Loader2, Check, ExternalLink } from "lucide-react";
+import RecordUpdatedAt from '@/components/RecordUpdatedAt';
 
 export default function AccountProfile() {
   const { user } = useAuth();
@@ -93,6 +94,7 @@ export default function AccountProfile() {
           <div className="flex-1">
             <p className="text-base font-semibold text-slate-900">{account.name}</p>
             <p className="text-xs uppercase tracking-wide text-slate-400">{account.account_type}</p>
+            <RecordUpdatedAt record={account} className="mt-2" />
           </div>
           {account.company_number && (
             <a href={account.ch_links_self} target="_blank" rel="noreferrer" className="inline-flex items-center gap-1 text-xs text-blue-600 hover:underline">

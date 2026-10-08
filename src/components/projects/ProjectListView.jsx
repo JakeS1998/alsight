@@ -1,4 +1,5 @@
 import React from 'react';
+import RecordUpdatedAt from '@/components/RecordUpdatedAt';
 import { Link, useNavigate } from 'react-router-dom';
 import { ArrowUpDown } from 'lucide-react';
 import { formatCurrency, formatDate, regionName } from '@/lib/portal';
@@ -20,7 +21,7 @@ export default function ProjectListView({ projects, accountMap, staffMap, role, 
       })}</tr></thead>
       <tbody className="divide-y divide-border">{projects.map(project => <tr key={project.id} tabIndex={0} aria-label={`Open ${project.name}`} onClick={event => { if (!event.target.closest('a,button')) navigate(`/projects/${project.id}`); }} onKeyDown={event => { if (event.key === 'Enter' && event.target === event.currentTarget) navigate(`/projects/${project.id}`); }} className="cursor-pointer transition-colors hover:bg-muted/50 focus-visible:bg-muted focus-visible:outline-none">
         <td className={`${cell} whitespace-nowrap text-muted-foreground`}>{project.project_number || '—'}</td>
-        <td className={`${cell} min-w-[220px]`}><Link className="font-semibold text-foreground hover:underline" to={`/projects/${project.id}`}>{project.name}</Link></td>
+        <td className={`${cell} min-w-[220px]`}><Link className="font-semibold text-foreground hover:underline" to={`/projects/${project.id}`}>{project.name}</Link><RecordUpdatedAt record={project} className="mt-1" /></td>
         <td className={`${cell} min-w-[160px] text-muted-foreground`}>{accountMap[project.client_account_id]?.name || project.client_name || '—'}</td>
         {showValues && <td className={`${cell} whitespace-nowrap tabular-nums`}>{formatCurrency(project.estimated_value)}</td>}
         <td className={`${cell} min-w-[150px] text-muted-foreground`}>{projectStaffName(project.bsm_aad_id, staffMap) || '—'}</td>

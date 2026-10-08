@@ -5,6 +5,7 @@ import { listAll } from "@/components/data/loadAll";
 import { formatDate, WARRANTY_STATUS } from "@/lib/portal";
 import { WarrantyStatusBadge, WarrantyCategoryBadge } from "@/components/StatusBadge";
 import { ShieldCheck, ExternalLink } from "lucide-react";
+import RecordUpdatedAt from '@/components/RecordUpdatedAt';
 import DataverseRecordEdit from '@/components/dataverse/DataverseRecordEdit';
 
 export default function Warranties() {
@@ -83,7 +84,7 @@ export default function Warranties() {
               {filtered.map((w) => (
                 <tr key={w.id} className="hover:bg-slate-50">
                   <td className="px-4 py-3 text-sm font-medium text-slate-900">{accountMap[w.supplier_id]?.name || accountMap[w.account_id]?.name || "Supplier unavailable"}</td>
-                  <td className="px-4 py-3 text-sm text-slate-600">{w.services || "—"}</td>
+                  <td className="px-4 py-3 text-sm text-slate-600">{w.services || "—"}<RecordUpdatedAt record={w} className="mt-2" /></td>
                   <td className="hidden px-4 py-3 text-sm text-slate-600 md:table-cell">
                     {accountMap[w.account_id]?.name || accountMap[w.supplier_id]?.name || "—"}
                   </td>

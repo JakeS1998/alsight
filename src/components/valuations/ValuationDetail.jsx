@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import RecordUpdatedAt from '@/components/RecordUpdatedAt';
 import { formatCurrency } from '@/lib/portal';
 import { valuationTotals, StatusPill } from './valuationUtils';
 import ValuationFields from './ValuationFields';
@@ -36,6 +37,7 @@ export default function ValuationDetail({ project, initial, valuations, user, on
     finally { setBusy(false); }
   };
   return <div className="space-y-5"><button onClick={onBack} className="text-sm font-medium text-als-navy-light">← Back to valuations</button><div className="flex flex-wrap items-center justify-between gap-3"><div><h2 className="font-heading text-xl font-semibold text-als-navy">Valuation {value.number}</h2><p className="text-sm text-muted-foreground">Create → Complete → Attach Evidence → Submit → Alliance Review → Approve → Pay</p></div><StatusPill status={value.status} /></div>
+    <RecordUpdatedAt record={value} />
     {error && <p role="alert" className="rounded-lg bg-red-50 p-3 text-sm text-destructive">{error}</p>}
     <ValuationFields project={project} value={value} onChange={change} editable={editable} previousCertified={previousCertified} managerName={managerName} contractorName={contractorName} meta={meta} />
     <ValuationSchedule value={value} onChange={change} editable={editable} previousCertified={previousCertified} />

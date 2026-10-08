@@ -13,6 +13,7 @@ import { riskHeat } from '@/components/delivery/riskHeat';
 import RiskIndexBadge from '@/components/delivery/RiskIndexBadge';
 import RegisterSortHeading from '@/components/delivery/RegisterSortHeading';
 import RegisterStatusDropdown from '@/components/delivery/RegisterStatusDropdown';
+import RecordUpdatedAt from '@/components/RecordUpdatedAt';
 import { useAuth } from '@/lib/AuthContext';
 
 const emptyForm = (columns) => Object.fromEntries(columns.map((c) => [c.key, c.type === "boolean" ? false : ""]));
@@ -160,7 +161,7 @@ export function RegisterList({ title, description, entityName, projectId, projec
             <tbody className="divide-y divide-slate-100">
               {rows.map((row) => (
                 <tr key={row.id} className={entityName === 'ProjectRisk' ? riskHeat(riskIndex(row)).rowClass : 'hover:bg-slate-50'}>
-                  {shown.map((c) => <td key={c.key} className={entityName === 'ProjectRisk' ? 'px-3 py-2.5 align-top text-foreground' : 'px-3 py-2.5 align-top text-slate-700'}>{display(row, c)}</td>)}
+                  {shown.map((c, index) => <td key={c.key} className={entityName === 'ProjectRisk' ? 'px-3 py-2.5 align-top text-foreground' : 'px-3 py-2.5 align-top text-slate-700'}>{display(row, c)}{index === 0 && <RecordUpdatedAt record={row} className="mt-2" />}</td>)}
                   <td className="px-3 py-2.5 text-right whitespace-nowrap">
                     <button onClick={() => openEdit(row)} className="rounded p-1 text-slate-400 hover:bg-slate-100 hover:text-slate-700"><Pencil className="h-3.5 w-3.5" /></button>
                     <button onClick={() => remove(row.id)} className="rounded p-1 text-slate-400 hover:bg-rose-50 hover:text-rose-600"><Trash2 className="h-3.5 w-3.5" /></button>
