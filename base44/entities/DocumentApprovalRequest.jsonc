@@ -44,9 +44,18 @@
         "pending",
         "approved",
         "rejected",
+        "further_review_required",
         "superseded"
       ],
       "default": "pending"
+    },
+    "response": {
+      "type": "string",
+      "enum": [
+        "Approve",
+        "Approved - Subject to Comments",
+        "Further Review Required"
+      ]
     },
     "decision_comments": {
       "type": "string",

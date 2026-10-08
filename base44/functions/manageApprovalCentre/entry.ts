@@ -24,11 +24,25 @@ export default async function(req: Request): Promise<Response> {
   const enabled=(await grants.count({email,enabled:true}))>0;
   if(input.action==='access')return Response.json({enabled});
   if(!enabled)return Response.json({error:'Approval access has not been granted, or has been revoked.'},{status:403});
+  if(input.action==='respond') {
+   const responses=['Approve','Approved - Subject to Comments','Further Review Required'];
+   if(!validId(input.requestId) || !responses.includes(input.response) || typeof input.comments!=='string' || input.comments.length>4000)return Response.json({error:'Choose a valid response and keep comments within 4,000 characters.'},{status:400});
+   const comments=input.comments.trim();
+   if(input.response==='Approved - Subject to Comments' && !comments)return Response.json({error:'Comments are required for approval subject to comments.'},{status:400});
+   const requests=base44.asServiceRole.entities.DocumentApprovalRequest;
+   const page=await requests.filter({id:input.requestId,approver_email:email},{limit:1});
+   const request=page.items.find(item=>item.id===input.requestId && address(item.approver_email)===email);
+   if(!request)return Response.json({error:'Approval request not found in your inbox.'},{status:404});
+   if(!request.request_key?.startsWith('demo:'))return Response.json({error:'Live approval decisions and Dataverse write-back are not connected yet.'},{status:409});
+   if(request.status!=='pending')return Response.json({error:'This request has already been responded to. Refresh your inbox.'},{status:409});
+   await requests.update(request.id,{response:input.response,status:input.response==='Further Review Required' ? 'further_review_required' : 'approved',decision_comments:comments,decided_by_name:(user.full_name || user.email).slice(0,200),decided_at:new Date().toISOString(),writeback_status:'not_required'});
+   return Response.json({ok:true,is_demo:true});
+  }
   if(input.action!=='list')return Response.json({error:'Unknown approval operation.'},{status:400});
   if(!['pending','history'].includes(input.view) || (input.cursor!==undefined && (typeof input.cursor!=='string' || input.cursor.length>2000)))return Response.json({error:'Invalid approval view.'},{status:400});
   // The service-role read is deliberately restricted to this authenticated assignee.
   // Direct request-entity access is administrator-only; a self-edited User flag cannot grant access.
-  const page=await base44.asServiceRole.entities.DocumentApprovalRequest.filter({approver_email:email,status:input.view==='pending' ? 'pending' : {$in:['approved','rejected','superseded']}},{sort:'-created_date',limit:25,...(input.cursor ? {cursor:input.cursor} : {}),fields:['request_key','document_title','source_table','document_url','drafted_date','status','decision_comments','decided_by_name','decided_at','writeback_status','created_date']});
+  const page=await base44.asServiceRole.entities.DocumentApprovalRequest.filter({approver_email:email,status:input.view==='pending' ? 'pending' : {$in:['approved','rejected','further_review_required','superseded']}},{sort:'-created_date',limit:25,...(input.cursor ? {cursor:input.cursor} : {}),fields:['request_key','document_title','source_table','document_url','drafted_date','status','response','decision_comments','decided_by_name','decided_at','writeback_status','created_date']});
    const items=page.items.map(({request_key,...request})=>({...request,is_demo:request_key?.startsWith('demo:')===true}));
    return Response.json({items,next_cursor:page.next_cursor,has_more:page.has_more});
  } catch(error) {return Response.json({error:error.message || 'Unable to load approvals.'},{status:400});}
