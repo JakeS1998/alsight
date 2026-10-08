@@ -1,0 +1,61 @@
+{
+  "name": "DocumentApprovalEvent",
+  "type": "object",
+  "properties": {
+    "approval_id": {
+      "type": "string"
+    },
+    "action": {
+      "type": "string",
+      "maxLength": 100
+    },
+    "previous_status": {
+      "type": "string"
+    },
+    "new_status": {
+      "type": "string"
+    },
+    "actor_id": {
+      "type": "string"
+    },
+    "actor_name": {
+      "type": "string",
+      "maxLength": 200
+    },
+    "occurred_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "comment": {
+      "type": "string",
+      "maxLength": 4000
+    },
+    "integration_result": {
+      "type": "string",
+      "maxLength": 1000
+    }
+  },
+  "required": [
+    "approval_id",
+    "action",
+    "occurred_at"
+  ],
+  "rls": {
+    "read": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "create": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "update": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "delete": false
+  }
+}

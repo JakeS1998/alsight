@@ -1,0 +1,8 @@
+import React from 'react';
+import {Link} from 'react-router-dom';
+import {formatCurrency} from '@/lib/portal';
+import ApprovalTimestamp from '@/components/approvals/ApprovalTimestamp.jsx';
+export default function ApprovalOverview({request}) {
+ const rows=[['Approval type',request.approval_type],['Project',request.project_name],['Project value',request.project_value==null ? 'Not supplied' : formatCurrency(request.project_value)],['Requested by',request.requested_by_name || 'Not supplied'],['Role',request.requested_by_role],['Document number',request.document_number]];
+ return <div className="space-y-5"><dl className="grid grid-cols-[minmax(100px,1fr)_2fr] gap-x-3 gap-y-3 text-xs">{rows.filter(([,value])=>value).map(([label,value])=><React.Fragment key={label}><dt className="text-muted-foreground">{label}</dt><dd className="break-words font-medium">{value}{label==='Project' && request.project_id && <Link className="ml-2 text-chart-2 underline" to={`/projects/${request.project_id}`}>View project →</Link>}</dd></React.Fragment>)}<dt className="text-muted-foreground">Date requested</dt><dd><ApprovalTimestamp value={request.requested_at || request.created_date}/></dd></dl><div><h3 className="text-xs font-semibold">Reason for approval</h3><p className="mt-2 whitespace-pre-wrap text-sm leading-relaxed">{request.reason || 'No reason was supplied with this request.'}</p></div>{request.decided_at && <div className="rounded-lg border border-border bg-muted/50 p-3 text-xs"><p className="font-semibold">{request.response} · {request.decided_by_name}</p><ApprovalTimestamp value={request.decided_at}/>{request.decision_comments && <p className="mt-2 whitespace-pre-wrap">{request.decision_comments}</p>}</div>}</div>;
+}

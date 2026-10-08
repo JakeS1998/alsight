@@ -1,4 +1,7 @@
 import {createClientFromRequest} from 'npm:@base44/sdk@0.8.52';
+import {approvalList,approvalSummary,approvalOptions,approvalDetail} from '../../shared/documentApprovalReads.ts';
+import {decideDocumentApproval} from '../../shared/documentApprovalDecision.ts';
+import {receiveDocumentApproval} from '../../shared/documentApprovalIntake.ts';
 const address=value=>typeof value==='string' ? value.trim().toLowerCase() : '';
 const validId=value=>typeof value==='string' && /^[a-zA-Z0-9_-]{1,100}$/.test(value);
 export default async function(req: Request): Promise<Response> {
@@ -21,29 +24,21 @@ export default async function(req: Request): Promise<Response> {
    await grants.upsert([{email:contactEmail,contact_id:contact.id,enabled:input.enabled,changed_by:user.id,changed_at:new Date().toISOString()}],{key:'email'});
    return Response.json({email:contactEmail,enabled:input.enabled});
   }
+  if(input.action==='receive')return Response.json(await receiveDocumentApproval(base44,user,input));
   const enabled=(await grants.count({email,enabled:true}))>0;
   if(input.action==='access')return Response.json({enabled});
   if(!enabled)return Response.json({error:'Approval access has not been granted, or has been revoked.'},{status:403});
-  if(input.action==='respond') {
-   const responses=['Approve','Approved - Subject to Comments','Further Review Required'];
-   if(!validId(input.requestId) || !responses.includes(input.response) || typeof input.comments!=='string' || input.comments.length>4000)return Response.json({error:'Choose a valid response and keep comments within 4,000 characters.'},{status:400});
-   const comments=input.comments.trim();
-   if(input.response==='Approved - Subject to Comments' && !comments)return Response.json({error:'Comments are required for approval subject to comments.'},{status:400});
-   const requests=base44.asServiceRole.entities.DocumentApprovalRequest;
-   const page=await requests.filter({id:input.requestId,approver_email:email},{limit:1});
-   const request=page.items.find(item=>item.id===input.requestId && address(item.approver_email)===email);
-   if(!request)return Response.json({error:'Approval request not found in your inbox.'},{status:404});
-   if(!request.request_key?.startsWith('demo:'))return Response.json({error:'Live approval decisions and Dataverse write-back are not connected yet.'},{status:409});
-   if(request.status!=='pending')return Response.json({error:'This request has already been responded to. Refresh your inbox.'},{status:409});
-   await requests.update(request.id,{response:input.response,status:input.response==='Further Review Required' ? 'further_review_required' : 'approved',decision_comments:comments,decided_by_name:(user.full_name || user.email).slice(0,200),decided_at:new Date().toISOString(),writeback_status:'not_required'});
-   return Response.json({ok:true,is_demo:true});
+  if(['respond','retry','detail','history'].includes(input.action) && !validId(input.requestId))return Response.json({error:'Choose an approval.'},{status:400});
+  if(input.action==='summary')return Response.json(await approvalSummary(base44,user));
+  if(input.action==='options')return Response.json(await approvalOptions(base44,user));
+  if(input.action==='list')return Response.json(await approvalList(base44,user,input));
+  if(input.action==='detail')return Response.json(await approvalDetail(base44,user,input.requestId));
+  if(input.action==='history'){
+   await approvalDetail(base44,user,input.requestId);
+   if(typeof input.cursor!=='string' || input.cursor.length>2000)throw new Error('Invalid history cursor.');
+   return Response.json(await base44.asServiceRole.entities.DocumentApprovalEvent.filter({approval_id:input.requestId},{sort:'occurred_at',limit:50,cursor:input.cursor}));
   }
-  if(input.action!=='list')return Response.json({error:'Unknown approval operation.'},{status:400});
-  if(!['pending','history'].includes(input.view) || (input.cursor!==undefined && (typeof input.cursor!=='string' || input.cursor.length>2000)))return Response.json({error:'Invalid approval view.'},{status:400});
-  // The service-role read is deliberately restricted to this authenticated assignee.
-  // Direct request-entity access is administrator-only; a self-edited User flag cannot grant access.
-  const page=await base44.asServiceRole.entities.DocumentApprovalRequest.filter({approver_email:email,status:input.view==='pending' ? 'pending' : {$in:['approved','rejected','further_review_required','superseded']}},{sort:'-created_date',limit:25,...(input.cursor ? {cursor:input.cursor} : {}),fields:['request_key','document_title','source_table','document_url','drafted_date','status','response','decision_comments','decided_by_name','decided_at','writeback_status','created_date']});
-   const items=page.items.map(({request_key,...request})=>({...request,is_demo:request_key?.startsWith('demo:')===true}));
-   return Response.json({items,next_cursor:page.next_cursor,has_more:page.has_more});
+  if(['respond','retry'].includes(input.action))return Response.json(await decideDocumentApproval(base44,user,input));
+  return Response.json({error:'Unknown approval operation.'},{status:400});
  } catch(error) {return Response.json({error:error.message || 'Unable to load approvals.'},{status:400});}
 }

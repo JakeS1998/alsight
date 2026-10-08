@@ -18,6 +18,9 @@
       "type": "string",
       "maxLength": 80
     },
+    "source_record_id": {
+      "type": "string"
+    },
     "source_version": {
       "type": "string",
       "maxLength": 200
@@ -33,6 +36,59 @@
     "document_url": {
       "type": "string",
       "maxLength": 2000
+    },
+    "document_number": {
+      "type": "string"
+    },
+    "document_type": {
+      "type": "string"
+    },
+    "project_id": {
+      "type": "string"
+    },
+    "project_name": {
+      "type": "string"
+    },
+    "project_number": {
+      "type": "string"
+    },
+    "client_name": {
+      "type": "string"
+    },
+    "client_account_id": {
+      "type": "string"
+    },
+    "account_id": {
+      "type": "string"
+    },
+    "bdm_aad_id": {
+      "type": "string"
+    },
+    "bsm_aad_id": {
+      "type": "string"
+    },
+    "department_id": {
+      "type": "string"
+    },
+    "requested_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "requested_by_name": {
+      "type": "string",
+      "maxLength": 200
+    },
+    "requested_by_role": {
+      "type": "string",
+      "maxLength": 200
+    },
+    "requested_by_email": {
+      "type": "string",
+      "maxLength": 250
+    },
+    "reason": {
+      "type": "string",
+      "maxLength": 4000
     },
     "approver_email": {
       "type": "string",
@@ -53,6 +109,7 @@
       "type": "string",
       "enum": [
         "Approve",
+        "Reject",
         "Approved - Subject to Comments",
         "Further Review Required"
       ]
@@ -60,6 +117,9 @@
     "decision_comments": {
       "type": "string",
       "maxLength": 4000
+    },
+    "decided_by_id": {
+      "type": "string"
     },
     "decided_by_name": {
       "type": "string",
@@ -79,6 +139,17 @@
         "error"
       ],
       "default": "not_required"
+    },
+    "integration_error": {
+      "type": "string",
+      "maxLength": 1000
+    },
+    "decision_lock": {
+      "type": "string"
+    },
+    "decision_lock_until": {
+      "type": "string",
+      "format": "date-time"
     }
   },
   "required": [
@@ -92,9 +163,168 @@
   ],
   "rls": {
     "read": {
-      "user_condition": {
-        "role": "admin"
-      }
+      "$or": [
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        },
+        {
+          "$and": [
+            {
+              "data.approver_email": "{{user.email}}"
+            },
+            {
+              "$or": [
+                {
+                  "user_condition": {
+                    "role": "director"
+                  }
+                },
+                {
+                  "user_condition": {
+                    "role": "finance"
+                  }
+                },
+                {
+                  "$and": [
+                    {
+                      "user_condition": {
+                        "role": "bsm"
+                      }
+                    },
+                    {
+                      "data.bsm_aad_id": {
+                        "$exists": true,
+                        "$nin": [
+                          null,
+                          ""
+                        ]
+                      }
+                    },
+                    {
+                      "$or": [
+                        {
+                          "data.bsm_aad_id": "{{user.id}}"
+                        },
+                        {
+                          "data.bsm_aad_id": "{{user.data.staff_aad_id}}"
+                        },
+                        {
+                          "data.bsm_aad_id": "{{user.data.delegate_of}}"
+                        }
+                      ]
+                    }
+                  ]
+                },
+                {
+                  "$and": [
+                    {
+                      "user_condition": {
+                        "role": "bdm"
+                      }
+                    },
+                    {
+                      "$or": [
+                        {
+                          "data.bdm_aad_id": "{{user.id}}"
+                        },
+                        {
+                          "data.bdm_aad_id": "{{user.data.staff_aad_id}}"
+                        },
+                        {
+                          "data.bdm_aad_id": "{{user.data.dataverse_systemuser_id}}"
+                        },
+                        {
+                          "data.bdm_aad_id": "{{user.data.delegate_of}}"
+                        },
+                        {
+                          "data.department_id": "{{user.data.region}}"
+                        },
+                        {
+                          "data.department_id": "{{user.data.delegate_region}}"
+                        }
+                      ]
+                    }
+                  ]
+                },
+                {
+                  "$and": [
+                    {
+                      "user_condition": {
+                        "role": "regional_director"
+                      }
+                    },
+                    {
+                      "data.department_id": {
+                        "$exists": true,
+                        "$nin": [
+                          null,
+                          ""
+                        ]
+                      }
+                    },
+                    {
+                      "$or": [
+                        {
+                          "data.department_id": "{{user.data.region}}"
+                        },
+                        {
+                          "data.department_id": "{{user.data.delegate_region}}"
+                        }
+                      ]
+                    }
+                  ]
+                },
+                {
+                  "$and": [
+                    {
+                      "user_condition": {
+                        "role": "client"
+                      }
+                    },
+                    {
+                      "data.client_account_id": {
+                        "$exists": true,
+                        "$nin": [
+                          null,
+                          ""
+                        ]
+                      }
+                    },
+                    {
+                      "data.client_account_id": "{{user.data.account_id}}"
+                    },
+                    {
+                      "$or": [
+                        {
+                          "data.source_table": {
+                            "$in": [
+                              "dma",
+                              "warranties"
+                            ]
+                          }
+                        },
+                        {
+                          "data.document_type": {
+                            "$in": [
+                              "access_agreement",
+                              "additional_works",
+                              "equipment_only_agreement",
+                              "single_task_agreement",
+                              "other"
+                            ]
+                          }
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        }
+      ]
     },
     "create": {
       "user_condition": {

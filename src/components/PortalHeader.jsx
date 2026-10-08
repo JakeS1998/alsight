@@ -10,6 +10,7 @@ import PortalSearch from '@/components/search/PortalSearch';
 import UKLFIcon from '@/components/framework/UKLFIcon';
 import RelationshipNavigation from '@/components/relationships/RelationshipNavigation';
 import useApprovalAccess from '@/components/approvals/useApprovalAccess';
+import useApprovalSummary from '@/components/approvals/useApprovalSummary';
 import { LayoutDashboard, FolderKanban, Building2, UserCircle, Menu, X, Users, BriefcaseBusiness, CircleHelp, House, MessagesSquare, ClipboardCheck } from 'lucide-react';
 
 const ALL_ROLES = ['admin', 'director', 'regional_director', 'bsm', 'finance', 'bdm', 'client', 'supplier', 'project_manager'];
@@ -35,13 +36,14 @@ export default function PortalHeader() {
   const [menuOpen, setMenuOpen] = useState(false);
   const role = user?.role || 'client';
   const approvalAccess = useApprovalAccess();
+  const approvalSummary = useApprovalSummary();
   const items = NAV_ITEMS.filter(item => item.roles.includes(role) && !['/account','/contacts','/help'].includes(item.path) && (item.path !== '/approvals' || approvalAccess.enabled));
   const signOut = () => { setMenuOpen(false); logout(false); navigate('/login'); };
   const nav = (compact = false) => items.map(item => {
     const Icon = item.icon;
     if(item.path==='/accounts' && INTERNAL_ROLES.includes(role)) return <RelationshipNavigation key="relationships" compact={compact} onNavigate={()=>setMenuOpen(false)}/>;
     const active = item.path === '/crm/opportunities' ? (location.pathname.startsWith('/crm') || location.pathname.startsWith('/opportunities/')) : item.path === '/today' ? location.pathname === '/today' : location.pathname === item.path || location.pathname.startsWith(`${item.path}/`);
-    return <Link key={item.path} to={item.path} onClick={() => setMenuOpen(false)} aria-current={active ? 'page' : undefined} data-active={active} className={`portal-nav-item ${compact ? 'w-full' : ''}`}>{Icon === UKLFIcon ? <UKLFIcon darkBackground /> : <Icon className="h-4 w-4 shrink-0" />}{item.label}</Link>;
+    return <Link key={item.path} to={item.path} onClick={() => setMenuOpen(false)} aria-current={active ? 'page' : undefined} data-active={active} className={`portal-nav-item ${compact ? 'w-full' : ''}`}>{Icon === UKLFIcon ? <UKLFIcon darkBackground /> : <Icon className="h-4 w-4 shrink-0" />}{item.label}{item.path==='/approvals' && approvalSummary.data?.pending>0 && <span className="rounded-full bg-primary px-1.5 py-0.5 text-[10px] font-bold text-primary-foreground">{approvalSummary.data.pending}</span>}</Link>;
   });
   return <header ref={headerRef} className="sticky top-0 z-40 bg-als-navy text-white shadow-sm">
     <div className="portal-topbar">
