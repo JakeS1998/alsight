@@ -4,7 +4,10 @@ import { mappedFlowValues, reviewScope, normalisedEmail } from './dataverseFlowV
 import { findFlowTargets, matchingFlowTargets } from './dataverseFlowMatching.ts';
 import { resolveFlowStaffReferences } from './dataverseFlowStaffReferences.ts';
 import { accountFlowValues } from './dataverseAccountValues.ts';
+import { skipPlaceholderContacts } from './dataverseContactSkips.ts';
 export async function prepareFlowBatch(base44, context, table, settings, rows, skipUnchanged = false) {
+  const contactSkips = await skipPlaceholderContacts(base44, context, table, settings, rows);
+  rows = contactSkips.rows;
   const spec = flowSpecs[table], scope = reviewScope(context, table, settings), identity = spec.identityField || 'dataverse_id';
   const values = [], errors = [];
   for (const row of rows) {
@@ -17,7 +20,7 @@ export async function prepareFlowBatch(base44, context, table, settings, rows, s
   const targets = await findFlowTargets(base44, table, settings, rows, values);
   const previous = rows.length ? await base44.entities.DataverseSyncReview.filter({ ...scope, source_id: { $in: rows.map(row => row[settings.primaryId]) } }, { limit: 100 }) : { items: [] };
   if (previous.has_more) throw new Error('Duplicate review records need administrator attention.');
-  const updates = [], reviews = [], appliedReviews = [], counts = { created: 0, updated: 0, pending: 0, unmatched: 0, rejected: 0, errors: 0 };
+  const updates = [], reviews = [], appliedReviews = [], counts = { created: 0, updated: 0, pending: 0, unmatched: 0, rejected: contactSkips.skipped, errors: 0 };
   rows.forEach((row, index) => {
     const sourceId = row[settings.primaryId], old = previous.items.find(review => review.source_id === sourceId);
     if (table === 'users' && old?.status === 'rejected') { counts.rejected++; return; }
