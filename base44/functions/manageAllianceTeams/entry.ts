@@ -9,7 +9,11 @@ export default async function(req) {
     if (!['status','teams','channels','share'].includes(input.action)) return Response.json({ error: 'Invalid Teams operation.' }, { status: 400 });
     let connection;
     try { connection = await base44.asServiceRole.connectors.getCurrentAppUserConnection('6ac767c8caa8fda818b4f2e2'); }
-    catch { return Response.json({ error: 'Connect your own Alliance Teams account in Account Settings.', code: 'TEAMS_NOT_CONNECTED' }, { status: 409 }); }
+    catch (error) {
+      const detail = error.response?.data?.message || error.response?.data?.error || error.message || '';
+      const missing = /not connected|no (active |valid )?connection|connection not found|has not connected/i.test(String(detail));
+      return Response.json({ error: missing ? 'Connect your own Alliance Teams account in Account Settings.' : `Teams connection could not be verified: ${String(detail).slice(0, 600)}`, code: missing ? 'TEAMS_NOT_CONNECTED' : 'TEAMS_CONNECTION_ERROR' }, { status: 409 });
+    }
     if (!connection?.accessToken) return Response.json({ error: 'Connect your own Alliance Teams account.', code: 'TEAMS_NOT_CONNECTED' }, { status: 409 });
     const graph = async (path, method = 'GET', body) => {
       const response = await fetch(`https://graph.microsoft.com/v1.0${path}`, { method, signal: AbortSignal.timeout(15000), headers: { Authorization: `Bearer ${connection.accessToken}`, 'Content-Type': 'application/json' }, ...(body ? { body: JSON.stringify(body) } : {}) });
