@@ -9,6 +9,7 @@ import { Loader2 } from 'lucide-react';
 import ProfilePictureEditor from '@/components/profile/ProfilePictureEditor';
 import OutlookConnectionCard from '@/components/outlook/OutlookConnectionCard';
 import TeamsConnectionCard from '@/components/teams/TeamsConnectionCard';
+import DataverseConnectionCard from '@/components/dataverse/DataverseConnectionCard';
 
 export default function AccountSettings() {
   const { user } = useAuth();
@@ -34,6 +35,7 @@ export default function AccountSettings() {
     <ProfilePictureEditor />
     <OutlookConnectionCard />
     {['admin', 'director', 'regional_director', 'bsm', 'bdm', 'finance'].includes(user?.role) && <TeamsConnectionCard />}
+    {['admin', 'director', 'regional_director', 'bsm', 'bdm', 'finance'].includes(user?.role) && <DataverseConnectionCard />}
     <form onSubmit={submit} className="space-y-4 rounded-xl border border-border bg-card p-6">
       <h2 className="text-base font-semibold">Change password</h2>
       <div className="space-y-1.5"><Label htmlFor="current-password">Current password</Label><Input id="current-password" type="password" autoComplete="current-password" value={currentPassword} onChange={e => setCurrentPassword(e.target.value)} required /></div>
