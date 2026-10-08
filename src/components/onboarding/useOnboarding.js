@@ -12,7 +12,7 @@ export default function useOnboarding() {
   const index = Math.max(0, steps.findIndex(item => item.id === user?.onboarding_step));
   const step = steps[index].id;
   const requested = safeReturnTo();
-  const returnTo = requested.split('?')[0] === '/onboarding' ? '/' : requested;
+  const returnTo = requested.split('?')[0] === '/onboarding' ? '/today' : requested;
   async function save(values, done = false) {
     setSaving(true); setError('');
     try {

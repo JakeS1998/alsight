@@ -76,7 +76,7 @@ const AuthenticatedApp = () => {
     <PageLoadBoundary route={location.pathname}>
       <Suspense fallback={<div className="flex min-h-[40vh] items-center justify-center" role="status">Loading page…</div>}>
     <Routes>
-      {!user && <Route path="/" element={<Login />} />}
+      <Route path="/" element={<Login />} />
       <Route path="/login" element={<Login />} />
       <Route path="/register" element={<Register />} />
       <Route path="/forgot-password" element={<ForgotPassword />} />
@@ -96,7 +96,7 @@ const AuthenticatedApp = () => {
           <Route path="/calendar" element={<Calendar />} />
           <Route path="/help" element={<Help />} />
           <Route element={<StakeholderRoute />}>
-          <Route path="/" element={<Home />} />
+          <Route path="/today" element={<Home />} />
           <Route path="/portfolio-overview" element={<PortfolioOverview />} />
           <Route path="/pulse" element={<Pulse />} />
           <Route path="/lookout/:issueId" element={<Lookout />} />

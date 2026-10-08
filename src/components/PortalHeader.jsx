@@ -13,7 +13,7 @@ import { LayoutDashboard, FolderKanban, Building2, UserCircle, Menu, X, Users, B
 
 const ALL_ROLES = ['admin', 'director', 'regional_director', 'bsm', 'finance', 'bdm', 'client', 'supplier', 'project_manager'];
 const NAV_ITEMS = [
-  { label: 'Today', path: '/', icon: House, roles: INTERNAL_ROLES.concat(['client', 'supplier']) },
+  { label: 'Today', path: '/today', icon: House, roles: INTERNAL_ROLES.concat(['client', 'supplier']) },
   { label: 'Relationships', path: '/accounts', icon: Building2, roles: ALL_ROLES.filter(role => role !== 'supplier') },
   { label: 'Opportunities', path: '/crm/opportunities', icon: BriefcaseBusiness, roles: INTERNAL_ROLES },
   { label: 'Projects', path: '/projects', icon: FolderKanban, roles: ALL_ROLES },
@@ -37,12 +37,12 @@ export default function PortalHeader() {
   const nav = (compact = false) => items.map(item => {
     const Icon = item.icon;
     if(item.path==='/accounts' && INTERNAL_ROLES.includes(role)) return <RelationshipNavigation key="relationships" compact={compact} onNavigate={()=>setMenuOpen(false)}/>;
-    const active = item.path === '/crm/opportunities' ? (location.pathname.startsWith('/crm') || location.pathname.startsWith('/opportunities/')) : item.path === '/' ? location.pathname === '/' : location.pathname === item.path || location.pathname.startsWith(`${item.path}/`);
+    const active = item.path === '/crm/opportunities' ? (location.pathname.startsWith('/crm') || location.pathname.startsWith('/opportunities/')) : item.path === '/today' ? location.pathname === '/today' : location.pathname === item.path || location.pathname.startsWith(`${item.path}/`);
     return <Link key={item.path} to={item.path} onClick={() => setMenuOpen(false)} aria-current={active ? 'page' : undefined} data-active={active} className={`portal-nav-item ${compact ? 'w-full' : ''}`}>{Icon === UKLFIcon ? <UKLFIcon darkBackground /> : <Icon className="h-4 w-4 shrink-0" />}{item.label}</Link>;
   });
   return <header ref={headerRef} className="sticky top-0 z-40 bg-als-navy text-white shadow-sm">
     <div className="portal-topbar">
-      <Link to={role === 'framework_stakeholder' ? '/framework-reports' : '/'} aria-label="ALSight home" onClick={() => setMenuOpen(false)} className="portal-logo"><Logo variant="header" className="portal-logo-image" /></Link>
+      <Link to={role === 'framework_stakeholder' ? '/framework-reports' : '/today'} aria-label="ALSight home" onClick={() => setMenuOpen(false)} className="portal-logo"><Logo variant="header" className="portal-logo-image" /></Link>
       <nav aria-label="Main navigation" className="portal-navigation hidden min-w-0 items-center lg:flex">{nav()}</nav>
       <div className="portal-utilities">
         <PortalSearch />
