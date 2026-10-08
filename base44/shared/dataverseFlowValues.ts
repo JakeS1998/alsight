@@ -1,9 +1,10 @@
 import { flowSpecs, validateFlowValue } from './dataverseFlowFields.ts';
+import { dmaSourceBlanks } from './dataverseDMASource.ts';
 export function flowSelection(settings, table) {
   return [...new Set([settings.primaryId, ...settings.mappings.map(m => m.queryName || m.source), ...(table === 'users' ? ['internalemailaddress', 'fullname'] : [])])].join(',');
 }
 export function mappedFlowValues(table, settings, row) {
-  const values = {}, spec = flowSpecs[table];
+  const values = table === 'dma' && settings.dataverseOnly ? dmaSourceBlanks() : {}, spec = flowSpecs[table];
   for (const m of settings.mappings) {
     let value = row[m.queryName || m.source] ?? null;
     if (value !== null && m.values) {

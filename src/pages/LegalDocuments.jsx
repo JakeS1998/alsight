@@ -7,6 +7,8 @@ import { DOCUMENT_TYPE, formatDate } from "@/lib/portal";
 import { legalDocumentName } from "@/components/documents/documentNames";
 import { DocTypeBadge, ExecutedBadge } from "@/components/StatusBadge";
 import { FileText, ExternalLink, Filter } from "lucide-react";
+import DMARegister from '@/components/documents/DMARegister';
+import DMAFieldValue from '@/components/documents/DMAFieldValue';
 
 export default function LegalDocuments() {
   const { user } = useAuth();
@@ -48,9 +50,10 @@ export default function LegalDocuments() {
         <p className="mt-1 text-sm text-slate-500">All legal documents across your leisure construction projects.</p>
       </div>
 
-      {!loading && docs.length > 0 && (
+      {!loading && (
         <div className="flex flex-wrap gap-2">
           <FilterPill active={typeFilter === "all"} onClick={() => setTypeFilter("all")}>All</FilterPill>
+          <FilterPill active={typeFilter === 'dma'} onClick={() => setTypeFilter('dma')}>Development Agreements (DMA)</FilterPill>
           {types.map((key) => (
             <FilterPill key={key} active={typeFilter === key} onClick={() => setTypeFilter(key)}>
               {DOCUMENT_TYPE[key].label}
@@ -59,7 +62,7 @@ export default function LegalDocuments() {
         </div>
       )}
 
-      {loading ? (
+      {typeFilter !== 'dma' && (loading ? (
         <div className="flex justify-center py-20"><div className="h-8 w-8 animate-spin rounded-full border-4 border-slate-200 border-t-primary" /></div>
       ) : filtered.length === 0 ? (
         <div className="rounded-2xl border border-dashed border-slate-300 bg-white py-16 text-center">
@@ -77,20 +80,21 @@ export default function LegalDocuments() {
                     <p className="text-sm font-semibold text-slate-900">{legalDocumentName(d, project?.name, accountMap[d.account_id]?.name, project?.project_number)}</p>
                     <div className="mt-1"><DocTypeBadge type={d.document_type} projectNumber={project?.project_number} /></div>
                   </div>
-                  <ExecutedBadge status={d.executed} />
+                  {d.executed ? <ExecutedBadge status={d.executed} /> : <DMAFieldValue value={null} />}
                 </div>
                 <dl className="flex-1 space-y-1.5 text-xs text-slate-500">
                   <div className="flex justify-between"><dt>Project</dt>
                     <dd className="text-slate-700">
                       {project ? (
                         <Link to={`/projects/${project.id}`} className="text-blue-600 hover:underline truncate">{project.name}</Link>
-                      ) : "—"}
+                      ) : <DMAFieldValue value={null} />}
                     </dd>
                   </div>
-                  <div className="flex justify-between"><dt>Drafted</dt><dd className="text-slate-700">{formatDate(d.drafted_date)}</dd></div>
-                  <div className="flex justify-between"><dt>Approval</dt><dd className="text-slate-700">{d.approval_status || "—"}</dd></div>
-                  <div className="flex justify-between"><dt>Execution</dt><dd className="text-slate-700">{formatDate(d.date_of_execution)}</dd></div>
+                  <div className="flex justify-between"><dt>Drafted</dt><dd className="text-slate-700"><DMAFieldValue value={d.drafted_date} date /></dd></div>
+                  <div className="flex justify-between"><dt>Approval</dt><dd className="text-slate-700"><DMAFieldValue value={d.approval_status} /></dd></div>
+                  <div className="flex justify-between"><dt>Execution</dt><dd className="text-slate-700"><DMAFieldValue value={d.date_of_execution} date /></dd></div>
                 </dl>
+                {user?.role !== 'supplier' && !d.link_to_file && <p className="mt-3 text-xs text-destructive">File link: Missing</p>}
                 {user?.role !== 'supplier' && d.link_to_file && (
                   <a href={d.link_to_file} target="_blank" rel="noreferrer"
                     className="mt-3 flex items-center justify-center gap-2 rounded-lg border border-slate-200 px-3 py-2 text-sm font-medium text-slate-700 transition-colors hover:bg-slate-50">
@@ -101,7 +105,8 @@ export default function LegalDocuments() {
             );
           })}
         </div>
-      )}
+      ))}
+      {(typeFilter === 'all' || typeFilter === 'dma') && <DMARegister />}
     </div>
   );
 }
