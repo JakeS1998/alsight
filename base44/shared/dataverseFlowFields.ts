@@ -19,10 +19,12 @@ export function compatibleType(local, source) {
 }
 export function validateFlowValue(type, value, required = false, stringLimit = 500) {
   if (value === null || value === '') { if (required) throw new Error('The record name cannot be empty.'); return ['String', 'Memo', 'Lookup', 'Uniqueidentifier'].includes(type) ? '' : null; }
+  if (type === 'Json') { const encoded = JSON.stringify(value); if (!encoded || encoded.length > 10000) throw new Error('Dataverse structured data exceeds the supported field size.'); return value; }
   if (['String', 'Memo'].includes(type)) { if (typeof value !== 'string' || value.length > (type === 'Memo' ? 4000 : stringLimit)) throw new Error('Text is too long or invalid.'); return value; }
   if (['Lookup', 'Uniqueidentifier'].includes(type)) { if (typeof value !== 'string' || !isGuid(value)) throw new Error('Dataverse returned an invalid reference.'); return value.toLowerCase(); }
   if (type === 'Boolean') { if (typeof value !== 'boolean') throw new Error('Choose Yes or No.'); return value; }
   if (type === 'DateTime') { if (typeof value !== 'string' || value.length > 40 || !Number.isFinite(Date.parse(value))) throw new Error('Enter a valid date.'); return new Date(value).toISOString(); }
   if (typeof value !== 'number' || !Number.isFinite(value)) throw new Error('Enter a valid number.');
+  if (['Integer', 'BigInt'].includes(type) && !Number.isSafeInteger(value)) throw new Error('Dataverse requires a safe whole number.');
   return value;
 }

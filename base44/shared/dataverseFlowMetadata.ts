@@ -1,5 +1,6 @@
 import { flowRequest } from './dataverseFlowApi.ts';
-import { flowSpecs, isName, compatibleType } from './dataverseFlowFields.ts';
+import { flowSpecs, isName } from './dataverseFlowFields.ts';
+import { dataverseSourceType } from './dataverseSourceTypes.ts';
 import { flowChoiceMetadata } from './dataverseChoiceMetadata.ts';
 import { suggestFlowMappings } from './dataverseFlowSuggestions.ts';
 export async function discoverFlowTables(context, table) {
@@ -15,7 +16,7 @@ export async function inspectFlowTable(context, table, logicalName) {
   const data = await flowRequest(context.environment, context.token, `EntityDefinitions(LogicalName='${meta.LogicalName}')/Attributes?$select=LogicalName,AttributeType,IsValidForRead,IsValidForUpdate,DisplayName`);
   if (data['@odata.nextLink']) throw new Error('Metadata needs additional pages. Ask IT to narrow this table.');
   const choices = await flowChoiceMetadata(context, meta.LogicalName);
-  const fields = (data.value || []).filter(a => a.IsValidForRead && isName(a.LogicalName) && Object.values(flowSpecs[table].fields).some(type => compatibleType(type, a.AttributeType))).map(a => ({ name: a.LogicalName, type: a.AttributeType, label: a.DisplayName?.UserLocalizedLabel?.Label || a.LogicalName, queryName: a.AttributeType === 'Lookup' ? `_${a.LogicalName}_value` : a.LogicalName, writable: Boolean(a.IsValidForUpdate) && !['Lookup', 'Uniqueidentifier', 'Picklist', 'State', 'Status'].includes(a.AttributeType), options: choices[a.LogicalName] || (a.AttributeType === 'Boolean' ? [{ value: 'false', label: 'No' }, { value: 'true', label: 'Yes' }] : []) }));
+  const fields = (data.value || []).filter(a => a.IsValidForRead && isName(a.LogicalName)).map(a => ({ name: a.LogicalName, type: a.AttributeType, localType: dataverseSourceType(a.AttributeType), label: a.DisplayName?.UserLocalizedLabel?.Label || a.LogicalName, queryName: a.AttributeType === 'Lookup' ? `_${a.LogicalName}_value` : a.LogicalName, writable: Boolean(a.IsValidForUpdate) && !['Lookup', 'Uniqueidentifier', 'Picklist', 'State', 'Status'].includes(a.AttributeType) && dataverseSourceType(a.AttributeType) !== 'Json', options: choices[a.LogicalName] || (a.AttributeType === 'Boolean' ? [{ value: 'false', label: 'No' }, { value: 'true', label: 'Yes' }] : []) }));
   const inspected = { logicalName: meta.LogicalName, entitySet: meta.EntitySetName, primaryId: meta.PrimaryIdAttribute, primaryName: meta.PrimaryNameAttribute, fields };
   return { ...inspected, suggestions: suggestFlowMappings(table, inspected), ...(table === 'projects' && meta.LogicalName === 'bss_project1' ? { warning: 'This is a separate table from the currently linked project table. Confirm its meaning and review record matches before replacing project records.' } : {}) };
 }
@@ -24,11 +25,12 @@ export function validateMapping(table, inspected, mappings) {
   const spec = flowSpecs[table], seen = new Set(), sources = new Set();
   const result = mappings.map(item => {
     const source = inspected.fields.find(f => f.name === item.source);
-    if (!spec.fields[item.local] || !source || !compatibleType(spec.fields[item.local], source.type) || seen.has(item.local) || sources.has(item.source)) throw new Error('The mapping contains an invalid, duplicate or incompatible field.');
+    if (!spec.fields[item.local] || !source || seen.has(item.local) || sources.has(item.source)) throw new Error('The mapping contains an invalid or duplicate field.');
+    const localType = dataverseSourceType(source.type);
     if (item.write && (!source.writable || (table === 'contacts' && item.local === 'full_name'))) throw new Error('A selected field is read-only. Contact full name is derived from first and last name.');
     if (table === 'users' && (item.write || (item.local === 'dataverse_systemuser_id' && source.name !== inspected.primaryId))) throw new Error('User sync cannot change logins or write back. Map the systemuser ID to its primary ID only.');
     let values;
-    if (['Picklist', 'State', 'Status'].includes(source.type) || (source.type === 'Boolean' && spec.fields[item.local] === 'String')) {
+    if (['Picklist', 'State', 'Status'].includes(source.type)) {
       values = {};
       for (const option of source.options) {
         const value = spec.enums?.[item.local] ? item.values?.[option.value] : option.label;
@@ -40,7 +42,7 @@ export function validateMapping(table, inspected, mappings) {
     }
     seen.add(item.local); sources.add(item.source);
     const automatic = inspected.suggestions?.some(m => m.local === item.local && m.source === source.name);
-    return { local: item.local, source: source.name, queryName: source.queryName, type: source.type, write: Boolean(item.write), localType: spec.fields[item.local], origin: item.origin === 'manual' ? 'manual' : automatic ? 'automatic' : 'manual', ...(values ? { values } : {}) };
+    return { local: item.local, source: source.name, queryName: source.queryName, type: source.type, write: Boolean(item.write), localType, origin: item.origin === 'manual' ? 'manual' : automatic ? 'automatic' : 'manual', ...(values ? { values } : {}) };
   });
   if (!seen.has(spec.required)) throw new Error(`Map ${spec.required.replaceAll('_', ' ')} before synchronising this table.`);
   return result;

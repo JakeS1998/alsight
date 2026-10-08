@@ -11,7 +11,7 @@ export default function FlowColumnSetup({ table, spec, settings, metadata, mappi
   return (
     <details className="space-y-3 rounded-lg border border-border p-3" onToggle={event => { if (event.currentTarget.open && !metadata && !busy && logicalName) inspect(); }}>
       <summary className="cursor-pointer text-sm font-semibold">Mapped columns setup · {mappings.length} mapped · {localCount} Base44-only · {neededCount} need Dataverse columns</summary>
-      <p className="text-xs text-muted-foreground">Choose a Dataverse column for any unmapped field below. Each selector includes all compatible live columns, not just automatic suggestions. Save the column setup to use your manual mappings in the next sync.</p>
+      <p className="text-xs text-muted-foreground">Choose any unassigned readable Dataverse column below, regardless of the previous ALSight type. The sync field type follows the selected Dataverse column. Save the column setup to apply the mapping. Stored entity definitions are not automatically migrated.</p>
       {settings && <p className="text-xs text-muted-foreground">Record identity: {settings.primaryId} → {spec.identityField || 'dataverse_id'} (managed link).</p>}
       {dirty && <p role="status" className="text-xs text-muted-foreground">Unsaved changes. Save the column setup before syncing.</p>}
       <div className="flex flex-wrap gap-2">
