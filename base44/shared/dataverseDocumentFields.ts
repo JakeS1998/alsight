@@ -1,0 +1,7 @@
+export const documentFlowSpec = {
+  entity: 'LegalDocument', label: 'Documents', sourceNames: ['bss_projects1s', 'bss_project1s', 'bss_projects1', 'bss_project1'], required: 'document_id', matchFields: ['document_id'], writeRoles: ['admin'],
+  fields: {
+    document_id: 'String', document_type: 'String', riba_stage: 'String', executed: 'String', approval_status: 'String', approval_date: 'DateTime', approval_comments: 'Memo', approvers_name: 'String', drafted_date: 'DateTime', drafting_due_date: 'DateTime', date_of_execution: 'DateTime', sent_to_client: 'DateTime', signing_target_date: 'DateTime', shared_with_supplier: 'Boolean', is_bsm_document_owner: 'Boolean', link_to_file: 'String', link_to_client_proposal: 'String', link_to_fee_proposal: 'String', comments: 'Memo', pso_signoff: 'Boolean', fee_proposal_date: 'DateTime', total_fees: 'Decimal', post_construction: 'String', status: 'String', project_id: 'Lookup', client_account_id: 'Lookup', account_id: 'Lookup', bdm_aad_id: 'Lookup', bsm_aad_id: 'Lookup'
+  },
+  enums: { document_type: ['access_agreement', 'additional_works', 'appointment_pm', 'appointment_pd_cdm', 'appointment_architect', 'appointment_pd_br', 'pcsa', 'loi', 'equipment_only_agreement', 'single_task_agreement', 'other'], riba_stage: ['riba_1', 'riba_2', 'riba_3', 'riba_4', 'riba_5_7', ''], executed: ['no', 'yes', 'po'], status: ['active', 'inactive'] }
+};

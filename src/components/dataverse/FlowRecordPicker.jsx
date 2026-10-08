@@ -4,7 +4,7 @@ import { base44 } from '@/api/base44Client';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 export default function FlowRecordPicker({ table, selected, onSelect }) {
-  const [search, setSearch] = useState(''), entity = table === 'projects' ? 'Project' : 'Contact', field = table === 'projects' ? 'name' : 'full_name';
+  const [search, setSearch] = useState(''), entity = table === 'projects' ? 'Project' : table === 'documents' ? 'LegalDocument' : 'Contact', field = table === 'projects' ? 'name' : table === 'documents' ? 'document_id' : 'full_name';
   const escaped = search.trim().replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
   const query = useInfiniteQuery({ queryKey: ['dataverse-records', table, escaped], initialPageParam: undefined, queryFn: ({ pageParam }) => base44.entities[entity].filter({ dataverse_id: { $exists: true, $nin: [null, ''] }, ...(escaped ? { [field]: { $regex: escaped, $options: 'i' } } : {}) }, { sort: field, limit: 50, cursor: pageParam, fields: [field, 'dataverse_id'] }), getNextPageParam: page => page.has_more ? page.next_cursor : undefined });
   const items = query.data?.pages.flatMap(page => page.items) || [];

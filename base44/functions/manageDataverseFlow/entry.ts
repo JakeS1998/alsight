@@ -2,6 +2,7 @@ import { createClientFromRequest } from 'npm:@base44/sdk@0.8.52';
 import { dataverseRoles } from '../../shared/dataverseUserAuth.ts';
 import { flowConfig, sharedFlowContext, confirmJake, flowRequest } from '../../shared/dataverseFlowApi.ts';
 import { flowSpecs } from '../../shared/dataverseFlowFields.ts';
+import { validateColumnPlans, sameFlowMapping } from '../../shared/dataverseColumnPlans.ts';
 import { discoverFlowTables, inspectFlowTable, validateMapping } from '../../shared/dataverseFlowMetadata.ts';
 import { syncFlowBatch } from '../../shared/dataverseFlowSync.ts';
 import { writeFlowContext, loadFlowRecord, saveFlowRecord } from '../../shared/dataverseFlowWrite.ts';
@@ -52,8 +53,12 @@ export default async function(req) {
     if (input.action === 'mapping') {
       const inspected = await inspectFlowTable(context, input.table, input.logicalName);
       const mappings = validateMapping(input.table, inspected, input.mappings);
+      const columnPlans = validateColumnPlans(input.table, mappings, input.columnPlans ?? config.tables?.[input.table]?.columnPlans ?? {});
       const { fields, suggestions, warning, ...meta } = inspected;
-      const tables = { ...config.tables, [input.table]: { ...meta, mappings, revision: crypto.randomUUID(), cursor: '', processed: 0, updated: 0, queued: 0, complete: false } };
+      const previous = config.tables?.[input.table];
+      const sameMapping = sameFlowMapping(input.table, previous, mappings, inspected.logicalName);
+      const progress = sameMapping ? previous : { revision: crypto.randomUUID(), cursor: '', processed: 0, updated: 0, queued: 0, complete: false };
+      const tables = { ...config.tables, [input.table]: { ...progress, ...meta, mappings, columnPlans, updated_at: new Date().toISOString() } };
       await base44.asServiceRole.entities.DataverseFlowConfig.update(config.id, { tables });
       return Response.json({ tables, notice: 'Mapping confirmed against live Dataverse metadata.' });
     }

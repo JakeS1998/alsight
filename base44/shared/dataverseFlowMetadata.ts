@@ -39,7 +39,8 @@ export function validateMapping(table, inspected, mappings) {
       if (item.write) throw new Error('Transformed choice fields are read-only in this sync workspace.');
     }
     seen.add(item.local); sources.add(item.source);
-    return { local: item.local, source: source.name, queryName: source.queryName, type: source.type, write: Boolean(item.write), localType: spec.fields[item.local], ...(values ? { values } : {}) };
+    const automatic = inspected.suggestions?.some(m => m.local === item.local && m.source === source.name);
+    return { local: item.local, source: source.name, queryName: source.queryName, type: source.type, write: Boolean(item.write), localType: spec.fields[item.local], origin: item.origin === 'manual' ? 'manual' : automatic ? 'automatic' : 'manual', ...(values ? { values } : {}) };
   });
   if (!seen.has(spec.required)) throw new Error(`Map ${spec.required.replaceAll('_', ' ')} before synchronising this table.`);
   return result;
