@@ -4,11 +4,13 @@ import calendarRequest from '@/components/outlook/calendarClient';
 import { plannerDay, plannerDayEnd, plannerTime } from '@/components/dashboard/plannerDates';
 
 export default function useTodayOutlookAgenda(user) {
-  const [day, setDay] = useState(plannerDay);
+  const [now, setNow] = useState(Date.now);
+  const day = plannerDay(now);
   useEffect(() => {
-    const refreshDay = () => setDay(plannerDay());
+    const refreshDay = () => setNow(Date.now());
+    const timer = setInterval(refreshDay, 30000);
     window.addEventListener('focus', refreshDay);
-    return () => window.removeEventListener('focus', refreshDay);
+    return () => { clearInterval(timer); window.removeEventListener('focus', refreshDay); };
   }, []);
   const noon = Date.parse(`${day}T12:00:00Z`);
   const start = new Date(Date.parse(plannerDayEnd(noon - 86400000)) + 1).toISOString();
@@ -29,6 +31,7 @@ export default function useTodayOutlookAgenda(user) {
     return { key: `outlook-${event.id}`, kind: 'calendar', title: event.subject || 'Untitled event', time,
       sort: `${event.isAllDay ? day : plannerDay(utc(event.start?.dateTime))}T${event.isAllDay ? '00:00' : time}`,
       detail: [event.isAllDay ? 'All day' : `${time}–${finish}`, event.location?.displayName, event.isOnlineMeeting ? 'Online meeting' : ''].filter(Boolean).join(' · '),
+      ended: Date.parse(utc(event.end?.dateTime)) <= now,
       href: event.webLink,
       joinUrl: event.isOnlineMeeting && event.onlineMeetingProvider === 'teamsForBusiness' && /^https:\/\//i.test(event.onlineMeeting?.joinUrl || '') ? event.onlineMeeting.joinUrl : null };
   });
