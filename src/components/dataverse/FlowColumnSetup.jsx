@@ -9,9 +9,9 @@ export default function FlowColumnSetup({ table, spec, settings, metadata, mappi
   const localCount = Object.values(columnPlans).filter(mode => mode === 'base44_only').length;
   const neededCount = Object.values(columnPlans).filter(mode => mode === 'needs_dataverse').length;
   return (
-    <details className="space-y-3 rounded-lg border border-border p-3">
+    <details className="space-y-3 rounded-lg border border-border p-3" onToggle={event => { if (event.currentTarget.open && !metadata && !busy && logicalName) inspect(); }}>
       <summary className="cursor-pointer text-sm font-semibold">Mapped columns setup · {mappings.length} mapped · {localCount} Base44-only · {neededCount} need Dataverse columns</summary>
-      <p className="text-xs text-muted-foreground">See saved automatic and manual mappings below. Load live column options to map more fields. Unmapped data is preserved until you decide where it belongs.</p>
+      <p className="text-xs text-muted-foreground">Choose a Dataverse column for any unmapped field below. Each selector includes all compatible live columns, not just automatic suggestions. Save the column setup to use your manual mappings in the next sync.</p>
       {settings && <p className="text-xs text-muted-foreground">Record identity: {settings.primaryId} → {spec.identityField || 'dataverse_id'} (managed link).</p>}
       {dirty && <p role="status" className="text-xs text-muted-foreground">Unsaved changes. Save the column setup before syncing.</p>}
       <div className="flex flex-wrap gap-2">
