@@ -27,20 +27,10 @@
       "description": "Dataverse GUID of contractor account"
     },
     "form_of_jct": {
-      "type": "string",
-      "enum": [
-        "design_and_build",
-        "intermediate_with_contractors_design",
-        "minor_works",
-        ""
-      ]
+      "type": "string"
     },
     "executed": {
       "type": "string",
-      "enum": [
-        "no",
-        "yes"
-      ],
       "default": "no"
     },
     "comments": {
@@ -95,105 +85,49 @@
       "type": "string"
     },
     "contract_particulars": {
-      "type": "string",
-      "enum": [
-        "no",
-        "yes",
-        "na",
-        "tbc",
-        ""
-      ]
+      "type": "string"
     },
     "cp_comments": {
       "type": "string"
     },
     "cps": {
-      "type": "string",
-      "enum": [
-        "no",
-        "yes",
-        "na",
-        "tbc",
-        ""
-      ]
+      "type": "string"
     },
     "cps_comments": {
       "type": "string"
     },
     "ers": {
-      "type": "string",
-      "enum": [
-        "no",
-        "yes",
-        "na",
-        "tbc",
-        ""
-      ]
+      "type": "string"
     },
     "er_comments": {
       "type": "string"
     },
     "pci": {
-      "type": "string",
-      "enum": [
-        "no",
-        "yes",
-        "na",
-        "tbc",
-        ""
-      ]
+      "type": "string"
     },
     "pci_comments": {
       "type": "string"
     },
     "prelims": {
-      "type": "string",
-      "enum": [
-        "no",
-        "yes",
-        "na",
-        "tbc",
-        ""
-      ]
+      "type": "string"
     },
     "prelim_comments": {
       "type": "string"
     },
     "soa": {
-      "type": "string",
-      "enum": [
-        "no",
-        "yes",
-        "na",
-        "tbc",
-        ""
-      ]
+      "type": "string"
     },
     "soa_comments": {
       "type": "string"
     },
     "rr": {
-      "type": "string",
-      "enum": [
-        "no",
-        "yes",
-        "na",
-        "tbc",
-        ""
-      ]
+      "type": "string"
     },
     "rr_comments": {
       "type": "string"
     },
     "valuation_schedule": {
-      "type": "string",
-      "enum": [
-        "no",
-        "yes",
-        "na",
-        "tbc",
-        ""
-      ]
+      "type": "string"
     },
     "variation_comments": {
       "type": "string"
@@ -244,10 +178,6 @@
     },
     "commercial_date_basis": {
       "type": "string",
-      "enum": [
-        "contract_dates",
-        "project_programme"
-      ],
       "description": "Whether the annualisation dates were confirmed contract dates or a project-programme proxy"
     },
     "commercial_date_source": {
@@ -275,20 +205,10 @@
       "type": "string"
     },
     "commercial_effective_date_basis": {
-      "type": "string",
-      "enum": [
-        "",
-        "contract_dates",
-        "project_programme"
-      ]
+      "type": "string"
     },
     "commercial_effective_mode": {
-      "type": "string",
-      "enum": [
-        "unavailable",
-        "reviewed",
-        "pathway_proposal"
-      ]
+      "type": "string"
     },
     "commercial_effective_source": {
       "type": "object",

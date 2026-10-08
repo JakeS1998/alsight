@@ -3,14 +3,13 @@ const normalise = value => {
   return ({ notapplicable: 'na', tobeconfirmed: 'tbc' })[text] || text;
 };
 export function matchFlowChoices(options = [], choices, previous = {}) {
-  const values = {};
+  const values = {}, allowed = [...(choices || []), ...options.map(option => option.label)];
   for (const option of options) {
-    if (!choices) { values[option.value] = option.label; continue; }
-    if (Object.prototype.hasOwnProperty.call(previous, option.value) && choices.includes(previous[option.value])) {
+    if (Object.prototype.hasOwnProperty.call(previous, option.value) && allowed.includes(previous[option.value])) {
       values[option.value] = previous[option.value]; continue;
     }
-    const matches = choices.filter(choice => normalise(choice) === normalise(option.label));
-    if (matches.length === 1) values[option.value] = matches[0];
+    const matches = (choices || []).filter(choice => normalise(choice) === normalise(option.label));
+    values[option.value] = matches.length === 1 ? matches[0] : option.label;
   }
   return values;
 }

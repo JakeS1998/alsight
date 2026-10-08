@@ -19,31 +19,10 @@
       "description": "BDM user id (backfilled from project for RLS)"
     },
     "document_type": {
-      "type": "string",
-      "enum": [
-        "access_agreement",
-        "additional_works",
-        "appointment_pm",
-        "appointment_pd_cdm",
-        "appointment_architect",
-        "appointment_pd_br",
-        "pcsa",
-        "loi",
-        "equipment_only_agreement",
-        "single_task_agreement",
-        "other"
-      ]
+      "type": "string"
     },
     "riba_stage": {
-      "type": "string",
-      "enum": [
-        "riba_1",
-        "riba_2",
-        "riba_3",
-        "riba_4",
-        "riba_5_7",
-        ""
-      ]
+      "type": "string"
     },
     "account_id": {
       "type": "string",
@@ -54,11 +33,6 @@
     },
     "executed": {
       "type": "string",
-      "enum": [
-        "no",
-        "yes",
-        "po"
-      ],
       "default": "no"
     },
     "approval_status": {

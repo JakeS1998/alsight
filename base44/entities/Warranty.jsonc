@@ -31,46 +31,18 @@
     },
     "beneficiary": {
       "type": "string",
-      "enum": [
-        "council",
-        "als",
-        "operator",
-        "trust",
-        ""
-      ],
       "default": "council"
     },
     "category": {
       "type": "string",
-      "enum": [
-        "contractor",
-        "consultant",
-        "other",
-        ""
-      ],
       "default": ""
     },
     "warranty_status": {
       "type": "string",
-      "enum": [
-        "awaiting_jct",
-        "awaiting_appointment",
-        "in_review",
-        "sent_for_seal",
-        "drafted",
-        "sealed",
-        "executed",
-        "product_warranty",
-        ""
-      ],
       "default": ""
     },
     "format": {
       "type": "string",
-      "enum": [
-        "deed",
-        ""
-      ],
       "default": ""
     },
     "jct_signed": {

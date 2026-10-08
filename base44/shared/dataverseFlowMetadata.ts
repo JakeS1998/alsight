@@ -38,7 +38,8 @@ export function validateMapping(table, inspected, mappings) {
       values = matchFlowChoices(source.options, spec.enums?.[item.local], item.values);
       for (const option of source.options) {
         const value = values[option.value];
-        if (typeof value !== 'string' || (spec.enums?.[item.local] && !spec.enums[item.local].includes(value))) throw new Error(`No clear ALSight match for “${option.label}” in ${item.local}. Choose a value for this option, or leave the field unmapped.`);
+        const fixedChoice = item.local === 'status' || (table === 'accounts' && item.local === 'account_type');
+        if (typeof value !== 'string' || (fixedChoice && spec.enums?.[item.local] && !spec.enums[item.local].includes(value))) throw new Error(`“${option.label}” must map to an existing ${item.local.replaceAll('_', ' ')} value to preserve ALSight classification.`);
         values[option.value] = value;
       }
       if (!source.options.length) throw new Error('Dataverse did not return choices for this field.');

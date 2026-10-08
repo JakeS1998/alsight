@@ -24,10 +24,6 @@
     },
     "executed": {
       "type": "string",
-      "enum": [
-        "no",
-        "yes"
-      ],
       "default": "no"
     },
     "approval_status": {
@@ -81,142 +77,67 @@
       "type": "string"
     },
     "payment_terms": {
-      "type": "string",
-      "enum": [
-        "no",
-        "yes",
-        "na",
-        "tbc",
-        ""
-      ]
+      "type": "string"
     },
     "payment_comments": {
       "type": "string"
     },
     "lads": {
-      "type": "string",
-      "enum": [
-        "no",
-        "yes",
-        "na",
-        "tbc",
-        ""
-      ]
+      "type": "string"
     },
     "lad_comments": {
       "type": "string"
     },
     "pcg_bond": {
-      "type": "string",
-      "enum": [
-        "no",
-        "yes",
-        "na",
-        "tbc",
-        ""
-      ]
+      "type": "string"
     },
     "pcg_comments": {
       "type": "string"
     },
     "retention": {
-      "type": "string",
-      "enum": [
-        "no",
-        "yes",
-        "na",
-        "tbc",
-        ""
-      ]
+      "type": "string"
     },
     "retention_comments": {
       "type": "string"
     },
     "framework_support_fee": {
-      "type": "string",
-      "enum": [
-        "no",
-        "yes",
-        "na",
-        "tbc",
-        ""
-      ]
+      "type": "string"
     },
     "fsf_comments": {
       "type": "string"
     },
     "pi_limit": {
-      "type": "string",
-      "enum": [
-        "no",
-        "yes",
-        "na",
-        "tbc",
-        ""
-      ]
+      "type": "string"
     },
     "pi_comments": {
       "type": "string"
     },
     "schedule2": {
-      "type": "string",
-      "enum": [
-        "no",
-        "yes",
-        "na",
-        "tbc",
-        ""
-      ]
+      "type": "string"
     },
     "sch2_comments": {
       "type": "string"
     },
     "equipment": {
-      "type": "string",
-      "enum": [
-        "no",
-        "yes",
-        "na",
-        "tbc",
-        ""
-      ]
+      "type": "string"
     },
     "equip_comments": {
       "type": "string"
     },
     "structural_insurance": {
-      "type": "string",
-      "enum": [
-        "no",
-        "yes",
-        "na",
-        "tbc",
-        ""
-      ]
+      "type": "string"
     },
     "si_comments": {
       "type": "string"
     },
     "risk_register": {
-      "type": "string",
-      "enum": [
-        "no",
-        "yes",
-        "na",
-        "tbc",
-        ""
-      ]
+      "type": "string"
     },
     "rr_comments": {
       "type": "string"
     },
     "pso_signoff": {
-      "type": "string",
-      "enum": [
-        "no",
-        "yes",
-        ""
-      ]
+      "type": "string"
     },
     "riba3_completion": {
       "type": "string"
