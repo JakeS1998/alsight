@@ -76,6 +76,7 @@ const AuthenticatedApp = () => {
     <PageLoadBoundary route={location.pathname}>
       <Suspense fallback={<div className="flex min-h-[40vh] items-center justify-center" role="status">Loading page…</div>}>
     <Routes>
+      {!user && <Route path="/" element={<Login />} />}
       <Route path="/login" element={<Login />} />
       <Route path="/register" element={<Register />} />
       <Route path="/forgot-password" element={<ForgotPassword />} />
