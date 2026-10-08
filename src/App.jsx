@@ -15,6 +15,8 @@ import PeopleRoute from '@/components/relationships/PeopleRoute';
 const People = lazy(() => import('@/pages/People'));
 import PageLoadBoundary from '@/components/PageLoadBoundary';
 import StakeholderRoute from '@/components/StakeholderRoute';
+import OnboardingGate from '@/components/onboarding/OnboardingGate';
+const Onboarding = lazy(() => import('@/pages/Onboarding'));
 const Login = lazy(() => import('@/pages/Login'));
 const Register = lazy(() => import('@/pages/Register'));
 const ForgotPassword = lazy(() => import('@/pages/ForgotPassword'));
@@ -81,8 +83,10 @@ const AuthenticatedApp = () => {
       <Route element={<ProtectedRoute unauthenticatedElement={<Navigate to={`/login?returnTo=${encodeURIComponent(location.pathname + location.search)}`} replace />} />}>
         <Route path="/risk-approvals/:packetId" element={<RiskApprovalReview />} />
         <Route path="/dataverse-callback" element={<DataverseCallback />} />
+        <Route path="/onboarding" element={<Onboarding />} />
       </Route>
       <Route element={<ProtectedRoute unauthenticatedElement={<Navigate to="/login" replace />} />}>
+        <Route element={<OnboardingGate />}>
         <Route element={<PortalLayout />}>
           <Route path="/framework-reports" element={<FrameworkReports />} />
           <Route path="/framework-reports/:reportId" element={<FrameworkProjectDetail />} />
@@ -126,6 +130,7 @@ const AuthenticatedApp = () => {
           <Route path="/accounts/:accountId/contacts/:contactId" element={<ContactDetail />} />
           <Route path="/delegation" element={<Delegation />} />
           </Route>
+        </Route>
         </Route>
       </Route>
       <Route path="*" element={<PageNotFound />} />

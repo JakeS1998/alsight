@@ -59,6 +59,21 @@
       "type": "string",
       "maxLength": 500,
       "description": "Private storage URI for the user's profile picture"
+    },
+    "onboarding_step": {
+      "type": "string",
+      "enum": [
+        "welcome",
+        "details",
+        "outlook",
+        "teams",
+        "dataverse",
+        "complete"
+      ]
+    },
+    "onboarding_completed_at": {
+      "type": "string",
+      "format": "date-time"
     }
   }
 }
