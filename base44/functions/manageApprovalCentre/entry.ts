@@ -28,7 +28,8 @@ export default async function(req: Request): Promise<Response> {
   if(!['pending','history'].includes(input.view) || (input.cursor!==undefined && (typeof input.cursor!=='string' || input.cursor.length>2000)))return Response.json({error:'Invalid approval view.'},{status:400});
   // The service-role read is deliberately restricted to this authenticated assignee.
   // Direct request-entity access is administrator-only; a self-edited User flag cannot grant access.
-  const page=await base44.asServiceRole.entities.DocumentApprovalRequest.filter({approver_email:email,status:input.view==='pending' ? 'pending' : {$in:['approved','rejected','superseded']}},{sort:'-created_date',limit:25,...(input.cursor ? {cursor:input.cursor} : {}),fields:['document_title','source_table','document_url','status','decision_comments','decided_by_name','decided_at','writeback_status','created_date']});
-  return Response.json({items:page.items,next_cursor:page.next_cursor,has_more:page.has_more});
+  const page=await base44.asServiceRole.entities.DocumentApprovalRequest.filter({approver_email:email,status:input.view==='pending' ? 'pending' : {$in:['approved','rejected','superseded']}},{sort:'-created_date',limit:25,...(input.cursor ? {cursor:input.cursor} : {}),fields:['request_key','document_title','source_table','document_url','drafted_date','status','decision_comments','decided_by_name','decided_at','writeback_status','created_date']});
+   const items=page.items.map(({request_key,...request})=>({...request,is_demo:request_key?.startsWith('demo:')===true}));
+   return Response.json({items,next_cursor:page.next_cursor,has_more:page.has_more});
  } catch(error) {return Response.json({error:error.message || 'Unable to load approvals.'},{status:400});}
 }
