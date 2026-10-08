@@ -1,4 +1,5 @@
 import {approvalEntity,approvalMetadata} from './documentApprovalRecords.ts';
+import {refreshDocumentApprovalDates} from './documentApprovalDates.ts';
 export const documentNeedsApproval = document => !!String(document.drafted_date || '').trim() && !String(document.approval_date || '').trim();
 const approverEmail='jake@allianceleisure.co.uk';
 const sameDraft=(a,b)=>Number.isFinite(Date.parse(a)) && Date.parse(a)===Date.parse(b);
@@ -39,6 +40,10 @@ export async function syncDocumentApprovalPage(base44,input) {
  const entity=approvalEntity(input.table);
  if(!entity)throw new Error('Choose legal documents, development agreements or warranties.');
  if(input.cursor!==undefined && (typeof input.cursor!=='string' || input.cursor.length>2000))throw new Error('Invalid document cursor.');
- const page=await base44.asServiceRole.entities[entity].filter({},{sort:'created_date',limit:50,...(input.cursor ? {cursor:input.cursor} : {})});
- return {...await syncDocumentApprovals(base44,input.table,page.items),processed:page.items.length,has_more:page.has_more,next_cursor:page.next_cursor};
+ for(const key of ['refreshDates','inboxOnly'])if(input[key]!==undefined && typeof input[key]!=='boolean')throw new Error('Invalid document date check option.');
+ const db=base44.asServiceRole.entities,options={sort:'created_date',limit:50,...(input.cursor ? {cursor:input.cursor} : {})};
+ const page=input.inboxOnly ? await db.DocumentApprovalRequest.filter({source_table:input.table,approver_email:approverEmail,source_requires_approval:{$ne:false}},options) : await db[entity].filter({},options);
+ const documents=input.inboxOnly ? (await db[entity].filter({dataverse_id:{$in:page.items.map(r=>r.source_id)}},{limit:50})).items : page.items;
+ const fresh=input.refreshDates ? await refreshDocumentApprovalDates(base44,input.table,documents) : {documents,checked:0,missing:0};
+ return {...await syncDocumentApprovals(base44,input.table,fresh.documents),processed:documents.length,checked: fresh.checked,missing:fresh.missing,has_more:page.has_more,next_cursor:page.next_cursor};
 }

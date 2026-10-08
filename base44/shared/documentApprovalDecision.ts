@@ -1,7 +1,7 @@
 import {approvalSource,approvalAudit,approvalEntity} from './documentApprovalRecords.ts';
 import {flowConfig,flowRequest} from './dataverseFlowApi.ts';
 import {personalDataverseContext,getPersonalDataverseToken} from './dataverseUserAuth.ts';
-const responses=['Approve','Reject','Approved - Subject to Comments','Further Review Required'];
+const responses=['Approve','Approved - Subject to Comments','Further Review Required'];
 const statusOf=value=>value==='Reject' ? 'rejected' : value==='Further Review Required' ? 'further_review_required' : 'approved';
 export async function decideDocumentApproval(base44,user,input) {
  const db=base44.asServiceRole.entities.DocumentApprovalRequest;
