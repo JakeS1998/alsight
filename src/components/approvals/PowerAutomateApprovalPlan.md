@@ -8,6 +8,8 @@ Status: approval-centre foundation implemented on 8 October 2026; external deliv
 - Users review and decide the approval inside ALSight, not through native Microsoft Approvals.
 - Power Automate should write the approval result back to the original Dataverse row.
 - Use Power Automate rather than manually registering a Dataverse webhook.
+- Confirmed scope on 8 October 2026: Legal Documents, DMA agreements and Warranties, all three included.
+- Approver selection is explicitly deferred by the user: "Will choose later". Do not infer a default approver or re-ask this question until the user is ready. Leave approval routing inactive until it is configured.
 
 ## Proposed round trip
 1. A Power Automate Dataverse row-modified trigger watches the selected document table and drafted-date column.
