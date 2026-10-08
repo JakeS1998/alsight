@@ -6,6 +6,7 @@ import UKLFDigestSettings from '@/components/framework/UKLFDigestSettings';
 import FrameworkFeeSettings from '@/components/admin/FrameworkFeeSettings';
 import DataQualityDashboard from '@/components/admin/DataQualityDashboard';
 import DataverseConnectionSettings from '@/components/admin/DataverseConnectionSettings';
+import DataverseFlowAdmin from '@/components/dataverse/DataverseFlowAdmin';
 import ASEAdminSettings from '@/components/ase/ASEAdminSettings';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
 
@@ -22,7 +23,7 @@ export default function Admin() {
       <TabsContent value="framework-fees" className="mt-5"><FrameworkFeeSettings /></TabsContent>
       <TabsContent value="digest" className="mt-5"><UKLFDigestSettings /></TabsContent>
       <TabsContent value="ase" className="mt-5"><ASEAdminSettings /></TabsContent>
-      <TabsContent value="dataverse" className="mt-5"><DataverseConnectionSettings /></TabsContent>
+      <TabsContent value="dataverse" className="mt-5"><div className="space-y-5"><DataverseConnectionSettings /><DataverseFlowAdmin /></div></TabsContent>
     </Tabs>
   </div>;
 }

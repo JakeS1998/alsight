@@ -14,7 +14,7 @@ export default function DataverseConnectionSettings() {
   const dirty = environment.trim() !== (connection?.environment_url || '');
   const status = 'Individual user authentication';
   return <section className="max-w-3xl space-y-5 rounded-panel border border-border bg-card p-5">
-    <header><h2 className="text-xl font-semibold font-heading">Dataverse connection</h2><p className="mt-1 text-sm text-muted-foreground">Each internal user connects their own Microsoft account in Account Settings. Dataverse applies that user's permissions; shared application authentication is no longer used.</p></header>
+    <header><h2 className="text-xl font-semibold font-heading">Dataverse connection</h2><p className="mt-1 text-sm text-muted-foreground">Jake’s connected work account provides shared reads and synchronisation. Each internal user connects their own Microsoft account for write-back; Dataverse applies that user’s permissions.</p></header>
     <form className="space-y-3" onSubmit={event => { event.preventDefault(); run('save', environment); }}>
       <label htmlFor="dataverse-environment" className="block text-sm font-medium">Dataverse environment address</label>
       <Input id="dataverse-environment" type="url" required maxLength={250} value={environment} disabled={Boolean(busy)} onChange={event => setEnvironment(event.target.value)} placeholder="https://yourorganisation.crm11.dynamics.com" aria-describedby="dataverse-environment-help" />
@@ -34,7 +34,7 @@ export default function DataverseConnectionSettings() {
     <div className="space-y-2 border-t border-border pt-4 text-sm text-muted-foreground">
       <p>IT must add the Dynamics CRM delegated <strong>user_impersonation</strong> permission to the existing Microsoft app registration and grant the necessary consent. Each user needs access to this environment, the appropriate licence and security roles.</p>
       <p>Under Authentication, add a <strong>Web</strong> redirect URI: <code className="break-all text-foreground">https://alsight.base44.app/dataverse-callback</code>. The existing tenant ID, client ID and client secret are still used securely. Rotating the client secret requires users to reconnect.</p>
-      <p>This checks authentication and environment access only. Approval routing, row-change events, email notifications, and write-back are not yet enabled; IT must first confirm the tables, approval fields, and event-delivery method.</p>
+      <p>Use the shared data flow controls below to confirm Jake’s read connection and map projects and contacts against live metadata. Approval routing, row-change events and email notifications are not part of this data flow.</p>
     </div>
   </section>;
 }

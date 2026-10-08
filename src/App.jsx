@@ -46,6 +46,7 @@ const CRMClients = lazy(() => import('@/pages/CRMClients'));
 const Delegation = lazy(() => import('@/pages/Delegation'));
 const AccountSettings = lazy(() => import('@/pages/AccountSettings'));
 const DataverseCallback = lazy(() => import('@/pages/DataverseCallback'));
+const DataverseWorkspace = lazy(() => import('@/pages/DataverseWorkspace'));
 const Calendar = lazy(() => import('@/pages/Calendar'));
 const RiskApprovalReview = lazy(() => import('@/pages/RiskApprovalReview'));
 const Help = lazy(() => import('@/pages/Help'));
@@ -93,6 +94,7 @@ const AuthenticatedApp = () => {
           <Route path="/framework-reports/:reportId" element={<FrameworkProjectDetail />} />
           <Route path="/projects/:projectId" element={useStakeholderView ? <FrameworkProjectDetail /> : <ProjectDetail />} />
           <Route path="/account-settings" element={<AccountSettings />} />
+          <Route path="/dataverse" element={<DataverseWorkspace />} />
           <Route path="/calendar" element={<Calendar />} />
           <Route path="/help" element={<Help />} />
           <Route element={<StakeholderRoute />}>

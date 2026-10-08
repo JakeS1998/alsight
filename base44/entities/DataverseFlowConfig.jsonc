@@ -1,0 +1,58 @@
+{
+  "name": "DataverseFlowConfig",
+  "type": "object",
+  "properties": {
+    "key": {
+      "type": "string",
+      "enum": [
+        "primary"
+      ]
+    },
+    "source_connection_id": {
+      "type": "string"
+    },
+    "source_user_id": {
+      "type": "string"
+    },
+    "source_email": {
+      "type": "string"
+    },
+    "environment_url": {
+      "type": "string"
+    },
+    "last_checked_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "tables": {
+      "type": "object",
+      "additionalProperties": true
+    }
+  },
+  "required": [
+    "key",
+    "environment_url"
+  ],
+  "rls": {
+    "read": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "create": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "update": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "delete": {
+      "user_condition": {
+        "role": "admin"
+      }
+    }
+  }
+}
