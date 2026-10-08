@@ -1,4 +1,5 @@
 import { secrets } from 'base44:runtime';
+import { dataverseRequest } from './dataverseRequest.ts';
 
 export function dataverseEnvironment(value) {
   const message = 'Enter the HTTPS Dataverse environment address supplied by IT, such as https://yourorganisation.crm11.dynamics.com.';
@@ -16,20 +17,20 @@ export async function checkDataverseIdentity(environment) {
   const secret = secrets.get('DATAVERSE_CLIENT_SECRET');
   const guid = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
   if (!guid.test(tenant || '') || !guid.test(client || '') || !secret) throw new Error('The stored tenant ID, client ID, or client secret is missing or invalid. Ask IT to confirm the credentials.');
-  const tokenResponse = await fetch(`https://login.microsoftonline.com/${tenant}/oauth2/v2.0/token`, {
+  const tokenResponse = await dataverseRequest('Microsoft authentication', `https://login.microsoftonline.com/${tenant}/oauth2/v2.0/token`, {
     method: 'POST', redirect: 'error', signal: AbortSignal.timeout(15000),
     headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-    body: new URLSearchParams({ grant_type: 'client_credentials', client_id: client, client_secret: secret, scope: `${origin}/.default` })
-  });
+    body: new URLSearchParams({ grant_type: 'client_credentials', client_id: client, client_secret: secret, scope: `${origin}/.default` }).toString()
+  }, [secret]);
   const tokenData = await tokenResponse.json();
   if (!tokenResponse.ok || !tokenData.access_token) {
     const messages = { invalid_client: 'Microsoft rejected the application credentials. Ask IT to check the client secret value, expiry, and client ID.', invalid_scope: 'Microsoft rejected the environment scope. Ask IT to confirm the environment address.', unauthorized_client: 'Microsoft has not authorised this application. Ask IT to confirm the tenant and application configuration.' };
     throw new Error(messages[tokenData.error] || 'Microsoft authentication failed. Ask IT to confirm the application configuration.');
   }
-  const response = await fetch(`${origin}/api/data/v9.2/WhoAmI`, {
+  const response = await dataverseRequest('Dataverse identity check', `${origin}/api/data/v9.2/WhoAmI`, {
     redirect: 'error', signal: AbortSignal.timeout(15000),
     headers: { Authorization: `Bearer ${tokenData.access_token}`, Accept: 'application/json', 'OData-MaxVersion': '4.0', 'OData-Version': '4.0' }
-  });
+  }, [tokenData.access_token, secret]);
   if (!response.ok) throw new Error(response.status === 401 || response.status === 403 ? 'Dataverse denied application access. Ask IT to create or enable the application user in this environment and assign its security role.' : `Dataverse connection check failed (HTTP ${response.status}). Ask IT to confirm the environment address and availability.`);
   const identity = await response.json();
   if (!guid.test(identity.OrganizationId || '') || !guid.test(identity.UserId || '')) throw new Error('Dataverse did not return a valid application identity.');
