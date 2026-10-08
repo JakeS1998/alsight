@@ -3,7 +3,7 @@
 .home-reference, .portfolio-reference { width: 100%; min-width: 0; }
 .home-reference .home-hero { min-height: clamp(320px, 22vw, 440px); border-radius: 14px; }
 .home-reference .home-hero-copy { max-width: 680px; padding: 36px 42px; }
-.home-reference .home-hero h2 { font-size: clamp(38px, 3.6vw, 66px); }
+.home-reference .home-hero h2 { font-size: clamp(44px, 4.2vw, 76px); }
 .home-welcome { display: grid; grid-template-columns: minmax(180px, 1.15fr) repeat(4, minmax(0, 1fr)); gap: 12px; padding: 14px; }
 @media (min-width: 1024px) {
   .home-reference { overflow-anchor: none; }
@@ -28,7 +28,7 @@
   .home-reference .home-intro-grid > :not([hidden]) ~ :not([hidden]) { margin-top: 0; }
   .home-reference .home-sticky-hero .home-hero { min-height: max(300px, 18.36cqw); }
   .home-reference .home-hero-copy { max-width: 620px; padding: 22px 26px; }
-  .home-reference .home-hero h2 { font-size: clamp(30px, 2.2vw, 42px); }
+  .home-reference .home-hero h2 { font-size: clamp(48px, 3.4vw, 64px); }
   .home-reference .home-welcome { grid-template-columns: minmax(180px, 1.15fr) repeat(4, minmax(0, 1fr)); gap: 8px; align-content: center; }
   .home-reference .home-welcome > a { gap: 8px; padding: 12px; }
   .home-reference .home-work-grid { display: grid; grid-template-columns: minmax(0, 1.85fr) minmax(0, 1fr); gap: 12px; align-items: start; }
