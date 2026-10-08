@@ -1,0 +1,49 @@
+{
+  "name": "InsiderComment",
+  "type": "object",
+  "properties": {
+    "post_id": {
+      "type": "string",
+      "maxLength": 80
+    },
+    "author_id": {
+      "type": "string"
+    },
+    "author_name": {
+      "type": "string",
+      "maxLength": 200
+    },
+    "body": {
+      "type": "string",
+      "maxLength": 2000
+    }
+  },
+  "required": [
+    "post_id",
+    "author_id",
+    "author_name",
+    "body"
+  ],
+  "rls": {
+    "read": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "create": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "update": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "delete": {
+      "user_condition": {
+        "role": "admin"
+      }
+    }
+  }
+}

@@ -1,0 +1,53 @@
+{
+  "name": "InsiderReaction",
+  "type": "object",
+  "properties": {
+    "reaction_key": {
+      "type": "string",
+      "maxLength": 160
+    },
+    "post_id": {
+      "type": "string",
+      "maxLength": 80
+    },
+    "user_id": {
+      "type": "string"
+    },
+    "reaction": {
+      "type": "string",
+      "enum": [
+        "like",
+        "celebrate",
+        "helpful"
+      ]
+    }
+  },
+  "required": [
+    "reaction_key",
+    "post_id",
+    "user_id",
+    "reaction"
+  ],
+  "rls": {
+    "read": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "create": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "update": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "delete": {
+      "user_condition": {
+        "role": "admin"
+      }
+    }
+  }
+}

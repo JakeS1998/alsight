@@ -1,5 +1,6 @@
 import {allowedLessons,allowedPulse,projectAccess} from './allianceLayerAccess.ts';
 import {pulseGroupAccess} from './pulseGroupAccess.ts';
+import {insiderEngagement} from './insiderEngagement.ts';
 export async function readLessons(base44,input) {
   const project=input.projectId ? await projectAccess(base44,input.projectId) : null;
   const related=[];
@@ -43,12 +44,13 @@ export async function readHome(base44,input,user) {
     const selected=await base44.asServiceRole.entities.AlliancePulseItem.get(input.postId);
     if(selected?.status==='published' && (selected.group_id || '')===(group?.id || '') && !pulse.some(item=>item.id===selected.id)) pulse=[...(await allowedPulse(base44,[selected],user)),...pulse];
   }
-  if(group || input.cursor) return {pulse,group,impact:null,stories:[],lessons:[],milestones:[],next_cursor:page.next_cursor,has_more:page.has_more};
+  if(group || input.cursor) return {pulse,group,engagement:await insiderEngagement(base44,user,pulse.map(item=>item.id)),impact:null,stories:[],lessons:[],milestones:[],next_cursor:page.next_cursor,has_more:page.has_more};
   const impact=await readImpact(base44,input);
   const curated=await base44.asServiceRole.entities.AlliancePulseItem.filter({status:'published',is_story:true,group_id:{$in:['',null]}},{sort:'-created_date',limit:4});
   const stories=await allowedPulse(base44,curated.items,user);
   const lessons=await readLessons(base44,{});
   const ids=input.projectIds.length ? input.projectIds : ['000000000000000000000000'];
   const milestones=await base44.entities.Project.filter({id:{$in:ids},status:{$ne:'inactive'},practical_completion_date:{$exists:true,$nin:[null,''],$lte:new Date().toISOString()}},{sort:'-practical_completion_date',limit:3,fields:['name','practical_completion_date']});
-  return {impact,pulse,stories,lessons:lessons.items.slice(0,3),milestones:milestones.items,userId:user.id,next_cursor:page.next_cursor,has_more:page.has_more};
+  const engagement=await insiderEngagement(base44,user,[...pulse.map(item=>item.id),...milestones.items.map(item=>`completion-${item.id}`),...lessons.items.slice(0,3).map(item=>`knowledge-${item.id}`)]);
+  return {impact,pulse,stories,engagement,lessons:lessons.items.slice(0,3),milestones:milestones.items,userId:user.id,next_cursor:page.next_cursor,has_more:page.has_more};
 }

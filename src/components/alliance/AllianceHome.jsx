@@ -14,7 +14,7 @@ export default function AllianceHome({user,projectIds}) {
   const selectGroup=id=>setParams(current=>{const next=new URLSearchParams(current);next.delete('hashtag');next.delete('post');if(id) next.set('group',id);else next.delete('group');return next;});
   const refresh=()=>refreshAlliance(cache);
   const query=useInfiniteQuery({queryKey:['alliance-layer','home',user.id,user.role,projectIds,groupId,hashtag,postId],initialPageParam:null,queryFn:({pageParam})=>allianceRequest('home',{projectIds,cursor:pageParam,hashtag,groupId,postId}),getNextPageParam:page=>page.has_more ? page.next_cursor : undefined,staleTime:30000,refetchOnWindowFocus:true});
-  const first=query.data?.pages[0],data=first ? {...first,pulse:query.data.pages.flatMap(page=>page.pulse)} : null;
+  const first=query.data?.pages[0],data=first ? {...first,pulse:query.data.pages.flatMap(page=>page.pulse),engagement:Object.assign({},...query.data.pages.map(page=>page.engagement || {}))} : null;
   return <section className="w-full min-w-0">
     <div className={groupId ? 'grid min-w-0 items-start gap-5 lg:grid-cols-[240px_minmax(0,1fr)]' : 'grid min-w-0 items-start gap-5 lg:grid-cols-[220px_minmax(0,1fr)] xl:grid-cols-[220px_minmax(0,1fr)_340px]'}>
       <div className="min-w-0 space-y-4"><PulseGroupNav user={user} groupId={groupId} onSelect={selectGroup}/><LookoutSidebar/></div>
