@@ -38,7 +38,9 @@ export async function saveFlowRecord(base44, context, input) {
     payload[mapping.source] = validated === '' ? null : validated;
   }
   await flowRequest(context.environment, context.token, `${context.settings.entitySet}(${context.record.dataverse_id})`, { method: 'PATCH', headers: { 'If-Match': input.etag }, body: JSON.stringify(payload) });
-  const fresh = await loadFlowRecord(context);
+  let fresh;
+  try { fresh = await loadFlowRecord(context); }
+  catch { return { refreshRequired: true, notice: 'Saved in Dataverse under your account, but the updated values could not be reloaded. Reload before making more changes.' }; }
   const localValues = Object.fromEntries(context.settings.mappings.map(m => [m.local, validateFlowValue(m.localType, fresh.values[m.local], m.local === context.spec.required)]));
   try { await base44.entities[context.spec.entity].update(context.record.id, localValues); }
   catch { return { ...fresh, notice: 'Saved in Dataverse under your account. The ALSight copy could not refresh; ask an administrator to synchronise this table.' }; }

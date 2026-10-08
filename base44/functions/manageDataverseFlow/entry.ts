@@ -1,6 +1,6 @@
 import { createClientFromRequest } from 'npm:@base44/sdk@0.8.52';
 import { dataverseRoles } from '../../shared/dataverseUserAuth.ts';
-import { flowConfig, sharedFlowContext, confirmJake } from '../../shared/dataverseFlowApi.ts';
+import { flowConfig, sharedFlowContext, confirmJake, flowRequest } from '../../shared/dataverseFlowApi.ts';
 import { flowSpecs } from '../../shared/dataverseFlowFields.ts';
 import { discoverFlowTables, inspectFlowTable, validateMapping } from '../../shared/dataverseFlowMetadata.ts';
 import { syncFlowBatch } from '../../shared/dataverseFlowSync.ts';
@@ -13,7 +13,7 @@ export default async function(req) {
     if (req.method !== 'POST') return Response.json({ error: 'Method not allowed.' }, { status: 405 });
     const raw = await req.text();
     if (raw.length > 40000) return Response.json({ error: 'Request too large.' }, { status: 400 });
-    const input = JSON.parse(raw), adminActions = ['confirmJake', 'checkShared', 'discover', 'inspect', 'mapping', 'sync'];
+    const input = JSON.parse(raw), adminActions = ['confirmJake', 'checkShared', 'discover', 'inspect', 'mapping', 'preview', 'sync'];
     if (!['status', 'load', 'save', ...adminActions].includes(input.action)) return Response.json({ error: 'Invalid operation.' }, { status: 400 });
     if (adminActions.includes(input.action) && user.role !== 'admin') return Response.json({ error: 'Administrator access required.' }, { status: 403 });
     let config = await flowConfig(base44);
@@ -45,6 +45,13 @@ export default async function(req) {
       const tables = { ...config.tables, [input.table]: { ...meta, mappings, cursor: '', processed: 0, complete: false } };
       await base44.asServiceRole.entities.DataverseFlowConfig.update(config.id, { tables });
       return Response.json({ tables, notice: 'Mapping confirmed against live Dataverse metadata.' });
+    }
+    if (input.action === 'preview') {
+      const settings = config.tables?.[input.table];
+      if (!settings?.mappings?.length) throw new Error('Confirm a mapping first.');
+      const select = [...new Set([settings.primaryId, ...settings.mappings.map(m => m.source)])].join(',');
+      const data = await flowRequest(context.environment, context.token, `${settings.entitySet}?$select=${select}&$top=3`);
+      return Response.json({ records: (data.value || []).map(row => Object.fromEntries(settings.mappings.map(m => [m.local, row[m.source] ?? null]))) });
     }
     return Response.json(await syncFlowBatch(base44, context, input.table, config, input.restart === true));
   } catch (error) { return Response.json({ error: error.message || 'Unable to complete Dataverse data flow.', code: error.code || 'flow' }, { status: error.status === 403 ? 403 : error.status === 412 ? 409 : 400 }); }

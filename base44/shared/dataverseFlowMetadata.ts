@@ -1,7 +1,7 @@
 import { flowRequest } from './dataverseFlowApi.ts';
 import { flowSpecs, isName, compatibleType } from './dataverseFlowFields.ts';
 export async function discoverFlowTables(context, table) {
-  const filter = table === 'contacts' ? "LogicalName eq 'contact'" : "startswith(LogicalName,'bss_project')";
+  const filter = table === 'contacts' ? "LogicalName eq 'contact'" : "LogicalName eq 'bss_projects' or LogicalName eq 'bss_project' or EntitySetName eq 'bss_projects'";
   const data = await flowRequest(context.environment, context.token, `EntityDefinitions?$select=LogicalName,EntitySetName,PrimaryIdAttribute,PrimaryNameAttribute&$filter=${encodeURIComponent(filter)}`);
   return (data.value || []).filter(row => isName(row.LogicalName) && isName(row.EntitySetName) && isName(row.PrimaryIdAttribute));
 }
@@ -20,7 +20,7 @@ export function validateMapping(table, inspected, mappings) {
   const result = mappings.map(item => {
     const source = inspected.fields.find(f => f.name === item.source);
     if (!spec.fields[item.local] || !source || !compatibleType(spec.fields[item.local], source.type) || seen.has(item.local) || sources.has(item.source)) throw new Error('The mapping contains an invalid, duplicate or incompatible field.');
-    if (item.write && !source.writable) throw new Error('A selected field is read-only in Dataverse.');
+    if (item.write && (!source.writable || (table === 'contacts' && item.local === 'full_name'))) throw new Error('A selected field is read-only. Contact full name is derived from first and last name.');
     seen.add(item.local); sources.add(item.source);
     return { local: item.local, source: source.name, type: source.type, write: Boolean(item.write), localType: spec.fields[item.local] };
   });
