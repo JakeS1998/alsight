@@ -12,7 +12,7 @@ export async function findFlowTargets(base44, table, settings, rows, values) {
   }
   const alternatives = [{ [identity]: { $in: ids } }];
 
-  const page = await base44.entities[spec.entity].filter({ $or: alternatives }, { limit: 500, fields: [...new Set([identity, spec.required, spec.labelField || spec.required, ...(spec.matchFields || []), ...settings.mappings.map(m => m.local)])] });
+  const page = await base44.entities[spec.entity].filter({ $or: alternatives }, { limit: 500, fields: [...new Set([identity, spec.required, spec.labelField || spec.required, ...(spec.matchFields || []), ...(table === 'accounts' ? ['account_type'] : []), ...settings.mappings.map(m => m.local)])] });
   if (page.has_more) throw new Error('Too many possible placeholder matches. Use a more specific identifier mapping.');
   return page.items;
 }

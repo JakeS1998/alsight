@@ -3,6 +3,7 @@ import { resolveFlowProjectReferences } from './dataverseProjectReferences.ts';
 import { mappedFlowValues, reviewScope, normalisedEmail } from './dataverseFlowValues.ts';
 import { findFlowTargets, matchingFlowTargets } from './dataverseFlowMatching.ts';
 import { resolveFlowStaffReferences } from './dataverseFlowStaffReferences.ts';
+import { accountFlowValues } from './dataverseAccountValues.ts';
 export async function prepareFlowBatch(base44, context, table, settings, rows, skipUnchanged = false) {
   const spec = flowSpecs[table], scope = reviewScope(context, table, settings), identity = spec.identityField || 'dataverse_id';
   const values = [], errors = [];
@@ -21,7 +22,9 @@ export async function prepareFlowBatch(base44, context, table, settings, rows, s
     const sourceId = row[settings.primaryId], old = previous.items.find(review => review.source_id === sourceId);
     if (table === 'users' && old?.status === 'rejected') { counts.rejected++; return; }
     const linked = targets.filter(target => target[identity]?.toLowerCase() === sourceId.toLowerCase() && (table !== 'users' || normalisedEmail(target.email) === normalisedEmail(row.internalemailaddress)));
-    const error = errors[index] || resolved[index].error || (linked.length > 1 ? 'Multiple ALSight records have this Dataverse ID.' : '') || (table !== 'users' && !linked.length && (typeof resolved[index].value?.[spec.required] !== 'string' || !resolved[index].value[spec.required].trim()) ? 'The new source record is missing its required name or document ID.' : '');
+    const account = accountFlowValues(table, resolved[index].value, linked.length === 1 ? linked[0] : null);
+    resolved[index].value = account.value;
+    const error = errors[index] || resolved[index].error || (linked.length > 1 ? 'Multiple ALSight records have this Dataverse ID.' : '') || account.error || (table !== 'users' && !linked.length && (typeof resolved[index].value?.[spec.required] !== 'string' || !resolved[index].value[spec.required].trim()) ? 'The new source record is missing its required name or document ID.' : '');
     if (table !== 'users' && !linked.length && !error) {
       updates.push({ ...resolved[index].value, [identity]: sourceId.toLowerCase() });
       if (old) appliedReviews.push(old.id);
