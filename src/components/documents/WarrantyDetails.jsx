@@ -33,7 +33,7 @@ export function WarrantyDetails({ warranty: w, accountMap, hideCommentsAndLinks 
       </div>
       {!hideCommentsAndLinks && <div className="space-y-1.5">
         <p className="text-[10px] font-semibold uppercase tracking-wide text-slate-400">Comments & links</p>
-        {w.approval_comments && <p className="whitespace-pre-line text-xs text-slate-600">Approval: {w.approval_comments}</p>}
+        <InlineDataverseField field="approval_comments" label="Approval comments"><p className="whitespace-pre-line text-xs text-slate-600">Approval: {w.approval_comments || '—'}</p></InlineDataverseField>
         {w.comments && <p className="whitespace-pre-line text-xs text-slate-600">{w.comments}</p>}
         {w.link_to_file && <a href={w.link_to_file} target="_blank" rel="noreferrer" className="inline-flex items-center gap-1 text-xs text-blue-600 hover:underline"><ExternalLink className="h-3 w-3" /> View file</a>}
       </div>}

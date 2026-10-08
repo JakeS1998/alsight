@@ -60,6 +60,7 @@ export function LegalDocumentCard({ doc: sourceDoc, projectName, projectNumber, 
               <DetailRow label="Drafting Due" value={formatDate(doc.drafting_due_date)} />
               <DetailRow label="Approval Status" value={doc.approval_status || "—"} />
               <DetailRow label="Approver" value={doc.approvers_name || "—"} />
+              <DetailRow label="Approval Comments" value={doc.approval_comments || "—"} />
               <DetailRow label="Approval Date" value={formatDate(doc.approval_date)} />
               {!hideFinancials && <DetailRow label="Fee Proposal Date" value={formatDate(doc.fee_proposal_date)} />}
               <DetailRow label="BSM Owner" value={doc.is_bsm_document_owner ? "Yes" : "No"} />

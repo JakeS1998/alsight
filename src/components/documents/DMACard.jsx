@@ -59,6 +59,7 @@ export function DMACard({ doc: sourceDoc, projectName, projectNumber, psoOutstan
               <Row label="Drafting Due" value={formatDate(doc.drafting_due_date)} />
               <Row label="Approval Status" value={doc.approval_status || "—"} />
               <Row label="Approver" value={doc.approvers_name || "—"} />
+              <Row label="Approval Comments" value={doc.approval_comments || "—"} />
               <Row label="Approval Date" value={formatDate(doc.approval_date)} />
               <Row label={`${agreementNames(projectNumber).developmentShort} Version`} field="dma_version" value={doc.dma_version ? "Yes" : "No"} />
             </div>
