@@ -5,8 +5,8 @@ import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } f
 import CalendarEventFields from '@/components/outlook/CalendarEventFields';
 import calendarRequest from '@/components/outlook/calendarClient';
 import { emptyEvent, eventForm, eventPayload } from '@/components/outlook/calendarDates';
-export default function CalendarEventDialog({ event, week, onClose, onSaved }) {
-  const [form, setForm] = useState(() => event?.id ? eventForm(event) : emptyEvent(week));
+export default function CalendarEventDialog({ event, week, onClose, onSaved, initialForm }) {
+  const [form, setForm] = useState(() => event?.id ? { ...eventForm(event), onlineMeetingLocked: !!event.isOnlineMeeting } : { ...emptyEvent(week), ...initialForm });
   const [busy, setBusy] = useState(false), [error, setError] = useState(''), [confirmDelete, setConfirmDelete] = useState(false);
   const requestId = useRef(crypto.randomUUID());
   const submit = async e => {

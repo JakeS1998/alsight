@@ -1,7 +1,7 @@
 import { createClientFromRequest } from 'npm:@base44/sdk@0.8.52';
 
 const connectorId = '6ac767410e11df12db6e136f';
-const fields = 'id,subject,start,end,isAllDay,location,bodyPreview,attendees,isOrganizer,webLink,type';
+const fields = 'id,subject,start,end,isAllDay,location,bodyPreview,attendees,isOrganizer,webLink,type,isOnlineMeeting,onlineMeeting,onlineMeetingProvider';
 export default async function(req) {
   try {
     const base44 = createClientFromRequest(req);
@@ -62,6 +62,13 @@ export default async function(req) {
     if (!event || typeof event.subject !== 'string' || !event.subject.trim() || event.subject.length > 200 || !validDate(event.start) || !validDate(event.end) || event.end <= event.start || typeof event.isAllDay !== 'boolean' || typeof event.location !== 'string' || event.location.length > 300 || typeof event.description !== 'string' || event.description.length > 5000 || !Array.isArray(event.attendees) || event.attendees.length > 30 || event.attendees.some(email => typeof email !== 'string' || email.length > 254 || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email))) return Response.json({ error: 'Check the event title, dates and attendee email addresses.' }, { status: 400 });
     if (event.isAllDay && (!event.start.endsWith('T00:00:00') || !event.end.endsWith('T00:00:00'))) return Response.json({ error: 'All-day events must start and end at midnight.' }, { status: 400 });
     const body = { subject: event.subject.trim(), start: { dateTime: event.start, timeZone }, end: { dateTime: event.end, timeZone }, isAllDay: event.isAllDay, location: { displayName: event.location.trim() }, body: { contentType: 'text', content: event.description }, attendees: event.attendees.map(address => ({ emailAddress: { address }, type: existing?.attendees?.find(person => person.emailAddress?.address?.toLowerCase() === address.toLowerCase())?.type || 'required' })) };
+    if (event.isOnlineMeeting !== undefined && typeof event.isOnlineMeeting !== 'boolean') return Response.json({ error: 'Invalid Teams meeting setting.' }, { status: 400 });
+    if (existing?.isOnlineMeeting && event.isOnlineMeeting === false) return Response.json({ error: 'An existing online meeting cannot be changed to offline.' }, { status: 400 });
+    if (event.isOnlineMeeting && !existing?.isOnlineMeeting) {
+      const calendar = await graph('/me/calendar?$select=allowedOnlineMeetingProviders');
+      if (!calendar.allowedOnlineMeetingProviders?.includes('teamsForBusiness')) return Response.json({ error: 'Your Outlook calendar does not support Teams meetings. Ask IT to check your Microsoft 365 licence.' }, { status: 400 });
+      body.isOnlineMeeting = true; body.onlineMeetingProvider = 'teamsForBusiness';
+    }
     if (input.action === 'create') {
       if (typeof input.requestId !== 'string' || !/^[0-9a-f-]{36}$/i.test(input.requestId)) return Response.json({ error: 'Invalid event request.' }, { status: 400 });
       body.transactionId = input.requestId;

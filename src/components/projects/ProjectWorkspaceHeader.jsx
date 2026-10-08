@@ -8,11 +8,12 @@ import { INTERNAL_ROLES } from '@/lib/portal';
 import useProjectHeroPhoto from '@/components/projects/useProjectHeroPhoto';
 import ProjectHeroPosition from '@/components/projects/ProjectHeroPosition';
 import ProjectRecordContext from '@/components/projects/ProjectRecordContext';
+import ProjectTeamsShare from '@/components/teams/ProjectTeamsShare';
 
 export default function ProjectWorkspaceHeader({ project, user, isSupplier, client }) {
   const photo = useProjectHeroPhoto(project, user);
   return <>
-    <div className="ws-topline"><Link to="/projects" className="ws-back"><ArrowLeft size={18} /> Back to Projects</Link></div>
+    <div className="ws-topline"><Link to="/projects" className="ws-back"><ArrowLeft size={18} /> Back to Projects</Link>{['admin', 'director', 'regional_director', 'bsm', 'bdm', 'finance'].includes(user?.role) && <ProjectTeamsShare project={project} />}</div>
     <header className="ws-hero">
       <ProjectHeroPhoto key={`${project.id}:${photo.data?.url || ''}:${photo.dataUpdatedAt}`} photo={photo} project={project} />
       <div className="ws-herotext">
