@@ -19,7 +19,7 @@ export default function useDataverseConnection() {
     try {
       const result = await request(action, action === 'save' ? { environment_url } : {});
       cache.setQueryData(queryKey, result);
-      setNotice(action === 'save' ? 'Environment saved. Check the connection next.' : 'Application identity confirmed. Approval-table permissions still need confirmation with IT.');
+      setNotice(action === 'save' ? 'Environment saved. Connect your own Dataverse account in Account Settings.' : 'Your Dataverse user access is confirmed.');
     } catch (failure) {
       setError(failure?.response?.data?.error || failure.message || 'Unable to complete the connection request.');
       await cache.invalidateQueries({ queryKey });

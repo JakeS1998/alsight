@@ -43,6 +43,7 @@ const CRMActivities = lazy(() => import('@/pages/CRMActivities'));
 const CRMClients = lazy(() => import('@/pages/CRMClients'));
 const Delegation = lazy(() => import('@/pages/Delegation'));
 const AccountSettings = lazy(() => import('@/pages/AccountSettings'));
+const DataverseCallback = lazy(() => import('@/pages/DataverseCallback'));
 const Calendar = lazy(() => import('@/pages/Calendar'));
 const RiskApprovalReview = lazy(() => import('@/pages/RiskApprovalReview'));
 const Help = lazy(() => import('@/pages/Help'));
@@ -79,6 +80,7 @@ const AuthenticatedApp = () => {
       <Route path="/reset-password" element={<ResetPassword />} />
       <Route element={<ProtectedRoute unauthenticatedElement={<Navigate to={`/login?returnTo=${encodeURIComponent(location.pathname + location.search)}`} replace />} />}>
         <Route path="/risk-approvals/:packetId" element={<RiskApprovalReview />} />
+        <Route path="/dataverse-callback" element={<DataverseCallback />} />
       </Route>
       <Route element={<ProtectedRoute unauthenticatedElement={<Navigate to="/login" replace />} />}>
         <Route element={<PortalLayout />}>
