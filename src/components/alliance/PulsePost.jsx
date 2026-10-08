@@ -4,6 +4,7 @@ import {Activity,ArrowUpRight,MoreHorizontal,Trash2} from 'lucide-react';
 import {DropdownMenu,DropdownMenuTrigger,DropdownMenuContent,DropdownMenuItem} from '@/components/ui/dropdown-menu';
 import PulseImage from '@/components/alliance/PulseImage';
 import PulseText from '@/components/alliance/PulseText';
+import InsiderPostInteractions from '@/components/alliance/InsiderPostInteractions';
 
 export default function PulsePost({item,user,onRemove,removing,groupOwnerId}) {
   const author=item.author_name || (item.system ? 'Alliance Insider' : 'Alliance team');
@@ -23,6 +24,7 @@ export default function PulsePost({item,user,onRemove,removing,groupOwnerId}) {
       <p className="mt-3 whitespace-pre-line break-words text-sm leading-7 text-foreground"><PulseText text={item.summary} mentions={item.mentions}/></p>
       {!!item.images?.length && <div className={item.images.length===1 ? 'mt-4 grid grid-cols-1 gap-3' : 'mt-4 grid grid-cols-2 gap-3'}>{item.images.map(image=><PulseImage key={image.file_uri} image={image} className={item.images.length===1 ? 'aspect-[16/10] w-full' : 'aspect-square w-full'}/>)}</div>}
     </div>
+    <InsiderPostInteractions item={item} user={user} groupOwnerId={groupOwnerId}/>
     {item.href && <Link to={item.href} className="flex items-center justify-between gap-3 border-t border-border bg-muted/40 px-5 py-3 text-xs font-semibold text-chart-2 transition-colors hover:bg-secondary"><span>{label}</span><ArrowUpRight className="h-4 w-4 shrink-0"/></Link>}
   </article>;
 }
