@@ -29,7 +29,8 @@ export default function useTodayOutlookAgenda(user) {
     return { key: `outlook-${event.id}`, kind: 'calendar', title: event.subject || 'Untitled event', time,
       sort: `${event.isAllDay ? day : plannerDay(utc(event.start?.dateTime))}T${event.isAllDay ? '00:00' : time}`,
       detail: [event.isAllDay ? 'All day' : `${time}–${finish}`, event.location?.displayName, event.isOnlineMeeting ? 'Online meeting' : ''].filter(Boolean).join(' · '),
-      href: event.webLink };
+      href: event.webLink,
+      joinUrl: event.isOnlineMeeting && event.onlineMeetingProvider === 'teamsForBusiness' && /^https:\/\//i.test(event.onlineMeeting?.joinUrl || '') ? event.onlineMeeting.joinUrl : null };
   });
   return { rows, loading: query.isPending, error: query.error, more: query.hasNextPage,
     loadingMore: query.isFetchingNextPage, loadMore: query.fetchNextPage, refresh: query.refetch };
