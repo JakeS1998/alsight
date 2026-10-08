@@ -1,3 +1,4 @@
+import { propagateFlowProjectAccess } from './dataverseProjectReferences.ts';
 export async function applyFlowUpdates(base44, table, spec, updates, appliedReviews) {
   if (table === 'users') {
     for (let start = 0; start < updates.length; start += 4) {
@@ -6,5 +7,6 @@ export async function applyFlowUpdates(base44, table, spec, updates, appliedRevi
   } else if (updates.length) {
     await base44.entities[spec.entity].upsert(updates.map(({ id, ...values }) => values), { key: 'dataverse_id' });
   }
+  if (table === 'projects' && updates.length) await propagateFlowProjectAccess(base44, updates);
   if (appliedReviews.length) await base44.entities.DataverseSyncReview.bulkUpdate(appliedReviews.map(id => ({ id, status: 'applied', error: '', applied_at: new Date().toISOString() })));
 }

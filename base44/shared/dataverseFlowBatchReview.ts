@@ -1,4 +1,5 @@
 import { flowSpecs } from './dataverseFlowFields.ts';
+import { resolveFlowProjectReferences } from './dataverseProjectReferences.ts';
 import { mappedFlowValues, reviewScope, normalisedEmail } from './dataverseFlowValues.ts';
 import { findFlowTargets, matchingFlowTargets } from './dataverseFlowMatching.ts';
 import { resolveFlowStaffReferences } from './dataverseFlowStaffReferences.ts';
@@ -9,17 +10,24 @@ export async function prepareFlowBatch(base44, context, table, settings, rows, s
     try { values.push(mappedFlowValues(table, settings, row)); errors.push(''); }
     catch (error) { values.push(null); errors.push(error.message); }
   }
-  const resolved = await resolveFlowStaffReferences(base44, table, values);
+  const resolved = await resolveFlowStaffReferences(base44, table, values, context);
+  const related = await resolveFlowProjectReferences(base44, table, resolved.map(item => item.value));
+  resolved.forEach((item, index) => { item.value = related[index]; });
   const targets = await findFlowTargets(base44, table, settings, rows, values);
   const previous = rows.length ? await base44.entities.DataverseSyncReview.filter({ ...scope, source_id: { $in: rows.map(row => row[settings.primaryId]) } }, { limit: 100 }) : { items: [] };
   if (previous.has_more) throw new Error('Duplicate review records need administrator attention.');
-  const updates = [], reviews = [], appliedReviews = [], counts = { updated: 0, pending: 0, unmatched: 0, rejected: 0, errors: 0 };
+  const updates = [], reviews = [], appliedReviews = [], counts = { created: 0, updated: 0, pending: 0, unmatched: 0, rejected: 0, errors: 0 };
   rows.forEach((row, index) => {
     const sourceId = row[settings.primaryId], old = previous.items.find(review => review.source_id === sourceId);
-    if (old?.status === 'rejected') { counts.rejected++; return; }
+    if (table === 'users' && old?.status === 'rejected') { counts.rejected++; return; }
     const linked = targets.filter(target => target[identity]?.toLowerCase() === sourceId.toLowerCase() && (table !== 'users' || normalisedEmail(target.email) === normalisedEmail(row.internalemailaddress)));
-    const error = errors[index] || resolved[index].error || (linked.length > 1 ? 'Multiple ALSight records have this Dataverse ID.' : '');
-    if (linked.length === 1 && !error && (!old || old.status === 'applied' || (old.status === 'error' && old.target_id === linked[0].id))) {
+    const error = errors[index] || resolved[index].error || (linked.length > 1 ? 'Multiple ALSight records have this Dataverse ID.' : '') || (table !== 'users' && !linked.length && (typeof resolved[index].value?.[spec.required] !== 'string' || !resolved[index].value[spec.required].trim()) ? 'The new source record is missing its required name or document ID.' : '');
+    if (table !== 'users' && !linked.length && !error) {
+      updates.push({ ...resolved[index].value, [identity]: sourceId.toLowerCase() });
+      if (old) appliedReviews.push(old.id);
+      counts.created++; return;
+    }
+    if (linked.length === 1 && !error && (table !== 'users' || !old || old.status === 'applied' || (old.status === 'error' && old.target_id === linked[0].id))) {
       const changed = Object.entries(resolved[index].value).some(([field, value]) => (linked[0][field] ?? null) !== (value ?? null));
       if (skipUnchanged && !changed && linked[0][identity] === sourceId && (!old || old.status === 'applied')) return;
       updates.push({ id: linked[0].id, ...resolved[index].value, [identity]: sourceId });
