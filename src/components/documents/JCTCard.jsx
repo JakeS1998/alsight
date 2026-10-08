@@ -4,6 +4,7 @@ import { jctName } from "@/components/documents/documentNames";
 import RecordUpdatedAt from '@/components/RecordUpdatedAt';
 import DataverseRecordEdit from '@/components/dataverse/DataverseRecordEdit';
 import useEditableRecord from '@/components/dataverse/useEditableRecord';
+import InlineDataverseField from '@/components/dataverse/InlineDataverseField';
 import { ExecutedBadge, FormOfJCTBadge } from "@/components/StatusBadge";
 import { ProgressTracker, getJCTSteps } from "@/components/documents/ProgressTracker";
 import { ChecklistGrid } from "@/components/documents/TriStateToggle";
@@ -35,7 +36,7 @@ export function JCTCard({ doc: sourceDoc, projectName, accountName, contractorNa
       {open && (
         <div className="border-t border-slate-100 bg-slate-50/60 p-4 space-y-4">
           <RecordUpdatedAt record={doc} />
-          <DataverseRecordEdit table="jct" record={doc} onUpdated={setDoc} />
+          <DataverseRecordEdit table="jct" record={doc} onUpdated={setDoc}>
           <ProgressTracker steps={steps} />
           <div className="grid gap-4 sm:grid-cols-3">
             <div className="space-y-1.5">
@@ -60,7 +61,7 @@ export function JCTCard({ doc: sourceDoc, projectName, accountName, contractorNa
             </div>
             {!hideCommentsAndLinks && <div className="space-y-1.5">
               <p className="text-[10px] font-semibold uppercase tracking-wide text-slate-400">Comments & Links</p>
-              {doc.comments && <p className="text-xs text-slate-600 whitespace-pre-line">{doc.comments}</p>}
+              <InlineDataverseField field="comments"><p className="text-xs text-slate-600 whitespace-pre-line">{doc.comments || '—'}</p></InlineDataverseField>
               {doc.variation_comments && <p className="text-xs text-slate-500">Variation: {doc.variation_comments}</p>}
               {doc.link_to_file && (
                 <a href={doc.link_to_file} target="_blank" rel="noreferrer" className="inline-flex items-center gap-1 text-xs text-blue-600 hover:underline">
@@ -73,6 +74,7 @@ export function JCTCard({ doc: sourceDoc, projectName, accountName, contractorNa
             <p className="mb-2 text-[10px] font-semibold uppercase tracking-wide text-slate-400">Contract Particulars Checklist</p>
             <ChecklistGrid items={JCT_CHECKLIST_ITEMS} data={doc} hideComments={hideCommentsAndLinks} />
           </div>
+          </DataverseRecordEdit>
         </div>
       )}
     </div>
@@ -83,7 +85,7 @@ function Row({ label, value }) {
   return (
     <div className="flex justify-between gap-2 text-xs">
       <span className="text-slate-500 shrink-0">{label}</span>
-      <span className="text-slate-700 text-right">{value || "—"}</span>
+      <div className="min-w-0 text-slate-700 text-right"><InlineDataverseField label={label}>{value || "—"}</InlineDataverseField></div>
     </div>
   );
 }

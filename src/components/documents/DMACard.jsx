@@ -3,6 +3,7 @@ import agreementNames from '@/components/projects/agreementNames';
 import RecordUpdatedAt from '@/components/RecordUpdatedAt';
 import DataverseRecordEdit from '@/components/dataverse/DataverseRecordEdit';
 import useEditableRecord from '@/components/dataverse/useEditableRecord';
+import InlineDataverseField from '@/components/dataverse/InlineDataverseField';
 import { formatDate, DMA_PSO_ITEMS } from "@/lib/portal";
 import { dmaName } from "@/components/documents/documentNames";
 import { ExecutedBadge } from "@/components/StatusBadge";
@@ -40,7 +41,7 @@ export function DMACard({ doc: sourceDoc, projectName, projectNumber, psoOutstan
       {open && (
         <div className="border-t border-slate-100 bg-slate-50/60 p-4 space-y-4">
           <RecordUpdatedAt record={doc} />
-          <DataverseRecordEdit table="dma" record={doc} onUpdated={setDoc} />
+          <DataverseRecordEdit table="dma" record={doc} onUpdated={setDoc}>
           <ProgressTracker steps={steps} />
           <div className="grid gap-4 sm:grid-cols-3">
             <div className="space-y-1.5">
@@ -59,11 +60,11 @@ export function DMACard({ doc: sourceDoc, projectName, projectNumber, psoOutstan
               <Row label="Approval Status" value={doc.approval_status || "—"} />
               <Row label="Approver" value={doc.approvers_name || "—"} />
               <Row label="Approval Date" value={formatDate(doc.approval_date)} />
-              <Row label={`${agreementNames(projectNumber).developmentShort} Version`} value={doc.dma_version ? "Yes" : "No"} />
+              <Row label={`${agreementNames(projectNumber).developmentShort} Version`} field="dma_version" value={doc.dma_version ? "Yes" : "No"} />
             </div>
             <div className="space-y-1.5">
               <p className="text-[10px] font-semibold uppercase tracking-wide text-slate-400">Comments & Links</p>
-              {doc.comments && <p className="text-xs text-slate-600 whitespace-pre-line">{doc.comments}</p>}
+              <InlineDataverseField field="comments"><p className="text-xs text-slate-600 whitespace-pre-line">{doc.comments || '—'}</p></InlineDataverseField>
               {doc.link_to_file && (
                 <a href={doc.link_to_file} target="_blank" rel="noreferrer" className="inline-flex items-center gap-1 text-xs text-blue-600 hover:underline">
                   <ExternalLink className="h-3 w-3" /> File
@@ -75,17 +76,18 @@ export function DMACard({ doc: sourceDoc, projectName, projectNumber, psoOutstan
             <p className="mb-2 text-[10px] font-semibold uppercase tracking-wide text-slate-400">PSO Checklist</p>
             <ChecklistGrid items={DMA_PSO_ITEMS} data={doc} />
           </div>
+          </DataverseRecordEdit>
         </div>
       )}
     </div>
   );
 }
 
-function Row({ label, value }) {
+function Row({ label, value, field }) {
   return (
     <div className="flex justify-between gap-2 text-xs">
       <span className="text-slate-500 shrink-0">{label}</span>
-      <span className="text-slate-700 text-right">{value || "—"}</span>
+      <div className="min-w-0 text-slate-700 text-right"><InlineDataverseField label={label} field={field}>{value || "—"}</InlineDataverseField></div>
     </div>
   );
 }

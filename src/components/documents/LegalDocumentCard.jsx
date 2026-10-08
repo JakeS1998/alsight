@@ -3,6 +3,7 @@ import agreementNames from '@/components/projects/agreementNames';
 import RecordUpdatedAt from '@/components/RecordUpdatedAt';
 import DataverseRecordEdit from '@/components/dataverse/DataverseRecordEdit';
 import useEditableRecord from '@/components/dataverse/useEditableRecord';
+import InlineDataverseField from '@/components/dataverse/InlineDataverseField';
 import { DOCUMENT_TYPE, formatDate } from "@/lib/portal";
 import { legalDocumentName } from "@/components/documents/documentNames";
 import { DocTypeBadge, ExecutedBadge } from "@/components/StatusBadge";
@@ -43,7 +44,7 @@ export function LegalDocumentCard({ doc: sourceDoc, projectName, projectNumber, 
       {open && (
         <div className="border-t border-slate-100 bg-slate-50/60 p-3 space-y-3">
           <RecordUpdatedAt record={doc} />
-          <DataverseRecordEdit table="documents" record={doc} onUpdated={setDoc} />
+          <DataverseRecordEdit table="documents" record={doc} onUpdated={setDoc}>
           <ProgressTracker steps={steps} />
           <div className="grid gap-4 sm:grid-cols-3 items-start">
             <DetailColumn title="Document & Execution">
@@ -64,7 +65,7 @@ export function LegalDocumentCard({ doc: sourceDoc, projectName, projectNumber, 
               <DetailRow label="BSM Owner" value={doc.is_bsm_document_owner ? "Yes" : "No"} />
             </DetailColumn>
             {!hideCommentsAndLinks && <DetailColumn title="Comments & Links">
-              {doc.comments && <p className="text-xs text-slate-600 whitespace-pre-line">{doc.comments}</p>}
+              <InlineDataverseField field="comments"><p className="text-xs text-slate-600 whitespace-pre-line">{doc.comments || '—'}</p></InlineDataverseField>
               <div className="space-y-1">
                 {doc.link_to_file && <LinkRow href={doc.link_to_file} label="File" />}
                 {doc.link_to_client_proposal && <LinkRow href={doc.link_to_client_proposal} label="Client Proposal" />}
@@ -72,6 +73,7 @@ export function LegalDocumentCard({ doc: sourceDoc, projectName, projectNumber, 
               </div>
             </DetailColumn>}
           </div>
+          </DataverseRecordEdit>
         </div>
       )}
     </div>
@@ -90,14 +92,13 @@ function DetailRow({ label, value }) {
   return (
     <div className="flex justify-between gap-2 text-xs">
       <span className="text-slate-500 shrink-0">{label}</span>
-      <span className="text-slate-700 text-right">{value || "—"}</span>
+      <div className="min-w-0 text-slate-700 text-right"><InlineDataverseField label={label}>{value || "—"}</InlineDataverseField></div>
     </div>
   );
 }
 function LinkRow({ href, label }) {
-  return (
-    <a href={href} target="_blank" rel="noreferrer" className="inline-flex items-center gap-1 text-xs text-blue-600 hover:underline">
-      <ExternalLink className="h-3 w-3" /> {label}
-    </a>
-  );
+  const field = { File: 'link_to_file', 'Client Proposal': 'link_to_client_proposal', 'Fee Proposal': 'link_to_fee_proposal' }[label];
+  return <InlineDataverseField field={field} label={label}><a href={href} target="_blank" rel="noreferrer" className="inline-flex items-center gap-1 text-xs text-blue-600 hover:underline">
+    <ExternalLink className="h-3 w-3" /> {label}
+  </a></InlineDataverseField>;
 }

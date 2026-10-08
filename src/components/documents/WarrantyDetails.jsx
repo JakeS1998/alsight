@@ -1,9 +1,10 @@
 import React from "react";
 import { formatDate } from "@/lib/portal";
 import { ExternalLink } from "lucide-react";
+import InlineDataverseField from '@/components/dataverse/InlineDataverseField';
 
 function Row({ label, value }) {
-  return <div className="flex justify-between gap-2 text-xs"><span className="shrink-0 text-slate-500">{label}</span><span className="text-right text-slate-700">{value || "—"}</span></div>;
+  return <div className="flex justify-between gap-2 text-xs"><span className="shrink-0 text-slate-500">{label}</span><div className="min-w-0 text-right text-slate-700"><InlineDataverseField label={label}>{value || "—"}</InlineDataverseField></div></div>;
 }
 
 export function WarrantyDetails({ warranty: w, accountMap, hideCommentsAndLinks = false }) {

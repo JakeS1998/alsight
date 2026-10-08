@@ -33,9 +33,10 @@ export function WarrantyCard({ warranty: sourceWarranty, accountMap, hideComment
       {open && (
         <div className="space-y-4 border-t border-slate-100 bg-slate-50/60 p-4">
           <RecordUpdatedAt record={warranty} />
-          <DataverseRecordEdit table="warranties" record={warranty} onUpdated={setWarranty} />
+          <DataverseRecordEdit table="warranties" record={warranty} onUpdated={setWarranty}>
           <ProgressTracker steps={getWarrantySteps(warranty)} />
           <WarrantyDetails warranty={warranty} accountMap={accountMap} hideCommentsAndLinks={hideCommentsAndLinks} />
+          </DataverseRecordEdit>
         </div>
       )}
     </div>

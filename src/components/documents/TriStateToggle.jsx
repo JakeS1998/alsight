@@ -1,5 +1,6 @@
 import React from "react";
 import { PSO_CHECK, EXECUTED_STATUS } from "@/lib/portal";
+import InlineDataverseField from '@/components/dataverse/InlineDataverseField';
 
 /**
  * Tri-state toggle display (read-only). Shows No/Yes/PO or No/Yes/N/A/TBC
@@ -44,11 +45,9 @@ export function ChecklistGrid({ items, data, hideComments = false }) {
           <div key={item.key} className="rounded-lg border border-slate-200 bg-white p-3">
             <div className="flex items-center justify-between gap-2">
               <span className="text-xs font-semibold text-slate-700">{item.label}</span>
-              <TriStateDisplay value={value} />
+              <InlineDataverseField field={item.key} label={item.label}><TriStateDisplay value={value} /></InlineDataverseField>
             </div>
-            {!hideComments && comments && (
-              <p className="mt-1.5 text-xs text-slate-500 line-clamp-2">{comments}</p>
-            )}
+            {!hideComments && item.commentsKey && <InlineDataverseField field={item.commentsKey} label={`${item.label} comments`}><p className="mt-1.5 text-xs text-slate-500 line-clamp-2">{comments || '—'}</p></InlineDataverseField>}
           </div>
         );
       })}

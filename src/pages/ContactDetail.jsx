@@ -80,11 +80,10 @@ export default function ContactDetail() {
   const health = signalError ? 'Relationship summary temporarily unavailable' : days == null ? 'No interaction recorded yet' : `${days} days since the last recorded interaction${openCount ? ' · Linked to a live opportunity' : ''}`;
   const editProps = { contact, profile, staff, isAdmin: user?.role === 'admin', onCancel: () => setEditingSection(null), onSaved: async updated => { setProfile(updated); setContact(await base44.entities.Contact.get(contact.id)); cache.invalidateQueries({queryKey:['person-detail',user?.id,user?.role,contactId,accountId]}); setEditingSection(null); } };
   const editCards = { editingSection, onEdit: section => { setAction(''); setEditingSection(section); }, editorProps: editProps, canEdit };
-  return <div className="min-w-0 space-y-5" data-alice-contact-id={contact.id} data-alice-contact-name={contact.full_name}>
+  return <DataverseRecordEdit table="contacts" record={contact} onUpdated={setContact}><div className="min-w-0 space-y-5" data-alice-contact-id={contact.id} data-alice-contact-name={contact.full_name}>
     <nav className="flex flex-wrap gap-2 text-xs text-muted-foreground" aria-label="Breadcrumb"><Link to="/people" className="hover:text-primary">Relationships / People</Link>{accountId && account && <><span>/</span><Link className="hover:text-primary" to={`/accounts/${account.id}?tab=contacts`}>{account.name}</Link></>}<span>/ {contact.full_name}</span></nav>
     {signalError && <p role="alert" className="rounded-lg border border-border bg-card p-3 text-sm text-destructive">Relationship summary unavailable: {signalError} <button className="underline" onClick={()=>refreshSignals(true).catch(e=>setSignalError(e.message))}>Try again</button></p>}
     <ContactHeader contact={contact} account={account} profile={profile} owner={owner} last={last} next={next} health={health} canEdit={canEdit} onAction={key => { setEditingSection(null);setTab(['log','note'].includes(key) ? 'activity' : 'overview'); setAction(key); }} />
-    <DataverseRecordEdit table="contacts" record={contact} onUpdated={setContact} />
     <div id="contact-action-panel">{action === 'opportunity' && account?.account_type === 'client' && <ContactOpportunityForm contact={contact} account={account} user={user} onCancel={() => setAction('')} onSaved={() => { setAction(''); refreshPerson(); }} />}</div>
     <Tabs value={tabs.includes(params.get('tab')) && (params.get('tab')!=='portal' || user?.role==='admin') ? params.get('tab') : 'overview'} onValueChange={setTab} className="space-y-5">
       <TabsList className="flex h-auto flex-wrap justify-start gap-2 border-b border-border bg-transparent p-0 pb-2"><TabsTrigger value="overview">Overview</TabsTrigger><TabsTrigger value="activity">Activity</TabsTrigger><TabsTrigger value="opportunities">Opportunities</TabsTrigger><TabsTrigger value="projects">Projects</TabsTrigger>{user?.role==='admin' && <TabsTrigger value="portal">Portal Account</TabsTrigger>}</TabsList>
@@ -94,5 +93,5 @@ export default function ContactDetail() {
       <TabsContent value="projects"><ContactProjects contact={contact}/></TabsContent>
       {user?.role==='admin' && <TabsContent value="portal"><PersonPortalAccount contact={contact}/></TabsContent>}
     </Tabs>
-  </div>;
+  </div></DataverseRecordEdit>;
 }

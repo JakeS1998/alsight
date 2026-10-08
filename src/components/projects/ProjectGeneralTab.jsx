@@ -1,4 +1,6 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useContext } from "react";
+import DataverseEditContext from '@/components/dataverse/DataverseEditContext';
+import InlineDataverseField from '@/components/dataverse/InlineDataverseField';
 
 import { useAuth } from "@/lib/AuthContext";
 import { base44 } from "@/api/base44Client";
@@ -28,6 +30,7 @@ function fromDateInput(d) {
 
 export function ProjectGeneralTab({ project, accountMap, onProjectUpdated, singleTask = false, legalDocs = [], jcts = [] }) {
   const { user } = useAuth();
+  const { mappedFields = [] } = useContext(DataverseEditContext) || {};
   const teamAssignments = useProjectTeamAssignments({ project, accountMap, legalDocs, jcts });
   const role = user?.role || "client";
   const canEdit = ["admin", "director", "bdm", "project_manager"].includes(role) || (role === 'supplier' && !!project.can_submit_valuation);
@@ -52,14 +55,14 @@ export function ProjectGeneralTab({ project, accountMap, onProjectUpdated, singl
       riba4_end: toDateInput(project.riba4_end),
     practical_completion_date: toDateInput(project.practical_completion_date),
     });
-  }, [project.id]);
+  }, [project.id, project.riba1_end, project.riba2_end, project.riba3_end, project.riba4_end, project.practical_completion_date]);
 
   const handleSave = async () => {
     setSaving(true);
     setSaved(false);
     setSaveError('');
     try {
-      const dateEntries = Object.entries(ribaDates).filter(([key]) => !singleTask || key === 'practical_completion_date');
+      const dateEntries = Object.entries(ribaDates).filter(([key]) => (!singleTask || key === 'practical_completion_date') && !mappedFields.includes(key));
       const dates = Object.fromEntries(dateEntries.map(([key, value]) => [key, value || null]));
       const updated = role === 'project_manager' || role === 'supplier'
         ? (await base44.functions.invoke('manageValuation', { action: 'riba_dates', projectId: project.id, ...dates })).data.project
@@ -138,7 +141,7 @@ export function ProjectGeneralTab({ project, accountMap, onProjectUpdated, singl
         {role !== 'supplier' && role !== 'project_manager' && project.comments && (
           <div className="ws-card ws-panel">
             <h3 className="ws-sectiontitle mb-4">Comments</h3>
-            <p className="text-sm text-slate-600 whitespace-pre-line">{project.comments}</p>
+            <InlineDataverseField field="comments"><p className="text-sm text-slate-600 whitespace-pre-line">{project.comments}</p></InlineDataverseField>
           </div>
         )}
         {role !== 'supplier' && role !== 'project_manager' && links.length > 0 && (
@@ -146,10 +149,10 @@ export function ProjectGeneralTab({ project, accountMap, onProjectUpdated, singl
             <h3 className="ws-sectiontitle mb-4">SharePoint Links</h3>
             <div className="space-y-2">
               {links.map((l) => (
-                <a key={l.label} href={l.url} target="_blank" rel="noreferrer"
+                <InlineDataverseField key={l.label} label={l.label}><a href={l.url} target="_blank" rel="noreferrer"
                   className="flex items-center gap-2 text-sm text-blue-600 hover:underline">
                   <ExternalLink className="h-4 w-4" /> {l.label}
-                </a>
+                </a></InlineDataverseField>
               ))}
             </div>
           </div>
