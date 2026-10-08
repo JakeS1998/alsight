@@ -2,6 +2,7 @@ import { flowRequest } from './dataverseFlowApi.ts';
 import { flowSpecs, isGuid } from './dataverseFlowFields.ts';
 import { flowSelection } from './dataverseFlowValues.ts';
 import { prepareFlowBatch } from './dataverseFlowBatchReview.ts';
+import { applyFlowUpdates } from './dataverseFlowApply.ts';
 export async function syncFlowBatch(base44, context, table, config, restart) {
   const settings = config.tables?.[table], spec = flowSpecs[table];
   if (!settings?.mappings?.length) throw new Error('Confirm the table mapping before synchronising.');
@@ -13,14 +14,7 @@ export async function syncFlowBatch(base44, context, table, config, restart) {
   if (!Array.isArray(data.value) || data.value.length > 50) throw new Error('Dataverse returned an unexpectedly large batch.');
   if (data.value.some(row => !isGuid(row[settings.primaryId]))) throw new Error('Dataverse returned an invalid record identity.');
   const { updates, counts, appliedReviews } = await prepareFlowBatch(base44, context, table, settings, data.value);
-  if (table === 'users') {
-    for (let start = 0; start < updates.length; start += 4) {
-      await Promise.all(updates.slice(start, start + 4).map(({ id, ...values }) => base44.entities.User.update(id, values)));
-    }
-  } else if (updates.length) {
-    await base44.entities[spec.entity].upsert(updates.map(({ id, ...values }) => values), { key: 'dataverse_id' });
-  }
-  if (appliedReviews.length) await base44.entities.DataverseSyncReview.bulkUpdate(appliedReviews.map(id => ({ id, status: 'applied', error: '', applied_at: new Date().toISOString() })));
+  await applyFlowUpdates(base44, table, spec, updates, appliedReviews);
   const next = data['@odata.nextLink'] || '';
   if (next && (new URL(next).origin !== context.environment || new URL(next).pathname !== `/api/data/v9.2/${settings.entitySet}`)) throw new Error('Dataverse returned an invalid continuation address.');
   const tables = { ...config.tables, [table]: { ...settings, cursor: next, last_synced_at: new Date().toISOString(), processed: (restart ? 0 : settings.processed || 0) + data.value.length, updated: (restart ? 0 : settings.updated || 0) + counts.updated, queued: (restart ? 0 : settings.queued || 0) + counts.pending + counts.unmatched + counts.errors, last_batch: counts, complete: !next } };

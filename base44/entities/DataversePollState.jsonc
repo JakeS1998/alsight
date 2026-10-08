@@ -1,0 +1,84 @@
+{
+  "name": "DataversePollState",
+  "type": "object",
+  "properties": {
+    "key": {
+      "type": "string",
+      "enum": [
+        "primary"
+      ]
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "idle",
+        "running",
+        "completed",
+        "error"
+      ],
+      "default": "idle"
+    },
+    "cycle_token": {
+      "type": "string"
+    },
+    "dispatch_token": {
+      "type": "string"
+    },
+    "remaining_tables": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "maxItems": 8
+    },
+    "tables": {
+      "type": "object",
+      "additionalProperties": true
+    },
+    "last_activity": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "last_completed_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "error": {
+      "type": "string",
+      "maxLength": 1000
+    },
+    "lease_token": {
+      "type": "string"
+    },
+    "lease_until": {
+      "type": "string",
+      "format": "date-time",
+      "default": "1970-01-01T00:00:00.000Z"
+    }
+  },
+  "required": [
+    "key"
+  ],
+  "rls": {
+    "read": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "create": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "update": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "delete": {
+      "user_condition": {
+        "role": "admin"
+      }
+    }
+  }
+}

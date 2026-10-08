@@ -5,6 +5,7 @@ import { flowSpecs } from '../../shared/dataverseFlowFields.ts';
 import { validateColumnPlans, sameFlowMapping } from '../../shared/dataverseColumnPlans.ts';
 import { discoverFlowTables, inspectFlowTable, validateMapping } from '../../shared/dataverseFlowMetadata.ts';
 import { syncFlowBatch } from '../../shared/dataverseFlowSync.ts';
+import { pollDataverse } from '../../shared/dataversePollRun.ts';
 import { writeFlowContext, loadFlowRecord, saveFlowRecord } from '../../shared/dataverseFlowWrite.ts';
 import { flowSelection, mappedFlowValues } from '../../shared/dataverseFlowValues.ts';
 import { listFlowReviews, decideFlowReview } from '../../shared/dataverseFlowReview.ts';
@@ -17,11 +18,15 @@ export default async function(req) {
     if (req.method !== 'POST') return Response.json({ error: 'Method not allowed.' }, { status: 405 });
     const raw = await req.text();
     if (raw.length > 40000) return Response.json({ error: 'Request too large.' }, { status: 400 });
-    const input = JSON.parse(raw), adminActions = ['confirmJake', 'checkShared', 'discover', 'inspect', 'mapping', 'preview', 'sync', 'reviews', 'reviewDetails', 'reviewTargets', 'decideReview'];
+    const input = JSON.parse(raw), adminActions = ['confirmJake', 'checkShared', 'discover', 'inspect', 'mapping', 'preview', 'sync', 'poll', 'reviews', 'reviewDetails', 'reviewTargets', 'decideReview'];
     if (!['status', 'load', 'save', ...adminActions].includes(input.action)) return Response.json({ error: 'Invalid operation.' }, { status: 400 });
     if (adminActions.includes(input.action) && user.role !== 'admin') return Response.json({ error: 'Administrator access required.' }, { status: 403 });
     let config = await flowConfig(base44);
-    if (input.action === 'status') return Response.json({ configured: Boolean(config?.source_connection_id), ...(user.role === 'admin' ? { config, specs: flowSpecs } : { tables: Object.fromEntries(Object.entries(flowSpecs).map(([key, spec]) => [key, { enabled: Boolean(config?.tables?.[key]?.mappings?.some(m => m.write)), canWrite: spec.writeRoles.includes(user.role) }])) }) });
+    if (input.action === 'status') {
+      const pollState = user.role === 'admin' ? (await base44.entities.DataversePollState.filter({ key: 'primary' }, { limit: 1, fields: ['status', 'last_activity', 'last_completed_at', 'error'] })).items[0] || null : null;
+      return Response.json({ configured: Boolean(config?.source_connection_id), ...(user.role === 'admin' ? { config, specs: flowSpecs, pollState } : { tables: Object.fromEntries(Object.entries(flowSpecs).map(([key, spec]) => [key, { enabled: Boolean(config?.tables?.[key]?.mappings?.some(m => m.write)), canWrite: spec.writeRoles.includes(user.role) }])) }) });
+    }
+    if (input.action === 'poll') return Response.json(await pollDataverse(base44, config, input));
     if (input.action === 'confirmJake') {
       const values = await confirmJake(base44, user);
       const data = { key: 'primary', ...values, tables: config?.environment_url === values.environment_url ? config.tables || {} : {} };

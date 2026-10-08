@@ -1,0 +1,52 @@
+{
+  "name": "Dataverse Sync Batch Continuation",
+  "description": "Continues a saved Dataverse sync in finite, throttled batches of up to 50 records. A fresh single-use ticket starts the next batch, while completed passes and lease changes do not trigger further work.",
+  "trigger": {
+    "config": {
+      "trigger_type": "entity",
+      "entity_name": "DataversePollState",
+      "events": [
+        "update"
+      ]
+    },
+    "condition": "${ .trigger.data.status == \"running\" and (.trigger.data.dispatch_token // \"\") != \"\" and .trigger.data.dispatch_token != (.trigger.old_data.dispatch_token // \"\") }"
+  },
+  "definition": {
+    "document": {
+      "dsl": "1.0.0",
+      "name": "dataverse_sync_batch_continuation",
+      "version": "1.0",
+      "namespace": "base44"
+    },
+    "do": [
+      {
+        "pause_between_batches": {
+          "wait": "PT5S",
+          "then": "next_batch",
+          "x-base44": {
+            "title": "Pause between batches",
+            "description": "Keep system load low"
+          }
+        }
+      },
+      {
+        "next_batch": {
+          "call": "invoke_backend_function",
+          "with": {
+            "function_name": "manageDataverseFlow",
+            "args": {
+              "action": "poll",
+              "cycle_token": "${ .trigger.data.cycle_token }",
+              "dispatch_token": "${ .trigger.data.dispatch_token }"
+            }
+          },
+          "then": "end",
+          "x-base44": {
+            "title": "Check next Dataverse batch",
+            "description": "Up to 50 records; reuse existing review safeguards"
+          }
+        }
+      }
+    ]
+  }
+}

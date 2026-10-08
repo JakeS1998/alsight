@@ -1,0 +1,48 @@
+{
+  "definition": {
+    "document": {
+      "dsl": "1.0.0",
+      "name": "dataverse_quarter_hourly_sync",
+      "version": "1.0",
+      "namespace": "base44"
+    },
+    "do": [
+      {
+        "start_poll": {
+          "call": "invoke_backend_function",
+          "with": {
+            "function_name": "manageDataverseFlow",
+            "args": {
+              "action": "poll",
+              "begin": true
+            }
+          },
+          "then": "end",
+          "x-base44": {
+            "title": "Check for Dataverse changes",
+            "description": "Start or resume a protected sync pass"
+          }
+        }
+      }
+    ]
+  },
+  "description": "Checks all confirmed Dataverse mappings every 15 minutes using Jake\u2019s shared read account. Starts a resumable pass; subsequent batches run through the protected continuation workflow. After an initial scan, only changed records are fetched. Existing matches and unmapped fields remain protected.",
+  "name": "Dataverse Automatic Sync Every 15 Minutes",
+  "trigger": {
+    "condition": null,
+    "config": {
+      "trigger_type": "scheduled",
+      "events": [],
+      "schedule_mode": "recurring",
+      "cron_expression": "*/15 * * * *",
+      "one_time_date": null,
+      "timezone": "UTC",
+      "interval_value": null,
+      "interval_unit": null,
+      "interval_anchor": null,
+      "ends_type": "never",
+      "ends_on_date": null,
+      "ends_after_count": null
+    }
+  }
+}

@@ -2,7 +2,7 @@ import { flowSpecs } from './dataverseFlowFields.ts';
 import { mappedFlowValues, reviewScope, normalisedEmail } from './dataverseFlowValues.ts';
 import { findFlowTargets, matchingFlowTargets } from './dataverseFlowMatching.ts';
 import { resolveFlowStaffReferences } from './dataverseFlowStaffReferences.ts';
-export async function prepareFlowBatch(base44, context, table, settings, rows) {
+export async function prepareFlowBatch(base44, context, table, settings, rows, skipUnchanged = false) {
   const spec = flowSpecs[table], scope = reviewScope(context, table, settings), identity = spec.identityField || 'dataverse_id';
   const values = [], errors = [];
   for (const row of rows) {
@@ -20,6 +20,8 @@ export async function prepareFlowBatch(base44, context, table, settings, rows) {
     const linked = targets.filter(target => target[identity]?.toLowerCase() === sourceId.toLowerCase() && (table !== 'users' || normalisedEmail(target.email) === normalisedEmail(row.internalemailaddress)));
     const error = errors[index] || resolved[index].error || (linked.length > 1 ? 'Multiple ALSight records have this Dataverse ID.' : '');
     if (linked.length === 1 && !error && (!old || old.status === 'applied' || (old.status === 'error' && old.target_id === linked[0].id))) {
+      const changed = Object.entries(resolved[index].value).some(([field, value]) => (linked[0][field] ?? null) !== (value ?? null));
+      if (skipUnchanged && !changed && linked[0][identity] === sourceId && (!old || old.status === 'applied')) return;
       updates.push({ id: linked[0].id, ...resolved[index].value, [identity]: sourceId });
       if (old) appliedReviews.push(old.id);
       counts.updated++; return;
