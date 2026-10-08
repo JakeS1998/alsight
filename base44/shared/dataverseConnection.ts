@@ -18,7 +18,7 @@ export async function checkDataverseIdentity(environment) {
   const guid = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
   if (!guid.test(tenant || '') || !guid.test(client || '') || !secret) throw new Error('The stored tenant ID, client ID, or client secret is missing or invalid. Ask IT to confirm the credentials.');
   const tokenResponse = await dataverseRequest('Microsoft authentication', `https://login.microsoftonline.com/${tenant}/oauth2/v2.0/token`, {
-    method: 'POST', redirect: 'error', signal: AbortSignal.timeout(15000),
+    method: 'POST', redirect: 'manual', signal: AbortSignal.timeout(15000),
     headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
     body: new URLSearchParams({ grant_type: 'client_credentials', client_id: client, client_secret: secret, scope: `${origin}/.default` }).toString()
   }, [secret]);
@@ -28,7 +28,7 @@ export async function checkDataverseIdentity(environment) {
     throw new Error(messages[tokenData.error] || 'Microsoft authentication failed. Ask IT to confirm the application configuration.');
   }
   const response = await dataverseRequest('Dataverse identity check', `${origin}/api/data/v9.2/WhoAmI`, {
-    redirect: 'error', signal: AbortSignal.timeout(15000),
+    redirect: 'manual', signal: AbortSignal.timeout(15000),
     headers: { Authorization: `Bearer ${tokenData.access_token}`, Accept: 'application/json', 'OData-MaxVersion': '4.0', 'OData-Version': '4.0' }
   }, [tokenData.access_token, secret]);
   if (!response.ok) throw new Error(response.status === 401 || response.status === 403 ? 'Dataverse denied application access. Ask IT to create or enable the application user in this environment and assign its security role.' : `Dataverse connection check failed (HTTP ${response.status}). Ask IT to confirm the environment address and availability.`);
