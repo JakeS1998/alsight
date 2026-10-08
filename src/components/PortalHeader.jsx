@@ -9,7 +9,8 @@ import UserMenu from '@/components/UserMenu';
 import PortalSearch from '@/components/search/PortalSearch';
 import UKLFIcon from '@/components/framework/UKLFIcon';
 import RelationshipNavigation from '@/components/relationships/RelationshipNavigation';
-import { LayoutDashboard, FolderKanban, Building2, UserCircle, Menu, X, Users, BriefcaseBusiness, CircleHelp, House, MessagesSquare } from 'lucide-react';
+import useApprovalAccess from '@/components/approvals/useApprovalAccess';
+import { LayoutDashboard, FolderKanban, Building2, UserCircle, Menu, X, Users, BriefcaseBusiness, CircleHelp, House, MessagesSquare, ClipboardCheck } from 'lucide-react';
 
 const ALL_ROLES = ['admin', 'director', 'regional_director', 'bsm', 'finance', 'bdm', 'client', 'supplier', 'project_manager'];
 const NAV_ITEMS = [
@@ -23,6 +24,7 @@ const NAV_ITEMS = [
   { label: 'My Account', path: '/account', icon: UserCircle, roles: ['client'] },
   { label: 'Contacts', path: '/contacts', icon: Users, roles: ['admin'] },
   { label: 'Help', path: '/help', icon: CircleHelp, roles: ALL_ROLES.concat(['framework_stakeholder']) },
+  { label: 'Approvals', path: '/approvals', icon: ClipboardCheck, roles: ALL_ROLES.concat(['framework_stakeholder']) },
 ];
 export default function PortalHeader() {
   const headerRef = useRef(null);
@@ -32,7 +34,8 @@ export default function PortalHeader() {
   const navigate = useNavigate();
   const [menuOpen, setMenuOpen] = useState(false);
   const role = user?.role || 'client';
-  const items = NAV_ITEMS.filter(item => item.roles.includes(role) && !['/account','/contacts','/help'].includes(item.path));
+  const approvalAccess = useApprovalAccess();
+  const items = NAV_ITEMS.filter(item => item.roles.includes(role) && !['/account','/contacts','/help'].includes(item.path) && (item.path !== '/approvals' || approvalAccess.enabled));
   const signOut = () => { setMenuOpen(false); logout(false); navigate('/login'); };
   const nav = (compact = false) => items.map(item => {
     const Icon = item.icon;

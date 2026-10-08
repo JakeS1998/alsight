@@ -1,0 +1,106 @@
+{
+  "name": "DocumentApprovalRequest",
+  "type": "object",
+  "properties": {
+    "request_key": {
+      "type": "string",
+      "maxLength": 250
+    },
+    "source_table": {
+      "type": "string",
+      "enum": [
+        "documents",
+        "dma",
+        "warranties"
+      ]
+    },
+    "source_id": {
+      "type": "string",
+      "maxLength": 80
+    },
+    "source_version": {
+      "type": "string",
+      "maxLength": 200
+    },
+    "drafted_date": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "document_title": {
+      "type": "string",
+      "maxLength": 300
+    },
+    "document_url": {
+      "type": "string",
+      "maxLength": 2000
+    },
+    "approver_email": {
+      "type": "string",
+      "format": "email"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "pending",
+        "approved",
+        "rejected",
+        "superseded"
+      ],
+      "default": "pending"
+    },
+    "decision_comments": {
+      "type": "string",
+      "maxLength": 4000
+    },
+    "decided_by_name": {
+      "type": "string",
+      "maxLength": 200
+    },
+    "decided_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "writeback_status": {
+      "type": "string",
+      "enum": [
+        "not_required",
+        "awaiting_connection",
+        "pending",
+        "confirmed",
+        "error"
+      ],
+      "default": "not_required"
+    }
+  },
+  "required": [
+    "request_key",
+    "source_table",
+    "source_id",
+    "source_version",
+    "document_title",
+    "approver_email",
+    "status"
+  ],
+  "rls": {
+    "read": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "create": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "update": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "delete": {
+      "user_condition": {
+        "role": "admin"
+      }
+    }
+  }
+}

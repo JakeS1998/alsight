@@ -1,12 +1,14 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
-import { CalendarDays, ChevronDown, KeyRound, LogOut, UserCog } from 'lucide-react';
+import { CalendarDays, ChevronDown, KeyRound, LogOut, UserCog, ClipboardCheck } from 'lucide-react';
+import useApprovalAccess from '@/components/approvals/useApprovalAccess';
 import ProfilePicture from '@/components/profile/ProfilePicture';
 import { ROLE_LABELS, ROLE_BADGE_CLASS, INTERNAL_ROLES } from '@/lib/portal';
 import { DropdownMenu, DropdownMenuTrigger, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator } from '@/components/ui/dropdown-menu';
 
 export default function UserMenu({ user, onSignOut, onNavigate, mobile = false }) {
   const role = user?.role || 'client';
+  const approvalAccess = useApprovalAccess();
   return <DropdownMenu>
     <DropdownMenuTrigger asChild>
       <button type="button" aria-label={`Account menu for ${user?.full_name || user?.email || 'user'}`} className={`flex items-center gap-2 rounded-lg px-2 py-1 text-left hover:bg-white/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary ${mobile ? '' : 'text-right'}`}>
@@ -18,6 +20,7 @@ export default function UserMenu({ user, onSignOut, onNavigate, mobile = false }
     <DropdownMenuContent align={mobile ? 'start' : 'end'} className="w-52">
       <DropdownMenuItem asChild><Link to="/account-settings" onClick={onNavigate}><KeyRound /> Account settings</Link></DropdownMenuItem>
       <DropdownMenuItem asChild><Link to="/calendar" onClick={onNavigate}><CalendarDays /> My calendar</Link></DropdownMenuItem>
+      {approvalAccess.enabled && <DropdownMenuItem asChild><Link to="/approvals" onClick={onNavigate}><ClipboardCheck /> Approval centre</Link></DropdownMenuItem>}
       {INTERNAL_ROLES.includes(role) && <DropdownMenuItem asChild><Link to="/delegation" onClick={onNavigate}><UserCog /> Delegation</Link></DropdownMenuItem>}
       {role === 'admin' && <DropdownMenuItem asChild><Link to="/admin" onClick={onNavigate}><UserCog /> Admin</Link></DropdownMenuItem>}
       {role === 'client' && <DropdownMenuItem asChild><Link to="/account" onClick={onNavigate}>My Account</Link></DropdownMenuItem>}

@@ -53,6 +53,8 @@ const Help = lazy(() => import('@/pages/Help'));
 const Pulse = lazy(() => import('@/pages/Pulse'));
 const Lookout = lazy(() => import('@/pages/Lookout'));
 const LookoutAdmin = lazy(() => import('@/pages/LookoutAdmin'));
+const ApprovalCentre = lazy(() => import('@/pages/ApprovalCentre.jsx'));
+const ApprovalSetup = lazy(() => import('@/pages/ApprovalSetup.jsx'));
 
 const AuthenticatedApp = () => {
   const { isLoadingAuth, isLoadingPublicSettings, authError, user } = useAuth();
@@ -96,6 +98,7 @@ const AuthenticatedApp = () => {
           <Route path="/account-settings" element={<AccountSettings />} />
           <Route path="/dataverse" element={<DataverseWorkspace />} />
           <Route path="/calendar" element={<Calendar />} />
+          <Route path="/approvals" element={<ApprovalCentre />} />
           <Route path="/help" element={<Help />} />
           <Route element={<StakeholderRoute />}>
           <Route path="/today" element={<Home />} />
@@ -122,6 +125,7 @@ const AuthenticatedApp = () => {
           <Route element={<AdminContactsRoute />}>
             <Route path="/admin" element={<Admin />} />
             <Route path="/admin/lookout" element={<LookoutAdmin />} />
+            <Route path="/admin/approvals" element={<ApprovalSetup />} />
 
           </Route>
           <Route element={<PeopleRoute />}>

@@ -1,7 +1,7 @@
 # Planned Dataverse document approvals through Power Automate
 
 Saved: 8 October 2026. Intended next session: 9 October 2026.
-Status: agreed direction only; this document does not implement or activate the flow.
+Status: approval-centre foundation implemented on 8 October 2026; external delivery and decision/write-back flows remain inactive.
 
 ## User requirements
 - A document's drafted-date change in Dataverse should start an approval in ALSight without waiting for the regular Dataverse synchronisation schedule.
@@ -40,6 +40,8 @@ Status: agreed direction only; this document does not implement or activate the 
 - Reliable actual-change detection and out-of-order/concurrent-event handling.
 
 ## Implementation boundary
-No receiver, document approval UI, approval workflow, callback, or Power Automate configuration has been created for this proposal. Existing manageRiskApprovals supports risk-register approvals and must not be assumed to implement document approvals. Inspect and reuse existing Dataverse mappings/write-back utilities where appropriate before building.
+Implemented foundation: ApprovalAccess entity with administrator-only grants; Approval access checkbox in each person's Portal Account; a server-checked assigned inbox at /approvals, visible only to enabled users; DocumentApprovalRequest entity with direct access restricted to administrators; manageApprovalCentre authenticates callers and scopes reads to the assigned portal email. Administration links to a 12-step setup guide at /admin/approvals. No approval access is enabled by default, including for administrators. Invited people can be granted access before signing in, using their portal email.
+
+Not yet implemented: authenticated Power Automate receiver, document-version capture, reviewer decision controls, actual-change detection, idempotent ingestion, callbacks, delivery acknowledgements/retries, or external Power Automate configuration. The inbox explicitly identifies this stage and does not claim Dataverse write-back is live. Existing manageRiskApprovals supports risk-register approvals and remains unchanged. Confirm the first document table, approver routing and fixed-version review requirements before building the next stage; request missing integration secrets before writing secret-dependent functions.
 
 Use https://alsight.base44.app/functions/<functionName> for an ALSight receiver URL registered in Power Automate, after the actual function is created. No endpoint name or external flow URL has been selected yet.
