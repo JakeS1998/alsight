@@ -1,0 +1,176 @@
+{
+  "name": "SupplierInsurance",
+  "type": "object",
+  "properties": {
+    "name": {
+      "type": "string"
+    },
+    "dataverse_id": {
+      "type": "string"
+    },
+    "account_id": {
+      "type": "string",
+      "description": "Dataverse account GUID from the policy supplier lookup"
+    },
+    "linked_user_id": {
+      "type": "string",
+      "description": "Derived from the linked account for read access"
+    },
+    "policy_number": {
+      "type": "string"
+    },
+    "policy_type": {
+      "type": "string"
+    },
+    "insurer": {
+      "type": "string"
+    },
+    "cover_amount": {
+      "type": "number"
+    },
+    "excess": {
+      "type": "number"
+    },
+    "start_date": {
+      "type": [
+        "string",
+        "null"
+      ],
+      "format": "date-time"
+    },
+    "expiry_date": {
+      "type": [
+        "string",
+        "null"
+      ],
+      "format": "date-time"
+    },
+    "renewal_date": {
+      "type": [
+        "string",
+        "null"
+      ],
+      "format": "date-time"
+    },
+    "certificate_url": {
+      "type": "string"
+    },
+    "comments": {
+      "type": "string"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "active",
+        "inactive"
+      ],
+      "default": "active"
+    }
+  },
+  "required": [
+    "name",
+    "account_id"
+  ],
+  "rls": {
+    "read": {
+      "$or": [
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        },
+        {
+          "user_condition": {
+            "role": "director"
+          }
+        },
+        {
+          "user_condition": {
+            "role": "regional_director"
+          }
+        },
+        {
+          "user_condition": {
+            "role": "bsm"
+          }
+        },
+        {
+          "user_condition": {
+            "role": "finance"
+          }
+        },
+        {
+          "user_condition": {
+            "role": "bdm"
+          }
+        },
+        {
+          "user_condition": {
+            "role": "project_manager"
+          }
+        },
+        {
+          "$and": [
+            {
+              "data.linked_user_id": {
+                "$exists": true,
+                "$nin": [
+                  null,
+                  ""
+                ]
+              }
+            },
+            {
+              "data.linked_user_id": "{{user.id}}"
+            }
+          ]
+        },
+        {
+          "$and": [
+            {
+              "data.account_id": {
+                "$exists": true,
+                "$nin": [
+                  null,
+                  ""
+                ]
+              }
+            },
+            {
+              "data.account_id": "{{user.data.account_id}}"
+            },
+            {
+              "$or": [
+                {
+                  "user_condition": {
+                    "role": "supplier"
+                  }
+                },
+                {
+                  "user_condition": {
+                    "role": "client"
+                  }
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    "create": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "update": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "delete": {
+      "user_condition": {
+        "role": "admin"
+      }
+    }
+  }
+}

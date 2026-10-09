@@ -3,7 +3,7 @@ import { sharedFlowContext } from './dataverseFlowApi.ts';
 import { withDataversePollLease } from './dataversePollLease.ts';
 import { pollFlowBatch } from './dataversePollBatch.ts';
 export async function pollDataverse(base44, config, input) {
-  const configured = ['users', 'accounts', 'projects', 'contacts', 'documents', 'dma', 'jct', 'warranties'].filter(table => config?.tables?.[table]?.mappings?.length);
+  const configured = ['users', 'accounts', 'projects', 'contacts', 'documents', 'dma', 'jct', 'warranties', 'insurance'].filter(table => config?.tables?.[table]?.mappings?.length);
   if (input.preview === true) {
     const samples = [], context = configured.length ? await sharedFlowContext(base44, config) : null;
     for (const table of configured) samples.push(await pollFlowBatch(base44, context, table, config.tables[table], {}, true));

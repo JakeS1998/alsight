@@ -3,6 +3,7 @@ import { reviewScope, mappedFlowValues } from './dataverseFlowValues.ts';
 import { checkedFlowReview, readReviewSource, checkedReviewTarget } from './dataverseFlowReviewReads.ts';
 import { resolveFlowStaffReferences } from './dataverseFlowStaffReferences.ts';
 import { accountFlowValues } from './dataverseAccountValues.ts';
+import { resolveInsuranceReferences } from './supplierInsuranceReferences.ts';
 export async function listFlowReviews(base44, context, table, settings, input) {
   const scope = reviewScope(context, table, settings), allowed = ['pending', 'unmatched', 'approved', 'rejected', 'applied', 'error'];
   const query = { ...scope, ...(allowed.includes(input.status) ? { status: input.status } : {}) };
@@ -36,7 +37,9 @@ export async function decideFlowReview(base44, user, context, table, settings, i
   if (resolved.error) throw new Error(resolved.error);
   const account = accountFlowValues(table, resolved.value, target, !settings.dataverseOnly || settings.columnPlans?.account_type === 'base44_only');
   if (account.error) throw new Error(account.error);
-  resolved.value = account.value;
+  const insurance = (await resolveInsuranceReferences(base44, table, [account.value]))[0];
+  if (insurance.error) throw new Error(insurance.error);
+  resolved.value = insurance.value;
   await base44.entities.DataverseSyncReview.update(review.id, { ...decision, target_id: target.id, status: 'approved', error: '' });
   try {
     await base44.entities[spec.entity].update(target.id, { ...resolved.value, [identity]: review.source_id });

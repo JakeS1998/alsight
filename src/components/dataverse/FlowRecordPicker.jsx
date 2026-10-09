@@ -4,7 +4,7 @@ import { base44 } from '@/api/base44Client';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 export default function FlowRecordPicker({ table, selected, onSelect }) {
-  const tables = { projects: ['Project', 'name'], documents: ['LegalDocument', 'document_id'], contacts: ['Contact', 'full_name'], accounts: ['Account', 'name'], dma: ['DMA', 'document_id'], jct: ['JCT', 'document_id'], warranties: ['Warranty', 'warranty_id'], users: ['User', 'full_name'] };
+  const tables = { insurance: ['SupplierInsurance', 'name'], projects: ['Project', 'name'], documents: ['LegalDocument', 'document_id'], contacts: ['Contact', 'full_name'], accounts: ['Account', 'name'], dma: ['DMA', 'document_id'], jct: ['JCT', 'document_id'], warranties: ['Warranty', 'warranty_id'], users: ['User', 'full_name'] };
   const [search, setSearch] = useState(''), [entity, field] = tables[table], identity = table === 'users' ? 'dataverse_systemuser_id' : 'dataverse_id';
   const escaped = search.trim().replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
   const query = useInfiniteQuery({ queryKey: ['dataverse-records', table, escaped], initialPageParam: undefined, queryFn: async ({ pageParam }) => { const filter = { [identity]: { $exists: true, $nin: [null, ''] }, ...(escaped ? { [field]: { $regex: escaped, $options: 'i' } } : {}) }; if (table === 'users') { const items = await base44.entities.User.filter(filter, field, 50, pageParam || 0); return { items, has_more: items.length === 50, next_cursor: (pageParam || 0) + items.length }; } return base44.entities[entity].filter(filter, { sort: field, limit: 50, cursor: pageParam, fields: [field, identity] }); }, getNextPageParam: page => page.has_more ? page.next_cursor : undefined });

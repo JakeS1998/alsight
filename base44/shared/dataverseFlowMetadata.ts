@@ -50,6 +50,11 @@ export function validateMapping(table, inspected, mappings) {
     const automatic = inspected.suggestions?.some(m => m.local === item.local && m.source === source.name);
     return { local: item.local, source: source.name, queryName: source.queryName, type: source.type, write: Boolean(item.write), localType, origin: item.origin === 'manual' ? 'manual' : automatic ? 'automatic' : 'manual', ...(values ? { values, choiceOptions: source.options } : {}), ...(lookupTarget ? { lookupTarget } : {}) };
   });
+  if (table === 'insurance') {
+    const supplier = result.find(m => m.local === 'account_id');
+    if (!supplier || supplier.type !== 'Lookup' || !inspected.fields.find(f => f.name === supplier.source)?.lookupTargets?.some(t => t.entity === 'account')) throw new Error('Map the insurance supplier lookup to account_id using a Dataverse account lookup.');
+    if (result.some(m => m.write)) throw new Error('Insurance synchronisation is read-only.');
+  }
   if (!seen.has(spec.required)) throw new Error(`Map ${spec.required.replaceAll('_', ' ')} before synchronising this table.`);
   return result;
 }

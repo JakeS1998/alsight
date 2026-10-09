@@ -5,6 +5,7 @@ import { findFlowTargets, matchingFlowTargets } from './dataverseFlowMatching.ts
 import { resolveFlowStaffReferences } from './dataverseFlowStaffReferences.ts';
 import { accountFlowValues } from './dataverseAccountValues.ts';
 import { skipPlaceholderContacts } from './dataverseContactSkips.ts';
+import { resolveInsuranceReferences } from './supplierInsuranceReferences.ts';
 export async function prepareFlowBatch(base44, context, table, settings, rows, skipUnchanged = false) {
   const contactSkips = await skipPlaceholderContacts(base44, context, table, settings, rows);
   rows = contactSkips.rows;
@@ -16,7 +17,8 @@ export async function prepareFlowBatch(base44, context, table, settings, rows, s
   }
   const resolved = await resolveFlowStaffReferences(base44, table, values, context);
   const related = await resolveFlowProjectReferences(base44, table, resolved.map(item => item.value));
-  resolved.forEach((item, index) => { item.value = related[index]; });
+  const insurance = await resolveInsuranceReferences(base44, table, related);
+  resolved.forEach((item, index) => { item.value = insurance[index].value; item.error = item.error || insurance[index].error; });
   const targets = await findFlowTargets(base44, table, settings, rows, values);
   const previous = rows.length ? await base44.entities.DataverseSyncReview.filter({ ...scope, source_id: { $in: rows.map(row => row[settings.primaryId]) } }, { limit: 100 }) : { items: [] };
   if (previous.has_more) throw new Error('Duplicate review records need administrator attention.');
