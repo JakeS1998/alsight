@@ -1,0 +1,99 @@
+{
+  "name": "FinanceDataverseSync",
+  "type": "object",
+  "properties": {
+    "key": {
+      "type": "string",
+      "enum": [
+        "primary"
+      ]
+    },
+    "namespace": {
+      "type": "string"
+    },
+    "generation": {
+      "type": "string"
+    },
+    "active_generation": {
+      "type": "string"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "running",
+        "completed",
+        "error"
+      ]
+    },
+    "tables": {
+      "type": "object",
+      "additionalProperties": true
+    },
+    "table_index": {
+      "type": "integer"
+    },
+    "page_index": {
+      "type": "integer"
+    },
+    "dispatch_token": {
+      "type": "string"
+    },
+    "lease_token": {
+      "type": "string"
+    },
+    "lease_until": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "last_completed_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "error": {
+      "type": "string",
+      "maxLength": 1000
+    }
+  },
+  "required": [
+    "key",
+    "namespace",
+    "generation",
+    "status"
+  ],
+  "rls": {
+    "read": {
+      "$or": [
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        },
+        {
+          "user_condition": {
+            "role": "finance"
+          }
+        },
+        {
+          "user_condition": {
+            "role": "director"
+          }
+        }
+      ]
+    },
+    "create": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "update": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "delete": {
+      "user_condition": {
+        "role": "admin"
+      }
+    }
+  }
+}

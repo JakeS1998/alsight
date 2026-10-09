@@ -1,0 +1,50 @@
+{
+  "name": "Dataverse Finance Sync Batches",
+  "description": "Completes a finite finance-table import in bounded pages, publishing only complete snapshots.",
+  "trigger": {
+    "config": {
+      "trigger_type": "entity",
+      "entity_name": "FinanceDataverseSync",
+      "events": [
+        "create",
+        "update"
+      ]
+    },
+    "condition": "${ .trigger.data.status == \"running\" and .trigger.data.page_index < 1000 and .trigger.data.dispatch_token != .trigger.old_data.dispatch_token }"
+  },
+  "definition": {
+    "document": {
+      "dsl": "1.0.0",
+      "name": "finance_dataverse_continuation",
+      "version": "1.0",
+      "namespace": "base44"
+    },
+    "do": [
+      {
+        "pace_batch": {
+          "wait": "PT2S",
+          "then": "sync_batch",
+          "x-base44": {
+            "title": "Pace finance sync"
+          }
+        }
+      },
+      {
+        "sync_batch": {
+          "call": "invoke_backend_function",
+          "with": {
+            "function_name": "manageFinanceDashboard",
+            "args": {
+              "action": "dvBatch",
+              "dispatchToken": "${ .trigger.data.dispatch_token }"
+            }
+          },
+          "then": "end",
+          "x-base44": {
+            "title": "Sync next finance page"
+          }
+        }
+      }
+    ]
+  }
+}

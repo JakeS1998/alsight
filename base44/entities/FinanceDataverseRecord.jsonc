@@ -1,0 +1,157 @@
+{
+  "name": "FinanceDataverseRecord",
+  "type": "object",
+  "properties": {
+    "record_key": {
+      "type": "string"
+    },
+    "generation": {
+      "type": "string"
+    },
+    "namespace": {
+      "type": "string"
+    },
+    "kind": {
+      "type": "string",
+      "enum": [
+        "projects",
+        "suppliers",
+        "customers",
+        "purchase_orders",
+        "line_items",
+        "invoices"
+      ]
+    },
+    "source_table": {
+      "type": "string"
+    },
+    "source_id": {
+      "type": "string"
+    },
+    "name": {
+      "type": "string"
+    },
+    "reference": {
+      "type": "string"
+    },
+    "project_source_id": {
+      "type": "string"
+    },
+    "project_key": {
+      "type": "string"
+    },
+    "project_name": {
+      "type": "string"
+    },
+    "project_code": {
+      "type": "string"
+    },
+    "parent_id": {
+      "type": "string"
+    },
+    "supplier_source_id": {
+      "type": "string"
+    },
+    "customer_source_id": {
+      "type": "string"
+    },
+    "company_number": {
+      "type": "string"
+    },
+    "amount": {
+      "type": [
+        "number",
+        "null"
+      ]
+    },
+    "has_amount": {
+      "type": "boolean"
+    },
+    "vat": {
+      "type": [
+        "number",
+        "null"
+      ]
+    },
+    "gross": {
+      "type": [
+        "number",
+        "null"
+      ]
+    },
+    "description": {
+      "type": "string"
+    },
+    "approval": {
+      "type": "string"
+    },
+    "approved": {
+      "type": "boolean"
+    },
+    "sent": {
+      "type": "boolean"
+    },
+    "date": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "source_modified_at": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "synced_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "active": {
+      "type": "boolean"
+    }
+  },
+  "required": [
+    "record_key",
+    "namespace",
+    "generation",
+    "kind",
+    "source_id"
+  ],
+  "rls": {
+    "read": {
+      "$or": [
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        },
+        {
+          "user_condition": {
+            "role": "finance"
+          }
+        },
+        {
+          "user_condition": {
+            "role": "director"
+          }
+        }
+      ]
+    },
+    "create": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "update": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "delete": {
+      "user_condition": {
+        "role": "admin"
+      }
+    }
+  }
+}
