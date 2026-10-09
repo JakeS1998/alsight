@@ -106,8 +106,8 @@ export default function CommercialSummary({ summary, health }) {
         <SummaryCard
           label="Risk Allowance"
           value={moneyOrNR(summary.riskAllowance)}
-          sub={summary.riskAllowance != null ? 'From open risk register items' : 'No risk allowance recorded'}
-          help="Sum of weighted costs from open items in the Risk Register."
+          sub={summary.riskAllowance != null ? 'Client contingency from fee proposal' : 'No Client contingency recorded'}
+          help="Saved Client contingency from the current fee proposal, or the latest revision if none is marked current."
         />
         <SummaryCard
           label="Forecast Final Cost"

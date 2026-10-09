@@ -33,7 +33,7 @@ export function consultantFees(delivery) {
 }
 
 // Core commercial figures from delivery, decisions and valuations
-export function commercialSummary(delivery, decisions, valuations, risks) {
+export function commercialSummary(delivery, decisions, valuations, riskAllowance) {
   const contractSum = asNum(delivery?.contract_sum);
   const approvedDecisions = decisions.filter(d => d.status === 'agreed');
   const pendingDecisions = decisions.filter(d => d.status === 'open');
@@ -50,8 +50,7 @@ export function commercialSummary(delivery, decisions, valuations, risks) {
   const paidVals = valuations.filter(v => v.status === 'paid');
   const paidToDate = paidVals.length > 0 ? paidVals.reduce((s, v) => s + (asNum(v.amount_paid) || 0), 0) : null;
   const remainingContractValue = currentContractValue != null && certifiedToDate != null ? currentContractValue - certifiedToDate : null;
-  const openRisks = (risks || []).filter(r => r.status === 'open');
-  const riskAllowance = openRisks.length > 0 ? openRisks.reduce((s, r) => s + (asNum(r.weighted_cost) || 0), 0) : null;
+  // Risk allowance is the saved Client contingency from the current fee proposal.
   const forecastFinalCost = currentContractValue != null ? currentContractValue + (pendingVariations || 0) + (riskAllowance || 0) : null;
   return { contractSum, approvedAdditions, approvedOmissions, approvedVariations, approvedVariationCount, approvedOmissionCount, pendingVariations, pendingVariationCount, currentContractValue, certifiedToDate, paidToDate, remainingContractValue, riskAllowance, forecastFinalCost, approvedDecisions, pendingDecisions };
 }

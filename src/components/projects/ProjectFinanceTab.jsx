@@ -21,6 +21,7 @@ import FinanceComingSoon from '@/components/projects/FinanceComingSoon';
 import useProjectFinanceOrders from '@/components/projects/finance/useProjectFinanceOrders';
 import ProjectSyncedPurchaseOrders from '@/components/projects/finance/ProjectSyncedPurchaseOrders';
 import useProjectOrderCashFlow from '@/components/projects/finance/useProjectOrderCashFlow';
+import useProjectClientContingency from '@/components/projects/finance/useProjectClientContingency';
 
 function Spinner() {
   return (
@@ -40,6 +41,7 @@ export function ProjectFinanceTab({ project }) {
   const cashFlow = useProjectCashFlow(project.id);
   const payments = useProjectPaymentBalance(project);
   const fin = useFinanceData(project);
+  const contingency = useProjectClientContingency(project.id);
   const syncedOrders = useProjectFinanceOrders(project);
   const orderCashFlow = useProjectOrderCashFlow(project, syncedOrders.enabled);
 
@@ -85,20 +87,21 @@ export function ProjectFinanceTab({ project }) {
   })).filter(po => po.date && po.amount > 0), [pos, lineItemsByPo]);
 
   const delivery = fin.deliveries?.[0];
-  const summary = useMemo(() => commercialSummary(delivery, fin.decisions || [], fin.valuations || [], fin.risks || []), [delivery, fin.decisions, fin.valuations, fin.risks]);
+  const summary = useMemo(() => commercialSummary(delivery, fin.decisions || [], fin.valuations || [], contingency.data ?? null), [delivery, fin.decisions, fin.valuations, contingency.data]);
   const health = useMemo(() => payments.error ? { status: 'watch', factors: [{ label: 'Payment balance could not be verified; commercial health is not confirmed.', level: 'watch' }] } : commercialHealth(summary, fin.valuations || [], payments.data), [summary, fin.valuations, payments.data, payments.error]);
   const consultants = useMemo(() => consultantFees(delivery), [delivery]);
   const alerts = useMemo(() => commercialAlerts(summary, fin.valuations || [], pos, project, consultants), [summary, fin.valuations, pos, project, consultants]);
   const milestones = useMemo(() => commercialMilestones(project, fin.feeProposals || [], pos, fin.jcts || [], fin.valuations || [], delivery), [project, fin.feeProposals, pos, fin.jcts, fin.valuations, delivery]);
   const retention = useMemo(() => retentionInfo(fin.valuations || [], project), [fin.valuations, project]);
 
-  if (loading || fin.loading || payments.isPending || (syncedOrders.enabled && syncedOrders.isPending)) return <FinanceComingSoon><Spinner /></FinanceComingSoon>;
+  if (loading || fin.loading || contingency.isPending || payments.isPending || (syncedOrders.enabled && syncedOrders.isPending)) return <FinanceComingSoon><Spinner /></FinanceComingSoon>;
 
   return (
     <FinanceComingSoon>
     <div className="ws-subsection ws-finance space-y-6">
       <div className="ws-panelhead"><h2 className="ws-sectiontitle">Finance</h2></div>
       <FinanceInsight project={project} summary={summary} health={health} delivery={delivery} />
+      {contingency.error && <p role="alert" className="text-sm text-destructive">Unable to load Client contingency from the fee proposal.</p>}
       <CommercialSummary summary={summary} health={health} />
 
       <ProjectCashFlow {...cashFlow}

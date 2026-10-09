@@ -9,16 +9,15 @@ export function useFinanceData(project) {
     let active = true;
     (async () => {
       try {
-        const [deliveries, decisions, feeProposals, valuations, jcts, dmas, risks] = await Promise.all([
+        const [deliveries, decisions, feeProposals, valuations, jcts, dmas] = await Promise.all([
           filterAll(base44.entities.ProjectDelivery, { project_id: project.id }).catch(() => []),
           filterAll(base44.entities.ProjectDecision, { project_id: project.id }).catch(() => []),
           filterAll(base44.entities.FeeProposal, { project_id: project.id }).catch(() => []),
           filterAll(base44.entities.Valuation, { project_id: project.id }).catch(() => []),
           filterAll(base44.entities.JCT, { project_id: project.dataverse_id }).catch(() => []),
           filterAll(base44.entities.DMA, { project_id: project.dataverse_id }).catch(() => []),
-          filterAll(base44.entities.ProjectRisk, { project_id: project.id }).catch(() => []),
         ]);
-        if (active) setData({ deliveries, decisions, feeProposals, valuations, jcts, dmas, risks, loading: false });
+        if (active) setData({ deliveries, decisions, feeProposals, valuations, jcts, dmas, loading: false });
       } catch {
         if (active) setData({ loading: false });
       }

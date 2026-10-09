@@ -3,11 +3,12 @@ import { Plus, Trash2 } from 'lucide-react';
 import { formatCurrency } from '@/lib/portal';
 import { additionalFeeStages, additionalFeeTotal } from '@/components/delivery/additionalFeeStages';
 import { isUklfLine } from '@/components/delivery/FrameworkFeeCalculator';
+import { isClientContingency } from '@/components/delivery/clientContingency';
 
 export default function FeeProposalLines({ items, stages, updateItem, addItem, removeItem, singleTask = false, automaticUklfLabel, readOnly = false }) {
   return <fieldset disabled={readOnly}>
-    <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-muted-foreground">ALS fee &amp; additional lines</p>
-    <p className="mb-2 text-xs text-muted-foreground">Lines are included in the client proposal by default. Untick to exclude a line from the client PDF and client total; it remains in the internal proposal. Save builder to retain your choices.</p>
+    <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-muted-foreground">ALS fee, Client contingency &amp; additional lines</p>
+    <p className="mb-2 text-xs text-muted-foreground">Lines are included in the client proposal by default. Untick to exclude a line from the client PDF and client total; it remains in the internal proposal. Client contingency is required and always included. Save builder to retain your choices.</p>
     <div className="overflow-x-auto"><table className={singleTask ? 'w-full text-xs' : 'w-full min-w-[950px] text-xs'}>
       <thead className="text-left text-muted-foreground"><tr>
         <th className="w-64 py-2 pr-2">Description</th>
@@ -17,12 +18,13 @@ export default function FeeProposalLines({ items, stages, updateItem, addItem, r
       <tbody className="divide-y divide-border">{items.map((item, index) => {
         const fees = singleTask ? { Task: additionalFeeTotal(item) } : additionalFeeStages(item);
         const automatic = !!automaticUklfLabel && isUklfLine(item, automaticUklfLabel);
+        const contingency = isClientContingency(item);
         return <tr key={index}>
-          <td className="py-1.5 pr-2"><input aria-label={`Line ${index + 1} description`} value={item.description || ''} readOnly={automatic} onChange={event => updateItem(index, 'description', event.target.value)} placeholder="e.g. ALS Delivery fee" className="h-8 w-full min-w-[200px] rounded border border-input bg-background px-2 text-xs focus:outline-none focus:ring-2 focus:ring-primary/20" /></td>
+          <td className="py-1.5 pr-2"><input aria-label={`Line ${index + 1} description`} value={item.description || ''} readOnly={automatic || contingency} onChange={event => updateItem(index, 'description', event.target.value)} placeholder="e.g. ALS Delivery fee" className="h-8 w-full min-w-[200px] rounded border border-input bg-background px-2 text-xs focus:outline-none focus:ring-2 focus:ring-primary/20" /></td>
           {stages.map(stage => <td key={stage} className="py-1.5 pr-2 text-right"><input aria-label={`${item.description || `Line ${index + 1}`} ${stage} fee`} type="number" step="0.01" value={fees[stage] ?? ''} readOnly={automatic} placeholder="—" onChange={event => updateItem(index, 'stage_fees', { ...fees, [stage]: event.target.value })} className="h-8 w-24 rounded border border-input bg-background px-2 text-right text-xs focus:outline-none focus:ring-2 focus:ring-primary/20" /></td>)}
           {!singleTask && <td className="py-1.5 pr-2 text-right font-semibold tabular-nums whitespace-nowrap">{formatCurrency(additionalFeeTotal(item))}</td>}
-          <td className="px-2 py-1.5 text-center"><input type="checkbox" checked={item.include_on_client !== false} onChange={event => updateItem(index, 'include_on_client', event.target.checked)} aria-label={`Include ${item.description || `line ${index + 1}`} in client proposal`} className="h-4 w-4 rounded border-input accent-primary" /></td>
-          <td className="py-1.5 text-right">{!automatic && item.description !== 'ALS Delivery fee' && <button type="button" onClick={() => removeItem(index)} aria-label={`Remove ${item.description || `line ${index + 1}`}`} className="rounded p-1 text-muted-foreground hover:bg-destructive/10 hover:text-destructive"><Trash2 className="h-3.5 w-3.5" /></button>}</td>
+          <td className="px-2 py-1.5 text-center"><input type="checkbox" checked={item.include_on_client !== false} disabled={contingency} onChange={event => updateItem(index, 'include_on_client', event.target.checked)} aria-label={`Include ${item.description || `line ${index + 1}`} in client proposal`} className="h-4 w-4 rounded border-input accent-primary" /></td>
+          <td className="py-1.5 text-right">{!automatic && !contingency && item.description !== 'ALS Delivery fee' && <button type="button" onClick={() => removeItem(index)} aria-label={`Remove ${item.description || `line ${index + 1}`}`} className="rounded p-1 text-muted-foreground hover:bg-destructive/10 hover:text-destructive"><Trash2 className="h-3.5 w-3.5" /></button>}</td>
         </tr>;
       })}</tbody>
     </table></div>

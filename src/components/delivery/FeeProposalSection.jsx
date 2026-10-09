@@ -30,6 +30,7 @@ import proposalSupplierLines from '@/components/delivery/proposalSupplierLines';
 import singleTaskFees from '@/components/delivery/singleTaskFees';
 import taskProposalTotal from '@/components/delivery/taskProposalTotal';
 import refreshProjectReportingValue from '@/components/delivery/refreshProjectReportingValue';
+import { requiredClientContingency, isClientContingency } from '@/components/delivery/clientContingency';
 
 const BASIS = [
   { value: "fixed", label: "Fixed" },
@@ -58,7 +59,7 @@ const EMPTY_HEADER = {
   link_to_file: "", is_current: true,
 };
 const ALS_LINE = { riba_stage: "", description: "ALS Delivery fee", internal_fee: 0, include_on_client: true };
-const normalizeFeeItems = (lines) => lines.map(line => ({ ...line, include_on_client: line.include_on_client !== false, internal_fee: additionalFeeTotal(line) }));
+const normalizeFeeItems = (lines) => requiredClientContingency(lines).map(line => ({ ...line, include_on_client: line.include_on_client !== false, internal_fee: additionalFeeTotal(line) }));
 const parseItems = (s) => { try { return normalizeFeeItems(JSON.parse(s) || []); } catch { return []; } };
 
 export function FeeProposalSection({ projectId, project, onChanged, deliveryTeam, suppliers, legalDocs, dmas, children }) {
@@ -142,7 +143,7 @@ export function FeeProposalSection({ projectId, project, onChanged, deliveryTeam
   const contractorBuild = useMemo(() => singleTask ? null : computeContractorBuildUp(deliveryTeam, ohpSurveysPct, ohpRiba57Pct, ohpSurveysType, ohpSurveysFixed), [singleTask, deliveryTeam, ohpSurveysPct, ohpRiba57Pct, ohpSurveysType, ohpSurveysFixed]);
   const liveSettings = frameworkFees.settings;
   const automaticSettings = !loading && selectedId && agreement.route && !frameworkFees.loading && !frameworkFees.error && liveSettings?.bands?.length ? liveSettings : null;
-  const items = useMemo(() => automaticFrameworkFeeLines(storedItems, feeProposalTotals(supplierLines, [], contractorBuild).supplierFees, automaticSettings, singleTask), [storedItems, supplierLines, contractorBuild, automaticSettings, singleTask]);
+  const items = useMemo(() => automaticFrameworkFeeLines(requiredClientContingency(storedItems, singleTask), feeProposalTotals(supplierLines, [], contractorBuild).supplierFees, automaticSettings, singleTask), [storedItems, supplierLines, contractorBuild, automaticSettings, singleTask]);
   const totals = useMemo(() => feeProposalTotals(supplierLines, items, contractorBuild), [supplierLines, items, contractorBuild]);
   const fsfContractors = useMemo(() => singleTask ? taskFees.contractors : contractorFsfRows(deliveryTeam, contractorBuild), [singleTask, taskFees, deliveryTeam, contractorBuild]);
   const fsfTotals = fsf.allowed ? supplierFsfTotals(supplierLines, fsf.rates, fsfContractors) : null;
@@ -158,11 +159,12 @@ export function FeeProposalSection({ projectId, project, onChanged, deliveryTeam
 
   const updateItem = (idx, field, value) => setItems(items.map((it, i) => {
     if (i !== idx) return it;
+    if (isClientContingency(it) && ['description', 'include_on_client'].includes(field)) return it;
     const next = { ...it, [field]: value };
     return field === 'stage_fees' ? { ...next, internal_fee: additionalFeeTotal(next) } : next;
   }));
   const addItem = () => setItems([...items, { riba_stage: "", description: "", stage_fees: {}, internal_fee: 0, include_on_client: true }]);
-  const removeItem = (idx) => setItems(items.filter((_, i) => i !== idx));
+  const removeItem = (idx) => setItems(items.filter((item, i) => i !== idx || isClientContingency(item)));
 
   const saveBuilder = async () => {
     if (!selectedId) return;
@@ -170,7 +172,7 @@ export function FeeProposalSection({ projectId, project, onChanged, deliveryTeam
     try {
       if (fsf.allowed) await fsf.save();
       await base44.entities.FeeProposal.update(selectedId, {
-        line_items: JSON.stringify(normalizeFeeItems(items)),
+        line_items: JSON.stringify(requiredClientContingency(normalizeFeeItems(items), singleTask)),
         fee_value: totals.alsFee,
         external_cost: totals.supplierFees,
         ohp_surveys_pct: Number(ohpSurveysPct) || 0,
@@ -179,6 +181,7 @@ export function FeeProposalSection({ projectId, project, onChanged, deliveryTeam
         ohp_riba57_pct: Number(ohpRiba57Pct) || 0,
       });
       await refreshProjectReportingValue(projectId,queryCache);
+      queryCache.invalidateQueries({ queryKey: ['project-client-contingency'] });
       queryCache.invalidateQueries({ queryKey: ['ase', 'commercial'] });
       queryCache.invalidateQueries({ queryKey: ['ase', 'commercial-contracts'] });
       load();
@@ -220,7 +223,7 @@ export function FeeProposalSection({ projectId, project, onChanged, deliveryTeam
         project_id: projectId,
         client_account_id: project.client_account_id || null,
         bdm_aad_id: project.bdm_aad_id || null,
-        line_items: editing ? (editing.line_items || JSON.stringify([ALS_LINE])) : JSON.stringify([ALS_LINE]),
+        line_items: JSON.stringify(requiredClientContingency(editing ? parseItems(editing.line_items) : [ALS_LINE], singleTask)),
         fee_value: editing ? (editing.fee_value ?? null) : null,
         external_cost: editing ? (editing.external_cost ?? null) : null,
       };
@@ -251,7 +254,7 @@ export function FeeProposalSection({ projectId, project, onChanged, deliveryTeam
   };
 
   return (
-    <FormSection title={singleTask ? 'Single-task fee proposal' : '02 · Fee'} completed={(rows.find(row => row.is_current) || rows[0])?.status === 'accepted'} description="Supplier fees are pulled from the Delivery Team; add the ALS Delivery fee and any other optional lines">
+    <FormSection title={singleTask ? 'Single-task fee proposal' : '02 · Fee'} completed={(rows.find(row => row.is_current) || rows[0])?.status === 'accepted'} description="Supplier fees are pulled from the Delivery Team; enter the ALS Delivery fee and required Client contingency, then add any optional lines">
       <div className="space-y-5">
         {React.Children.map(children, child => React.isValidElement(child) ? React.cloneElement(child, { legacyContractorOhp: { surveysPct: ohpSurveysPct, riba57Pct: ohpRiba57Pct, surveysType: ohpSurveysType, surveysFixed: ohpSurveysFixed } }) : child)}
         <div className="flex items-center justify-between">

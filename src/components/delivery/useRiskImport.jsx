@@ -24,7 +24,7 @@ export default function useRiskImport(project, onImported) {
       if (!selected.length) throw new Error('Select at least one risk.');
       const records = selected.map((row, i) => {
         if (RISK_COLUMNS.some(c => c.required && !String(row[c.key] ?? '').trim())) throw new Error(`Risk ${row.reference || i+1}: complete the required fields, including owner and ratings.`);
-        const payload = prepareRisk({ ...Object.fromEntries(RISK_COLUMNS.filter(c => c.type !== 'calculated').map(c => [c.key, row[c.key] ?? ''])), anticipated_cost: row.anticipated_cost === '' || row.anticipated_cost == null ? null : Number(row.anticipated_cost), project_id: project.id, client_account_id: project.client_account_id, bdm_aad_id: project.bdm_aad_id });
+        const payload = prepareRisk({ ...Object.fromEntries(RISK_COLUMNS.filter(c => c.type !== 'calculated').map(c => [c.key, row[c.key] ?? ''])), project_id: project.id, client_account_id: project.client_account_id, bdm_aad_id: project.bdm_aad_id });
         return Object.fromEntries(Object.entries(payload).filter(([, value]) => value != null));
       });
       const refs = records.map(r => r.reference.trim());
