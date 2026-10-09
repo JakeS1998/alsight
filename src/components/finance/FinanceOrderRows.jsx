@@ -1,0 +1,7 @@
+import React from 'react';
+import { Button } from '@/components/ui/button';
+import { formatCurrency } from '@/lib/portal';
+const money=v=>v==null?'Unavailable':formatCurrency(v);
+export default function FinanceOrderRows({type,rows,onPO}){
+ return <div className="overflow-x-auto"><table className="w-full text-left text-sm"><thead className="bg-muted"><tr>{['Reference','Power BI net value',...(type==='PO'?['Synced Dataverse net','Supplier']:[]),'Reconciliation'].map(v=><th key={v} className="p-3 font-semibold">{v}</th>)}</tr></thead><tbody>{rows.map((r,i)=><tr key={`${r.Reference}-${i}`} className="border-b border-border"><td className="p-3">{r.Reference||'Reference missing'}{r.po&&<Button variant="link" className="block h-auto px-0" onClick={()=>onPO(r.po.id)}>PO & line items</Button>}</td><td className="p-3">{money(r.Value)}</td>{type==='PO'&&<><td className="p-3">{money(r.po?.total_net_value)}</td><td className="p-3">{r.supplier||'Unavailable'}</td></>}<td className="p-3">{r.issues.length?r.issues.map(v=><p key={v} className="max-w-sm text-xs text-muted-foreground">{v}</p>):<span className="text-success">PO header net values agree</span>}</td></tr>)}</tbody></table>{!rows.length&&<p className="p-6 text-muted-foreground">No {type} transactions were returned for this source project.</p>}</div>;
+}

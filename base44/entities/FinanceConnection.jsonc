@@ -1,0 +1,81 @@
+{
+  "name": "FinanceConnection",
+  "type": "object",
+  "properties": {
+    "key": {
+      "type": "string",
+      "enum": [
+        "primary"
+      ]
+    },
+    "report_url": {
+      "type": "string",
+      "maxLength": 2000
+    },
+    "workspace_id": {
+      "type": "string"
+    },
+    "report_id": {
+      "type": "string"
+    },
+    "dataset_id": {
+      "type": "string"
+    },
+    "report_name": {
+      "type": "string"
+    },
+    "sources": {
+      "type": "object",
+      "additionalProperties": true
+    },
+    "revision": {
+      "type": "string"
+    },
+    "preview_revision": {
+      "type": "string"
+    },
+    "previewed_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "confirmed_revision": {
+      "type": "string"
+    },
+    "confirmed_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "confirmed_by": {
+      "type": "string"
+    },
+    "invoices": {
+      "type": "object",
+      "additionalProperties": true
+    }
+  },
+  "required": [
+    "key"
+  ],
+  "rls": {
+    "read": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "create": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "update": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "delete": {
+      "user_condition": {
+        "role": "admin"
+      }
+    }
+  }
+}

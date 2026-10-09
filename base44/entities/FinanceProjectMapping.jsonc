@@ -1,0 +1,95 @@
+{
+  "name": "FinanceProjectMapping",
+  "type": "object",
+  "properties": {
+    "source_key": {
+      "type": "string"
+    },
+    "dataset_id": {
+      "type": "string"
+    },
+    "source_name": {
+      "type": "string",
+      "maxLength": 500
+    },
+    "source_code": {
+      "type": "string",
+      "maxLength": 250
+    },
+    "project_id": {
+      "type": "string"
+    },
+    "project_name": {
+      "type": "string"
+    },
+    "project_code": {
+      "type": "string"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "automatic",
+        "manual",
+        "unmatched",
+        "ambiguous"
+      ]
+    },
+    "candidates": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": true
+      },
+      "maxItems": 3
+    },
+    "linked_by": {
+      "type": "string"
+    },
+    "linked_at": {
+      "type": "string",
+      "format": "date-time"
+    }
+  },
+  "required": [
+    "source_key",
+    "dataset_id",
+    "source_name",
+    "status"
+  ],
+  "rls": {
+    "read": {
+      "$or": [
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        },
+        {
+          "user_condition": {
+            "role": "finance"
+          }
+        },
+        {
+          "user_condition": {
+            "role": "director"
+          }
+        }
+      ]
+    },
+    "create": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "update": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "delete": {
+      "user_condition": {
+        "role": "admin"
+      }
+    }
+  }
+}

@@ -1,0 +1,12 @@
+import React, { useState } from 'react';
+import { useQuery,useQueryClient } from '@tanstack/react-query';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Button } from '@/components/ui/button';
+import { financeCall } from '@/components/finance/financeClient';
+export default function FinanceInvoiceSetup(){
+ const client=useQueryClient(),q=useQuery({queryKey:['finance-status'],queryFn:()=>financeCall({action:'status'})}),[draft,setDraft]=useState(null),[busy,setBusy]=useState(false),[error,setError]=useState(''),[notice,setNotice]=useState('');
+ const value=draft||q.data?.config?.invoices||{},fields=[['logical_name','Sales-invoice table logical name'],['project','Project lookup Web API name (_…_value)'],['reference','Invoice-number column'],['net','Net-value column (GBP, excluding VAT)'],['date','Invoice-date column (optional)'],['status','Invoice-status column (optional)']];
+ async function save(e){e.preventDefault();setBusy(true);setError('');setNotice('');try{const d=await financeCall({action:'configureInvoices',fields:value});setNotice(d.notice);setDraft(null);await client.invalidateQueries({queryKey:['finance-status']});await client.invalidateQueries({queryKey:['finance-invoices']});}catch(e){setError(e.message);}finally{setBusy(false);}}
+ return <section className="rounded-panel border border-border bg-card p-6"><h2 className="font-heading text-xl font-semibold">Live Dataverse sales invoices</h2><p className="my-3 text-sm text-muted-foreground">Uses the existing shared Dataverse read connection. Select your sales-invoice table and project lookup; fields are checked against live metadata. POs, suppliers and line items use the existing synced Dataverse records, with timestamps shown separately.</p><form onSubmit={save} className="space-y-4"><div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">{fields.map(([key,label])=><div key={key}><Label htmlFor={`invoice-${key}`}>{label}</Label><Input id={`invoice-${key}`} required={!['date','status'].includes(key)} value={value[key]||''} onChange={e=>setDraft({...value,[key]:e.target.value})}/></div>)}</div><Button disabled={busy||!q.data?.configured}>{busy?'Verifying fields…':'Verify & save invoice source'}</Button></form>{error&&<p className="mt-3 text-destructive" role="alert">{error}</p>}{notice&&<p className="mt-3 text-success" role="status">{notice}</p>}</section>;
+}
