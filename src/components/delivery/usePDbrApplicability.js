@@ -18,7 +18,7 @@ export default function usePDbrApplicability(project) {
   }, [project.id, user?.id, user?.role, client]);
   const saveDecision = async (applicability, reason) => {
     if (user?.role !== 'admin') throw new Error('Legal administrator access is required.');
-    if (!['required', 'not_applicable'].includes(applicability) || !reason.trim() || reason.trim().length > 2000) throw new Error('Select applicability and provide a reason (up to 2,000 characters).');
+    if (!['required', 'not_applicable'].includes(applicability) || (applicability === 'not_applicable' && !reason.trim()) || reason.trim().length > 2000) throw new Error('Select applicability. A legal reason is required only for Not applicable; optional notes must not exceed 2,000 characters.');
     const decision = await base44.entities.AppointmentApplicabilityDecision.create({
       project_id: project.id, client_account_id: project.client_account_id || '', appointment_type: 'appointment_pd_br',
       applicability, reason: reason.trim(), recorded_by_name: (user.full_name || user.email || 'Administrator').slice(0, 200),
