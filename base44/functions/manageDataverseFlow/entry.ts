@@ -12,6 +12,7 @@ import { writeFlowContext, loadFlowRecord, saveFlowRecord } from '../../shared/d
 import { flowSelection, mappedFlowValues } from '../../shared/dataverseFlowValues.ts';
 import { listFlowReviews, decideFlowReview } from '../../shared/dataverseFlowReview.ts';
 import { flowReviewDetails, searchReviewTargets } from '../../shared/dataverseFlowReviewReads.ts';
+// Supplier commission tables are included in the shared read-only catalogue.
 export default async function(req) {
   try {
     const base44 = createClientFromRequest(req), user = await base44.auth.me();
