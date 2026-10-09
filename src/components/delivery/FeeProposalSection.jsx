@@ -29,6 +29,7 @@ import { contractorFsfRows } from '@/components/delivery/contractorFsf';
 import proposalSupplierLines from '@/components/delivery/proposalSupplierLines';
 import singleTaskFees from '@/components/delivery/singleTaskFees';
 import taskProposalTotal from '@/components/delivery/taskProposalTotal';
+import refreshProjectReportingValue from '@/components/delivery/refreshProjectReportingValue';
 
 const BASIS = [
   { value: "fixed", label: "Fixed" },
@@ -177,8 +178,7 @@ export function FeeProposalSection({ projectId, project, onChanged, deliveryTeam
         ohp_surveys_fixed: Number(ohpSurveysFixed) || 0,
         ohp_riba57_pct: Number(ohpRiba57Pct) || 0,
       });
-      const {data:valueResult}=await base44.functions.invoke('refreshProjectValue',{projectId});
-      if(valueResult.error)throw new Error(valueResult.error);
+      await refreshProjectReportingValue(projectId,queryCache);
       queryCache.invalidateQueries({ queryKey: ['ase', 'commercial'] });
       queryCache.invalidateQueries({ queryKey: ['ase', 'commercial-contracts'] });
       load();
@@ -226,14 +226,13 @@ export function FeeProposalSection({ projectId, project, onChanged, deliveryTeam
       };
       if (editing) await base44.entities.FeeProposal.update(editing.id, payload);
       else await base44.entities.FeeProposal.create(payload);
-      const {data:valueResult}=await base44.functions.invoke('refreshProjectValue',{projectId});
-      if(valueResult.error)throw new Error(valueResult.error);
+      await refreshProjectReportingValue(projectId,queryCache);
       setHeaderOpen(false);
       load();
     } finally { setSavingHeader(false); }
   };
 
-  const removeProposal = async (id) => { await base44.entities.FeeProposal.delete(id); const {data}=await base44.functions.invoke('refreshProjectValue',{projectId}); if(data.error)throw new Error(data.error); load(); };
+  const removeProposal = async (id) => { await base44.entities.FeeProposal.delete(id); await refreshProjectReportingValue(projectId,queryCache); load(); };
 
   const doExport = async (includeInternal = false, includeRiba57 = true) => {
     if (!selected || (includeInternal && !fsf.allowed)) return;

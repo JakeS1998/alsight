@@ -34,6 +34,7 @@ import ProjectAttention from '@/components/projects/ProjectAttention';
 import ProjectPurpose from '@/components/alliance/ProjectPurpose';
 import ProjectLessons from '@/components/alliance/ProjectLessons';
 import DataverseRecordEdit from '@/components/dataverse/DataverseRecordEdit';
+import useProjectReportingRefresh from '@/components/projects/useProjectReportingRefresh';
 
 
 export default function ProjectDetail() {
@@ -44,6 +45,7 @@ export default function ProjectDetail() {
   const isSupplier = user?.role === 'supplier';
   const supplierAccountId = user?.account_id || user?.data?.account_id;
   const [project, setProject] = useState(null);
+  useProjectReportingRefresh(project?.id,setProject);
   const canSeeValuations = isExternalPM || INTERNAL_ROLES.includes(user?.role) || (isSupplier && !!project?.can_submit_valuation);
   const canSeeProjectOverview = isSupplier && !!project?.can_submit_valuation;
   const [activeTab, setActiveTab] = useState('general');
