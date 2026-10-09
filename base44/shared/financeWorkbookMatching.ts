@@ -21,7 +21,7 @@ export async function workbookFinanceMatches(base44,rows){
 export async function applyWorkbookFinanceMappings(base44,state,input){
  if(!state?.namespace)throw new Error('No Dataverse finance snapshot is configured.');
  if(String(input.cursor||'').length>8192)throw new Error('Invalid mapping cursor.');
- const db=base44.entities,page=await db.FinanceProjectMapping.filter({dataset_id:state.namespace},{limit:100,sort:'source_key',...(input.cursor?{cursor:input.cursor}:{})});
+ const db=base44.entities,page=await db.FinanceProjectMapping.filter({dataset_id:state.namespace,status:{$ne:'manual'}},{limit:100,sort:'source_key',...(input.cursor?{cursor:input.cursor}:{})});
  const matches=await workbookFinanceMatches(base44,page.items.map(m=>({Code:m.source_code}))),updates=[];
  let linked=0,review=0;
  for(const m of page.items){const match=matches.get(normalize(m.source_code));if(!match)continue;updates.push({id:m.id,...match,linked_at:new Date().toISOString()});if(match.project_id)linked++;else review++;}

@@ -13,6 +13,7 @@ export async function resolveFinanceProjects(base44,config,rows){
  const workbook=await workbookFinanceMatches(base44,keyed),updates=[],result=[];
  for(let i=0;i<keyed.length;i+=3){const batch=await Promise.all(keyed.slice(i,i+3).map(async row=>{
  const old=previous.find(m=>m.source_key===row.source_key),codeMatch=workbook.get(String(row.Code||'').trim().toUpperCase());
+ if(old?.status==='manual')return {...row,mapping:old};
  if(codeMatch){const mapping={source_key:row.source_key,dataset_id:config.dataset_id,source_name:String(row.Project||''),source_code:String(row.Code||''),...codeMatch,linked_at:new Date().toISOString()};updates.push(mapping);return {...row,mapping:{...old,...mapping}};}
  if(old)return {...row,mapping:old};
  const pattern=namePattern(row.Project), candidates=pattern?(await db.Project.filter({name:{$regex:pattern,$options:'i'}},{limit:3,fields:['name','project_number','dataverse_id']})).items:[];
