@@ -1,5 +1,6 @@
 import { createClientFromRequest } from 'npm:@base44/sdk@0.8.52';
 import { approvalDigestContent, approvalDigestDay, pendingDigestQuery } from '../../shared/approvalDigestContent.ts';
+import { deliverApprovalDigest } from '../../shared/approvalDigestDelivery.ts';
 const address = value => String(value || '').trim().toLowerCase();
 export default async function(req) {
   try {
@@ -37,22 +38,18 @@ export default async function(req) {
       } while (cursor);
       return Response.json({report_day:day,eligible_recipients:eligible,queued:created,already_queued:alreadyQueued,...(input.action === 'preview' ? {preview} : {})});
     }
-    if (!['digest','sent'].includes(input.action) || typeof input.deliveryId !== 'string' || !/^[a-zA-Z0-9_-]{1,100}$/.test(input.deliveryId)) return Response.json({error:'Choose a valid reminder operation.'},{status:400});
+    if (!['digest','deliver'].includes(input.action) || typeof input.deliveryId !== 'string' || !/^[a-zA-Z0-9_-]{1,100}$/.test(input.deliveryId)) return Response.json({error:'Choose a valid reminder operation.'},{status:400});
     const delivery = await db.ApprovalDigestDelivery.get(input.deliveryId);
     if (!delivery) return Response.json({error:'Reminder not found.'},{status:404});
-    if (input.action === 'sent') {
-      if (delivery.status !== 'queued') return Response.json({recorded:false});
-      await db.ApprovalDigestDelivery.update(delivery.id,{status:'sent',sent_at:new Date().toISOString()});
-      return Response.json({recorded:true});
-    }
-    if (delivery.status !== 'queued') return Response.json({send:false});
+    if (delivery.status !== 'queued') return Response.json({send:false,sent:false,status:delivery.status});
     const recipient = await db.User.get(delivery.recipient_user_id);
     if (!recipient || address(recipient.email) !== delivery.recipient_email || delivery.report_day !== day || !(await db.ApprovalAccess.count({email:delivery.recipient_email,enabled:true}))) {
       await db.ApprovalDigestDelivery.update(delivery.id,{status:'skipped'});
       return Response.json({send:false});
     }
     const report = await approvalDigestContent(base44,recipient);
-    await db.ApprovalDigestDelivery.update(delivery.id,{approval_count:report.count,...(!report.count ? {status:'skipped'} : {})});
+    await db.ApprovalDigestDelivery.updateMany({id:delivery.id,status:'queued'},{$set:{approval_count:report.count,...(!report.count ? {status:'skipped'} : {})}});
+    if (input.action === 'deliver') return Response.json(report.count ? await deliverApprovalDigest(base44,delivery,recipient,report) : {sent:false,send:false});
     return Response.json(report.count ? {send:true,to:recipient.email,variables:report.variables} : {send:false});
   } catch (error) { return Response.json({error:error.message || 'Could not prepare approval reminders.'},{status:500}); }
 }

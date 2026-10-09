@@ -21,8 +21,10 @@
       "type": "string",
       "enum": [
         "queued",
+        "sending",
         "sent",
-        "skipped"
+        "skipped",
+        "failed"
       ],
       "default": "queued"
     },
@@ -33,6 +35,10 @@
     "approval_count": {
       "type": "integer",
       "minimum": 0
+    },
+    "send_error": {
+      "type": "string",
+      "maxLength": 1000
     }
   },
   "required": [
