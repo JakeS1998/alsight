@@ -24,5 +24,6 @@ export async function financePODetail(base44,input){
  const aliases=[p.id,p.dataverse_id].filter(Boolean);
  const lines=await base44.entities.PurchaseOrderLineItem.filter({po_id:{$in:aliases}},{limit:50,sort:'name',...(input.cursor?{cursor:input.cursor}:{})});
  const totals=await base44.entities.PurchaseOrderLineItem.aggregate({query:{po_id:{$in:aliases}},sum:'net_value'});
- return {po:p,lines,total:totals.rows[0]||null,source:'Synced Dataverse records in ALSight. Last saved timestamps are shown; this is not a live Dataverse refresh.'};
+ const missingNet=await base44.entities.PurchaseOrderLineItem.count({po_id:{$in:aliases},$or:[{net_value:null},{net_value:{$exists:false}}]});
+ return {po:p,lines,total:totals.rows[0]||null,missingNet,source:'Synced Dataverse records in ALSight. Last saved timestamps are shown; this is not a live Dataverse refresh.'};
 }

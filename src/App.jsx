@@ -12,6 +12,9 @@ import PortalLayout from '@/components/PortalLayout';
 import AdminContactsRoute from '@/components/contacts/AdminContactsRoute';
 import CRMRoute from '@/components/crm/CRMRoute';
 import PeopleRoute from '@/components/relationships/PeopleRoute';
+import FinanceRoute from '@/components/finance/FinanceRoute.jsx';
+const FinanceDashboard = lazy(() => import('@/pages/FinanceDashboard.jsx'));
+const FinanceAdmin = lazy(() => import('@/pages/FinanceAdmin.jsx'));
 const People = lazy(() => import('@/pages/People'));
 import PageLoadBoundary from '@/components/PageLoadBoundary';
 import StakeholderRoute from '@/components/StakeholderRoute';
@@ -103,6 +106,7 @@ const AuthenticatedApp = () => {
           <Route element={<StakeholderRoute />}>
           <Route path="/today" element={<Home />} />
           <Route path="/portfolio-overview" element={<PortfolioOverview />} />
+          <Route element={<FinanceRoute />}><Route path="/finance" element={<FinanceDashboard />} /></Route>
           <Route path="/pulse" element={<Pulse />} />
           <Route path="/lookout/:issueId" element={<Lookout />} />
           <Route path="/projects" element={<Projects />} />
@@ -126,6 +130,7 @@ const AuthenticatedApp = () => {
             <Route path="/admin" element={<Admin />} />
             <Route path="/admin/lookout" element={<LookoutAdmin />} />
             <Route path="/admin/approvals" element={<ApprovalSetup />} />
+            <Route path="/admin/finance" element={<FinanceAdmin />} />
 
           </Route>
           <Route element={<PeopleRoute />}>
