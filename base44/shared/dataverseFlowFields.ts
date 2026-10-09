@@ -1,5 +1,6 @@
 import { additionalFlowSpecs } from './dataverseFlowCatalog.ts';
 import { documentFlowSpec } from './dataverseDocumentFields.ts';
+import {dataverseDateValue} from './dataverseDateValue.ts';
 export const flowSpecs = {
   ...additionalFlowSpecs,
   documents: documentFlowSpec,
@@ -23,7 +24,7 @@ export function validateFlowValue(type, value, required = false, stringLimit = 5
   if (['String', 'Memo'].includes(type)) { if (typeof value !== 'string' || value.length > (type === 'Memo' ? 4000 : stringLimit)) throw new Error('Text is too long or invalid.'); return value; }
   if (['Lookup', 'Uniqueidentifier'].includes(type)) { if (typeof value !== 'string' || !isGuid(value)) throw new Error('Dataverse returned an invalid reference.'); return value.toLowerCase(); }
   if (type === 'Boolean') { if (typeof value !== 'boolean') throw new Error('Choose Yes or No.'); return value; }
-  if (type === 'DateTime') { if (typeof value !== 'string' || value.length > 40 || !Number.isFinite(Date.parse(value))) throw new Error('Enter a valid date.'); return new Date(value).toISOString(); }
+  if (type === 'DateTime') return dataverseDateValue(value);
   if (typeof value !== 'number' || !Number.isFinite(value)) throw new Error('Enter a valid number.');
   if (['Integer', 'BigInt'].includes(type) && !Number.isSafeInteger(value)) throw new Error('Dataverse requires a safe whole number.');
   return value;

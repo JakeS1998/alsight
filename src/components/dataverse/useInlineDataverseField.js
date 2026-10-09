@@ -20,7 +20,10 @@ export default function useInlineDataverseField(context, name) {
       const data = await flowRequest('save', { table: context.table, recordId: context.record.id, etag: loaded.etag, values: { [name]: value } });
       setNotice(data.notice || 'Saved to Dataverse.');
       setOpen(false); setLoaded(null);
-      if (!data.refreshRequired) await context.saved(data);
+      if (!data.refreshRequired) {
+        try { await context.saved(data); }
+        catch { setNotice(`${data.notice || 'Saved to Dataverse.'} Reload the page to view the updated record.`); }
+      }
       cache.invalidateQueries();
     } catch (failure) { setError(failure.message); }
     finally { setBusy(''); }

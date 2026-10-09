@@ -1,4 +1,4 @@
-import { flowSpecs, isGuid, validateFlowValue } from './dataverseFlowFields.ts';
+import { flowSpecs, isGuid } from './dataverseFlowFields.ts';
 import { personalDataverseContext, getPersonalDataverseToken } from './dataverseUserAuth.ts';
 import { flowRequest } from './dataverseFlowApi.ts';
 import { flowSelection, mappedFlowValues } from './dataverseFlowValues.ts';
@@ -43,10 +43,21 @@ export async function saveFlowRecord(base44, context, input) {
   let fresh;
   try { fresh = await loadFlowRecord(context); }
   catch { return { refreshRequired: true, notice: 'Saved in Dataverse under your account, but the updated values could not be reloaded. Reload before making more changes.' }; }
-  const localValues = Object.fromEntries(context.settings.mappings.map(m => [m.local, validateFlowValue(m.localType, fresh.values[m.local], m.local === context.spec.required)]));
-  try { await base44.entities[context.spec.entity].update(context.record.id, localValues); }
-  catch { return { ...fresh, notice: 'Saved in Dataverse under your account. The ALSight copy could not refresh; ask an administrator to synchronise this table.' }; }
+  // Only mirror the edited fields, using the validated values re-read from Dataverse.
+  // The user's record visibility, write role and Dataverse field permissions were checked before PATCH.
+  const localValues = Object.fromEntries(entries.map(([local]) => [local, fresh.values[local]]));
+  let updated;
+  try { updated = await base44.asServiceRole.entities[context.spec.entity].update(context.record.id, localValues); }
+  catch (error) {
+    console.warn('Dataverse mirror refresh failed', {entity:context.spec.entity,recordId:context.record.id,fields:Object.keys(localValues),error:error.message});
+    return { ...fresh, refreshRequired:true, notice:'Saved in Dataverse under your account, but ALSight could not refresh the changed fields. Reload before making more changes.' };
+  }
+  const record={...context.record,...localValues,updated_date:updated.updated_date};
   const table=Object.keys(flowSpecs).find(key=>flowSpecs[key].entity===context.spec.entity);
-  if(['documents','dma','warranties'].includes(table))await syncDocumentApprovals(base44,table,[{...context.record,...localValues}]);
-  return { ...fresh, notice: 'Saved in Dataverse under your connected account and refreshed in ALSight.' };
+  let notice='Saved in Dataverse under your connected account and refreshed in ALSight.';
+  if(['documents','dma','warranties'].includes(table)) {
+    try { await syncDocumentApprovals(base44,table,[record]); }
+    catch(error) { console.warn('Approval refresh after Dataverse save failed', {table,recordId:record.id,error:error.message});notice+=' Approval inbox refresh is pending.'; }
+  }
+  return { ...fresh, record, notice };
 }

@@ -14,7 +14,7 @@ export default function DataverseRecordEdit({ table, record, onUpdated, children
   const data = status.data;
   const option = data?.tables?.[table] || { enabled: data?.config?.tables?.[table]?.mappings?.some(m => m.write), canWrite: data?.specs?.[table]?.writeRoles?.includes(user?.role) };
   const mappedFields = allowed && linked && option.enabled && option.canWrite ? data?.writeFields?.[table] || data?.config?.tables?.[table]?.mappings?.filter(m => m.write).map(m => m.local) || [] : [];
-  const saved = async () => { if (onUpdated) onUpdated(await base44.entities[entities[table]].get(record.id)); };
+  const saved = async (data) => { if (onUpdated) onUpdated(data?.record || await base44.entities[entities[table]].get(record.id)); };
   return <DataverseEditContext.Provider value={{ table, record, saved, mappedFields, checking: allowed && linked && status.isPending }}>
     {children}
     {children && allowed && linked && status.isError && <div role="alert" className="text-xs text-destructive">Unable to check editable fields. <Button type="button" variant="link" size="sm" onClick={() => status.refetch()}>Retry</Button></div>}
