@@ -2,6 +2,7 @@ import { createClientFromRequest } from 'npm:@base44/sdk@0.8.52';
 import { dataverseRoles } from '../../shared/dataverseUserAuth.ts';
 import { flowConfig, sharedFlowContext, confirmJake, flowRequest } from '../../shared/dataverseFlowApi.ts';
 import { flowSpecs } from '../../shared/dataverseFlowFields.ts';
+import { generalFlowMappings } from '../../shared/approvalWriteBoundary.ts';
 import { validateColumnPlans, sameFlowMapping } from '../../shared/dataverseColumnPlans.ts';
 import { discoverFlowTables, inspectFlowTable, validateMapping } from '../../shared/dataverseFlowMetadata.ts';
 import { syncFlowBatch } from '../../shared/dataverseFlowSync.ts';
@@ -27,7 +28,7 @@ export default async function(req) {
     let config = await flowConfig(base44);
     if (input.action === 'status') {
       const pollState = user.role === 'admin' ? (await base44.entities.DataversePollState.filter({ key: 'primary' }, { limit: 1, fields: ['status', 'last_activity', 'last_completed_at', 'error'] })).items[0] || null : null;
-      return Response.json({ writeFields: Object.fromEntries(Object.entries(flowSpecs).map(([key, spec]) => [key, spec.writeRoles.includes(user.role) ? (config?.tables?.[key]?.mappings || []).filter(m => m.write).map(m => m.local) : []])), configured: Boolean(config?.source_connection_id), ...(user.role === 'admin' ? { config, specs: flowSpecs, pollState } : { tables: Object.fromEntries(Object.entries(flowSpecs).map(([key, spec]) => [key, { label: spec.label, enabled: Boolean(config?.tables?.[key]?.mappings?.some(m => m.write)), canWrite: spec.writeRoles.includes(user.role) }])) }) });
+      return Response.json({ writeFields: Object.fromEntries(Object.entries(flowSpecs).map(([key, spec]) => [key, spec.writeRoles.includes(user.role) ? generalFlowMappings(key, config?.tables?.[key]?.mappings || []).filter(m => m.write).map(m => m.local) : []])), configured: Boolean(config?.source_connection_id), ...(user.role === 'admin' ? { config, specs: flowSpecs, pollState } : { tables: Object.fromEntries(Object.entries(flowSpecs).map(([key, spec]) => [key, { label: spec.label, enabled: Boolean(generalFlowMappings(key, config?.tables?.[key]?.mappings || []).some(m => m.write)), canWrite: spec.writeRoles.includes(user.role) }])) }) });
     }
     if (input.action === 'poll') return Response.json(await pollDataverse(base44, config, input));
     if (input.action === 'relationships') return Response.json(await configureFlowRelationships(base44, await sharedFlowContext(base44, config), config));

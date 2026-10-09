@@ -9,7 +9,8 @@ export default function InlineDataverseField({ field, label, children }) {
   const context = useContext(DataverseEditContext);
   const name = field || inlineFieldName(context?.table, label);
   const edit = useInlineDataverseField(context, name);
-  if (!context?.mappedFields.includes(name)) return children;
+  const approvalOnly = ['documents', 'dma', 'warranties'].includes(context?.table) && ['approval_status', 'approvers_name', 'approval_comments', 'approval_date'].includes(name);
+  if (approvalOnly || !context?.mappedFields.includes(name)) return children;
   const title = label || name.replaceAll('_', ' ');
   return <div className="min-w-0 text-left" onClick={event => event.stopPropagation()}>
     {edit.open ? <div className="min-w-0 space-y-2">

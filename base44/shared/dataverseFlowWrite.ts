@@ -4,8 +4,10 @@ import { flowRequest } from './dataverseFlowApi.ts';
 import { flowSelection, mappedFlowValues } from './dataverseFlowValues.ts';
 import { addFlowWriteValue } from './dataverseWritePayload.ts';
 import {syncDocumentApprovals} from './documentApprovalSync.ts';
+import { generalFlowMappings, assertGeneralFlowWrite } from './approvalWriteBoundary.ts';
 export async function writeFlowContext(base44, user, config, input) {
   const spec = flowSpecs[input.table], settings = config?.tables?.[input.table];
+  if (input.action === 'save') assertGeneralFlowWrite(input.table, input.values, settings?.mappings);
   if (!settings?.mappings?.length) throw new Error('An administrator must confirm this table’s mapping first.');
   if (!spec.writeRoles.includes(user.role)) { const error = new Error('Your ALSight role cannot edit this table.'); error.status = 403; throw error; }
   if (typeof input.recordId !== 'string' || input.recordId.length > 100) throw new Error('Choose an ALSight record.');
@@ -26,9 +28,10 @@ export async function loadFlowRecord(context) {
   if (typeof etag !== 'string' || !/^W\/"[0-9]+"$/.test(etag)) throw new Error('Dataverse did not return a version for safe editing.');
   const values = mappedFlowValues(Object.keys(flowSpecs).find(key => flowSpecs[key].entity === context.spec.entity), settings, data);
   const choiceValues = Object.fromEntries(settings.mappings.filter(m => m.write && ['Picklist', 'State', 'Status'].includes(m.type)).map(m => [m.local, data[m.queryName || m.source] ?? null]));
-  return { values, choiceValues, etag, fields: settings.mappings, recordId: record.id, title: record[context.spec.labelField || context.spec.required] };
+  return { values, choiceValues, etag, fields: generalFlowMappings(Object.keys(flowSpecs).find(key => flowSpecs[key].entity === context.spec.entity), settings.mappings), recordId: record.id, title: record[context.spec.labelField || context.spec.required] };
 }
 export async function saveFlowRecord(base44, context, input) {
+  assertGeneralFlowWrite(Object.keys(flowSpecs).find(key => flowSpecs[key].entity === context.spec.entity), input.values, context.settings.mappings);
   if (typeof input.etag !== 'string' || !/^W\/"[0-9]+"$/.test(input.etag)) throw new Error('Reload this record before saving.');
   if (!input.values || typeof input.values !== 'object' || Array.isArray(input.values)) throw new Error('Invalid changes.');
   const entries = Object.entries(input.values);
