@@ -24,7 +24,7 @@ export default function ProjectRiskRegister({ project, delivery, accountMap }) {
     <RiskRegisterGuidance />
     <RiskHeatLegend />
     <RiskRegisterTools key={project.id} project={project} onImported={() => { setRevision(v => v + 1); refresh(); }} />
-    <RegisterList key={`${project.id}-${revision}`} title="Risk" description="Alliance Leisure risk register" entityName="ProjectRisk" projectId={project.id} project={project} columns={RISK_COLUMNS} preparePayload={prepareRisk} onChanged={refresh} paginated sortable sortBy="reference" addLabel="Add risk" />
+    <RegisterList key={`${project.id}-${revision}`} title="Risk" description="Alliance Leisure risk register" entityName="ProjectRisk" projectId={project.id} project={project} columns={RISK_COLUMNS} tableColumns={RISK_COLUMNS.filter(column => column.key !== 'status').map(column => column.key)} preparePayload={prepareRisk} onChanged={refresh} paginated sortable sortBy="reference" addLabel="Add risk" />
     {total.isPending ? <p role="status" className="text-sm text-muted-foreground">Calculating client contingency…</p> : total.error ? <p role="alert" className="text-sm text-destructive">Unable to calculate client contingency.</p> : <p className="text-sm font-medium">Proposed client contingency: {riskCurrency(total.data?.rows[0]?.sum_weighted_cost || 0)}<span className="block text-xs font-normal text-muted-foreground">Active Client-owned risks with recorded weighted costs only; existing unscored risks must be reviewed.</span></p>}
     <RiskRegisterApprovals project={project} />
   </FormSection>;
