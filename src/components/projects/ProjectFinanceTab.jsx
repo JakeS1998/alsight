@@ -18,6 +18,8 @@ import CommercialMilestones from './finance/CommercialMilestones';
 import CommercialAlerts from './finance/CommercialAlerts';
 import FinanceInsight from '@/components/alice/FinanceInsight';
 import FinanceComingSoon from '@/components/projects/FinanceComingSoon';
+import useProjectFinanceOrders from '@/components/projects/finance/useProjectFinanceOrders';
+import ProjectSyncedPurchaseOrders from '@/components/projects/finance/ProjectSyncedPurchaseOrders';
 
 function Spinner() {
   return (
@@ -37,6 +39,7 @@ export function ProjectFinanceTab({ project }) {
   const cashFlow = useProjectCashFlow(project.id);
   const payments = useProjectPaymentBalance(project);
   const fin = useFinanceData(project);
+  const syncedOrders = useProjectFinanceOrders(project);
 
   useEffect(() => {
     (async () => {
@@ -87,7 +90,7 @@ export function ProjectFinanceTab({ project }) {
   const milestones = useMemo(() => commercialMilestones(project, fin.feeProposals || [], pos, fin.jcts || [], fin.valuations || [], delivery), [project, fin.feeProposals, pos, fin.jcts, fin.valuations, delivery]);
   const retention = useMemo(() => retentionInfo(fin.valuations || [], project), [fin.valuations, project]);
 
-  if (loading || fin.loading || payments.isPending) return <FinanceComingSoon><Spinner /></FinanceComingSoon>;
+  if (loading || fin.loading || payments.isPending || (syncedOrders.enabled && syncedOrders.isPending)) return <FinanceComingSoon><Spinner /></FinanceComingSoon>;
 
   return (
     <FinanceComingSoon>
@@ -101,13 +104,14 @@ export function ProjectFinanceTab({ project }) {
 
       <ValuationPosition project={project} valuations={fin.valuations || []} />
 
-      {pos.length > 0 ? (
+      {syncedOrders.enabled && syncedOrders.error && <p role="alert" className="rounded-panel border border-border bg-card p-4 text-sm text-destructive">Synced purchase orders could not be loaded: {syncedOrders.error.message}<button type="button" className="ml-2 underline" onClick={()=>syncedOrders.refetch()}>Try again</button></p>}
+      {syncedOrders.data?.total > 0 ? <ProjectSyncedPurchaseOrders project={project} orders={syncedOrders}/> : pos.length > 0 ? (
         <FinancePurchaseOrders pos={pos} lineItemsByPo={lineItemsByPo} supplierMap={supplierMap} project={project} isLegacy={isLegacyProject(project)} />
-      ) : (
+      ) : !syncedOrders.error ? (
         <div className="rounded-2xl border border-dashed border-slate-300 bg-white py-12 text-center">
           <p className="text-sm text-slate-500">No purchase orders linked to {project.name}{project.project_number ? ` (${project.project_number})` : ''}.</p>
         </div>
-      )}
+      ) : null}
 
       <VariationsSummary project={project} decisions={fin.decisions || []} />
 
