@@ -8,6 +8,13 @@ export function researchText(value,max,label,required=false){
  if(value.length>max)throw researchFailure(`${label} contains ${value.length} characters; the limit is ${max}.`);
  return value.trim();
 }
+export function researchSourceTitle(value,label){
+  const title=researchText(value,1000,label,true).replace(/[\[\]\r\n]/g,' ').replace(/\s+/g,' ').trim();
+  if(!title)throw researchFailure(`${label} is empty.`);
+  if(title.length<=100)return title;
+  const shortened=title.slice(0,99),boundary=shortened.lastIndexOf(' ');
+  return `${(boundary>60?shortened.slice(0,boundary):shortened).trimEnd()}…`;
+}
 export function researchList(value,label){
  if(!Array.isArray(value))throw researchFailure(`${label} is missing or is not a list.`);
  if(value.length>3)throw researchFailure(`${label} contains ${value.length} entries; the limit is 3.`);
