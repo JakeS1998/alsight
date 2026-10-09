@@ -116,15 +116,12 @@ export function ProjectGeneralTab({ project, accountMap, onProjectUpdated, singl
         details={[
           { title: 'Commercial', fields: [
             ['Procurement Route', project.procurement_route === true ? 'Framework' : project.procurement_route === false ? 'Direct' : '—'],
-            ...(role !== 'supplier' && role !== 'project_manager' ? [['IE Value', formatCurrency(project.ie_value)], ['Payment Type', project.payment_type || '—']] : []),
           ] },
           { title: 'Programme', fields: [
             ['Construction Term', project.construction_term_weeks ? `${project.construction_term_weeks} weeks` : '—'],
-            ...(role !== 'supplier' && role !== 'project_manager' ? [['IE Commencement', formatDate(project.ie_commencement_date)]] : []),
             ['Live Project', project.live_project ? 'Yes' : 'No'],
           ] },
           { title: 'Governance', fields: [
-            ['Approval Status', project.approval_status || '—'],
             ['AA Executed', formatDate(project.aa_executed_date)],
             ['PQ Approval', formatDate(project.pq_approval_date)],
           ] },
