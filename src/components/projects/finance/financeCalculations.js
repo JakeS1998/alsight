@@ -33,7 +33,8 @@ export function consultantFees(delivery) {
 }
 
 // Core commercial figures from delivery, decisions and valuations
-export function commercialSummary(delivery, decisions, valuations, riskAllowance) {
+export function commercialSummary(delivery, decisions, valuations, riskEstimate) {
+  const riskAllowance = riskEstimate?.amount ?? null;
   const contractSum = asNum(delivery?.contract_sum);
   const approvedDecisions = decisions.filter(d => d.status === 'agreed');
   const pendingDecisions = decisions.filter(d => d.status === 'open');
@@ -50,9 +51,9 @@ export function commercialSummary(delivery, decisions, valuations, riskAllowance
   const paidVals = valuations.filter(v => v.status === 'paid');
   const paidToDate = paidVals.length > 0 ? paidVals.reduce((s, v) => s + (asNum(v.amount_paid) || 0), 0) : null;
   const remainingContractValue = currentContractValue != null && certifiedToDate != null ? currentContractValue - certifiedToDate : null;
-  // Risk allowance is the saved Client contingency from the current fee proposal.
-  const forecastFinalCost = currentContractValue != null ? currentContractValue + (pendingVariations || 0) + (riskAllowance || 0) : null;
-  return { contractSum, approvedAdditions, approvedOmissions, approvedVariations, approvedVariationCount, approvedOmissionCount, pendingVariations, pendingVariationCount, currentContractValue, certifiedToDate, paidToDate, remainingContractValue, riskAllowance, forecastFinalCost, approvedDecisions, pendingDecisions };
+  // Keep the full contingency budget separate from the score-based expected-use allowance.
+  const forecastFinalCost = currentContractValue != null && riskAllowance != null ? currentContractValue + (pendingVariations || 0) + riskAllowance : null;
+  return { contractSum, approvedAdditions, approvedOmissions, approvedVariations, approvedVariationCount, approvedOmissionCount, pendingVariations, pendingVariationCount, currentContractValue, certifiedToDate, paidToDate, remainingContractValue, riskAllowance, riskEstimate, forecastFinalCost, approvedDecisions, pendingDecisions };
 }
 
 // Derive a non-arbitrary commercial health status from live factors
@@ -61,6 +62,7 @@ export function commercialHealth(summary, valuations, paymentBalance) {
   if (paymentBalance?.net < 0) factors.push({ label: `Negative net payment balance of ${formatCurrency(paymentBalance.net)}: client receipts are below recorded spending and approved/issued POs, treated as paid outgoings.`, level: 'risk' });
   const today = new Date().toISOString().slice(0, 10);
   if (summary.contractSum == null) factors.push({ label: 'Contract sum not recorded', level: 'watch' });
+  if (summary.riskEstimate?.reason) factors.push({ label: 'Contingency use could not be estimated from the risk register; forecast final cost is not confirmed.', level: 'watch' });
   if (summary.forecastFinalCost != null && summary.currentContractValue != null && summary.forecastFinalCost > summary.currentContractValue)
     factors.push({ label: `Forecast final cost exceeds current contract value by ${formatCurrency(summary.forecastFinalCost - summary.currentContractValue)}`, level: 'risk' });
   if (summary.pendingVariations > 0) {

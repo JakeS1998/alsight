@@ -22,6 +22,8 @@ import useProjectFinanceOrders from '@/components/projects/finance/useProjectFin
 import ProjectSyncedPurchaseOrders from '@/components/projects/finance/ProjectSyncedPurchaseOrders';
 import useProjectOrderCashFlow from '@/components/projects/finance/useProjectOrderCashFlow';
 import useProjectClientContingency from '@/components/projects/finance/useProjectClientContingency';
+import useProjectRiskScores from '@/components/projects/finance/useProjectRiskScores';
+import riskScoreAllowance from '@/components/projects/finance/riskScoreAllowance';
 
 function Spinner() {
   return (
@@ -42,6 +44,7 @@ export function ProjectFinanceTab({ project }) {
   const payments = useProjectPaymentBalance(project);
   const fin = useFinanceData(project);
   const contingency = useProjectClientContingency(project.id);
+  const riskScores = useProjectRiskScores(project.id);
   const syncedOrders = useProjectFinanceOrders(project);
   const orderCashFlow = useProjectOrderCashFlow(project, syncedOrders.enabled);
 
@@ -87,14 +90,15 @@ export function ProjectFinanceTab({ project }) {
   })).filter(po => po.date && po.amount > 0), [pos, lineItemsByPo]);
 
   const delivery = fin.deliveries?.[0];
-  const summary = useMemo(() => commercialSummary(delivery, fin.decisions || [], fin.valuations || [], contingency.data ?? null), [delivery, fin.decisions, fin.valuations, contingency.data]);
+  const riskEstimate = useMemo(() => ({ ...riskScoreAllowance(contingency.error ? null : contingency.data ?? null, riskScores.error ? null : riskScores.data), contingency: contingency.error ? null : contingency.data ?? null }), [contingency.data, contingency.error, riskScores.data, riskScores.error]);
+  const summary = useMemo(() => commercialSummary(delivery, fin.decisions || [], fin.valuations || [], riskEstimate), [delivery, fin.decisions, fin.valuations, riskEstimate]);
   const health = useMemo(() => payments.error ? { status: 'watch', factors: [{ label: 'Payment balance could not be verified; commercial health is not confirmed.', level: 'watch' }] } : commercialHealth(summary, fin.valuations || [], payments.data), [summary, fin.valuations, payments.data, payments.error]);
   const consultants = useMemo(() => consultantFees(delivery), [delivery]);
   const alerts = useMemo(() => commercialAlerts(summary, fin.valuations || [], pos, project, consultants), [summary, fin.valuations, pos, project, consultants]);
   const milestones = useMemo(() => commercialMilestones(project, fin.feeProposals || [], pos, fin.jcts || [], fin.valuations || [], delivery), [project, fin.feeProposals, pos, fin.jcts, fin.valuations, delivery]);
   const retention = useMemo(() => retentionInfo(fin.valuations || [], project), [fin.valuations, project]);
 
-  if (loading || fin.loading || contingency.isPending || payments.isPending || (syncedOrders.enabled && syncedOrders.isPending)) return <FinanceComingSoon><Spinner /></FinanceComingSoon>;
+  if (loading || fin.loading || contingency.isPending || riskScores.isPending || payments.isPending || (syncedOrders.enabled && syncedOrders.isPending)) return <FinanceComingSoon><Spinner /></FinanceComingSoon>;
 
   return (
     <FinanceComingSoon>
@@ -102,7 +106,8 @@ export function ProjectFinanceTab({ project }) {
       <div className="ws-panelhead"><h2 className="ws-sectiontitle">Finance</h2></div>
       <FinanceInsight project={project} summary={summary} health={health} delivery={delivery} />
       {contingency.error && <p role="alert" className="text-sm text-destructive">Unable to load Client contingency from the fee proposal.</p>}
-      <CommercialSummary summary={summary} health={health} />
+      {riskScores.error && <p role="alert" className="text-sm text-destructive">Unable to calculate risk allowance: {riskScores.error.message}<button type="button" className="ml-2 underline" disabled={riskScores.isFetching} onClick={() => riskScores.refetch()}>Try again</button></p>}
+      <CommercialSummary summary={summary} health={health} projectId={project.id} />
 
       <ProjectCashFlow {...cashFlow}
         loading={cashFlow.loading || (syncedOrders.enabled && orderCashFlow.isPending)}

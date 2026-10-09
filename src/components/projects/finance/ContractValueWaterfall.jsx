@@ -28,7 +28,7 @@ export default function ContractValueWaterfall({ summary }) {
     const ccv = summary.currentContractValue ?? (cs > 0 ? cs + add - om : 0);
     const pend = summary.pendingVariations || 0;
     const risk = summary.riskAllowance || 0;
-    const ffc = summary.forecastFinalCost ?? (ccv + pend + risk);
+    const ffc = summary.forecastFinalCost;
 
     return [
       { name: 'Original\nContract Sum', base: 0, value: cs, fill: NAVY, label: compactGBP(cs), kind: 'total' },
@@ -36,8 +36,8 @@ export default function ContractValueWaterfall({ summary }) {
       { name: 'Approved\nOmissions', base: cs + add - om, value: om, fill: PEACH, label: signedGBP(-om), kind: 'decrease' },
       { name: 'Current\nContract Value', base: 0, value: ccv, fill: NAVY, label: compactGBP(ccv), kind: 'total' },
       { name: 'Pending\nVariations', base: ccv, value: pend, fill: ORANGE, label: signedGBP(pend), kind: 'increase' },
-      { name: 'Risk\nAllowance', base: ccv + pend, value: risk, fill: MUTED_BLUE, label: compactGBP(risk), kind: 'risk' },
-      { name: 'Forecast\nFinal Cost', base: 0, value: ffc, fill: MUTED_BLUE, label: compactGBP(ffc), kind: 'total-final' },
+      { name: 'Risk\nAllowance', base: ccv + pend, value: summary.riskAllowance, fill: MUTED_BLUE, label: summary.riskAllowance == null ? 'Not estimated' : compactGBP(risk), kind: 'risk' },
+      { name: 'Forecast\nFinal Cost', base: 0, value: ffc, fill: MUTED_BLUE, label: ffc == null ? 'Not estimated' : compactGBP(ffc), kind: 'total-final' },
     ];
   }, [summary]);
 
@@ -62,6 +62,7 @@ export default function ContractValueWaterfall({ summary }) {
         <div>
           <h3 className="font-heading text-base font-semibold text-[#0d1117]">Contract value waterfall</h3>
           <p className="text-xs text-[#6e737c]">Shows how the contract value has changed from the original contract sum to the current forecast final cost.</p>
+          {summary.forecastFinalCost == null && <p className="mt-1 text-xs text-muted-foreground">Forecast final cost is not estimated until both the contract value and risk allowance are available.</p>}
         </div>
       </div>
       <div className="mt-2 h-72 w-full">
@@ -83,6 +84,7 @@ export default function ContractValueWaterfall({ summary }) {
               formatter={(value, name, props) => {
                 if (name === 'base') return null;
                 const d = props.payload;
+                if (d.value == null) return ['Not estimated', d.name.replace('\n', ' ')];
                 if (d.kind === 'decrease') return [signedGBP(-d.value), d.name.replace('\n', ' ')];
                 if (d.kind === 'increase') return [signedGBP(d.value), d.name.replace('\n', ' ')];
                 return [compactGBP(d.value), d.name.replace('\n', ' ')];

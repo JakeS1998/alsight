@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import DashboardInfoTooltip from '@/components/dashboard/DashboardInfoTooltip';
 import { moneyOrNR, moneySigned } from './financeMoney';
 import ContractValueWaterfall from './ContractValueWaterfall';
+import RiskAllowanceCard from '@/components/projects/finance/RiskAllowanceCard';
 
 const HEALTH = {
   healthy: { label: 'Healthy', className: 'bg-emerald-50 text-emerald-700 border-emerald-200', dot: 'bg-emerald-500' },
@@ -52,7 +53,7 @@ function HealthBadge({ health }) {
   );
 }
 
-export default function CommercialSummary({ summary, health }) {
+export default function CommercialSummary({ summary, health, projectId }) {
   return (
     <div className="space-y-4">
       {/* Operational headline cards */}
@@ -103,17 +104,12 @@ export default function CommercialSummary({ summary, health }) {
           cardClass="bg-orange-50/40"
           help="Open financial adjustments awaiting agreement."
         />
-        <SummaryCard
-          label="Risk Allowance"
-          value={moneyOrNR(summary.riskAllowance)}
-          sub={summary.riskAllowance != null ? 'Client contingency from fee proposal' : 'No Client contingency recorded'}
-          help="Saved Client contingency from the current fee proposal, or the latest revision if none is marked current."
-        />
+        <RiskAllowanceCard estimate={summary.riskEstimate} projectId={projectId} />
         <SummaryCard
           label="Forecast Final Cost"
           value={moneyOrNR(summary.forecastFinalCost)}
-          sub="Current value + pending changes"
-          help="Current contract value plus pending variations and risk allowance."
+          sub={summary.riskAllowance == null ? 'Risk allowance is not yet estimated' : 'Current value + pending changes + estimated risk use'}
+          help="Current contract value plus pending variations and the indicative score-based contingency-use estimate, not the entire contingency budget. Not estimated when the risk allowance is unavailable."
         />
       </div>
     </div>

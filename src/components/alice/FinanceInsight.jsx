@@ -13,5 +13,5 @@ export default function FinanceInsight({ project, summary, health, delivery }) {
   const age = delivery?.updated_date ? Math.floor((Date.now() - Date.parse(delivery.updated_date)) / 86400000) : null;
   const signals = [];
   if (age >= 30) signals.push({ text: `The Pathway record was last updated ${age} days ago (${formatDate(delivery.updated_date)}); this is not a field-specific forecast update date.`, to });
-  return <AliceInsight statements={statements} evidence={evidence} signals={signals} detail={`Commercial health uses existing ALSight rules: ${health.factors.map(f => f.label).join('; ') || 'no current commercial rule is triggered'}. Forecast final cost includes net open adjustments and the recorded weighted costs of open risks; it is not an approved commitment.`} />;
+  return <AliceInsight statements={statements} evidence={evidence} signals={signals} detail={`Commercial health uses existing ALSight rules: ${health.factors.map(f => f.label).join('; ') || 'no current commercial rule is triggered'}. Forecast final cost includes net open adjustments and an indicative score-based contingency-use estimate, not the full contingency budget or per-risk costs; it is not an approved commitment and is not estimated when the risk allowance is unavailable.`} />;
 }
