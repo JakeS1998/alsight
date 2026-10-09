@@ -1,4 +1,5 @@
 import { secrets } from 'base44:runtime';
+import {delegatedPowerBIToken} from './powerBIUserAuth.ts';
 export const financeRoles = ['admin','finance','director'];
 const guid=/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 export function reportAddress(value){
@@ -16,7 +17,8 @@ export function validateSources(value){
  sources[type][field]=v;
  }}return sources;
 }
-export async function powerToken(){
+export async function powerToken(base44){
+ if(base44){const delegated=await delegatedPowerBIToken(base44);if(delegated)return delegated;}
  const tenant=secrets.get('POWERBI_TENANT_ID')?.trim(),client=secrets.get('POWERBI_CLIENT_ID')?.trim(),secret=secrets.get('POWERBI_CLIENT_SECRET');
  if(!guid.test(tenant||'')||!guid.test(client||'')||!secret)throw new Error('Ask your Microsoft administrator to confirm the stored Power BI application credentials.');
  const r=await fetch(`https://login.microsoftonline.com/${tenant}/oauth2/v2.0/token`,{method:'POST',redirect:'manual',signal:AbortSignal.timeout(20000),headers:{'Content-Type':'application/x-www-form-urlencoded'},body:new URLSearchParams({grant_type:'client_credentials',client_id:client,client_secret:secret,scope:'https://analysis.windows.net/powerbi/api/.default'})});

@@ -47,7 +47,7 @@ export default async function(req){
   const confirmed=Boolean(config?.revision&&config.confirmed_revision===config.revision);
   if(input.action==='status')return Response.json({configured:Boolean(config?.dataset_id),confirmed,report:confirmed?{name:config.report_name,url:config.report_url,confirmed_at:config.confirmed_at}:null,...(user.role==='admin'?{config}:{})});
   if(input.action==='configure'){
-   const address=reportAddress(input.reportURL),sources=validateSources(input.sources),token=await powerToken();
+   const address=reportAddress(input.reportURL),sources=validateSources(input.sources),token=await powerToken(base44);
    const report=await powerRequest(token,`groups/${address.workspace_id}/reports/${address.report_id}`);
    if(!/^[0-9a-f-]{36}$/i.test(report.datasetId||''))throw new Error('This report does not expose a supported semantic model.');
    const values={key:'primary',...address,dataset_id:report.datasetId,report_name:report.name,sources,revision:crypto.randomUUID(),preview_revision:'',confirmed_revision:''};
@@ -60,7 +60,7 @@ export default async function(req){
   }
   if(!config?.dataset_id)throw new Error('An administrator must configure the Power BI report first.');
   if(input.action==='preview'){
-   const token=await powerToken(),summary=(await powerQuery(token,config.dataset_id,summaryDax(config.sources)))[0];
+   const token=await powerToken(base44),summary=(await powerQuery(token,config.dataset_id,summaryDax(config.sources)))[0];
    const rows=await resolveFinanceProjects(base44,config,(await powerQuery(token,config.dataset_id,projectsDax(config.sources))).slice(0,10));
    await db.FinanceConnection.update(config.id,{preview_revision:config.revision,previewed_at:new Date().toISOString()});
    return Response.json({summary,rows,revision:config.revision,read_at:new Date().toISOString()});
@@ -84,10 +84,10 @@ export default async function(req){
    if(input.action==='invoices')return Response.json(await liveFinanceInvoices(base44,config,mapping,input));
    if(!['SO','PO'].includes(input.type))throw new Error('Choose SO or PO.');
    if(String(input.after||'').length>500)throw new Error('Invalid order page.');
-   const rows=await powerQuery(await powerToken(),config.dataset_id,ordersDax(config.sources[input.type],mapping,input.after||'')),shown=rows.slice(0,50);
+   const rows=await powerQuery(await powerToken(base44),config.dataset_id,ordersDax(config.sources[input.type],mapping,input.after||'')),shown=rows.slice(0,50);
    return Response.json({items:await reconcileOrders(base44,input.type,shown,mapping),has_more:rows.length>50,next:rows.length>50?shown.at(-1).Reference:null,read_at:new Date().toISOString()});
   }
-  const token=await powerToken();
+  const token=await powerToken(base44);
   if(input.action==='summary')return Response.json({summary:(await powerQuery(token,config.dataset_id,summaryDax(config.sources)))[0],read_at:new Date().toISOString()});
   if(String(input.search||'').length>120||String(input.after?.name||'').length>500||String(input.after?.code||'').length>250)throw new Error('Search or page value too long.');
   const rows=await powerQuery(token,config.dataset_id,projectsDax(config.sources,input)),shown=rows.slice(0,50);

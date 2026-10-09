@@ -15,6 +15,7 @@ import PeopleRoute from '@/components/relationships/PeopleRoute';
 import FinanceRoute from '@/components/finance/FinanceRoute.jsx';
 const FinanceDashboard = lazy(() => import('@/pages/FinanceDashboard.jsx'));
 const FinanceAdmin = lazy(() => import('@/pages/FinanceAdmin.jsx'));
+const PowerBICallback = lazy(() => import('@/pages/PowerBICallback.jsx'));
 const People = lazy(() => import('@/pages/People'));
 import PageLoadBoundary from '@/components/PageLoadBoundary';
 import StakeholderRoute from '@/components/StakeholderRoute';
@@ -91,6 +92,7 @@ const AuthenticatedApp = () => {
       <Route element={<ProtectedRoute unauthenticatedElement={<Navigate to={`/login?returnTo=${encodeURIComponent(location.pathname + location.search)}`} replace />} />}>
         <Route path="/risk-approvals/:packetId" element={<RiskApprovalReview />} />
         <Route path="/dataverse-callback" element={<DataverseCallback />} />
+        <Route path="/powerbi-callback" element={<PowerBICallback />} />
         <Route path="/onboarding" element={<Onboarding />} />
       </Route>
       <Route element={<ProtectedRoute unauthenticatedElement={<Navigate to="/login" replace />} />}>
