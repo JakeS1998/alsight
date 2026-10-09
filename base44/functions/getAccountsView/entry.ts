@@ -4,6 +4,7 @@ import { accountDetailSignals } from '../../shared/accountDetailSignals.ts';
 import { dataRequestError } from '../../shared/dataRequestError.ts';
 import {recordIds} from '../../shared/recordIds.ts';
 import {aseCurrentRatings} from '../../shared/aseCurrentRatings.ts';
+import {projectValueAggregate} from '../../shared/projectValueAggregate.ts';
 const signalCache = new Map();
 function cachedSignals(key,load) {
  const cached=signalCache.get(key);
@@ -52,7 +53,7 @@ export default async function(req: Request): Promise<Response> {
     const cacheKey = JSON.stringify([user.id,user.role,user.account_id,user.data?.account_id,user.region,user.data?.region,user.delegate_of,user.data?.delegate_of,user.delegate_region,user.data?.delegate_region,user.staff_aad_id,user.data?.staff_aad_id,Number.isSafeInteger(input.revision) ? input.revision : 0]);
     if(input.accountId)return Response.json(await cachedSignals(`${cacheKey}:${input.accountId}`,async()=>{const saved=signalCache.get(cacheKey);const reports=saved && (saved.pending || saved.expires>Date.now()) ? await saved.promise : null;return accountDetailSignals(base44,input.accountId,internal,visibleMoney,reports?.some(report=>report.truncated) ? null : reports);}));
     const reports = await cachedSignals(cacheKey,()=>Promise.all([
-      base44.entities.Project.aggregate({ query: liveQuery, groupBy: ['id','dataverse_id','client_account_id','account_id'], ...(visibleMoney ? { sum: 'estimated_value' } : {}), limit: 1000 }),
+      projectValueAggregate(base44.entities,{ query: liveQuery, groupBy: ['id','dataverse_id','client_account_id','account_id'], ...(visibleMoney ? { sum: 'estimated_value' } : {}), limit: 1000 }),
       base44.entities.Opportunity.aggregate({ query: { status: 'open' }, groupBy: 'account_id', limit: 1000 }),
       base44.entities.CRMActivity.aggregate({ groupBy: 'account_id', max: 'occurred_at', limit: 1000 }),
       base44.entities.Conversation.aggregate({ groupBy: 'account_id', max: 'occurred_at', limit: 1000 }),

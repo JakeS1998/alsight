@@ -1,4 +1,5 @@
 import React, { useEffect, useRef, useState } from "react";
+import projectFullValue from '@/components/projects/projectFullValue';
 import { useParams, Link, useSearchParams } from "react-router-dom";
 import { base44 } from "@/api/base44Client";
 import { useAuth } from "@/lib/AuthContext";
@@ -179,7 +180,7 @@ export default function AccountDetail() {
                 </div>
                 <p className="mt-1.5 text-sm font-semibold text-slate-900 group-hover:text-primary">{p.name}</p>
                 <RecordUpdatedAt record={p} className="mt-1" />
-                {user?.role !== 'supplier' && <p className="text-xs text-slate-500">{formatCurrency(p.estimated_value)}</p>}
+                {user?.role !== 'supplier' && <p className="text-xs text-slate-500">{formatCurrency(projectFullValue(p))}</p>}
               </Link>
             ))}
           </div>

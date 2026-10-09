@@ -1,7 +1,7 @@
 import { scopedReadCache } from './scopedReadCache.ts';
 
 export function portfolioCachedRead(user, input) {
-  const scope = JSON.stringify([user.id, user.role, user.data, user.account_id, user.region, user.delegate_of, user.staff_aad_id, [...input.projectIds].sort(), input.since || null]);
+  const scope = JSON.stringify([user.id, user.role, user.data, user.account_id, user.region, user.delegate_of, user.staff_aad_id, [...input.projectIds].sort(), input.since || null,typeof input.valueVersion==='string' ? input.valueVersion.slice(0,100) : null]);
   return (key, load) => scopedReadCache(`portfolio:${scope}:${key}`, load);
 }
 

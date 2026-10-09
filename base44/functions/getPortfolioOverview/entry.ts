@@ -3,6 +3,7 @@ import { portfolioCachedRead, projectOverviewRollups } from '../../shared/portfo
 import { readPortfolioStages } from '../../shared/portfolioStageSummary.ts';
 import { portfolioFinancialFigures, portfolioStatusRollups } from '../../shared/portfolioKeyFigures.ts';
 import { portfolioBusinessContext } from '../../shared/portfolioBusinessContext.ts';
+import {projectValueAggregate} from '../../shared/projectValueAggregate.ts';
 export default async function(req) {
   try {
     const base44 = createClientFromRequest(req);
@@ -20,7 +21,7 @@ export default async function(req) {
     const [projectRollups, opportunities, delivery, actions, decisions, risks, recent, milestones, coverage] = await (async () => {
       const results = [];
       const reads = [
-      async () => projectOverviewRollups(await base44.entities.Project.aggregate({ query, groupBy: ['live_project', 'department_id'], sum: 'estimated_value', limit: 1000 })),
+      async () => projectOverviewRollups(await projectValueAggregate(base44.entities,{ query, groupBy: ['live_project', 'department_id'], sum: 'estimated_value', limit: 1000 })),
       () => base44.entities.Opportunity.aggregate({ query: opportunitiesQuery, groupBy: 'stage', sum: ['budget','alliance_fee'], avg: ['budget','probability'] }),
       () => base44.entities.ProjectDelivery.aggregate({ query: related, groupBy: 'client_handover', avg: 'pct_programme' }),
       () => base44.entities.ProjectAction.aggregate({ query: related, groupBy: ['project_id','status','due_date','priority'], limit: 1000 }),

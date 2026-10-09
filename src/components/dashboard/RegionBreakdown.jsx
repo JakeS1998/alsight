@@ -2,23 +2,19 @@ import React, { useMemo } from "react";
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid } from "recharts";
 import { regionName } from "@/lib/portal";
 import IncomeProjectionKey, { IncomeProjectionTooltip } from "@/components/dashboard/IncomeProjectionKey";
+import useProjectValueSummary from '@/components/projects/useProjectValueSummary';
 
 export function RegionBreakdown({ projects, confirmedAmounts = {}, invoicesLoading = false, invoicesError = '' }) {
+  const summary=useProjectValueSummary(projects);
+  const failure=invoicesError || summary.error?.message;
   const data = useMemo(() => {
-    const map = {};
-    projects.forEach((p) => {
-      const region = regionName(p.department_id);
-      if (!region || region === p.department_id || region === "Business Support Services") return; // skip unmapped/unassigned and Business Support Services
-      if (!map[region]) map[region] = { region, count: 0, value: 0, confirmed: 0, remaining: 0 };
-      const value = Number(p.estimated_value) || 0;
-      const paid = Number(confirmedAmounts[p.id]) || 0;
-      map[region].count++;
-      map[region].value += value;
-      map[region].confirmed += paid;
-      map[region].remaining = Math.max(0, map[region].value - map[region].confirmed);
-    });
-    return Object.values(map).sort((a, b) => b.value - a.value);
-  }, [projects, confirmedAmounts]);
+    const paid={};for(const project of projects){const region=regionName(project.department_id);paid[region]=(paid[region] || 0)+(Number(confirmedAmounts[project.id]) || 0);}
+    const map={};
+    for(const row of summary.data?.regions || []){const region=regionName(row.department_id);if(!region || region===row.department_id || region==='Business Support Services')continue;
+      const group=map[region] || {region,count:0,value:0,confirmed:paid[region] || 0,remaining:0};group.count+=row.count;group.value+=row.value;group.remaining=Math.max(0,group.value-group.confirmed);map[region]=group;
+    }
+    return Object.values(map).sort((a,b)=>b.value-a.value);
+  }, [projects, confirmedAmounts,summary.data]);
 
   return (
     <div className="min-w-0 rounded-xl border border-border bg-card p-4">
@@ -27,7 +23,7 @@ export function RegionBreakdown({ projects, confirmedAmounts = {}, invoicesLoadi
         <p className="text-xs text-slate-500">Paid invoices versus total project value by operating region</p>
         <IncomeProjectionKey />
       </div>
-      {invoicesLoading ? <div className="flex h-[260px] items-center justify-center text-sm text-slate-500">Loading invoice totals…</div> : invoicesError ? <p role="alert" className="py-10 text-sm text-destructive">{invoicesError}</p> : data.length === 0 ? (
+      {invoicesLoading || summary.isPending ? <div className="flex h-[260px] items-center justify-center text-sm text-slate-500">Loading project and invoice totals…</div> : failure ? <p role="alert" className="py-10 text-sm text-destructive">{failure}</p> : data.length === 0 ? (
         <div className="flex h-[260px] items-center justify-center text-sm text-slate-400">No data available</div>
       ) : (
         <ResponsiveContainer width="100%" height={260}>

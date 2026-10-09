@@ -3,7 +3,7 @@ import { findProjectForPO } from '@/components/projects/poLinking';
 export const isPipelineProject = (p) => p.status !== "inactive" && !["complete", "completed"].includes(String(p.approval_status || "").trim().toLowerCase()) && !(p.practical_completion_date && new Date(p.practical_completion_date) < new Date());
 const sum = (list, field) => list.reduce((total, row) => total + (Number(row[field]) || 0), 0);
 
-export function buildPortfolio(projects, { orders = [], proposals = [], deliveries = [], actions = [] }) {
+export function buildPortfolio(projects, { orders = [], proposals = [], deliveries = [], actions = [], projectValue = null }) {
   const pipeline = projects.filter(isPipelineProject);
   const ids = new Set(pipeline.map((p) => p.id));
   const relevantOrders = orders.filter(o => o.status !== 'inactive').map(o => {
@@ -40,7 +40,7 @@ export function buildPortfolio(projects, { orders = [], proposals = [], deliveri
     pipeline, atRisk, orders: relevantOrders, fees: [...currentFees.values()],
     metrics: {
       projects: pipeline.length, live: pipeline.filter((p) => p.live_project).length,
-      value: sum(pipeline, "estimated_value"), poNet: sum(relevantOrders, "total_net_value"),
+      value: projectValue, poNet: sum(relevantOrders, "total_net_value"),
       feeValue: sum([...currentFees.values()], "fee_value"),
       contractValue: sum([...latestDelivery.values()], "contract_sum"),
       highRisk: atRisk.filter((r) => r.level === "high").length, atRisk: atRisk.length,

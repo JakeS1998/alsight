@@ -1,5 +1,6 @@
 import {recordIds} from './recordIds.ts';
 import {aseCurrentRatings} from './aseCurrentRatings.ts';
+import {projectValueAggregate} from './projectValueAggregate.ts';
 export async function accountDetailSignals(base44,accountId,internal,visibleMoney,portfolioReports=null) {
  const rawAccount=await base44.entities.Account.get(accountId);
  if(!rawAccount)return {items:[],total:0,next_cursor:null,has_more:false};
@@ -16,7 +17,7 @@ export async function accountDetailSignals(base44,accountId,internal,visibleMone
  const related={$or:[{client_account_id:{$in:keys}},{account_id:{$in:keys}},...(projectRecordIds.length ? [{id:{$in:projectRecordIds}}] : []),...(projectIds.length ? [{dataverse_id:{$in:projectIds}}] : [])]};
  const live={status:{$ne:'inactive'},live_project:true,approval_status:{$nin:['complete','completed']},$or:[{practical_completion_date:{$exists:false}},{practical_completion_date:{$in:[null,'']}},{practical_completion_date:{$gte:new Date().toISOString()}}]};
  const [projects,openOpportunities,activity,conversation,owners,ratings]=await Promise.all([
-  portfolioReports ? Promise.resolve({rows:[portfolioReports[0].rows.filter(row=>keys.includes(row.client_account_id) || keys.includes(row.account_id) || projectIds.includes(row.id) || projectIds.includes(row.dataverse_id)).reduce((total,row)=>({count:total.count+row.count,...(visibleMoney ? {sum_estimated_value:total.sum_estimated_value+(row.sum_estimated_value || 0)} : {})}),{count:0,...(visibleMoney ? {sum_estimated_value:0} : {})})]}) : base44.entities.Project.aggregate({query:{$and:[live,related]},...(visibleMoney ? {sum:'estimated_value'} : {})}),
+  portfolioReports ? Promise.resolve({rows:[portfolioReports[0].rows.filter(row=>keys.includes(row.client_account_id) || keys.includes(row.account_id) || projectIds.includes(row.id) || projectIds.includes(row.dataverse_id)).reduce((total,row)=>({count:total.count+row.count,...(visibleMoney ? {sum_estimated_value:total.sum_estimated_value+(row.sum_estimated_value || 0)} : {})}),{count:0,...(visibleMoney ? {sum_estimated_value:0} : {})})]}) : projectValueAggregate(base44.entities,{query:{$and:[live,related]},...(visibleMoney ? {sum:'estimated_value'} : {})}),
   base44.entities.Opportunity.count({...scope,status:'open'}),
   base44.entities.CRMActivity.filter(scope,{sort:'-occurred_at',limit:1,fields:['occurred_at']}),
   base44.entities.Conversation.filter(scope,{sort:'-occurred_at',limit:1,fields:['occurred_at']}),

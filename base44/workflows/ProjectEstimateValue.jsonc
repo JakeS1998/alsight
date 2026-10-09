@@ -1,0 +1,41 @@
+{
+  "name": "Project Estimate Value Updates",
+  "description": "Keep reporting values current when a project is created or its estimated value changes, without overwriting the estimate.",
+  "trigger": {
+    "config": {
+      "trigger_type": "entity",
+      "entity_name": "Project",
+      "events": [
+        "create",
+        "update"
+      ]
+    },
+    "condition": "${ .trigger.event_type == \"create\" or ((.trigger.changed_fields // []) | any(. == \"estimated_value\" or . == \"dataverse_id\")) }"
+  },
+  "definition": {
+    "document": {
+      "dsl": "1.0.0",
+      "name": "project_estimate_value",
+      "version": "1.0",
+      "namespace": "base44"
+    },
+    "do": [
+      {
+        "refresh_value": {
+          "call": "invoke_backend_function",
+          "with": {
+            "function_name": "refreshProjectValue",
+            "args": {
+              "projectId": "${ .trigger.entity_id }"
+            }
+          },
+          "then": "end",
+          "x-base44": {
+            "title": "Update project reporting value",
+            "description": "Retain submitted proposal priority"
+          }
+        }
+      }
+    ]
+  }
+}

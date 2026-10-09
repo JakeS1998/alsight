@@ -1,6 +1,6 @@
 import { useQuery } from '@tanstack/react-query';
 import { base44 } from '@/api/base44Client';
-const fields = ['name', 'project_number', 'client_name', 'latitude', 'longitude', 'site_postcode', 'estimated_value', 'live_project'];
+const fields = ['name', 'project_number', 'client_name', 'latitude', 'longitude', 'site_postcode', 'estimated_value', 'submitted_proposal_value', 'full_value', 'live_project'];
 export default function useProjectMapPins({ user, query, sort, ready, serverPaging, refreshKey }) {
   return useQuery({
     queryKey: ['project-map-pins', user?.id, user?.role, query, sort, refreshKey], enabled: serverPaging && ready, staleTime: 60000,

@@ -7,7 +7,8 @@ import useDashboardDirectory from '@/components/dashboard/useDashboardDirectory'
 import { INTERNAL_ROLES } from '@/lib/portal';
 import projectScope from '@/components/projects/projectScope';
 import usePortfolioExtras from '@/components/dashboard/usePortfolioExtras';
-import { buildPortfolio } from '@/components/dashboard/portfolioMetrics';
+import { buildPortfolio,isPipelineProject } from '@/components/dashboard/portfolioMetrics';
+import useProjectValueSummary from '@/components/projects/useProjectValueSummary';
 export default function useDashboardData(filters = {}) {
   const { user } = useAuth();
   const [revision, setRevision] = useState(0);
@@ -27,7 +28,8 @@ export default function useDashboardData(filters = {}) {
   } });
   const extras = usePortfolioExtras(!!user && internal, scopeKey);
   const projects = query.data?.projects || [];
-  const portfolio = useMemo(() => buildPortfolio(projects, extras.data), [query.data, extras.data]);
+  const values=useProjectValueSummary(projects.filter(isPipelineProject),{enabled:!!user && role!=='supplier' && !query.isPending && !query.error});
+  const portfolio = useMemo(() => buildPortfolio(projects, {...extras.data,projectValue:values.data?.total ?? null}), [query.data, extras.data,values.data]);
   const accountMap = useMemo(() => Object.fromEntries(directory.accounts.filter(a => a.dataverse_id).map(a => [a.dataverse_id, a])), [directory.accounts]);
-  return { user, role, internal, projects, portfolio, accountMap, extras: extras.data, projectsLoading: query.isPending, loading: query.isPending || directory.loading || (internal && extras.loading), error: query.error?.message || directory.error || extras.error, refresh: () => setRevision(v => v + 1), key, scopeKey };
+  return { user, role, internal, projects, portfolio, accountMap, extras: extras.data, projectsLoading: query.isPending, loading: query.isPending || directory.loading || (internal && extras.loading), error: query.error?.message || directory.error || extras.error || values.error?.message, refresh: () => setRevision(v => v + 1), key, scopeKey };
 }

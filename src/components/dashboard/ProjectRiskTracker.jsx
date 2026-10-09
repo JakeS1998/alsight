@@ -1,4 +1,5 @@
 import React, { useState } from "react";
+import projectFullValue from '@/components/projects/projectFullValue';
 import { Link } from "react-router-dom";
 import { AlertTriangle, ArrowUpRight, ChevronDown, ChevronUp } from "lucide-react";
 import { formatCurrency } from "@/lib/portal";
@@ -18,7 +19,7 @@ export default function ProjectRiskTracker({ atRisk, expanded: controlledExpande
       <div className="min-w-0 flex-1"><div className="flex flex-wrap items-center gap-2"><span className="text-sm font-semibold text-slate-900">{project.name}</span>
         <span className={`rounded-full px-2 py-0.5 text-[11px] font-medium ${level === "high" ? "bg-rose-50 text-rose-700" : "bg-amber-50 text-amber-700"}`}>{level === "high" ? "High" : "Watch"}</span></div>
         <p className="mt-0.5 text-xs text-slate-500">{project.project_number || "No reference"} · {reasons.slice(0, 3).join(" · ")}{reasons.length > 3 ? ` +${reasons.length - 3} more` : ""}</p></div>
-      <div className="flex items-center gap-2 text-sm text-slate-600">{formatCurrency(project.estimated_value)}<ArrowUpRight className="h-4 w-4 text-slate-400" /></div>
+      <div className="flex items-center gap-2 text-sm text-slate-600">{formatCurrency(projectFullValue(project))}<ArrowUpRight className="h-4 w-4 text-slate-400" /></div>
     </Link>)}</div>}
   </section>;
 }

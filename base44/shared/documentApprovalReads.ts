@@ -50,5 +50,5 @@ export async function approvalDetail(base44,user,id) {
  const url=document.link_to_file;
  let documents=[];
  if(/^https:\/\//i.test(url || '')){const name=decodeURIComponent(new URL(url).pathname.split('/').pop() || '');const extension=name.match(/\.([a-z0-9]{1,8})$/i)?.[1];documents=[{name:extension ? name : request.document_title,url,kind:extension ? extension.toUpperCase() : 'Source document',download:false}];}
- return {request:{...approvalView(request),...approvalMetadata(document,project),project_value:project.estimated_value,can_respond:request.status==='pending' && !request.response && !decisionLeaseActive(request),can_retry:decisionCanRetry(request,user)},documents,history:history.items,history_more:history.has_more,history_cursor:history.next_cursor};
+ return {request:{...approvalView(request),...approvalMetadata(document,project),project_value:project.submitted_proposal_value ?? project.estimated_value,can_respond:request.status==='pending' && !request.response && !decisionLeaseActive(request),can_retry:decisionCanRetry(request,user)},documents,history:history.items,history_more:history.has_more,history_cursor:history.next_cursor};
 }

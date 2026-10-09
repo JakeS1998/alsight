@@ -1,4 +1,5 @@
 import React from 'react';
+import projectFullValue from '@/components/projects/projectFullValue';
 import RecordUpdatedAt from '@/components/RecordUpdatedAt';
 import { Link, useNavigate } from 'react-router-dom';
 import { ArrowUpDown } from 'lucide-react';
@@ -23,7 +24,7 @@ export default function ProjectListView({ projects, accountMap, staffMap, role, 
         <td className={`${cell} whitespace-nowrap text-muted-foreground`}>{project.project_number || '—'}</td>
         <td className={`${cell} min-w-[220px]`}><Link className="font-semibold text-foreground hover:underline" to={`/projects/${project.id}`}>{project.name}</Link><RecordUpdatedAt record={project} className="mt-1" /></td>
         <td className={`${cell} min-w-[160px] text-muted-foreground`}>{accountMap[project.client_account_id]?.name || project.client_name || '—'}</td>
-        {showValues && <td className={`${cell} whitespace-nowrap tabular-nums`}>{formatCurrency(project.estimated_value)}</td>}
+        {showValues && <td className={`${cell} whitespace-nowrap tabular-nums`}>{formatCurrency(projectFullValue(project))}</td>}
         <td className={`${cell} min-w-[150px] text-muted-foreground`}>{projectStaffName(project.bsm_aad_id, staffMap) || '—'}</td>
         <td className={`${cell} whitespace-nowrap text-muted-foreground`}>{regionName(project.department_id) || '—'}</td>
         <td className={`${cell} whitespace-nowrap text-muted-foreground`}>{formatDate(project.practical_completion_date)}</td>

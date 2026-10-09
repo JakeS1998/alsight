@@ -20,7 +20,7 @@ export async function frameworkCommercialContext(db,source,scope) {
   for(const row of docs.rows){const types=documents.get(row.project_id) || new Set();types.add(row.document_type);documents.set(row.project_id,types);}
   let cursor;
   do {
-   const page=await db.FeeProposal.filter({project_id:{$in:aliases},is_current:true,status:{$ne:'lost'}},{sort:'-revision_number',limit:50,cursor,fields:['project_id','revision_number','external_cost','line_items']});
+   const page=await db.FeeProposal.filter({project_id:{$in:aliases},status:{$in:['sent','negotiation','accepted']}},{sort:'-revision_number',limit:50,cursor,fields:['project_id','revision_number','external_cost','line_items']});
    for(const proposal of page.items){const current=proposals.get(proposal.project_id);if(!current || Number(proposal.revision_number)>Number(current.revision_number))proposals.set(proposal.project_id,proposal);}
    cursor=page.has_more ? page.next_cursor : null;
   }while(cursor);

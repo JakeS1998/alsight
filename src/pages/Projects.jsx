@@ -1,4 +1,5 @@
 import React, { useEffect, useState, useMemo } from "react";
+import projectFullValue from '@/components/projects/projectFullValue';
 import { Link } from "react-router-dom";
 import { useAuth } from "@/lib/AuthContext";
 import { base44 } from "@/api/base44Client";
@@ -154,8 +155,8 @@ export default function Projects() {
         case "name_asc": return (a.name || "").localeCompare(b.name || "");
         case "name_desc": return (b.name || "").localeCompare(a.name || "");
         case "number": return (a.project_number || "").localeCompare(b.project_number || "");
-        case "value_desc": return (b.estimated_value || 0) - (a.estimated_value || 0);
-        case "value_asc": return (a.estimated_value || 0) - (b.estimated_value || 0);
+        case "value_desc": return projectFullValue(b) - projectFullValue(a);
+        case "value_asc": return projectFullValue(a) - projectFullValue(b);
         case "newest": return new Date(b.created_date) - new Date(a.created_date);
         default: return 0;
       }
@@ -253,7 +254,7 @@ export default function Projects() {
                 </div>
                 <dl className="mt-3 flex-1 space-y-1.5 text-xs text-slate-500">
                   <div className="flex items-center gap-1.5"><Building2 className="h-3.5 w-3.5" /> {client?.name || p.client_name || "—"}</div>
-                  {role !== 'supplier' && <div className="flex items-center gap-1.5"><PoundSterling className="h-3.5 w-3.5" /> {formatCurrency(p.estimated_value)}</div>}
+                  {role !== 'supplier' && <div className="flex items-center gap-1.5"><PoundSterling className="h-3.5 w-3.5" /> {formatCurrency(projectFullValue(p))}</div>}
                   <div className="flex items-start gap-1.5"><Users className="mt-0.5 h-3.5 w-3.5 shrink-0" /><span>BDM: {projectStaffName(p.bdm_aad_id, staffMap) || '—'}<br />BSM: {projectStaffName(p.bsm_aad_id, staffMap) || '—'}</span></div>
                   <div className="flex items-center gap-1.5"><Calendar className="h-3.5 w-3.5" /> {formatDate(p.practical_completion_date)}</div>
                 </dl>

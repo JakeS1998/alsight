@@ -1,4 +1,5 @@
 import React, { useMemo } from "react";
+import projectFullValue from '@/components/projects/projectFullValue';
 import { MapContainer, TileLayer, CircleMarker, Popup } from "react-leaflet";
 import "leaflet/dist/leaflet.css";
 import { Link } from "react-router-dom";
@@ -77,7 +78,7 @@ export function ProjectMap({ projects, showValues = true, resizeAware = false })
                   </div>
                   {p.project_number && <p className="text-xs text-slate-500">{p.project_number}</p>}
                   {region && <p className="mt-0.5 text-xs text-slate-600">{region}</p>}
-                  {showValues && <p className="mt-1 text-xs text-slate-600">{formatCurrency(p.estimated_value)}</p>}
+                  {showValues && <p className="mt-1 text-xs text-slate-600">{formatCurrency(projectFullValue(p))}</p>}
                   <p className="text-xs text-slate-500">
                     Status: <span className={live ? "font-medium text-emerald-700" : "font-medium text-orange-700"}>{live ? "Live" : "On Hold"}</span>
                   </p>

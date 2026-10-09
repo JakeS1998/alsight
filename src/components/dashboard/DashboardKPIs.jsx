@@ -1,11 +1,15 @@
 import React from "react";
 import { formatCurrency } from "@/lib/portal";
 import { PoundSterling, FolderKanban, Activity, TrendingUp } from "lucide-react";
+import useProjectValueSummary from '@/components/projects/useProjectValueSummary';
 
 export function DashboardKPIs({ projects, hideValues = false }) {
-  const totalValue = projects.reduce((s, p) => s + (p.estimated_value || 0), 0);
-  const liveCount = projects.filter((p) => p.live_project).length;
-  const avgValue = projects.length > 0 ? totalValue / projects.length : 0;
+  const summary=useProjectValueSummary(projects,{enabled:!hideValues});
+  const totalValue = summary.data?.total;
+  const liveCount = summary.data?.live ?? projects.filter((p) => p.live_project).length;
+  const avgValue = summary.data?.average;
+  if(!hideValues && summary.isPending)return <p role="status" className="text-sm text-muted-foreground">Loading project values…</p>;
+  if(!hideValues && summary.error)return <p role="alert" className="text-sm text-destructive">{summary.error.message}</p>;
 
   const kpis = [
     { label: "Pipeline Value", value: formatCurrency(totalValue), icon: PoundSterling, accent: "bg-primary/15 text-als-navy" },

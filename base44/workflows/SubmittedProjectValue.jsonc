@@ -1,0 +1,44 @@
+{
+  "name": "Submitted Fee Proposal Project Values",
+  "definition": {
+    "document": {
+      "dsl": "1.0.0",
+      "name": "submitted_project_value",
+      "version": "1.0",
+      "namespace": "base44"
+    },
+    "do": [
+      {
+        "refresh_value": {
+          "call": "invoke_backend_function",
+          "with": {
+            "function_name": "refreshProjectValue",
+            "args": {
+              "projectId": "${ .trigger.data.project_id // .trigger.old_data.project_id // \"\" }",
+              "previousProjectId": "${ .trigger.old_data.project_id // \"\" }",
+              "proposalId": "${ .trigger.entity_id }"
+            }
+          },
+          "then": "end",
+          "x-base44": {
+            "title": "Refresh full project value",
+            "description": "Submitted proposal total, otherwise project estimate"
+          }
+        }
+      }
+    ]
+  },
+  "description": "Refresh full project values when fee proposals are created, updated or deleted. Draft proposals never replace project estimates.",
+  "trigger": {
+    "condition": null,
+    "config": {
+      "trigger_type": "entity",
+      "events": [
+        "create",
+        "update",
+        "delete"
+      ],
+      "entity_name": "FeeProposal"
+    }
+  }
+}

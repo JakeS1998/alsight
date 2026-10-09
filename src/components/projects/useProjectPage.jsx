@@ -4,7 +4,7 @@ import { base44 } from '@/api/base44Client';
 import projectScope from '@/components/projects/projectScope';
 import { escapeSearch } from '@/components/search/searchSources';
 
-const sorts = { name_asc: 'name', name_desc: '-name', number: 'project_number', value_desc: '-estimated_value', value_asc: 'estimated_value', newest: '-created_date' };
+const sorts = { name_asc: 'name', name_desc: '-name', number: 'project_number', value_desc: '-full_value', value_asc: 'full_value', newest: '-created_date' };
 export default function useProjectPage(user, filters, cursor, enabled, refreshKey) {
   const staff = useQuery({ queryKey: ['project-staff-id', user?.id, user?.role, user?.email], enabled: enabled && ['bdm', 'bsm'].includes(user?.role), queryFn: async () => {
     if (!user?.email) return null;

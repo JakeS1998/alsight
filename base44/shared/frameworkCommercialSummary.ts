@@ -20,7 +20,7 @@ export async function frameworkCommercialSummary(db,source,scope) {
   const defaults=frameworkFeeSettings(null,version,route),settings=frameworkFeeSettings(context.settings.find(row=>row.key===defaults.key),version,route);
   const proposal=aliases.map(alias=>context.proposals.get(alias)).filter(Boolean).sort((a,b)=>Number(b.revision_number)-Number(a.revision_number))[0];
   const estimate=Math.max(0,Number(project?.sum_estimated_value) || 0);
-  const values=frameworkProposalValues(proposal,settings) || (estimate>0 ? {value:estimate,feeBase:estimate,source:'estimated'} : {value:group.historicalValue,feeBase:group.historicalValue,source:'historical'});
+  const values=frameworkProposalValues(proposal,settings) || (project ? {value:estimate,feeBase:estimate,source:'estimated'} : {value:group.historicalValue,feeBase:group.historicalValue,source:'historical'});
   if(values.value<=0)continue;
   summary.totalCallOffValue+=values.value;summary[`${values.source}ValueCount`]+=1;
   if(!settings.bands.length){summary.uncalculatedFeeCount+=1;continue;}

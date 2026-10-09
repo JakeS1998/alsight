@@ -79,6 +79,24 @@
     "estimated_value": {
       "type": "number"
     },
+    "full_value": {
+      "type": "number",
+      "description": "Reporting value excluding VAT: latest submitted client fee proposal total, otherwise the project's estimated_value. Updated automatically."
+    },
+    "submitted_proposal_value": {
+      "type": [
+        "number",
+        "null"
+      ],
+      "description": "Full saved client total excluding VAT from the latest submitted fee proposal; null means use estimated_value"
+    },
+    "submitted_proposal_id": {
+      "type": [
+        "string",
+        "null"
+      ],
+      "description": "Submitted proposal supplying the full project value"
+    },
     "construction_term_weeks": {
       "type": "number"
     },
