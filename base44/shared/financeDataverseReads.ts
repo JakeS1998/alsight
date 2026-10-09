@@ -8,6 +8,7 @@ export async function readDataverseFinance(base44,state,input){
   const search=String(input.search||'').trim().replace(/[.*+?^${}()|[\]\\]/g,'\\$&');
   const query={...base,kind:input.kind,...(input.issue==='amount'?{has_amount:false}:input.issue==='link'?{[input.kind==='line_items'?'parent_id':'project_key']:{$in:['',null]}}:input.issue==='date'?{date:{$in:['',null]}}:{}),...(search?{$or:[{reference:{$regex:search,$options:'i'}},{description:{$regex:search,$options:'i'}}]}:{})};
   const page=await db.FinanceDataverseRecord.filter(query,{limit:50,sort:'reference',...(input.cursor?{cursor:input.cursor}:{})});
+  if(input.kind==='line_items'&&page.items.length){const ids=[...new Set(page.items.map(r=>r.parent_id).filter(Boolean))],parents=ids.length?(await db.FinanceDataverseRecord.filter({...base,kind:'purchase_orders',source_id:{$in:ids}},{limit:50,fields:['source_id','reference','project_name']})).items:[];page.items=page.items.map(r=>({...r,parent_reference:parents.find(p=>p.source_id===r.parent_id)?.reference||''}));}
   return {...page,total:await db.FinanceDataverseRecord.count(query),read_at:state.last_completed_at};
  }
  if(input.action==='list'){
