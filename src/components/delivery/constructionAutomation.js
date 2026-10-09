@@ -31,5 +31,5 @@ export function savedConstructionValues(project, delivery) {
   if (delivery.lad_rate !== '' && delivery.lad_rate != null && (!Number.isFinite(Number(delivery.lad_rate)) || Number(delivery.lad_rate) < 0)) throw new Error('Enter a non-negative LAD rate.');
   if (delivery.pct_programme_override && delivery.pct_programme !== '' && (!Number.isFinite(Number(delivery.pct_programme)) || Number(delivery.pct_programme) < 0 || Number(delivery.pct_programme) > 100)) throw new Error('Programme complete must be between 0 and 100.');
   const values = constructionAutomation(project, delivery);
-  return Object.fromEntries(['pct_programme', 'forecast_pc', 'lad_exposure'].map(key => [key, values[key]]));
+  return { ...Object.fromEntries(['pct_programme', 'forecast_pc', 'lad_exposure'].map(key => [key, values[key]])), lad_exposure_amount: values.amount };
 }

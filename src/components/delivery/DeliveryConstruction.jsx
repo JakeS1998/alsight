@@ -6,6 +6,7 @@ import { Loader2 } from "lucide-react";
 import AutomatedBuildField from '@/components/delivery/AutomatedBuildField';
 import ConstructionLADTerms from '@/components/delivery/ConstructionLADTerms';
 import { constructionAutomation } from '@/components/delivery/constructionAutomation';
+import { formatCurrency } from '@/lib/portal';
 
 const EOT = ["None", "Requested", "Agreed", "Disputed", "N/A"];
 const LAD = ["None", "Potential", "Low", "Medium", "High"];
@@ -23,6 +24,7 @@ export function DeliveryConstruction({ project, delivery, setField, onSave, savi
           <FormField label="Contract start"><input type="date" value={delivery.contract_start ? String(delivery.contract_start).slice(0, 10) : ""} onChange={(e) => setField("contract_start", e.target.value)} className={formInputClass} /></FormField>
           <FormField label="Original PC date"><input type="date" value={delivery.original_pc ? String(delivery.original_pc).slice(0, 10) : ""} onChange={(e) => setField("original_pc", e.target.value)} className={formInputClass} /></FormField>
           <AutomatedBuildField label="Forecast PC date" field="forecast_pc" type="date" value={automation.forecast_pc} delivery={delivery} setField={setField} help="Main-page construction completion date, otherwise expected completion." />
+          <FormField label="Indicative LAD exposure (£)"><input aria-label="Indicative LAD exposure (£)" readOnly value={automation.amount == null ? 'Not estimated' : formatCurrency(automation.amount)} className={formInputClass} /><p className="mt-1 text-xs text-muted-foreground">Calculated using the existing LAD rate and completion dates; stored when you select Save construction.</p></FormField>
           <FormField label="Current valuation (£)"><input type="number" value={delivery.current_valuation ?? ""} onChange={(e) => setField("current_valuation", e.target.value)} className={formInputClass} /></FormField>
           <AutomatedBuildField label="% programme complete" field="pct_programme" type="number" value={automation.pct_programme} delivery={delivery} setField={setField} help="Time elapsed between main-page RIBA 4 completion and expected construction completion, capped at 0–100%; not measured site progress." />
           <FormField label="% cost complete"><input type="number" min="0" max="100" value={delivery.pct_cost ?? ""} onChange={(e) => setField("pct_cost", e.target.value)} className={formInputClass} /></FormField>

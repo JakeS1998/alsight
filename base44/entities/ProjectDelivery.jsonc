@@ -121,6 +121,14 @@
       "maxLength": 4000,
       "description": "LAD contractual terms and reference"
     },
+    "lad_exposure_amount": {
+      "type": [
+        "number",
+        "null"
+      ],
+      "minimum": 0,
+      "description": "Indicative GBP LAD exposure calculated from the contractual rate and completion dates, stored when construction is saved; null means insufficient information. Not confirmation that LADs are payable."
+    },
     "pct_cost": {
       "type": "number"
     },
