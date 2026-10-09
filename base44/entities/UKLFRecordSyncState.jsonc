@@ -1,0 +1,83 @@
+{
+  "name": "UKLFRecordSyncState",
+  "type": "object",
+  "properties": {
+    "key": {
+      "type": "string",
+      "enum": [
+        "primary"
+      ]
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "idle",
+        "running",
+        "completed"
+      ],
+      "default": "idle"
+    },
+    "cursor": {
+      "type": "string",
+      "default": "",
+      "maxLength": 4096
+    },
+    "processed": {
+      "type": "integer",
+      "default": 0
+    },
+    "created": {
+      "type": "integer",
+      "default": 0
+    },
+    "reused": {
+      "type": "integer",
+      "default": 0
+    },
+    "conflicts": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": true
+      },
+      "maxItems": 200
+    },
+    "last_completed_at": {
+      "type": "string"
+    },
+    "lease_token": {
+      "type": "string",
+      "default": ""
+    },
+    "lease_until": {
+      "type": "string",
+      "format": "date-time",
+      "default": "1970-01-01T00:00:00.000Z"
+    }
+  },
+  "required": [
+    "key"
+  ],
+  "rls": {
+    "read": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "create": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "update": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "delete": {
+      "user_condition": {
+        "role": "admin"
+      }
+    }
+  }
+}

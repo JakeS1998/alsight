@@ -1,0 +1,42 @@
+{
+  "name": "UKLF Records for Framework Projects",
+  "description": "Ensure a UKLF record when a Framework project is created or becomes Framework. Preserve linked records and copied source values.",
+  "trigger": {
+    "config": {
+      "trigger_type": "entity",
+      "entity_name": "Project",
+      "events": [
+        "create",
+        "update"
+      ]
+    },
+    "condition": "${ .trigger.data.procurement_route == true and (.trigger.event_type == \"create\" or .trigger.old_data.procurement_route != true) }"
+  },
+  "definition": {
+    "document": {
+      "dsl": "1.0.0",
+      "name": "framework_uklf_records",
+      "version": "1.0",
+      "namespace": "base44"
+    },
+    "do": [
+      {
+        "ensure_uklf_record": {
+          "call": "invoke_backend_function",
+          "with": {
+            "function_name": "manageUKLFRecords",
+            "args": {
+              "action": "ensure",
+              "projectId": "${ .trigger.entity_id }"
+            }
+          },
+          "then": "end",
+          "x-base44": {
+            "title": "Ensure linked UKLF record",
+            "description": "Copy known data; preserve existing reports"
+          }
+        }
+      }
+    ]
+  }
+}

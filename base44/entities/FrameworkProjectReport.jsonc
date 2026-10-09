@@ -58,8 +58,7 @@
     },
     "riddor_incidents": {
       "type": "integer",
-      "minimum": 0,
-      "default": 0
+      "minimum": 0
     },
     "local_spend": {
       "type": "number"

@@ -44,6 +44,7 @@ const safeRow = (r, internal) => ({
   completed_to_budget: r.completed_to_budget, zero_riddor: r.zero_riddor,
   riddor_incidents: r.riddor_incidents ?? null,
   apprenticeships: r.apprenticeships, created_date:r.created_date, updated_date:r.updated_date,
+  ...(internal ? {indicative_value:r.indicative_value,aa_value:r.aa_value,calloff_value:r.calloff_value,completion_value:r.completion_value,access_fee:r.access_fee,local_spend:r.local_spend} : {}),
 
 });
 
