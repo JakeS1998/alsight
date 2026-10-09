@@ -1,14 +1,16 @@
 import {documentNeedsApproval} from './documentApprovalEligibility.ts';
+import {approvalSourceEntities} from './approvalRoutedAccess.ts';
 const entities = {documents:'LegalDocument',dma:'DMA',warranties:'Warranty'};
 export const approvalEntity = table => entities[table];
 export async function approvalSource(base44, request) {
  const entity=entities[request.source_table];
  if(!entity)throw new Error('Unknown document type.');
- const page=await base44.entities[entity].filter({dataverse_id:request.source_id},{limit:2});
+ const db=await approvalSourceEntities(base44,request);
+ const page=await db[entity].filter({dataverse_id:request.source_id},{limit:2});
  if(page.items.length!==1)throw new Error('This document is not available under your current ALSight permissions.');
  const document=page.items[0];
  if(!documentNeedsApproval(document))throw new Error('This document no longer requires approval: it must be drafted, marked Approval Pending and have no approval date.');
- const projects=await base44.entities.Project.filter({$or:[{dataverse_id:document.project_id},{id:document.project_id}]},{limit:2});
+ const projects=await db.Project.filter({$or:[{dataverse_id:document.project_id},{id:document.project_id}]},{limit:2});
  if(projects.items.length!==1)throw new Error('The linked project is not available under your current ALSight permissions.');
  return {document,project:projects.items[0]};
 }

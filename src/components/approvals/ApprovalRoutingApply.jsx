@@ -1,0 +1,10 @@
+import React, {useState} from 'react';
+import {Button} from '@/components/ui/button';
+import {useQueryClient} from '@tanstack/react-query';
+import approvalClient from '@/components/approvals/approvalClient';
+export default function ApprovalRoutingApply({table,title}) {
+ const [busy,setBusy]=useState(false),[notice,setNotice]=useState(''),[error,setError]=useState(''),[cursor,setCursor]=useState(null),[totals,setTotals]=useState(null);
+ const cache=useQueryClient();
+ const apply=async()=>{setBusy(true);setError('');let next=cursor,counts=totals || {processed:0,added:0,removed:0,unlinked:0};try{do{const page=await approvalClient('syncDocuments',{table,refreshDates:true,...(next ? {cursor:next} : {})});for(const key of Object.keys(counts))counts[key]+=page[key] || 0;next=page.has_more ? page.next_cursor : null;setCursor(next);setTotals({...counts});setNotice(`Checked ${counts.processed} documents…`);}while(next);setNotice(`Checked ${counts.processed} documents: ${counts.added} requests added, ${counts.removed} removed from inboxes, ${counts.unlinked} pending documents need a project or eligible recipient.`);setTotals(null);cache.invalidateQueries({queryKey:['approval-inbox']});cache.invalidateQueries({queryKey:['approval-summary']});}catch(error){setError(error.message);}finally{setBusy(false);}};
+ return <div className="space-y-2 rounded-panel border border-border bg-card p-5"><h3 className="font-heading text-lg font-semibold">Apply routing · {title}</h3><p className="text-sm text-muted-foreground">Reconcile existing pending documents with the saved rule. Recorded decisions and audit history are retained. Eligible documents must be drafted, marked Approval Pending and have no approval date.</p><Button type="button" variant="outline" disabled={busy} onClick={apply}>{busy ? 'Applying routing…' : cursor ? 'Resume applying routing' : 'Apply to existing documents'}</Button>{notice && <p role="status" className="text-sm text-muted-foreground">{notice}</p>}{error && <p role="alert" className="text-sm text-destructive">{error}</p>}</div>;
+}

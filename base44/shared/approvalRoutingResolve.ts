@@ -8,11 +8,15 @@ export async function resolveApprovalRouting(base44,table,pairs) {
  const rules=(config.related_rules || []).map(key=>({key,...approvalRelatedRules[key]}));
  const refs=[...new Set(pairs.flatMap(({document,project})=>rules.map(rule=>reference(document,project,rule))).filter(Boolean))];
  const contacts=refs.length ? (await db.Contact.filter({$or:[{id:{$in:refs}},{dataverse_id:{$in:refs}},{aad_id:{$in:refs}}]},{limit:500,fields:['dataverse_id','aad_id','full_name','email']})).items : [];
- const guids=refs.filter(id=>/^[0-9a-f-]{36}$/.test(id)),portalIds=refs.filter(id=>/^[0-9a-f]{24}$/.test(id));
+ const staffRefs=[...new Set(pairs.flatMap(({document,project})=>rules.filter(rule=>rule.kind==='staff').map(rule=>reference(document,project,rule))).filter(Boolean))];
+ const guids=staffRefs.filter(id=>/^[0-9a-f-]{36}$/.test(id)),portalIds=staffRefs.filter(id=>/^[0-9a-f]{24}$/.test(id));
  const users=guids.length ? await db.User.filter({$or:[{staff_aad_id:{$in:guids}},{dataverse_systemuser_id:{$in:guids}}]},'full_name',500) : [];
  for(let start=0;start<portalIds.length;start+=4){
   const batch=await Promise.allSettled(portalIds.slice(start,start+4).map(id=>db.User.get(id)));
-  for(const result of batch)if(result.status==='fulfilled' && result.value && !users.some(u=>u.id===result.value.id))users.push(result.value);
+  for(const result of batch){
+   if(result.status==='rejected' && (result.reason?.response?.status || result.reason?.status)!==404)throw result.reason;
+   if(result.status==='fulfilled' && result.value && !users.some(u=>u.id===result.value.id))users.push(result.value);
+  }
  }
  const candidates=pairs.map(({document,project})=>{
   const reasons=[],emails=new Set((config.named_emails || []).map(address));

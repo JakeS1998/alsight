@@ -21,9 +21,11 @@ export async function approvalRoutingAdmin(base44,user,input) {
   if(input.named_emails.some(email=>typeof email!=='string' || email.length>250 || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) || input.related_rules.some(key=>!approvalRelatedRules[key]))throw new Error('Choose valid people and linked project roles.');
   const named_emails=[...new Set(input.named_emails.map(email=>email.trim().toLowerCase()))],related_rules=[...new Set(input.related_rules)];
   if(input.enabled && !named_emails.length && !related_rules.length)throw new Error('Choose at least one person or linked project role, or disable this route.');
-  if(named_emails.length){
+  if(named_emails.length && input.enabled){
    const grants=await db.ApprovalAccess.filter({email:{$in:named_emails},enabled:true},{limit:20,fields:['email']});
    if(named_emails.some(email=>!grants.items.some(g=>g.email===email)))throw new Error('Grant approval access to every selected person before saving.');
+   const users=await db.User.filter({$or:named_emails.map(email=>({email:{$regex:`^${escape(email)}$`,$options:'i'}}))},'full_name',100);
+   if(named_emails.some(email=>{const matches=users.filter(u=>u.email?.trim().toLowerCase()===email);return matches.length!==1 || !liveApproverRoles.includes(matches[0].role);}))throw new Error('Every named approver needs a registered internal portal account for live Dataverse approvals.');
   }
   const result=await db.ApprovalRouting.upsert([{table:input.table,named_emails,related_rules,enabled:input.enabled,changed_by:user.id,changed_at:new Date().toISOString()}],{key:'table'});
   return {rule:result.records[0],notice:'Routing saved. Apply it to existing pending documents below; automatic sync also uses this rule.'};

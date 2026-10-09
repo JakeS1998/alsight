@@ -4,6 +4,7 @@ import {documentNeedsApproval} from './documentApprovalEligibility.ts';
 export {documentNeedsApproval} from './documentApprovalEligibility.ts';
 import {resolveApprovalRouting} from './approvalRoutingResolve.ts';
 const sameDraft=(a,b)=>Number.isFinite(Date.parse(a)) && Date.parse(a)===Date.parse(b);
+const linkedProject=(projects,document)=>{const matches=projects.filter(p=>p.dataverse_id===document.project_id || p.id===document.project_id);return matches.length===1 ? matches[0] : undefined;};
 export async function syncDocumentApprovals(base44,table,documents) {
  if(!approvalEntity(table) || !documents.length)return {added:0,removed:0,restored:0,unlinked:0};
  if(documents.length>50)throw new Error('Document approval reconciliation is limited to 50 documents per batch.');
@@ -14,12 +15,12 @@ export async function syncDocumentApprovals(base44,table,documents) {
  do {const page=await db.DocumentApprovalRequest.filter({source_table:table,source_id:{$in:ids}},{limit:100,...(cursor ? {cursor} : {})});requests.push(...page.items);cursor=page.has_more ? page.next_cursor : null;}while(cursor);
  const parentIds=[...new Set(documents.map(d=>d.project_id).filter(Boolean))];
  const projects=parentIds.length ? (await db.Project.filter({$or:[{dataverse_id:{$in:parentIds}},{id:{$in:parentIds}}]},{limit:100})).items : [];
- const routing=await resolveApprovalRouting(base44,table,documents.map(document=>({document,project:projects.find(p=>p.dataverse_id===document.project_id || p.id===document.project_id)})));
+ const routing=await resolveApprovalRouting(base44,table,documents.map(document=>({document,project:linkedProject(projects,document)})));
  const now=new Date().toISOString(),changes=[],newRequests=[],events=[],counts={added:0,removed:0,restored:0,unlinked:0};
  const event=(r,action)=>({approval_id:r.id,action,actor_id:'document-date-sync',actor_name:'Document date sync',occurred_at:now,previous_status:r.status,new_status:r.status,integration_result:'Reconciled with the document drafted and approval dates. Decisions and audit history retained.'});
  for(const document of documents){
-  if(!document.dataverse_id){counts.unlinked++;continue;}
-  const related=requests.filter(r=>r.source_id===document.dataverse_id),project=projects.find(p=>p.dataverse_id===document.project_id || p.id===document.project_id),eligible=documentNeedsApproval(document);
+  if(!document.dataverse_id){if(documentNeedsApproval(document))counts.unlinked++;continue;}
+  const related=requests.filter(r=>r.source_id===document.dataverse_id),project=linkedProject(projects,document),eligible=documentNeedsApproval(document);
   const recipients=routing.results.find(result=>result.document.id===document.id)?.emails || [];
   for(const request of related){
    const visible=eligible && sameDraft(request.drafted_date,document.drafted_date) && (!!request.response || recipients.includes(request.approver_email));
@@ -37,12 +38,16 @@ export async function syncDocumentApprovals(base44,table,documents) {
   const drafted=new Date(document.drafted_date).toISOString();
   for(const email of recipients){
    if(related.some(r=>r.approver_email===email && sameDraft(r.drafted_date,document.drafted_date)))continue;
-   newRequests.push({request_key:`live:${table}:${document.dataverse_id}:${drafted}:${email}`,source_table:table,source_id:document.dataverse_id,source_version:document.approval_source_version,source_requires_approval:true,routing_assigned:true,status:'pending',writeback_status:'pending',...approvalMetadata(document,project),drafted_date:drafted,document_title:[document.document_id || document.warranty_id,project.name,document.services].filter(Boolean).join(' — ').slice(0,300),document_url:document.link_to_file || '',approver_email:email,requested_at:now,reason:'Assigned by the table approval routing rule. Document is drafted, marked Approval Pending and has no approval date.'});
+   newRequests.push({request_key:`live:${table}:${document.dataverse_id}:${drafted}:${email}`,source_table:table,source_id:document.dataverse_id,source_version:document.approval_source_version,routing_assigned:true,...approvalMetadata(document,project),drafted_date:drafted,document_title:[document.document_id || document.warranty_id,project.name,document.services].filter(Boolean).join(' — ').slice(0,300),document_url:document.link_to_file || '',approver_email:email,requested_at:now,reason:'Assigned by the table approval routing rule. Document is drafted, marked Approval Pending and has no approval date.'});
   }
  }
- if(changes.length)await db.DocumentApprovalRequest.bulkUpdate(changes);
- if(events.length)await db.DocumentApprovalEvent.bulkCreate(events);
- if(newRequests.length){const result=await db.DocumentApprovalRequest.upsert(newRequests,{key:'request_key'});counts.added=result.created;await db.DocumentApprovalEvent.bulkCreate(result.records.map(r=>event(r,'Added from document sync')));}
+ for(let offset=0;offset<changes.length;offset+=500)await db.DocumentApprovalRequest.bulkUpdate(changes.slice(offset,offset+500));
+ for(let offset=0;offset<events.length;offset+=500)await db.DocumentApprovalEvent.bulkCreate(events.slice(offset,offset+500));
+ for(let offset=0;offset<newRequests.length;offset+=500){
+  const result=await db.DocumentApprovalRequest.upsert(newRequests.slice(offset,offset+500),{key:'request_key'});counts.added+=result.created;
+  await db.DocumentApprovalRequest.updateMany({request_key:{$in:result.records.map(r=>r.request_key)},status:'pending',response:{$exists:false},writeback_status:'not_required'},{$set:{writeback_status:'pending'}});
+  if(result.created)await db.DocumentApprovalEvent.bulkCreate(result.records.filter(r=>!r.response && r.status==='pending').map(r=>event(r,'Added from document sync')));
+ }
  return counts;
 }
 export async function syncDocumentApprovalPage(base44,input) {
