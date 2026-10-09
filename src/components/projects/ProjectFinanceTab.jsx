@@ -20,6 +20,7 @@ import FinanceInsight from '@/components/alice/FinanceInsight';
 import FinanceComingSoon from '@/components/projects/FinanceComingSoon';
 import useProjectFinanceOrders from '@/components/projects/finance/useProjectFinanceOrders';
 import ProjectSyncedPurchaseOrders from '@/components/projects/finance/ProjectSyncedPurchaseOrders';
+import useProjectOrderCashFlow from '@/components/projects/finance/useProjectOrderCashFlow';
 
 function Spinner() {
   return (
@@ -40,6 +41,7 @@ export function ProjectFinanceTab({ project }) {
   const payments = useProjectPaymentBalance(project);
   const fin = useFinanceData(project);
   const syncedOrders = useProjectFinanceOrders(project);
+  const orderCashFlow = useProjectOrderCashFlow(project, syncedOrders.enabled);
 
   useEffect(() => {
     (async () => {
@@ -99,8 +101,11 @@ export function ProjectFinanceTab({ project }) {
       <FinanceInsight project={project} summary={summary} health={health} delivery={delivery} />
       <CommercialSummary summary={summary} health={health} />
 
-      {/* Money In & Out chart — preserved exactly as-is */}
-      <ProjectCashFlow {...cashFlow} commitments={commitments} />
+      <ProjectCashFlow {...cashFlow}
+        loading={cashFlow.loading || (syncedOrders.enabled && orderCashFlow.isPending)}
+        error={cashFlow.error || (orderCashFlow.error ? `Purchase-order graph could not be loaded: ${orderCashFlow.error.message}` : '')}
+        commitments={orderCashFlow.data?.total > 0 ? orderCashFlow.data.entries : commitments}
+        missingDates={orderCashFlow.data?.missingDates || 0} missingValues={orderCashFlow.data?.missingValues || 0} />
 
       <ValuationPosition project={project} valuations={fin.valuations || []} />
 

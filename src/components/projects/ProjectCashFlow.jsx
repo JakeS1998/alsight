@@ -28,10 +28,11 @@ export function useProjectCashFlow(projectId) {
   return { invoices, entries, loading, error };
 }
 
-export default function ProjectCashFlow({ entries, commitments = [], loading, error }) {
+export default function ProjectCashFlow({ entries, commitments = [], loading, error, missingDates = 0, missingValues = 0 }) {
   return <section className="rounded-2xl border border-border bg-card p-5 space-y-5">
     <div><h3 className="font-heading text-base font-semibold text-card-foreground">Money in & out</h3>
       <p className="text-xs text-muted-foreground">Cumulative client payments, money out and net cash balance. Approved or issued POs are treated as paid outgoings at their net value because they are raised after payment approval, alongside recorded spending.</p></div>
+    {!loading && !error && (missingDates > 0 || missingValues > 0) && <p className="text-xs text-muted-foreground">Excluded from the graph: {[missingDates > 0 && `${missingDates} purchase orders without a valid recorded date`, missingValues > 0 && `${missingValues} purchase orders without a complete net value`].filter(Boolean).join('; ')}.</p>}
     {loading ? <p className="py-12 text-center text-sm text-muted-foreground">Loading cash flow…</p> : error ? <p role="alert" className="text-sm text-destructive">{error}</p> : <CashFlowChart entries={[...entries, ...commitments.map(entry => ({ ...entry, type: 'spent' }))]} />}
   </section>;
 }
