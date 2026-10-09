@@ -28,6 +28,7 @@ export default async function(req) {
     if(input.action==='pulseAdd') return Response.json(await addPulse(base44,user,input));
     if(input.action==='remove') return Response.json(await removeItem(base44,user,input));
     if(input.action==='purposeSave') return Response.json(await savePurpose(base44,user,input));
+    // Research sources are attached to evidence; citation numbering is assigned server-side.
     if(input.action==='purposeResearch') return Response.json(await researchProjectPurpose(base44,user,input));
     return Response.json({error:'Unsupported Alliance operation.'},{status:400});
   } catch(error) { return Response.json({error:error.message || 'Unable to complete this Alliance request.'},{status:/rate limit|too many requests/i.test(error.message) ? 429 : 400}); }
