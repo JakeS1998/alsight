@@ -1,0 +1,115 @@
+{
+  "name": "Daily Approval Reminder Email",
+  "description": "Emails each registered approval user their own outstanding approvals, with direct record links. Rechecks access and pending records before sending and skips empty inboxes.",
+  "trigger": {
+    "config": {
+      "trigger_type": "entity",
+      "entity_name": "ApprovalDigestDelivery",
+      "events": [
+        "create"
+      ]
+    },
+    "condition": "${ .trigger.data.status == \"queued\" }"
+  },
+  "definition": {
+    "document": {
+      "dsl": "1.0.0",
+      "name": "daily_approval_reminder_email",
+      "version": "1.0",
+      "namespace": "base44"
+    },
+    "do": [
+      {
+        "prepare": {
+          "call": "invoke_backend_function",
+          "with": {
+            "function_name": "manageDailyApprovalDigest",
+            "args": {
+              "action": "digest",
+              "deliveryId": "${ .trigger.entity_id }"
+            }
+          },
+          "then": "check_inbox",
+          "x-base44": {
+            "title": "Prepare this user's approvals",
+            "description": "Verify access and current outstanding records"
+          }
+        }
+      },
+      {
+        "check_inbox": {
+          "switch": [
+            {
+              "when": "${ .prepare.send == true }",
+              "then": "email_summary"
+            },
+            {
+              "when": "${ true }",
+              "then": "end"
+            }
+          ],
+          "x-base44": {
+            "title": "Any approvals awaiting a decision?",
+            "description": "Skip revoked access or empty inboxes"
+          }
+        }
+      },
+      {
+        "email_summary": {
+          "call": "send_email",
+          "with": {
+            "template_name": "DailyApprovalDigest",
+            "to": "${ .prepare.to }",
+            "description": "ALSight daily summary of this user's assigned approvals and direct review links",
+            "variables": {
+              "report_date": "${ .prepare.variables.report_date }",
+              "greeting": "${ .prepare.variables.greeting }",
+              "approval_count": "${ .prepare.variables.approval_count }",
+              "approval_rows": "${ .prepare.variables.approval_rows }"
+            }
+          },
+          "then": "check_delivery",
+          "x-base44": {
+            "title": "Email branded approval summary",
+            "description": "Private digest for this approval user"
+          }
+        }
+      },
+      {
+        "check_delivery": {
+          "switch": [
+            {
+              "when": "${ .email_summary.sent == true }",
+              "then": "record_delivery"
+            },
+            {
+              "when": "${ true }",
+              "then": "end"
+            }
+          ],
+          "x-base44": {
+            "title": "Was the email sent?",
+            "description": "Test runs do not mark delivery complete"
+          }
+        }
+      },
+      {
+        "record_delivery": {
+          "call": "invoke_backend_function",
+          "with": {
+            "function_name": "manageDailyApprovalDigest",
+            "args": {
+              "action": "sent",
+              "deliveryId": "${ .trigger.entity_id }"
+            }
+          },
+          "then": "end",
+          "x-base44": {
+            "title": "Record today's delivery",
+            "description": "Retain the reminder history"
+          }
+        }
+      }
+    ]
+  }
+}

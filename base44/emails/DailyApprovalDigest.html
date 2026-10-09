@@ -1,0 +1,42 @@
+<mjml>
+  <mj-head>
+    <mj-title>ALSight | {{approval_count}} outstanding approvals | {{report_date}}</mj-title>
+    <mj-preview>Your assigned approvals, with direct links to review each record.</mj-preview>
+    <mj-attributes>
+      <mj-all font-family="Arial Narrow, Arial, sans-serif" />
+      <mj-section background-color="#ffffff" padding="0 32px" />
+      <mj-text color="#102642" font-size="15px" line-height="1.6" padding="0" />
+      <mj-button background-color="#f59929" color="#000000" border-radius="7px" font-weight="700" inner-padding="14px 24px" padding="0" align="left" />
+      <mj-class name="muted" color="#5f7586" />
+    </mj-attributes>
+  </mj-head>
+  <mj-body width="600px" background-color="#eaf4fb">
+    <mj-section background-color="#f59929" padding="22px 32px">
+      <mj-group>
+        <mj-column width="24%"><mj-image src="https://media.base44.com/images/public/6ab62433a194f918c54c8249/c6a55826a_logo.jpg" alt="ALSight logo" width="90px" align="left" padding="0" /></mj-column>
+        <mj-column width="76%"><mj-text color="#000000" font-size="26px" font-weight="700" padding="8px 0 0 16px">ALSight</mj-text><mj-text color="#000000" font-size="12px" padding="0 0 0 16px">DAILY APPROVAL SUMMARY</mj-text></mj-column>
+      </mj-group>
+    </mj-section>
+    <mj-section padding="32px 32px 24px"><mj-column>
+      <mj-text font-size="30px" font-weight="700" line-height="1.2">Your outstanding approvals</mj-text>
+      <mj-text mj-class="muted" padding="12px 0 0">The following approvals are assigned to you and awaiting your decision.</mj-text>
+      <mj-text padding="20px 0 0">{{greeting}}</mj-text>
+      <mj-text mj-class="muted" font-size="13px" padding="6px 0 0">{{report_date}} · London time</mj-text>
+    </mj-column></mj-section>
+    <mj-section background-color="#eaf4fb" padding="20px 32px"><mj-column>
+      <mj-text font-size="32px" font-weight="700">{{approval_count}}</mj-text>
+      <mj-text mj-class="muted">Approvals awaiting your decision</mj-text>
+    </mj-column></mj-section>
+    <mj-section padding="24px 32px 8px"><mj-column>
+      <mj-text font-size="20px" font-weight="700">Review your assigned records</mj-text>
+      <mj-table cellpadding="0" cellspacing="0" width="100%" font-family="Arial Narrow, Arial, sans-serif" color="#102642" font-size="14px" line-height="1.5" padding="4px 0 0">{{approval_rows}}</mj-table>
+    </mj-column></mj-section>
+    <mj-section padding="28px 32px 36px"><mj-column>
+      <mj-button href="https://alsight.base44.app/approvals">Open Approval Centre</mj-button>
+      <mj-text mj-class="muted" font-size="12px" padding="16px 0 0">Sign in with your ALSight account to review and respond. This summary reflects the approvals outstanding when the email was prepared.</mj-text>
+    </mj-column></mj-section>
+    <mj-section background-color="#eaf4fb" padding="24px 32px"><mj-column>
+      <mj-text mj-class="muted" font-size="12px">ALSight · Daily approval reminder<br />You receive this email because approval access is enabled and records are assigned to you. No reminder is sent when there are no outstanding approvals.</mj-text>
+    </mj-column></mj-section>
+  </mj-body>
+</mjml>

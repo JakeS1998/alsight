@@ -1,0 +1,67 @@
+{
+  "name": "ApprovalDigestDelivery",
+  "type": "object",
+  "properties": {
+    "delivery_key": {
+      "type": "string",
+      "maxLength": 200
+    },
+    "report_day": {
+      "type": "string",
+      "format": "date"
+    },
+    "recipient_user_id": {
+      "type": "string"
+    },
+    "recipient_email": {
+      "type": "string",
+      "format": "email"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "queued",
+        "sent",
+        "skipped"
+      ],
+      "default": "queued"
+    },
+    "sent_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "approval_count": {
+      "type": "integer",
+      "minimum": 0
+    }
+  },
+  "required": [
+    "delivery_key",
+    "report_day",
+    "recipient_user_id",
+    "recipient_email",
+    "status"
+  ],
+  "rls": {
+    "read": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "create": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "update": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "delete": {
+      "user_condition": {
+        "role": "admin"
+      }
+    }
+  }
+}

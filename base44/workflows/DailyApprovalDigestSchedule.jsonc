@@ -1,0 +1,47 @@
+{
+  "definition": {
+    "document": {
+      "dsl": "1.0.0",
+      "name": "daily_approval_reminders_at_nine",
+      "version": "1.0",
+      "namespace": "base44"
+    },
+    "do": [
+      {
+        "queue_reminders": {
+          "call": "invoke_backend_function",
+          "with": {
+            "function_name": "manageDailyApprovalDigest",
+            "args": {
+              "action": "enqueue"
+            }
+          },
+          "then": "end",
+          "x-base44": {
+            "title": "Prepare daily approval reminders",
+            "description": "Queue each registered approval user's private digest"
+          }
+        }
+      }
+    ]
+  },
+  "name": "Daily Approval Reminders at 9am",
+  "description": "Every day at 9am London time, queues one personalised approval summary per registered user with approval access and outstanding assigned approvals. Existing daily deliveries are not queued again.",
+  "trigger": {
+    "condition": null,
+    "config": {
+      "trigger_type": "scheduled",
+      "events": [],
+      "schedule_mode": "recurring",
+      "cron_expression": "0 9 * * *",
+      "one_time_date": null,
+      "timezone": "Europe/London",
+      "interval_value": null,
+      "interval_unit": null,
+      "interval_anchor": null,
+      "ends_type": "never",
+      "ends_on_date": null,
+      "ends_after_count": null
+    }
+  }
+}
