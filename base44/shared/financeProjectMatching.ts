@@ -1,3 +1,4 @@
+import {workbookFinanceMatches} from './financeWorkbookMatching.ts';
 const escape=v=>v.replace(/[.*+?^${}()|[\]\\]/g,'\\$&');
 export function namePattern(name){
  const words=String(name||'').toLowerCase().replace(/&/g,' and ').match(/[a-z0-9]+/g)||[];
@@ -9,9 +10,10 @@ export async function resolveFinanceProjects(base44,config,rows){
  const keyed=await Promise.all(rows.map(async row=>({...row,source_key:await sourceKey(config.dataset_id,row.Project,row.Code)})));
  if(!keyed.length)return [];
  const previous=(await db.FinanceProjectMapping.filter({dataset_id:config.dataset_id,source_key:{$in:keyed.map(r=>r.source_key)}},{limit:100})).items;
- const updates=[],result=[];
+ const workbook=await workbookFinanceMatches(base44,keyed),updates=[],result=[];
  for(let i=0;i<keyed.length;i+=3){const batch=await Promise.all(keyed.slice(i,i+3).map(async row=>{
- const old=previous.find(m=>m.source_key===row.source_key);
+ const old=previous.find(m=>m.source_key===row.source_key),codeMatch=workbook.get(String(row.Code||'').trim().toUpperCase());
+ if(codeMatch){const mapping={source_key:row.source_key,dataset_id:config.dataset_id,source_name:String(row.Project||''),source_code:String(row.Code||''),...codeMatch,linked_at:new Date().toISOString()};updates.push(mapping);return {...row,mapping:{...old,...mapping}};}
  if(old)return {...row,mapping:old};
  const pattern=namePattern(row.Project), candidates=pattern?(await db.Project.filter({name:{$regex:pattern,$options:'i'}},{limit:3,fields:['name','project_number','dataverse_id']})).items:[];
  const unique=candidates.length===1?candidates[0]:null;

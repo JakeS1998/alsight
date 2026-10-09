@@ -1,0 +1,72 @@
+{
+  "name": "FinanceProjectCodeLink",
+  "type": "object",
+  "properties": {
+    "link_key": {
+      "type": "string"
+    },
+    "project_number": {
+      "type": "string"
+    },
+    "sage_code": {
+      "type": "string"
+    },
+    "development": {
+      "type": "string"
+    },
+    "client": {
+      "type": "string"
+    },
+    "source_page": {
+      "type": "integer"
+    },
+    "source_file": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "link_key",
+    "project_number",
+    "sage_code",
+    "development",
+    "client",
+    "source_page",
+    "source_file"
+  ],
+  "rls": {
+    "read": {
+      "$or": [
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        },
+        {
+          "user_condition": {
+            "role": "finance"
+          }
+        },
+        {
+          "user_condition": {
+            "role": "director"
+          }
+        }
+      ]
+    },
+    "create": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "update": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "delete": {
+      "user_condition": {
+        "role": "admin"
+      }
+    }
+  }
+}
