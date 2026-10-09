@@ -111,6 +111,50 @@
       ],
       "default": "week"
     },
+    "lad_stages": {
+      "type": "array",
+      "maxItems": 10,
+      "description": "Ordered LAD charging stages. Each started period is charged in full; percentages use the contractor contract_sum excluding VAT. A null duration applies thereafter and must be the final stage. An empty array means no LAD schedule.",
+      "items": {
+        "type": "object",
+        "properties": {
+          "basis": {
+            "type": "string",
+            "enum": [
+              "amount",
+              "percentage"
+            ]
+          },
+          "value": {
+            "type": "number",
+            "minimum": 0
+          },
+          "period": {
+            "type": "string",
+            "enum": [
+              "day",
+              "week",
+              "month",
+              "year"
+            ]
+          },
+          "periods": {
+            "type": [
+              "integer",
+              "null"
+            ],
+            "minimum": 1,
+            "maximum": 10000
+          }
+        },
+        "required": [
+          "basis",
+          "value",
+          "period",
+          "periods"
+        ]
+      }
+    },
     "lad_completion_date": {
       "type": "string",
       "format": "date",

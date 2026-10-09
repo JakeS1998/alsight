@@ -1,4 +1,5 @@
 import { projectCompletionDates } from '@/components/projects/projectCompletionDates';
+import { calculateLADSchedule, getLADStages, ladStageError, normalizedLADStages } from '@/components/delivery/ladSchedule';
 const day = value => {
   const text = String(value || '').slice(0, 10);
   return /^\d{4}-\d{2}-\d{2}$/.test(text) && Number.isFinite(Date.parse(text)) ? text : '';
@@ -17,19 +18,20 @@ export function constructionAutomation(project, delivery, today = new Intl.DateT
   const achieved = day(delivery.pc_achieved) || (actual && actual <= today ? actual : '');
   const finish = achieved || (effectiveForecast ? (effectiveForecast > today ? effectiveForecast : today) : '');
   const delayDays = baseline && finish ? Math.max(0, Math.round((timestamp(finish) - timestamp(baseline)) / 86400000)) : null;
-  const rawRate = delivery.lad_rate;
-  const rate = rawRate === '' || rawRate == null ? null : Number(rawRate);
-  const amount = delayDays != null && rate != null && Number.isFinite(rate) && rate >= 0 ? Math.round(delayDays * rate / ((delivery.lad_rate_period || 'week') === 'week' ? 7 : 1) * 100) / 100 : null;
+  const schedule = calculateLADSchedule(delivery, baseline, finish);
+  const amount = schedule.amount;
   const exposure = amount == null ? '' : amount > 0 ? 'Potential' : 'None';
-  return { start, expected, baseline, delayDays, amount,
+  return { start, expected, baseline, delayDays, amount, ladBreakdown: schedule.breakdown, ladReason: schedule.reason,
     pct_programme: delivery.pct_programme_override ? delivery.pct_programme : pct,
     forecast_pc: effectiveForecast,
     lad_exposure: delivery.lad_exposure_override ? delivery.lad_exposure : exposure,
   };
 }
 export function savedConstructionValues(project, delivery) {
-  if (delivery.lad_rate !== '' && delivery.lad_rate != null && (!Number.isFinite(Number(delivery.lad_rate)) || Number(delivery.lad_rate) < 0)) throw new Error('Enter a non-negative LAD rate.');
+  const stages = getLADStages(delivery);
+  const stageError = ladStageError(stages);
+  if (stageError) throw new Error(stageError);
   if (delivery.pct_programme_override && delivery.pct_programme !== '' && (!Number.isFinite(Number(delivery.pct_programme)) || Number(delivery.pct_programme) < 0 || Number(delivery.pct_programme) > 100)) throw new Error('Programme complete must be between 0 and 100.');
   const values = constructionAutomation(project, delivery);
-  return { ...Object.fromEntries(['pct_programme', 'forecast_pc', 'lad_exposure'].map(key => [key, values[key]])), lad_exposure_amount: values.amount };
+  return { ...Object.fromEntries(['pct_programme', 'forecast_pc', 'lad_exposure'].map(key => [key, values[key]])), lad_exposure_amount: values.amount, lad_stages: normalizedLADStages(stages) };
 }
