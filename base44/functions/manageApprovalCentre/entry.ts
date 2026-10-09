@@ -3,6 +3,7 @@ import {approvalList,approvalSummary,approvalOptions,approvalDetail} from '../..
 import {decideDocumentApproval} from '../../shared/documentApprovalDecision.ts';
 import {receiveDocumentApproval} from '../../shared/documentApprovalIntake.ts';
 import {syncDocumentApprovalPage} from '../../shared/documentApprovalSync.ts';
+import {approvalRoutingAdmin} from '../../shared/approvalRoutingAdmin.ts';
 const address=value=>typeof value==='string' ? value.trim().toLowerCase() : '';
 const validId=value=>typeof value==='string' && /^[a-zA-Z0-9_-]{1,100}$/.test(value);
 export default async function(req: Request): Promise<Response> {
@@ -11,6 +12,10 @@ export default async function(req: Request): Promise<Response> {
   if(!user)return Response.json({error:'Sign in to use approvals.'},{status:401});
   const input=await req.json(),email=address(user.email);
   if(!email)return Response.json({error:'A verified portal email is required.'},{status:403});
+  if(['routingStatus','routingPeople','saveRouting','routingPreview'].includes(input.action)){
+   if(user.role!=='admin')return Response.json({error:'Only administrators can configure approval routing.'},{status:403});
+   return Response.json(await approvalRoutingAdmin(base44,user,input));
+  }
   const grants=base44.asServiceRole.entities.ApprovalAccess;
   if(['contactAccess','setContactAccess'].includes(input.action)) {
    if(user.role!=='admin')return Response.json({error:'Only administrators can manage approval access.'},{status:403});
