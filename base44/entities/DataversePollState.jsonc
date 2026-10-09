@@ -29,7 +29,7 @@
       "items": {
         "type": "string"
       },
-      "maxItems": 9
+      "maxItems": 10
     },
     "tables": {
       "type": "object",

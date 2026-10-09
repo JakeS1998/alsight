@@ -9,18 +9,38 @@
       "type": "string"
     },
     "comsrate": {
-      "type": "string"
+      "type": [
+        "string",
+        "number",
+        "null"
+      ]
+    },
+    "commission_rate": {
+      "type": [
+        "number",
+        "null"
+      ],
+      "minimum": 0,
+      "maximum": 100
     },
     "riba_stage": {
       "type": "string"
     },
     "project_ref": {
-      "type": "string",
-      "description": "PROJ reference, links to Project.project_number"
+      "type": "string"
     },
     "supplier_company_number": {
+      "type": "string"
+    },
+    "supplier_source_id": {
+      "type": "string"
+    },
+    "project_source_id": {
+      "type": "string"
+    },
+    "account_id": {
       "type": "string",
-      "description": "links to Account/Customer by company_number"
+      "description": "Matched ALSight supplier account ID"
     },
     "status": {
       "type": "string",

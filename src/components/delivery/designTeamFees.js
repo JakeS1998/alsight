@@ -19,6 +19,7 @@ export function designTeamFees(card, deliveryTeam, suppliers) {
   return {
     ...card,
     account: card.account || supplier?.name,
+    supplierAccount: card.supplierAccount || supplier,
     fee,
     details: [...card.details, `Supplier fee from Delivery Team: ${formatCurrency(fee)} (total across RIBA stages; blank stages count as £0).`],
   };

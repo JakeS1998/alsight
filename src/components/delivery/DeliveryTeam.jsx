@@ -8,6 +8,7 @@ import ContractorFeeBuilder from '@/components/delivery/ContractorFeeBuilder';
 import ContractorStageOhp from '@/components/delivery/ContractorStageOhp';
 import normalizeContractorOhp from '@/components/delivery/normalizeContractorOhp';
 import TaskMemberFee from '@/components/delivery/TaskMemberFee';
+import SupplierCommission from '@/components/accounts/SupplierCommission.jsx';
 
 const ROLES = ["Contractor", "Project Manager", "Principal Designer (CDM)", "Principal Designer (BR)", "Architect", "Structural Engineer", "M&E Engineer", "Cost Consultant", "Other"];
 const STAGES = ["riba_1", "riba_2", "riba_3", "riba_4", "riba_5_7"];
@@ -85,6 +86,7 @@ export function DeliveryTeam({ project, delivery, setField, onSave, saving, supp
                     <option value="">—</option>
                     {suppliers.map((s) => <option key={s.id} value={s.company_number}>{s.name}</option>)}
                   </SearchableSelect>
+                  <SupplierCommission account={suppliers.find(s => s.company_number === m.supplier_company_number)} compact />
                 </FormField>
                 <FormField label="Fee proposal received">
                   <TeamFeeUpload projectId={project.id} member={m} supplier={suppliers.find(s => s.company_number === m.supplier_company_number)?.name} singleTask={singleTask} disabled={uploading !== null} onBusy={busy => setUploading(busy ? idx : null)} onPatch={patch => applyScannedFees(idx, patch)} />

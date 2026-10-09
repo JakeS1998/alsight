@@ -13,6 +13,7 @@ import ProjectWorkspaceFields from '@/components/projects/ProjectWorkspaceFields
 import ProjectWorkspaceDates from '@/components/projects/ProjectWorkspaceDates';
 import ProjectBriefHistory from '@/components/projects/ProjectBriefHistory';
 import useProjectTeamAssignments from '@/components/projects/useProjectTeamAssignments';
+import SupplierCommission from '@/components/accounts/SupplierCommission.jsx';
 import { formatDate, formatCurrency, regionName, INTERNAL_ROLES } from "@/lib/portal";
 import { ExternalLink } from "lucide-react";
 
@@ -111,7 +112,7 @@ export function ProjectGeneralTab({ project, accountMap, onProjectUpdated, singl
           ['Director', people.directorName],
           ['Project Manager', people.contactName(project.project_manager_id) || teamAssignments.names['Project Manager']],
           ['Client Representative', people.contactName(project.client_rep_id)],
-          ...teamAssignments.assignments,
+          ...teamAssignments.assignments.map(([label, name]) => [label, <div key={label}>{name}{teamAssignments.accountsByRole[label]?.map(account => <SupplierCommission key={account.id} account={account} compact />)}</div>]),
         ]}
         details={[
           { title: 'Commercial', fields: [

@@ -1,8 +1,9 @@
 import React from 'react';
 import { CheckCircle2, XCircle, FileText, PoundSterling, PenLine } from 'lucide-react';
 import { formatCurrency } from '@/lib/portal';
+import SupplierCommission from '@/components/accounts/SupplierCommission.jsx';
 
-export default function DesignTeamCard({ label, appointed, account, fee, signed, po, link, untracked, notApplicable }) {
+export default function DesignTeamCard({ label, appointed, account, supplierAccount, fee, signed, po, link, untracked, notApplicable }) {
   if (notApplicable) return <div className="h-full rounded-xl border border-border bg-muted p-3"><p className="text-sm font-semibold text-foreground">{label}</p><p className="mt-2 text-xs font-medium text-muted-foreground">Not applicable</p><p className="mt-1 text-xs text-muted-foreground">Excluded from appointment progress by legal decision.</p></div>;
   const hasFee = fee != null;
   return <div className={`h-full rounded-xl border p-3 ${appointed ? 'border-slate-200 bg-white' : 'border-dashed border-slate-300 bg-slate-50'}`}>
@@ -11,6 +12,7 @@ export default function DesignTeamCard({ label, appointed, account, fee, signed,
       {untracked ? <span className="text-xs text-slate-400">Not tracked</span> : appointed ? <CheckCircle2 className="h-4 w-4 text-emerald-600" /> : <XCircle className="h-4 w-4 text-slate-300" />}
     </div>
     {account && <div className="mt-2 text-xs font-medium text-slate-700">{account}</div>}
+    <SupplierCommission account={supplierAccount} compact />
     {(appointed || hasFee) && <div className="mt-1 flex flex-wrap gap-x-3 gap-y-0.5 text-xs">
       <span className={hasFee ? 'text-emerald-700' : 'text-slate-400'}><PoundSterling className="mr-0.5 inline h-3 w-3" />{hasFee ? formatCurrency(fee) : 'Fee —'}</span>
       {appointed && <span className={signed ? 'text-emerald-700' : 'text-slate-400'}><PenLine className="mr-0.5 inline h-3 w-3" />{signed ? 'Signed' : 'Unsigned'}</span>}

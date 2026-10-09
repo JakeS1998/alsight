@@ -55,6 +55,7 @@ export function validateMapping(table, inspected, mappings) {
     if (!supplier || supplier.type !== 'Lookup' || !inspected.fields.find(f => f.name === supplier.source)?.lookupTargets?.some(t => t.entity === 'account')) throw new Error('Map the insurance supplier lookup to account_id using a Dataverse account lookup.');
     if (result.some(m => m.write)) throw new Error('Insurance synchronisation is read-only.');
   }
+  if (table === 'coms' && (result.some(m => m.write) || !['commission_rate', 'supplier_source_id', 'project_source_id'].every(key => seen.has(key)))) throw new Error('Map the commission percentage, supplier lookup and project lookup; commissions are read-only.');
   if (!seen.has(spec.required)) throw new Error(`Map ${spec.required.replaceAll('_', ' ')} before synchronising this table.`);
   return result;
 }

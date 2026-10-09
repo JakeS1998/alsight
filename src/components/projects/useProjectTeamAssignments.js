@@ -29,6 +29,7 @@ export default function useProjectTeamAssignments({ project, accountMap, legalDo
   const { byId, byNumber } = suppliers;
   const appointment = contractorAppointment({ deliveryTeam: team, accountMap: byId, legalDocs: documents });
   const jct = currentFirst(jcts)[0];
+  const accountsByRole = {};
   const names = Object.fromEntries(roles.map(([label, type]) => {
     const doc = type ? documents.find(row => row.document_type === type) : null;
     const members = team.filter(member => normalise(member.role) === normalise(label));
@@ -37,9 +38,13 @@ export default function useProjectTeamAssignments({ project, accountMap, legalDo
     if (label === 'Contractor' && !name) name = appointment.account?.name || byId[appointment.document?.account_id]?.name ||
       byId[jct?.contractor_id]?.name || byId[jct?.account_id]?.name;
     if (label === 'Contractor' && !name && delivery.data?.contractor) name = byId[delivery.data.contractor]?.name || delivery.data.contractor;
+    const selectedAccounts = members.map(member => byNumber[normalise(member.supplier_company_number)]).filter(Boolean);
+    if (!selectedAccounts.length && doc) selectedAccounts.push(byId[doc.account_id]);
+    if (!selectedAccounts.filter(Boolean).length && label === 'Contractor') selectedAccounts.push(appointment.account || byId[appointment.document?.account_id] || byId[jct?.contractor_id] || byId[jct?.account_id] || byId[delivery.data?.contractor]);
+    accountsByRole[label] = [...new Map(selectedAccounts.filter(Boolean).map(account => [account.id, account])).values()];
     const identified = !!doc?.account_id || members.some(member => member.supplier_company_number) ||
       (label === 'Contractor' && !!(appointment.document?.account_id || jct?.contractor_id || jct?.account_id));
     return [label, name || (delivery.isFetching || suppliers.loading ? 'Loading…' : suppliers.error || delivery.error ? 'Unable to load assignment' : identified ? 'Supplier not identified' : 'Not recorded')];
   }));
-  return { names, assignments: roles.filter(([label]) => label !== 'Project Manager').map(([label]) => [label, names[label]]) };
+  return { names, accountsByRole, assignments: roles.filter(([label]) => label !== 'Project Manager').map(([label]) => [label, names[label]]) };
 }
