@@ -2,8 +2,8 @@
   "definition": {
     "document": {
       "dsl": "1.0.0",
-      "name": "daily_approval_reminders_at_nine",
-      "version": "1.0",
+      "name": "daily_approval_reminders_at_sixteen",
+      "version": "1.1",
       "namespace": "base44"
     },
     "do": [
@@ -25,15 +25,15 @@
       }
     ]
   },
-  "name": "Daily Approval Reminders at 9am",
-  "description": "Every day at 9am London time, queues one personalised approval summary per registered user with approval access and outstanding assigned approvals. Existing daily deliveries are not queued again.",
+  "name": "Daily Approval Reminders at 16:00",
+  "description": "Every day at 16:00 London time, queues one personalised approval summary per registered user with approval access and outstanding assigned approvals. Existing daily deliveries are not queued again.",
   "trigger": {
     "condition": null,
     "config": {
       "trigger_type": "scheduled",
       "events": [],
       "schedule_mode": "recurring",
-      "cron_expression": "0 9 * * *",
+      "cron_expression": "0 16 * * *",
       "one_time_date": null,
       "timezone": "Europe/London",
       "interval_value": null,
