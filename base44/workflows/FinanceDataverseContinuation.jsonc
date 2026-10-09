@@ -1,6 +1,6 @@
 {
   "name": "Dataverse Finance Sync Batches",
-  "description": "Completes a finite finance-table import in bounded pages, publishing only complete snapshots.",
+  "description": "Imports finance tables in six finite processing windows. Each window checkpoints bounded pages and stops when all tables finish.",
   "trigger": {
     "config": {
       "trigger_type": "entity",
@@ -10,38 +10,239 @@
         "update"
       ]
     },
-    "condition": "${ .trigger.data.status == \"running\" and .trigger.data.page_index < 1000 and .trigger.data.dispatch_token != .trigger.old_data.dispatch_token }"
+    "condition": "${ .trigger.data.status == \"running\" and .trigger.data.generation != (.trigger.old_data.generation // \"\") }"
   },
   "definition": {
     "document": {
       "dsl": "1.0.0",
       "name": "finance_dataverse_continuation",
-      "version": "1.0",
+      "version": "2.0",
       "namespace": "base44"
     },
     "do": [
       {
-        "pace_batch": {
-          "wait": "PT2S",
-          "then": "sync_batch",
-          "x-base44": {
-            "title": "Pace finance sync"
-          }
-        }
-      },
-      {
-        "sync_batch": {
+        "window_one": {
           "call": "invoke_backend_function",
           "with": {
             "function_name": "manageFinanceDashboard",
             "args": {
-              "action": "dvBatch",
-              "dispatchToken": "${ .trigger.data.dispatch_token }"
+              "action": "dvContinue",
+              "generation": "${ .trigger.data.generation }"
+            }
+          },
+          "then": "check_one",
+          "x-base44": {
+            "title": "Import finance window 1"
+          }
+        }
+      },
+      {
+        "check_one": {
+          "switch": [
+            {
+              "when": "${ .window_one.completed == true }",
+              "then": "end"
+            },
+            {
+              "when": "${ true }",
+              "then": "pause_one"
+            }
+          ],
+          "x-base44": {
+            "title": "Check import completion"
+          }
+        }
+      },
+      {
+        "pause_one": {
+          "wait": "PT5S",
+          "then": "window_two",
+          "x-base44": {
+            "title": "Pace finance import"
+          }
+        }
+      },
+      {
+        "window_two": {
+          "call": "invoke_backend_function",
+          "with": {
+            "function_name": "manageFinanceDashboard",
+            "args": {
+              "action": "dvContinue",
+              "generation": "${ .trigger.data.generation }"
+            }
+          },
+          "then": "check_two",
+          "x-base44": {
+            "title": "Import finance window 2"
+          }
+        }
+      },
+      {
+        "check_two": {
+          "switch": [
+            {
+              "when": "${ .window_two.completed == true }",
+              "then": "end"
+            },
+            {
+              "when": "${ true }",
+              "then": "pause_two"
+            }
+          ],
+          "x-base44": {
+            "title": "Check import completion"
+          }
+        }
+      },
+      {
+        "pause_two": {
+          "wait": "PT5S",
+          "then": "window_three",
+          "x-base44": {
+            "title": "Pace finance import"
+          }
+        }
+      },
+      {
+        "window_three": {
+          "call": "invoke_backend_function",
+          "with": {
+            "function_name": "manageFinanceDashboard",
+            "args": {
+              "action": "dvContinue",
+              "generation": "${ .trigger.data.generation }"
+            }
+          },
+          "then": "check_three",
+          "x-base44": {
+            "title": "Import finance window 3"
+          }
+        }
+      },
+      {
+        "check_three": {
+          "switch": [
+            {
+              "when": "${ .window_three.completed == true }",
+              "then": "end"
+            },
+            {
+              "when": "${ true }",
+              "then": "pause_three"
+            }
+          ],
+          "x-base44": {
+            "title": "Check import completion"
+          }
+        }
+      },
+      {
+        "pause_three": {
+          "wait": "PT5S",
+          "then": "window_four",
+          "x-base44": {
+            "title": "Pace finance import"
+          }
+        }
+      },
+      {
+        "window_four": {
+          "call": "invoke_backend_function",
+          "with": {
+            "function_name": "manageFinanceDashboard",
+            "args": {
+              "action": "dvContinue",
+              "generation": "${ .trigger.data.generation }"
+            }
+          },
+          "then": "check_four",
+          "x-base44": {
+            "title": "Import finance window 4"
+          }
+        }
+      },
+      {
+        "check_four": {
+          "switch": [
+            {
+              "when": "${ .window_four.completed == true }",
+              "then": "end"
+            },
+            {
+              "when": "${ true }",
+              "then": "pause_four"
+            }
+          ],
+          "x-base44": {
+            "title": "Check import completion"
+          }
+        }
+      },
+      {
+        "pause_four": {
+          "wait": "PT5S",
+          "then": "window_five",
+          "x-base44": {
+            "title": "Pace finance import"
+          }
+        }
+      },
+      {
+        "window_five": {
+          "call": "invoke_backend_function",
+          "with": {
+            "function_name": "manageFinanceDashboard",
+            "args": {
+              "action": "dvContinue",
+              "generation": "${ .trigger.data.generation }"
+            }
+          },
+          "then": "check_five",
+          "x-base44": {
+            "title": "Import finance window 5"
+          }
+        }
+      },
+      {
+        "check_five": {
+          "switch": [
+            {
+              "when": "${ .window_five.completed == true }",
+              "then": "end"
+            },
+            {
+              "when": "${ true }",
+              "then": "pause_five"
+            }
+          ],
+          "x-base44": {
+            "title": "Check import completion"
+          }
+        }
+      },
+      {
+        "pause_five": {
+          "wait": "PT5S",
+          "then": "window_six",
+          "x-base44": {
+            "title": "Pace finance import"
+          }
+        }
+      },
+      {
+        "window_six": {
+          "call": "invoke_backend_function",
+          "with": {
+            "function_name": "manageFinanceDashboard",
+            "args": {
+              "action": "dvContinue",
+              "generation": "${ .trigger.data.generation }"
             }
           },
           "then": "end",
           "x-base44": {
-            "title": "Sync next finance page"
+            "title": "Import finance window 6"
           }
         }
       }

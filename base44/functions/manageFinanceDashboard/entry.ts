@@ -5,7 +5,7 @@ import { resolveFinanceProjects,saveFinanceMapping } from '../../shared/financeP
 import { reconcileOrders,financePODetail } from '../../shared/financeReconciliation.ts';
 import { validateFinanceInvoices,liveFinanceInvoices } from '../../shared/financeSalesInvoices.ts';
 import {discoverFinanceTables,inspectFinanceTable} from '../../shared/financeDataverseDiscovery.ts';
-import {financeSyncState,startFinanceSync,syncFinanceBatch} from '../../shared/financeDataverseSync.ts';
+import {financeSyncState,startFinanceSync,syncFinanceBatch,continueFinanceSync} from '../../shared/financeDataverseSync.ts';
 import {readDataverseFinance} from '../../shared/financeDataverseReads.ts';
 export default async function(req){
  try{
@@ -14,12 +14,13 @@ export default async function(req){
   if(!financeRoles.includes(user.role))return Response.json({error:'Finance, director or administrator access required.'},{status:403});
   if(req.method!=='POST')return Response.json({error:'Method not allowed.'},{status:405});
   const raw=await req.text();if(raw.length>20000)throw new Error('Request too large.');const input=JSON.parse(raw);
-  const actions=['dvStart','dvBatch','dvDetail','dvDiscover','dvInspect','status','configure','preview','confirm','summary','list','mappings','projects','map','orders','poDetail','configureInvoices','invoices'];
+  const actions=['dvContinue','dvStart','dvBatch','dvDetail','dvDiscover','dvInspect','status','configure','preview','confirm','summary','list','mappings','projects','map','orders','poDetail','configureInvoices','invoices'];
   if(!actions.includes(input.action))throw new Error('Invalid finance operation.');
-  const admin=['dvStart','dvBatch','dvDiscover','dvInspect','configure','preview','confirm','mappings','projects','map','configureInvoices'];
+  const admin=['dvContinue','dvStart','dvBatch','dvDiscover','dvInspect','configure','preview','confirm','mappings','projects','map','configureInvoices'];
   if(admin.includes(input.action)&&user.role!=='admin')return Response.json({error:'Administrator access required.'},{status:403});
   if(input.action==='dvDiscover')return Response.json(await discoverFinanceTables(base44));
   if(input.action==='dvInspect')return Response.json(await inspectFinanceTable(base44,input.logical));
+  if(input.action==='dvContinue')return Response.json(await continueFinanceSync(base44,input));
   if(input.action==='dvStart')return Response.json(await startFinanceSync(base44));
   if(input.action==='dvBatch')return Response.json(await syncFinanceBatch(base44,input));
   const state=await financeSyncState(base44);

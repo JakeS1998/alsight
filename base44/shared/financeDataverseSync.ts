@@ -17,11 +17,22 @@ export async function startFinanceSync(base44){
   tables.push({...spec,set:m.EntitySetName,id:m.PrimaryIdAttribute,fields,selected:[...new Set(selected)],cursor:'',processed:0,complete:false});
  }
  const values={key:'primary',namespace:financeNamespace(discovered.environment),generation:crypto.randomUUID(),active_generation:old?.namespace===financeNamespace(discovered.environment)?old.active_generation||'':'',status:'running',tables:{list:tables},table_index:0,page_index:0,dispatch_token:crypto.randomUUID(),lease_token:'',lease_until:'1970-01-01T00:00:00.000Z',error:''};
- const state=old?await base44.asServiceRole.entities.FinanceDataverseSync.update(old.id,values):await base44.asServiceRole.entities.FinanceDataverseSync.create(values);return {state,notice:'Dataverse read access verified. Finance tables are syncing in background batches.'};
+ const state=old?await base44.entities.FinanceDataverseSync.update(old.id,values):await base44.entities.FinanceDataverseSync.create(values);return {state,notice:'Dataverse read access verified. Finance tables are syncing in background batches.'};
+}
+export async function continueFinanceSync(base44,input){
+ const deadline=Date.now()+210000;let batches=0;
+ while(Date.now()<deadline&&batches<250){
+  const state=await financeSyncState(base44);
+  if(!state||state.generation!==input.generation||state.status!=='running')return {completed:true,status:state?.status||'idle',batches};
+  const result=await syncFinanceBatch(base44,{dispatchToken:state.dispatch_token});
+  batches++;if(result.skipped)return {completed:false,busy:true,batches};
+  if(result.completed)return {completed:true,status:'completed',batches};
+ }
+ return {completed:false,batches};
 }
 const number=value=>typeof value==='number'&&Number.isFinite(value)?value:null;
 export async function syncFinanceBatch(base44,input){
- const db=base44.asServiceRole.entities,state=await financeSyncState(base44);
+ const db=base44.entities,state=await financeSyncState(base44);
  if(!state||state.status!=='running'||state.dispatch_token!==input.dispatchToken)return {skipped:true};
  if(state.page_index>=1000){await db.FinanceDataverseSync.update(state.id,{status:'error',error:'Finance sync reached its page limit; ask an administrator to review the source.'});throw new Error('Finance sync reached its page limit.');}
  const now=new Date().toISOString(),lease=crypto.randomUUID();
