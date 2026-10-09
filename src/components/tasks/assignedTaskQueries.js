@@ -13,5 +13,5 @@ export function assignedTaskQuery(source, user, contacts, horizon) {
   return { $and: [owner, { status: { $nin: source.done } }, ...(horizon ? [{ [source.due]: { $exists: true, $nin: ['', null], $lte: horizon } }] : [])] };
 }
 export function taskRow(source, record) {
-  return { ...record, key: `${source.entity}-${record.id}`, title: record[source.title], due: record[source.due], source: source.label, to: source.link(record) };
+  return { ...record, taskEntity: source.entity, key: `${source.entity}-${record.id}`, title: record[source.title], due: record[source.due], source: source.label, to: source.link(record) };
 }

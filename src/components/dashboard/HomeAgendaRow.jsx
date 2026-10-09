@@ -2,7 +2,7 @@ import React from 'react';
 import { Link } from 'react-router-dom';
 import { CalendarDays, ListChecks, Bell } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-export default function HomeAgendaRow({ row, onFollowup, onDone }) {
+export default function HomeAgendaRow({ row, onFollowup, onDone, onTaskDone }) {
   const Icon = row.kind === 'calendar' ? CalendarDays : row.kind === 'reminder' ? Bell : ListChecks;
   return <li className="flex items-start gap-3 rounded-lg border border-border p-3">
     <span className={`w-16 shrink-0 pt-1 text-xs font-semibold text-muted-foreground ${row.ended ? 'line-through' : ''}`}>{row.time}</span>
@@ -12,6 +12,7 @@ export default function HomeAgendaRow({ row, onFollowup, onDone }) {
       {row.to && <Link to={row.to} className="font-semibold text-chart-2 hover:underline">Review task</Link>}
       {row.kind === 'calendar' && row.joinUrl && <Button asChild size="sm"><a href={row.joinUrl} target="_blank" rel="noopener noreferrer" aria-label={`Join meeting: ${row.title}`}>Join meeting</a></Button>}
       {row.kind === 'calendar' && row.href && <a href={row.href} target="_blank" rel="noopener noreferrer" className="font-semibold text-chart-2 hover:underline">Open in Outlook</a>}
+      {row.kind === 'task' && <Button type="button" size="sm" variant="outline" disabled={row.disabled} aria-label={`Mark complete: ${row.title}`} onClick={() => onTaskDone(row)}>{row.busy ? 'Saving…' : 'Mark complete'}</Button>}
       {row.kind === 'reminder' && <Button size="sm" variant="outline" disabled={row.busy} onClick={() => onDone(row.id)}>{row.busy ? 'Saving…' : 'Complete'}</Button>}
       <button onClick={() => onFollowup(`Follow up: ${row.title}`)} className="font-semibold text-chart-2 hover:underline">Schedule follow-up</button>
     </div></div>
