@@ -16,7 +16,7 @@ export default async function(req){
   if(!financeRoles.includes(user.role))return Response.json({error:'Finance, director or administrator access required.'},{status:403});
   if(req.method!=='POST')return Response.json({error:'Method not allowed.'},{status:405});
   const raw=await req.text();if(raw.length>20000)throw new Error('Request too large.');const input=JSON.parse(raw);
-  const actions=['dvMappingStatus','dvSaveMapping','forecast','dvContinue','dvStart','dvBatch','dvDetail','dvDiscover','dvInspect','status','configure','preview','confirm','summary','list','mappings','projects','map','orders','poDetail','configureInvoices','invoices'];
+  const actions=['transactions','dvMappingStatus','dvSaveMapping','forecast','dvContinue','dvStart','dvBatch','dvDetail','dvDiscover','dvInspect','status','configure','preview','confirm','summary','list','mappings','projects','map','orders','poDetail','configureInvoices','invoices'];
   if(!actions.includes(input.action))throw new Error('Invalid finance operation.');
   const admin=['dvMappingStatus','dvSaveMapping','dvContinue','dvStart','dvBatch','dvDiscover','dvInspect','configure','preview','confirm','mappings','projects','map','configureInvoices'];
   if(admin.includes(input.action)&&user.role!=='admin')return Response.json({error:'Administrator access required.'},{status:403});
@@ -33,7 +33,7 @@ export default async function(req){
    if(input.action==='status')return Response.json({source:'dataverse',configured:true,confirmed:Boolean(state.active_generation),sync:state,report:state.active_generation?{name:'Dataverse finance tables',url:null}:null});
    if(input.action==='map')return Response.json(await saveFinanceMapping(base44,user,input,{dataset_id:state.namespace}));
    if(input.action==='mappings')return Response.json(await base44.entities.FinanceProjectMapping.filter({dataset_id:state.namespace,...(input.status==='review'?{status:{$in:['unmatched','ambiguous']}}:input.status==='linked'?{status:{$in:['manual','automatic']}}:{})},{limit:50,sort:'-updated_date',...(input.cursor?{cursor:input.cursor}:{})}));
-   if(['summary','list','orders','invoices','dvDetail'].includes(input.action)){if(!state.active_generation)throw new Error('The first Dataverse finance sync is still running; figures will appear after all tables finish.');return Response.json(await readDataverseFinance(base44,state,input));}
+   if(['transactions','summary','list','orders','invoices','dvDetail'].includes(input.action)){if(!state.active_generation)throw new Error('The first Dataverse finance sync is still running; figures will appear after all tables finish.');return Response.json(await readDataverseFinance(base44,state,input));}
   }
   const db=base44.asServiceRole.entities;
   let config=(await db.FinanceConnection.filter({key:'primary'},{limit:1})).items[0]||null;
