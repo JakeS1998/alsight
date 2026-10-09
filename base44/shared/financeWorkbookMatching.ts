@@ -14,7 +14,7 @@ export async function workbookFinanceMatches(base44,rows){
   const candidates=projectPage.items.filter(p=>expected.includes(p.project_number));
   // A shared Sage code cannot be assigned wholly to whichever project happens to exist.
   const unique=expected.length===1&&candidates.length===1?candidates[0]:null;
-  matches.set(code,{project_id:unique?.id||'',project_name:unique?.name||'',project_code:unique?.project_number||'',status:unique?'automatic':expected.length>1||candidates.length>1?'ambiguous':'unmatched',candidates:candidates.slice(0,3),linked_by:'Call Off Contract project-to-Sage table'});
+  matches.set(code,{project_id:unique?.id||'',project_name:unique?.name||'',project_code:unique?.project_number||'',status:unique?'automatic':expected.length>1||candidates.length>1?'ambiguous':'unmatched',...(unique?{matching_method:'number'}:{}),candidates:candidates.slice(0,3),linked_by:'Call Off Contract project-to-Sage table'});
  }
  return matches;
 }

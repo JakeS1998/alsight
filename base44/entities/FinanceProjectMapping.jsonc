@@ -25,6 +25,14 @@
     "project_code": {
       "type": "string"
     },
+    "matching_method": {
+      "type": "string",
+      "enum": [
+        "number",
+        "name",
+        "manual"
+      ]
+    },
     "status": {
       "type": "string",
       "enum": [

@@ -10,6 +10,7 @@ import {readDataverseFinance} from '../../shared/financeDataverseReads.ts';
 import {readFinanceForecast} from '../../shared/financeForecast.ts';
 import {financeMappingStatus,saveFinanceFieldMapping} from '../../shared/financeDataverseMappings.ts';
 import {applyWorkbookFinanceMappings} from '../../shared/financeWorkbookMatching.ts';
+import {applyLegacyFinanceNameMappings} from '../../shared/financeNameMatching.ts';
 export default async function(req){
  try{
   const base44=createClientFromRequest(req),user=await base44.auth.me();
@@ -17,9 +18,9 @@ export default async function(req){
   if(!financeRoles.includes(user.role))return Response.json({error:'Finance, director or administrator access required.'},{status:403});
   if(req.method!=='POST')return Response.json({error:'Method not allowed.'},{status:405});
   const raw=await req.text();if(raw.length>20000)throw new Error('Request too large.');const input=JSON.parse(raw);
-  const actions=['applyCodeLinks','transactions','dvMappingStatus','dvSaveMapping','forecast','dvContinue','dvStart','dvBatch','dvDetail','dvDiscover','dvInspect','status','configure','preview','confirm','summary','list','mappings','projects','map','orders','poDetail','configureInvoices','invoices'];
+  const actions=['applyNameLinks','applyCodeLinks','transactions','dvMappingStatus','dvSaveMapping','forecast','dvContinue','dvStart','dvBatch','dvDetail','dvDiscover','dvInspect','status','configure','preview','confirm','summary','list','mappings','projects','map','orders','poDetail','configureInvoices','invoices'];
   if(!actions.includes(input.action))throw new Error('Invalid finance operation.');
-  const admin=['applyCodeLinks','dvMappingStatus','dvSaveMapping','dvContinue','dvStart','dvBatch','dvDiscover','dvInspect','configure','preview','confirm','mappings','projects','map','configureInvoices'];
+  const admin=['applyNameLinks','applyCodeLinks','dvMappingStatus','dvSaveMapping','dvContinue','dvStart','dvBatch','dvDiscover','dvInspect','configure','preview','confirm','mappings','projects','map','configureInvoices'];
   if(admin.includes(input.action)&&user.role!=='admin')return Response.json({error:'Administrator access required.'},{status:403});
   if(input.action==='dvMappingStatus')return Response.json(await financeMappingStatus(base44));
   if(input.action==='dvSaveMapping')return Response.json(await saveFinanceFieldMapping(base44,user,input));
@@ -29,6 +30,7 @@ export default async function(req){
   if(input.action==='dvStart')return Response.json(await startFinanceSync(base44));
   if(input.action==='dvBatch')return Response.json(await syncFinanceBatch(base44,input));
   const state=await financeSyncState(base44);
+  if(input.action==='applyNameLinks')return Response.json(await applyLegacyFinanceNameMappings(base44,state,input));
   if(input.action==='applyCodeLinks')return Response.json(await applyWorkbookFinanceMappings(base44,state,input));
   if(input.action==='forecast')return Response.json(await readFinanceForecast(base44,user,state,input));
   if(state){
