@@ -13,10 +13,10 @@ export function insuranceWindow() {
  const today=insuranceDay(),endDay=new Date(Date.parse(`${today}T00:00:00Z`)+29*dayMs).toISOString().slice(0,10);
  return {today,start:midnight(today),end:midnight(endDay)};
 }
-export const insuranceFilters=window=>({all:{},expired:{expiry_date:{$exists:true,$nin:[null,''],$lt:window.start}},expiring:{expiry_date:{$gte:window.start,$lt:window.end}},current:{expiry_date:{$gte:window.end}},missing:{$or:[{expiry_date:{$exists:false}},{expiry_date:null},{expiry_date:''}]}});
+export const insuranceFilters=window=>({all:{},expired:{renewal_date:{$exists:true,$nin:[null,''],$lt:window.start}},expiring:{renewal_date:{$gte:window.start,$lt:window.end}},current:{renewal_date:{$gte:window.end}},missing:{$or:[{renewal_date:{$exists:false}},{renewal_date:null},{renewal_date:''}]}});
 export function insuranceTiming(policy,today=insuranceDay()) {
- const day=insuranceDay(policy.expiry_date);if(!day)return {key:'missing',label:'Expiry not recorded',tone:'bg-muted text-muted-foreground'};
+ const day=insuranceDay(policy.renewal_date);if(!day)return {key:'missing',label:'Renewal not recorded',tone:'bg-muted text-muted-foreground'};
  const days=Math.round((Date.parse(`${day}T00:00:00Z`)-Date.parse(`${today}T00:00:00Z`))/dayMs);
- return days<0 ? {key:'expired',label:`Expired ${-days} day${days===-1 ? '' : 's'} ago`,tone:'bg-destructive/10 text-destructive'} : days<=28 ? {key:'expiring',label:days===0 ? 'Expires today' : `Expires in ${days} day${days===1 ? '' : 's'}`,tone:'bg-primary/15 text-foreground'} : {key:'current',label:'Current',tone:'bg-success/10 text-success'};
+ return days<0 ? {key:'expired',label:`Renewal overdue by ${-days} day${days===-1 ? '' : 's'}`,tone:'bg-destructive/10 text-destructive'} : days<=28 ? {key:'expiring',label:days===0 ? 'Renews today' : `Renews in ${days} day${days===1 ? '' : 's'}`,tone:'bg-primary/15 text-foreground'} : {key:'current',label:'Current',tone:'bg-success/10 text-success'};
 }
 export const insuranceDate=value=>value && Number.isFinite(Date.parse(value)) ? new Intl.DateTimeFormat('en-GB',{timeZone:zone,day:'numeric',month:'short',year:'numeric'}).format(new Date(value)) : 'Not recorded';
