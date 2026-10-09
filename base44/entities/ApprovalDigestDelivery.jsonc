@@ -23,6 +23,7 @@
         "queued",
         "sending",
         "sent",
+        "unconfirmed",
         "skipped",
         "failed"
       ],
@@ -39,6 +40,11 @@
     "send_error": {
       "type": "string",
       "maxLength": 1000
+    },
+    "service_response": {
+      "type": "string",
+      "maxLength": 4000,
+      "description": "Bounded email-service receipt metadata, excluding email content and recipient details."
     }
   },
   "required": [
