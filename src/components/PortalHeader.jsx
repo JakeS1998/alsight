@@ -42,7 +42,7 @@ export default function PortalHeader() {
   const signOut = () => { setMenuOpen(false); logout(false); navigate('/login'); };
   const nav = (compact = false) => items.map(item => {
     const Icon = item.icon;
-    if(item.path==='/accounts' && INTERNAL_ROLES.includes(role)) return <RelationshipNavigation key="relationships" compact={compact} onNavigate={()=>setMenuOpen(false)}/>;
+    if(item.path==='/accounts') return <RelationshipNavigation key="relationships" compact={compact} showPeople={INTERNAL_ROLES.includes(role)} onNavigate={()=>setMenuOpen(false)}/>;
     const active = item.path === '/crm/opportunities' ? (location.pathname.startsWith('/crm') || location.pathname.startsWith('/opportunities/')) : item.path === '/today' ? location.pathname === '/today' : location.pathname === item.path || location.pathname.startsWith(`${item.path}/`);
     return <Link key={item.path} to={item.path} onClick={() => setMenuOpen(false)} aria-current={active ? 'page' : undefined} data-active={active} className={`portal-nav-item ${compact ? 'w-full' : ''}`}>{Icon === UKLFIcon ? <UKLFIcon darkBackground /> : <Icon className="h-4 w-4 shrink-0" />}{item.label}{item.path==='/approvals' && approvalSummary.data?.pending>0 && <span className="rounded-full bg-primary px-1.5 py-0.5 text-[10px] font-bold text-primary-foreground">{approvalSummary.data.pending}</span>}</Link>;
   });

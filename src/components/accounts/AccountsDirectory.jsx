@@ -9,22 +9,24 @@ import '@/components/accounts/accounts.css';
 import WorkspacePageHeader from '@/components/layout/WorkspacePageHeader';
 import { useQueryClient } from '@tanstack/react-query';
 import { useAuth } from '@/lib/AuthContext';
-export default function AccountsDirectory() {
+export default function AccountsDirectory({relationship}) {
+  const title = relationship === 'supplier' ? 'Suppliers' : relationship === 'client' ? 'Clients' : 'Organisations';
+  const noun = title.toLowerCase(), directoryPath = relationship === 'client' ? '/clients' : '/suppliers';
   const {user} = useAuth(), cache = useQueryClient();
-  const saved = cache.getQueryData(['accounts-directory-filters',user?.id,user?.role]) || {};
+  const saved = cache.getQueryData(['accounts-directory-filters',user?.id,user?.role,relationship || 'all']) || {};
   const [filters,setFilters] = useState(() => saved), [search,setSearch] = useState(() => saved.search || ''), [cursor,setCursor] = useState(null), [history,setHistory] = useState([]), [view,setView] = useState('cards');
-  useEffect(() => { cache.setQueryData(['accounts-directory-filters',user?.id,user?.role],{...filters,search}); },[cache,user?.id,user?.role,filters,search]);
+  useEffect(() => { cache.setQueryData(['accounts-directory-filters',user?.id,user?.role,relationship || 'all'],{...filters,search}); },[cache,user?.id,user?.role,filters,search]);
   useEffect(() => { const timer = setTimeout(() => { setFilters(old => ({ ...old, search })); setCursor(null); setHistory([]); },500); return () => clearTimeout(timer); },[search]);
-  const result = useAccountsView({ filters, cursor });
+  const result = useAccountsView({ filters: relationship ? {...filters,relationship} : filters, cursor });
   const options = useAccountFilterOptions();
   const change = (key,value) => { if (key === 'search') setSearch(value); else { setFilters(old => ({ ...old,[key]:value })); setCursor(null); setHistory([]); } };
   const rows = result.data?.items || [];
   return <div className="account-directory space-y-6">
-    <WorkspacePageHeader title="Organisations" eyebrow="Relations 360" description="One connected view of organisations, relationships and project activity." image="https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?auto=format&fit=crop&w=1800&q=85" imageAlt="Modern buildings and organisational headquarters" actions={<div className="flex gap-2" aria-label="Account view">{['cards','list'].map(value => <Button key={value} aria-pressed={view === value} variant={view === value ? 'default' : 'outline'} onClick={() => setView(value)} className="capitalize">{value}</Button>)}</div>} />
-    <AccountFilters filters={{ ...filters,search }} onChange={change} options={options.data || {}} />
-    <div className="flex items-center justify-between gap-3 text-sm text-muted-foreground"><p>{result.isPending ? 'Loading organisations…' : `${result.data?.total ?? 0} matching organisations`}</p><button type="button" className="font-semibold hover:underline" onClick={() => { setFilters({}); setSearch(''); setCursor(null); setHistory([]); }}>Reset filters</button></div>
+    <WorkspacePageHeader title={title} eyebrow="Relations 360" description={`One connected view of ${noun}, relationships and project activity.`} image="https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?auto=format&fit=crop&w=1800&q=85" imageAlt="Modern buildings and organisational headquarters" actions={<div className="flex gap-2" aria-label="Account view">{['cards','list'].map(value => <Button key={value} aria-pressed={view === value} variant={view === value ? 'default' : 'outline'} onClick={() => setView(value)} className="capitalize">{value}</Button>)}</div>} />
+    <AccountFilters filters={{ ...filters,search }} onChange={change} options={options.data || {}} relationship={relationship} />
+    <div className="flex items-center justify-between gap-3 text-sm text-muted-foreground"><p>{result.isPending ? `Loading ${noun}…` : `${result.data?.total ?? 0} matching ${noun}`}</p><button type="button" className="font-semibold hover:underline" onClick={() => { setFilters({}); setSearch(''); setCursor(null); setHistory([]); }}>Reset filters</button></div>
     {(result.error || options.error) && <p role="alert" className="text-sm text-destructive">{result.error?.response?.data?.error || result.error?.message || options.error?.message}<button className="ml-2 underline" onClick={() => { result.refetch(); options.refetch(); }}>Try again</button></p>}
-    {result.isPending ? <p role="status" className="account-panel text-sm text-muted-foreground">Loading organisation details and permitted relationship summaries…</p> : !result.error && !rows.length ? <p className="account-panel text-sm text-muted-foreground">No organisations match your filters. Reset the filters to explore your relationships.</p> : view === 'list' ? <AccountList rows={rows} /> : <div className="account-card-grid">{rows.map(row => <AccountCard key={row.account.id} {...row} />)}</div>}
+    {result.isPending ? <p role="status" className="account-panel text-sm text-muted-foreground">Loading details and permitted relationship summaries…</p> : !result.error && !rows.length ? <p className="account-panel text-sm text-muted-foreground">No {noun} match your filters. Reset the filters to explore your relationships.</p> : view === 'list' ? <AccountList rows={rows} directoryPath={directoryPath} /> : <div className="account-card-grid">{rows.map(row => <AccountCard key={row.account.id} {...row} directoryPath={directoryPath} />)}</div>}
     <div className="flex justify-between"><Button variant="outline" disabled={!history.length || result.isFetching} onClick={() => { setCursor(history.at(-1)); setHistory(old => old.slice(0,-1)); }}>Previous</Button><Button variant="outline" disabled={!result.data?.has_more || result.isFetching} onClick={() => { setHistory(old => [...old,cursor]); setCursor(result.data.next_cursor); }}>Next</Button></div>
   </div>;
 }

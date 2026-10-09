@@ -32,7 +32,8 @@ const FrameworkProjectDetail = lazy(() => import('@/pages/FrameworkProjectDetail
 const ProjectDetail = lazy(() => import('@/pages/ProjectDetail'));
 const LegalDocuments = lazy(() => import('@/pages/LegalDocuments'));
 const Warranties = lazy(() => import('@/pages/Warranties'));
-const Accounts = lazy(() => import('@/pages/Accounts'));
+const Suppliers = lazy(() => import('@/pages/Suppliers.jsx'));
+const Clients = lazy(() => import('@/pages/Clients.jsx'));
 const Contacts = lazy(() => import('@/pages/Contacts'));
 const Admin = lazy(() => import('@/pages/Admin'));
 const ContactDetail = lazy(() => import('@/pages/ContactDetail'));
@@ -113,7 +114,9 @@ const AuthenticatedApp = () => {
           <Route path="/documents" element={<LegalDocuments />} />
           <Route path="/warranties" element={<Warranties />} />
           <Route path="/account" element={<AccountProfile />} />
-          <Route path="/accounts" element={<Accounts />} />
+          <Route path="/accounts" element={<Navigate to="/suppliers" replace />} />
+          <Route path="/suppliers" element={<Suppliers />} />
+          <Route path="/clients" element={<Clients />} />
           <Route path="/accounts/:accountId" element={<AccountDetail />} />
           <Route element={<CRMRoute />}>
             <Route path="/crm" element={<Navigate to="/crm/opportunities" replace />} />

@@ -1,6 +1,6 @@
 import React, { useEffect, useRef, useState } from "react";
 import projectFullValue from '@/components/projects/projectFullValue';
-import { useParams, Link, useSearchParams } from "react-router-dom";
+import { useParams, Link, useSearchParams, useLocation } from "react-router-dom";
 import { base44 } from "@/api/base44Client";
 import { useAuth } from "@/lib/AuthContext";
 import { filterAll } from "@/components/data/loadAll";
@@ -26,6 +26,8 @@ import { Users, FolderKanban, FileText, ShieldCheck, Mail, Gavel } from "lucide-
 
 export default function AccountDetail() {
   const { accountId } = useParams();
+  const {state} = useLocation();
+  const directoryPath = state?.directoryPath === '/clients' ? '/clients' : '/suppliers';
   const [params,setParams]=useSearchParams();
   const currentAccountId = useRef(accountId);
   currentAccountId.current = accountId;
@@ -114,7 +116,7 @@ export default function AccountDetail() {
     return (
       <div className="rounded-2xl border border-dashed border-slate-300 bg-white py-16 text-center">
         <p className="text-sm text-slate-500">Organisation not found.</p>
-        <Link to="/accounts" className="mt-3 inline-block text-sm text-primary hover:underline">Back to Organisations</Link>
+        <Link to={directoryPath} className="mt-3 inline-block text-sm text-primary hover:underline">Back to {directoryPath === '/clients' ? 'Clients' : 'Suppliers'}</Link>
       </div>
     );
   }
