@@ -20,7 +20,7 @@ export function calculateASEV2(policy,checks) {
   const optionalWeight=policy.leadership?.individual_insolvency_optional ? (policy.components.find(c=>c.key==='adverse')?.weight || 0)*(policy.slots.adverse.individual_insolvency || 0)/100 : 0;
   const personalCoverage=checks.find(c=>c.component==='adverse' && c.slot==='individual_insolvency'),personalPoints=personalCoverage?.score!=null ? optionalWeight*(personalCoverage.quality ?? policy.quality[personalCoverage.confidence] ?? policy.quality.Low) : 0;
   const qualifying_coverage=round((coverage-personalPoints)/(100-optionalWeight)*100);
-  const sufficient=qualifying_coverage>=policy.confidence.minimum || caps.length>0,final_score=raw_score===null || !sufficient ? null : round(Math.min(insuranceAdjustedScore(raw_score,insurance),...caps.map(c=>c.cap))),confidence=coverage>=policy.confidence.high ? 'High' : coverage>=policy.confidence.medium ? 'Medium' : 'Low';
+  const sufficient=qualifying_coverage>=policy.confidence.minimum || caps.some(c=>c.event!=='professional_indemnity_under_2m'),final_score=raw_score===null || !sufficient ? null : round(Math.min(insuranceAdjustedScore(raw_score,insurance),...caps.map(c=>c.cap))),confidence=coverage>=policy.confidence.high ? 'High' : coverage>=policy.confidence.medium ? 'Medium' : 'Low';
   const classification=final_score===null ? 'Not assessed' : policy.classifications.find(c=>final_score>=c.minimum)?.label || 'Critical';
   return {components,assessed_weight,coverage,qualifying_coverage,raw_score,final_score,confidence,classification,caps};
 }
