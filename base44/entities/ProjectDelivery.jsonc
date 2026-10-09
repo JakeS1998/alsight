@@ -83,6 +83,44 @@
     "pct_programme": {
       "type": "number"
     },
+    "pct_programme_override": {
+      "type": "boolean",
+      "description": "Use the saved manual programme percentage instead of live main-page dates"
+    },
+    "forecast_pc_override": {
+      "type": "boolean",
+      "description": "Use the saved manual forecast PC instead of main-page dates"
+    },
+    "lad_exposure_override": {
+      "type": "boolean",
+      "description": "Use the saved manual LAD assessment instead of the indicative date/rate calculation"
+    },
+    "lad_rate": {
+      "type": [
+        "number",
+        "null"
+      ],
+      "minimum": 0,
+      "description": "Contractual GBP LAD rate excluding VAT; null means not recorded"
+    },
+    "lad_rate_period": {
+      "type": "string",
+      "enum": [
+        "day",
+        "week"
+      ],
+      "default": "week"
+    },
+    "lad_completion_date": {
+      "type": "string",
+      "format": "date",
+      "description": "Adjusted contractual completion date including agreed extensions of time"
+    },
+    "lad_terms": {
+      "type": "string",
+      "maxLength": 4000,
+      "description": "LAD contractual terms and reference"
+    },
     "pct_cost": {
       "type": "number"
     },

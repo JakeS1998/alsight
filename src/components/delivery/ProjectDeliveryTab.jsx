@@ -17,6 +17,7 @@ import { FormSection } from '@/components/forms/PowerForm';
 import frameworkAgreementRoute from '@/components/delivery/frameworkAgreementRoute';
 import SingleTaskDelivery from '@/components/delivery/SingleTaskDelivery';
 import usePDbrApplicability from '@/components/delivery/usePDbrApplicability';
+import { savedConstructionValues } from '@/components/delivery/constructionAutomation';
 
 const DELIVERY_DEFAULT = {
   funding_route: "", scope_summary: "", client_objectives: "", initial_constraints: "",
@@ -105,12 +106,15 @@ export function ProjectDeliveryTab({ project, legalDocs, dmas, jcts, warranties,
   const saveDelivery = async (overrides) => {
     setSavingDelivery(true);
     try {
-      const payload = { ...delivery, ...(typeof overrides?.delivery_team === 'string' ? { delivery_team: overrides.delivery_team } : {}), project_id: projectId, client_account_id: project.client_account_id || null, bdm_aad_id: project.bdm_aad_id || null };
+      const payload = { ...delivery, ...(frameworkAgreementRoute(legalDocs, dmas, project.project_number).route === 'single_task' ? {} : savedConstructionValues(project, delivery)), ...(typeof overrides?.delivery_team === 'string' ? { delivery_team: overrides.delivery_team } : {}), project_id: projectId, client_account_id: project.client_account_id || null, bdm_aad_id: project.bdm_aad_id || null };
+      payload.lad_rate = delivery.lad_rate === '' || delivery.lad_rate == null ? null : Number(delivery.lad_rate);
+      payload.lad_rate_period = delivery.lad_rate_period || 'week';
+      ['pct_programme_override', 'forecast_pc_override', 'lad_exposure_override'].forEach(key => { payload[key] = !!delivery[key]; });
       // Handover updates are saved separately; do not overwrite them from this form.
       Object.keys(payload).filter(key => key.startsWith('handover_')).forEach(key => delete payload[key]);
       // coerce numeric fields
       ["probability", "contract_sum", "pct_programme", "pct_cost", "current_valuation"].forEach((k) => {
-        payload[k] = payload[k] === "" ? null : Number(payload[k]);
+        payload[k] = payload[k] === "" || payload[k] == null ? null : Number(payload[k]);
       });
       payload.site_visit_completed = !!payload.site_visit_completed;
       if (deliveryId) {
@@ -143,7 +147,7 @@ export function ProjectDeliveryTab({ project, legalDocs, dmas, jcts, warranties,
       <FormSection title="06 · Act"><RegisterList title="Action" description="The simple action log BDMs use every day" entityName="ProjectAction" projectId={projectId} project={project} columns={ACTION_COLS} tableColumns={ACTION_TABLE} sortBy="-due_date" addLabel="Add action" /></FormSection>
       <FormSection title="07 · Decide"><RegisterList title="Decision" description="Lightweight decision & client-approval register" entityName="ProjectDecision" projectId={projectId} project={project} columns={DECISION_COLS} tableColumns={DECISION_TABLE} sortBy="-date_requested" addLabel="Add decision" /></FormSection>
       <ProjectRiskRegister project={project} delivery={delivery} accountMap={accountMap} />
-      <DeliveryConstruction delivery={delivery} setField={setField} onSave={saveDelivery} saving={savingDelivery} />
+      <DeliveryConstruction project={project} delivery={delivery} setField={setField} onSave={saveDelivery} saving={savingDelivery} />
       <DeliveryCloseout delivery={delivery} setField={setField} onSave={saveDelivery} saving={savingDelivery}>
         <ProjectHandoverPack embedded project={project} savingDelivery={savingDelivery} onStarted={loadDelivery} />
       </DeliveryCloseout>
