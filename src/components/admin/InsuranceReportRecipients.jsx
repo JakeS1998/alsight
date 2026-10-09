@@ -1,0 +1,14 @@
+import React, {useState} from 'react';
+import {useInfiniteQuery} from '@tanstack/react-query';
+import {base44} from '@/api/base44Client';
+import {Button} from '@/components/ui/button';
+import {Input} from '@/components/ui/input';
+export default function InsuranceReportRecipients({selected,onChange,disabled}) {
+ const [search,setSearch]=useState('');
+ const users=useInfiniteQuery({queryKey:['insurance-report-users',search],initialPageParam:0,retry:false,queryFn:async({pageParam})=>{const {data}=await base44.functions.invoke('manageInsuranceReports',{action:'people',search,offset:pageParam});if(data.error)throw new Error(data.error);return data;},getNextPageParam:page=>page.has_more ? page.next_offset : undefined});
+ const toggle=email=>onChange(selected.includes(email) ? selected.filter(item=>item!==email) : [...selected,email]);
+ return <div className="space-y-3"><h3 className="font-semibold">Report recipients</h3><p className="text-xs text-muted-foreground">Choose up to 20 registered internal portal users. The report contains insurance details for all accounts, so external accounts cannot receive it.</p><Input aria-label="Search insurance report recipients" value={search} placeholder="Search by name or email…" onChange={e=>setSearch(e.target.value)} disabled={disabled}/><div className="flex flex-wrap gap-2">{selected.map(email=><Button key={email} type="button" variant="secondary" size="sm" disabled={disabled} onClick={()=>toggle(email)} aria-label={`Remove ${email}`}>{email} ×</Button>)}</div>
+  {users.isPending ? <p role="status" className="text-sm text-muted-foreground">Loading recipients…</p> : users.isError ? <div><p role="alert" className="text-sm text-destructive">{users.error.message}</p><Button type="button" variant="outline" onClick={()=>users.refetch()}>Try again</Button></div> : <div className="max-h-72 space-y-2 overflow-y-auto">{users.data.pages.flatMap(page=>page.items).map(person=><label key={person.id} className="flex items-start gap-2 text-sm"><input type="checkbox" checked={selected.includes(person.email.toLowerCase())} disabled={disabled || (!selected.includes(person.email.toLowerCase()) && selected.length>=20)} onChange={()=>toggle(person.email.toLowerCase())} className="mt-1"/><span><span className="block font-medium">{person.name}</span><span className="block text-xs text-muted-foreground">{person.email} · {person.role}</span></span></label>)}{!users.data.pages[0].items.length && <p className="text-sm text-muted-foreground">No matching registered internal users.</p>}</div>}
+  {users.hasNextPage && <Button type="button" variant="outline" size="sm" onClick={()=>users.fetchNextPage()} disabled={users.isFetchingNextPage}>Load more recipients</Button>}
+ </div>;
+}

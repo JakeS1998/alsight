@@ -1,0 +1,827 @@
+{
+  "description": "Emails the complete expired and next-28-days insurance report to administrator-selected internal users on the 20th at 6am UK time. Disabled settings or no recipients produce no email.",
+  "definition": {
+    "document": {
+      "dsl": "1.0.0",
+      "name": "monthly_insurance_expiry_report",
+      "version": "1.0",
+      "namespace": "base44"
+    },
+    "do": [
+      {
+        "prepare": {
+          "call": "invoke_backend_function",
+          "with": {
+            "function_name": "manageInsuranceReports",
+            "args": {
+              "action": "prepare"
+            }
+          },
+          "then": "check_01",
+          "x-base44": {
+            "title": "Prepare insurance expiry report",
+            "description": "All expired and next-28-days policies"
+          }
+        }
+      },
+      {
+        "check_01": {
+          "switch": [
+            {
+              "when": "${ (.prepare.recipients // [] | length) > 0 }",
+              "then": "email_01"
+            },
+            {
+              "when": "${ true }",
+              "then": "end"
+            }
+          ],
+          "x-base44": {
+            "title": "Check first configured recipient"
+          }
+        }
+      },
+      {
+        "email_01": {
+          "call": "send_email",
+          "with": {
+            "template_name": "MonthlyInsuranceReport",
+            "to": "${ .prepare.recipients[0] }",
+            "description": "Complete expired and expiring insurance report",
+            "variables": {
+              "report_date": "${ .prepare.variables.report_date }",
+              "window_end": "${ .prepare.variables.window_end }",
+              "expired_count": "${ .prepare.variables.expired_count }",
+              "expiring_count": "${ .prepare.variables.expiring_count }",
+              "expired_rows": "${ .prepare.variables.expired_rows }",
+              "expiring_rows": "${ .prepare.variables.expiring_rows }"
+            }
+          },
+          "then": "check_02",
+          "x-base44": {
+            "title": "Email insurance report to recipient 1"
+          }
+        }
+      },
+      {
+        "check_02": {
+          "switch": [
+            {
+              "when": "${ (.prepare.recipients // [] | length) > 1 }",
+              "then": "email_02"
+            },
+            {
+              "when": "${ true }",
+              "then": "end"
+            }
+          ],
+          "x-base44": {
+            "title": "Check recipient 2"
+          }
+        }
+      },
+      {
+        "email_02": {
+          "call": "send_email",
+          "with": {
+            "template_name": "MonthlyInsuranceReport",
+            "to": "${ .prepare.recipients[1] }",
+            "description": "Complete expired and expiring insurance report",
+            "variables": {
+              "report_date": "${ .prepare.variables.report_date }",
+              "window_end": "${ .prepare.variables.window_end }",
+              "expired_count": "${ .prepare.variables.expired_count }",
+              "expiring_count": "${ .prepare.variables.expiring_count }",
+              "expired_rows": "${ .prepare.variables.expired_rows }",
+              "expiring_rows": "${ .prepare.variables.expiring_rows }"
+            }
+          },
+          "then": "check_03",
+          "x-base44": {
+            "title": "Email insurance report to recipient 2"
+          }
+        }
+      },
+      {
+        "check_03": {
+          "switch": [
+            {
+              "when": "${ (.prepare.recipients // [] | length) > 2 }",
+              "then": "email_03"
+            },
+            {
+              "when": "${ true }",
+              "then": "end"
+            }
+          ],
+          "x-base44": {
+            "title": "Check recipient 3"
+          }
+        }
+      },
+      {
+        "email_03": {
+          "call": "send_email",
+          "with": {
+            "template_name": "MonthlyInsuranceReport",
+            "to": "${ .prepare.recipients[2] }",
+            "description": "Complete expired and expiring insurance report",
+            "variables": {
+              "report_date": "${ .prepare.variables.report_date }",
+              "window_end": "${ .prepare.variables.window_end }",
+              "expired_count": "${ .prepare.variables.expired_count }",
+              "expiring_count": "${ .prepare.variables.expiring_count }",
+              "expired_rows": "${ .prepare.variables.expired_rows }",
+              "expiring_rows": "${ .prepare.variables.expiring_rows }"
+            }
+          },
+          "then": "check_04",
+          "x-base44": {
+            "title": "Email insurance report to recipient 3"
+          }
+        }
+      },
+      {
+        "check_04": {
+          "switch": [
+            {
+              "when": "${ (.prepare.recipients // [] | length) > 3 }",
+              "then": "email_04"
+            },
+            {
+              "when": "${ true }",
+              "then": "end"
+            }
+          ],
+          "x-base44": {
+            "title": "Check recipient 4"
+          }
+        }
+      },
+      {
+        "email_04": {
+          "call": "send_email",
+          "with": {
+            "template_name": "MonthlyInsuranceReport",
+            "to": "${ .prepare.recipients[3] }",
+            "description": "Complete expired and expiring insurance report",
+            "variables": {
+              "report_date": "${ .prepare.variables.report_date }",
+              "window_end": "${ .prepare.variables.window_end }",
+              "expired_count": "${ .prepare.variables.expired_count }",
+              "expiring_count": "${ .prepare.variables.expiring_count }",
+              "expired_rows": "${ .prepare.variables.expired_rows }",
+              "expiring_rows": "${ .prepare.variables.expiring_rows }"
+            }
+          },
+          "then": "check_05",
+          "x-base44": {
+            "title": "Email insurance report to recipient 4"
+          }
+        }
+      },
+      {
+        "check_05": {
+          "switch": [
+            {
+              "when": "${ (.prepare.recipients // [] | length) > 4 }",
+              "then": "email_05"
+            },
+            {
+              "when": "${ true }",
+              "then": "end"
+            }
+          ],
+          "x-base44": {
+            "title": "Check recipient 5"
+          }
+        }
+      },
+      {
+        "email_05": {
+          "call": "send_email",
+          "with": {
+            "template_name": "MonthlyInsuranceReport",
+            "to": "${ .prepare.recipients[4] }",
+            "description": "Complete expired and expiring insurance report",
+            "variables": {
+              "report_date": "${ .prepare.variables.report_date }",
+              "window_end": "${ .prepare.variables.window_end }",
+              "expired_count": "${ .prepare.variables.expired_count }",
+              "expiring_count": "${ .prepare.variables.expiring_count }",
+              "expired_rows": "${ .prepare.variables.expired_rows }",
+              "expiring_rows": "${ .prepare.variables.expiring_rows }"
+            }
+          },
+          "then": "check_06",
+          "x-base44": {
+            "title": "Email insurance report to recipient 5"
+          }
+        }
+      },
+      {
+        "check_06": {
+          "switch": [
+            {
+              "when": "${ (.prepare.recipients // [] | length) > 5 }",
+              "then": "email_06"
+            },
+            {
+              "when": "${ true }",
+              "then": "end"
+            }
+          ],
+          "x-base44": {
+            "title": "Check recipient 6"
+          }
+        }
+      },
+      {
+        "email_06": {
+          "call": "send_email",
+          "with": {
+            "template_name": "MonthlyInsuranceReport",
+            "to": "${ .prepare.recipients[5] }",
+            "description": "Complete expired and expiring insurance report",
+            "variables": {
+              "report_date": "${ .prepare.variables.report_date }",
+              "window_end": "${ .prepare.variables.window_end }",
+              "expired_count": "${ .prepare.variables.expired_count }",
+              "expiring_count": "${ .prepare.variables.expiring_count }",
+              "expired_rows": "${ .prepare.variables.expired_rows }",
+              "expiring_rows": "${ .prepare.variables.expiring_rows }"
+            }
+          },
+          "then": "check_07",
+          "x-base44": {
+            "title": "Email insurance report to recipient 6"
+          }
+        }
+      },
+      {
+        "check_07": {
+          "switch": [
+            {
+              "when": "${ (.prepare.recipients // [] | length) > 6 }",
+              "then": "email_07"
+            },
+            {
+              "when": "${ true }",
+              "then": "end"
+            }
+          ],
+          "x-base44": {
+            "title": "Check recipient 7"
+          }
+        }
+      },
+      {
+        "email_07": {
+          "call": "send_email",
+          "with": {
+            "template_name": "MonthlyInsuranceReport",
+            "to": "${ .prepare.recipients[6] }",
+            "description": "Complete expired and expiring insurance report",
+            "variables": {
+              "report_date": "${ .prepare.variables.report_date }",
+              "window_end": "${ .prepare.variables.window_end }",
+              "expired_count": "${ .prepare.variables.expired_count }",
+              "expiring_count": "${ .prepare.variables.expiring_count }",
+              "expired_rows": "${ .prepare.variables.expired_rows }",
+              "expiring_rows": "${ .prepare.variables.expiring_rows }"
+            }
+          },
+          "then": "check_08",
+          "x-base44": {
+            "title": "Email insurance report to recipient 7"
+          }
+        }
+      },
+      {
+        "check_08": {
+          "switch": [
+            {
+              "when": "${ (.prepare.recipients // [] | length) > 7 }",
+              "then": "email_08"
+            },
+            {
+              "when": "${ true }",
+              "then": "end"
+            }
+          ],
+          "x-base44": {
+            "title": "Check recipient 8"
+          }
+        }
+      },
+      {
+        "email_08": {
+          "call": "send_email",
+          "with": {
+            "template_name": "MonthlyInsuranceReport",
+            "to": "${ .prepare.recipients[7] }",
+            "description": "Complete expired and expiring insurance report",
+            "variables": {
+              "report_date": "${ .prepare.variables.report_date }",
+              "window_end": "${ .prepare.variables.window_end }",
+              "expired_count": "${ .prepare.variables.expired_count }",
+              "expiring_count": "${ .prepare.variables.expiring_count }",
+              "expired_rows": "${ .prepare.variables.expired_rows }",
+              "expiring_rows": "${ .prepare.variables.expiring_rows }"
+            }
+          },
+          "then": "check_09",
+          "x-base44": {
+            "title": "Email insurance report to recipient 8"
+          }
+        }
+      },
+      {
+        "check_09": {
+          "switch": [
+            {
+              "when": "${ (.prepare.recipients // [] | length) > 8 }",
+              "then": "email_09"
+            },
+            {
+              "when": "${ true }",
+              "then": "end"
+            }
+          ],
+          "x-base44": {
+            "title": "Check recipient 9"
+          }
+        }
+      },
+      {
+        "email_09": {
+          "call": "send_email",
+          "with": {
+            "template_name": "MonthlyInsuranceReport",
+            "to": "${ .prepare.recipients[8] }",
+            "description": "Complete expired and expiring insurance report",
+            "variables": {
+              "report_date": "${ .prepare.variables.report_date }",
+              "window_end": "${ .prepare.variables.window_end }",
+              "expired_count": "${ .prepare.variables.expired_count }",
+              "expiring_count": "${ .prepare.variables.expiring_count }",
+              "expired_rows": "${ .prepare.variables.expired_rows }",
+              "expiring_rows": "${ .prepare.variables.expiring_rows }"
+            }
+          },
+          "then": "check_10",
+          "x-base44": {
+            "title": "Email insurance report to recipient 9"
+          }
+        }
+      },
+      {
+        "check_10": {
+          "switch": [
+            {
+              "when": "${ (.prepare.recipients // [] | length) > 9 }",
+              "then": "email_10"
+            },
+            {
+              "when": "${ true }",
+              "then": "end"
+            }
+          ],
+          "x-base44": {
+            "title": "Check recipient 10"
+          }
+        }
+      },
+      {
+        "email_10": {
+          "call": "send_email",
+          "with": {
+            "template_name": "MonthlyInsuranceReport",
+            "to": "${ .prepare.recipients[9] }",
+            "description": "Complete expired and expiring insurance report",
+            "variables": {
+              "report_date": "${ .prepare.variables.report_date }",
+              "window_end": "${ .prepare.variables.window_end }",
+              "expired_count": "${ .prepare.variables.expired_count }",
+              "expiring_count": "${ .prepare.variables.expiring_count }",
+              "expired_rows": "${ .prepare.variables.expired_rows }",
+              "expiring_rows": "${ .prepare.variables.expiring_rows }"
+            }
+          },
+          "then": "check_11",
+          "x-base44": {
+            "title": "Email insurance report to recipient 10"
+          }
+        }
+      },
+      {
+        "check_11": {
+          "switch": [
+            {
+              "when": "${ (.prepare.recipients // [] | length) > 10 }",
+              "then": "email_11"
+            },
+            {
+              "when": "${ true }",
+              "then": "end"
+            }
+          ],
+          "x-base44": {
+            "title": "Check recipient 11"
+          }
+        }
+      },
+      {
+        "email_11": {
+          "call": "send_email",
+          "with": {
+            "template_name": "MonthlyInsuranceReport",
+            "to": "${ .prepare.recipients[10] }",
+            "description": "Complete expired and expiring insurance report",
+            "variables": {
+              "report_date": "${ .prepare.variables.report_date }",
+              "window_end": "${ .prepare.variables.window_end }",
+              "expired_count": "${ .prepare.variables.expired_count }",
+              "expiring_count": "${ .prepare.variables.expiring_count }",
+              "expired_rows": "${ .prepare.variables.expired_rows }",
+              "expiring_rows": "${ .prepare.variables.expiring_rows }"
+            }
+          },
+          "then": "check_12",
+          "x-base44": {
+            "title": "Email insurance report to recipient 11"
+          }
+        }
+      },
+      {
+        "check_12": {
+          "switch": [
+            {
+              "when": "${ (.prepare.recipients // [] | length) > 11 }",
+              "then": "email_12"
+            },
+            {
+              "when": "${ true }",
+              "then": "end"
+            }
+          ],
+          "x-base44": {
+            "title": "Check recipient 12"
+          }
+        }
+      },
+      {
+        "email_12": {
+          "call": "send_email",
+          "with": {
+            "template_name": "MonthlyInsuranceReport",
+            "to": "${ .prepare.recipients[11] }",
+            "description": "Complete expired and expiring insurance report",
+            "variables": {
+              "report_date": "${ .prepare.variables.report_date }",
+              "window_end": "${ .prepare.variables.window_end }",
+              "expired_count": "${ .prepare.variables.expired_count }",
+              "expiring_count": "${ .prepare.variables.expiring_count }",
+              "expired_rows": "${ .prepare.variables.expired_rows }",
+              "expiring_rows": "${ .prepare.variables.expiring_rows }"
+            }
+          },
+          "then": "check_13",
+          "x-base44": {
+            "title": "Email insurance report to recipient 12"
+          }
+        }
+      },
+      {
+        "check_13": {
+          "switch": [
+            {
+              "when": "${ (.prepare.recipients // [] | length) > 12 }",
+              "then": "email_13"
+            },
+            {
+              "when": "${ true }",
+              "then": "end"
+            }
+          ],
+          "x-base44": {
+            "title": "Check recipient 13"
+          }
+        }
+      },
+      {
+        "email_13": {
+          "call": "send_email",
+          "with": {
+            "template_name": "MonthlyInsuranceReport",
+            "to": "${ .prepare.recipients[12] }",
+            "description": "Complete expired and expiring insurance report",
+            "variables": {
+              "report_date": "${ .prepare.variables.report_date }",
+              "window_end": "${ .prepare.variables.window_end }",
+              "expired_count": "${ .prepare.variables.expired_count }",
+              "expiring_count": "${ .prepare.variables.expiring_count }",
+              "expired_rows": "${ .prepare.variables.expired_rows }",
+              "expiring_rows": "${ .prepare.variables.expiring_rows }"
+            }
+          },
+          "then": "check_14",
+          "x-base44": {
+            "title": "Email insurance report to recipient 13"
+          }
+        }
+      },
+      {
+        "check_14": {
+          "switch": [
+            {
+              "when": "${ (.prepare.recipients // [] | length) > 13 }",
+              "then": "email_14"
+            },
+            {
+              "when": "${ true }",
+              "then": "end"
+            }
+          ],
+          "x-base44": {
+            "title": "Check recipient 14"
+          }
+        }
+      },
+      {
+        "email_14": {
+          "call": "send_email",
+          "with": {
+            "template_name": "MonthlyInsuranceReport",
+            "to": "${ .prepare.recipients[13] }",
+            "description": "Complete expired and expiring insurance report",
+            "variables": {
+              "report_date": "${ .prepare.variables.report_date }",
+              "window_end": "${ .prepare.variables.window_end }",
+              "expired_count": "${ .prepare.variables.expired_count }",
+              "expiring_count": "${ .prepare.variables.expiring_count }",
+              "expired_rows": "${ .prepare.variables.expired_rows }",
+              "expiring_rows": "${ .prepare.variables.expiring_rows }"
+            }
+          },
+          "then": "check_15",
+          "x-base44": {
+            "title": "Email insurance report to recipient 14"
+          }
+        }
+      },
+      {
+        "check_15": {
+          "switch": [
+            {
+              "when": "${ (.prepare.recipients // [] | length) > 14 }",
+              "then": "email_15"
+            },
+            {
+              "when": "${ true }",
+              "then": "end"
+            }
+          ],
+          "x-base44": {
+            "title": "Check recipient 15"
+          }
+        }
+      },
+      {
+        "email_15": {
+          "call": "send_email",
+          "with": {
+            "template_name": "MonthlyInsuranceReport",
+            "to": "${ .prepare.recipients[14] }",
+            "description": "Complete expired and expiring insurance report",
+            "variables": {
+              "report_date": "${ .prepare.variables.report_date }",
+              "window_end": "${ .prepare.variables.window_end }",
+              "expired_count": "${ .prepare.variables.expired_count }",
+              "expiring_count": "${ .prepare.variables.expiring_count }",
+              "expired_rows": "${ .prepare.variables.expired_rows }",
+              "expiring_rows": "${ .prepare.variables.expiring_rows }"
+            }
+          },
+          "then": "check_16",
+          "x-base44": {
+            "title": "Email insurance report to recipient 15"
+          }
+        }
+      },
+      {
+        "check_16": {
+          "switch": [
+            {
+              "when": "${ (.prepare.recipients // [] | length) > 15 }",
+              "then": "email_16"
+            },
+            {
+              "when": "${ true }",
+              "then": "end"
+            }
+          ],
+          "x-base44": {
+            "title": "Check recipient 16"
+          }
+        }
+      },
+      {
+        "email_16": {
+          "call": "send_email",
+          "with": {
+            "template_name": "MonthlyInsuranceReport",
+            "to": "${ .prepare.recipients[15] }",
+            "description": "Complete expired and expiring insurance report",
+            "variables": {
+              "report_date": "${ .prepare.variables.report_date }",
+              "window_end": "${ .prepare.variables.window_end }",
+              "expired_count": "${ .prepare.variables.expired_count }",
+              "expiring_count": "${ .prepare.variables.expiring_count }",
+              "expired_rows": "${ .prepare.variables.expired_rows }",
+              "expiring_rows": "${ .prepare.variables.expiring_rows }"
+            }
+          },
+          "then": "check_17",
+          "x-base44": {
+            "title": "Email insurance report to recipient 16"
+          }
+        }
+      },
+      {
+        "check_17": {
+          "switch": [
+            {
+              "when": "${ (.prepare.recipients // [] | length) > 16 }",
+              "then": "email_17"
+            },
+            {
+              "when": "${ true }",
+              "then": "end"
+            }
+          ],
+          "x-base44": {
+            "title": "Check recipient 17"
+          }
+        }
+      },
+      {
+        "email_17": {
+          "call": "send_email",
+          "with": {
+            "template_name": "MonthlyInsuranceReport",
+            "to": "${ .prepare.recipients[16] }",
+            "description": "Complete expired and expiring insurance report",
+            "variables": {
+              "report_date": "${ .prepare.variables.report_date }",
+              "window_end": "${ .prepare.variables.window_end }",
+              "expired_count": "${ .prepare.variables.expired_count }",
+              "expiring_count": "${ .prepare.variables.expiring_count }",
+              "expired_rows": "${ .prepare.variables.expired_rows }",
+              "expiring_rows": "${ .prepare.variables.expiring_rows }"
+            }
+          },
+          "then": "check_18",
+          "x-base44": {
+            "title": "Email insurance report to recipient 17"
+          }
+        }
+      },
+      {
+        "check_18": {
+          "switch": [
+            {
+              "when": "${ (.prepare.recipients // [] | length) > 17 }",
+              "then": "email_18"
+            },
+            {
+              "when": "${ true }",
+              "then": "end"
+            }
+          ],
+          "x-base44": {
+            "title": "Check recipient 18"
+          }
+        }
+      },
+      {
+        "email_18": {
+          "call": "send_email",
+          "with": {
+            "template_name": "MonthlyInsuranceReport",
+            "to": "${ .prepare.recipients[17] }",
+            "description": "Complete expired and expiring insurance report",
+            "variables": {
+              "report_date": "${ .prepare.variables.report_date }",
+              "window_end": "${ .prepare.variables.window_end }",
+              "expired_count": "${ .prepare.variables.expired_count }",
+              "expiring_count": "${ .prepare.variables.expiring_count }",
+              "expired_rows": "${ .prepare.variables.expired_rows }",
+              "expiring_rows": "${ .prepare.variables.expiring_rows }"
+            }
+          },
+          "then": "check_19",
+          "x-base44": {
+            "title": "Email insurance report to recipient 18"
+          }
+        }
+      },
+      {
+        "check_19": {
+          "switch": [
+            {
+              "when": "${ (.prepare.recipients // [] | length) > 18 }",
+              "then": "email_19"
+            },
+            {
+              "when": "${ true }",
+              "then": "end"
+            }
+          ],
+          "x-base44": {
+            "title": "Check recipient 19"
+          }
+        }
+      },
+      {
+        "email_19": {
+          "call": "send_email",
+          "with": {
+            "template_name": "MonthlyInsuranceReport",
+            "to": "${ .prepare.recipients[18] }",
+            "description": "Complete expired and expiring insurance report",
+            "variables": {
+              "report_date": "${ .prepare.variables.report_date }",
+              "window_end": "${ .prepare.variables.window_end }",
+              "expired_count": "${ .prepare.variables.expired_count }",
+              "expiring_count": "${ .prepare.variables.expiring_count }",
+              "expired_rows": "${ .prepare.variables.expired_rows }",
+              "expiring_rows": "${ .prepare.variables.expiring_rows }"
+            }
+          },
+          "then": "check_20",
+          "x-base44": {
+            "title": "Email insurance report to recipient 19"
+          }
+        }
+      },
+      {
+        "check_20": {
+          "switch": [
+            {
+              "when": "${ (.prepare.recipients // [] | length) > 19 }",
+              "then": "email_20"
+            },
+            {
+              "when": "${ true }",
+              "then": "end"
+            }
+          ],
+          "x-base44": {
+            "title": "Check recipient 20"
+          }
+        }
+      },
+      {
+        "email_20": {
+          "call": "send_email",
+          "with": {
+            "template_name": "MonthlyInsuranceReport",
+            "to": "${ .prepare.recipients[19] }",
+            "description": "Complete expired and expiring insurance report",
+            "variables": {
+              "report_date": "${ .prepare.variables.report_date }",
+              "window_end": "${ .prepare.variables.window_end }",
+              "expired_count": "${ .prepare.variables.expired_count }",
+              "expiring_count": "${ .prepare.variables.expiring_count }",
+              "expired_rows": "${ .prepare.variables.expired_rows }",
+              "expiring_rows": "${ .prepare.variables.expiring_rows }"
+            }
+          },
+          "then": "end",
+          "x-base44": {
+            "title": "Email insurance report to recipient 20"
+          }
+        }
+      }
+    ]
+  },
+  "trigger": {
+    "condition": null,
+    "config": {
+      "trigger_type": "scheduled",
+      "events": [],
+      "schedule_mode": "recurring",
+      "cron_expression": "0 6 20 * *",
+      "one_time_date": null,
+      "timezone": "Europe/London",
+      "interval_value": null,
+      "interval_unit": null,
+      "interval_anchor": null,
+      "ends_type": "never",
+      "ends_on_date": null,
+      "ends_after_count": null
+    }
+  },
+  "name": "Monthly Insurance Expiry Report"
+}

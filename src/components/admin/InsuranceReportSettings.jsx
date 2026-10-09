@@ -1,0 +1,19 @@
+import React, {useEffect,useState} from 'react';
+import {useQuery} from '@tanstack/react-query';
+import {base44} from '@/api/base44Client';
+import {Button} from '@/components/ui/button';
+import InsuranceReportRecipients from '@/components/admin/InsuranceReportRecipients.jsx';
+import InsuranceReportPreview from '@/components/admin/InsuranceReportPreview.jsx';
+const request=async values=>{const {data}=await base44.functions.invoke('manageInsuranceReports',values);if(data.error)throw new Error(data.error);return data;};
+export default function InsuranceReportSettings() {
+ const settings=useQuery({queryKey:['insurance-report-settings'],retry:false,queryFn:()=>request({action:'get'})});
+ const [draft,setDraft]=useState(null),[busy,setBusy]=useState(''),[error,setError]=useState(''),[notice,setNotice]=useState(''),[preview,setPreview]=useState(null);
+ useEffect(()=>{if(settings.data)setDraft(settings.data.settings);},[settings.data]);
+ const save=async event=>{event.preventDefault();setBusy('saving');setError('');setNotice('');try{const result=await request({action:'save',enabled:draft.enabled,recipient_emails:draft.recipient_emails});setDraft(result.settings);setNotice(result.settings.enabled ? 'Saved. Reports will go to these recipients on the 20th at 6am UK time.' : 'Saved. Monthly insurance emails are disabled.');}catch(error){setError(error.message);}finally{setBusy('');}};
+ const view=async()=>{setBusy('preview');setError('');try{setPreview((await request({action:'preview'})).variables);}catch(error){setError(error.message);}finally{setBusy('');}};
+ if(settings.isPending)return <p role="status" className="text-sm text-muted-foreground">Loading insurance report settings…</p>;
+ if(settings.isError)return <div><p role="alert" className="text-sm text-destructive">{settings.error.message}</p><Button variant="outline" onClick={()=>settings.refetch()}>Try again</Button></div>;
+ return <section className="space-y-4"><div className="rounded-panel border border-border bg-card p-5"><h2 className="font-heading text-xl font-semibold">Monthly insurance report</h2><p className="mt-1 text-sm text-muted-foreground">20th of each month at 6am UK time (GMT/BST). Includes every expired insurance policy and every policy expiring today or in the next 28 days.</p><p className="mt-1 text-xs text-muted-foreground">Based on policies currently synced from Dataverse. Includes active and inactive records; policies without an expiry date are excluded. Recipients and report settings are administrator-only.</p>
+  {draft && <form onSubmit={save} className="mt-5 space-y-4"><label className="flex items-center gap-2 text-sm font-medium"><input type="checkbox" checked={draft.enabled} disabled={!!busy} onChange={event=>setDraft(value=>({...value,enabled:event.target.checked}))}/>Enable monthly insurance report</label><InsuranceReportRecipients selected={draft.recipient_emails} onChange={emails=>setDraft(value=>({...value,recipient_emails:emails}))} disabled={!!busy}/>{error && <p role="alert" className="text-sm text-destructive">{error}</p>}{notice && <p role="status" className="text-sm text-muted-foreground">{notice}</p>}<div className="flex flex-wrap gap-2"><Button type="submit" disabled={!!busy}>{busy==='saving' ? 'Saving…' : 'Save report settings'}</Button><Button type="button" variant="outline" disabled={!!busy} onClick={view}>{busy==='preview' ? 'Preparing report…' : 'Preview current report'}</Button></div><p className="text-xs text-muted-foreground">No emails are sent until you select recipients, enable the report and save.</p></form>}
+ </div>{preview && <InsuranceReportPreview report={preview}/>}</section>;
+}

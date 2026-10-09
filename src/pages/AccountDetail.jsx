@@ -18,6 +18,7 @@ import AccountClassification from '@/components/accounts/AccountClassification';
 import AccountOverview from '@/components/accounts/AccountOverview';
 import AccountFinancials from '@/components/accounts/AccountFinancials';
 import AccountActivity from '@/components/accounts/AccountActivity';
+import AccountInsurance from '@/components/accounts/AccountInsurance.jsx';
 import useAccountsView from '@/components/accounts/useAccountsView';
 import '@/components/accounts/accounts.css';
 import { Users, FolderKanban, FileText, ShieldCheck, Mail, Gavel } from "lucide-react";
@@ -121,14 +122,15 @@ export default function AccountDetail() {
   projects.forEach((p) => { if (p.dataverse_id) projectByDv[p.dataverse_id] = p; });
 
   return (
-    <Tabs value={['overview','contacts','projects','opportunities','financials','activity','documents'].includes(params.get('tab')) ? params.get('tab') : 'overview'} onValueChange={tab=>setParams(current=>{const next=new URLSearchParams(current);next.set('tab',tab);return next;},{replace:true})} className="account-profile space-y-6">
+    <Tabs value={['overview','contacts','projects','opportunities','financials','activity','documents','insurance'].includes(params.get('tab')) ? params.get('tab') : 'overview'} onValueChange={tab=>setParams(current=>{const next=new URLSearchParams(current);next.set('tab',tab);return next;},{replace:true})} className="account-profile space-y-6">
       <div className="account-sticky-header">
         <AccountHeader account={account} owner={summary.isPending ? 'Loading…' : signals?.owner || (account.account_manager_aad_id ? 'Assigned owner' : 'Not assigned')} actions={<AccountClassification account={account} user={user} onSaved={updated => setAccount(current => ({ ...current,...updated }))} />} />
         <TabsList className="account-tabs mt-4" aria-label="Relationship sections">
-          {['Overview','Contacts','Projects',...(['admin','director','regional_director','bsm','finance','bdm'].includes(user?.role) ? ['Opportunities'] : []),...(['admin','director','regional_director','bsm','finance','bdm','client'].includes(user?.role) ? ['Financials'] : []),'Activity','Documents'].map(title => <TabsTrigger key={title} value={title.toLowerCase()}>{title==='Contacts' ? 'People' : title}</TabsTrigger>)}
+          {['Overview','Contacts','Projects',...(['admin','director','regional_director','bsm','finance','bdm'].includes(user?.role) ? ['Opportunities'] : []),...(['admin','director','regional_director','bsm','finance','bdm','client'].includes(user?.role) ? ['Financials'] : []),'Activity','Documents','Insurance'].map(title => <TabsTrigger key={title} value={title.toLowerCase()}>{title==='Contacts' ? 'People' : title}</TabsTrigger>)}
         </TabsList>
       </div>
       <TabsContent value="overview" className="space-y-4"><DataverseRecordEdit table="accounts" record={account} onUpdated={setAccount}><AccountOverview account={summaryRow?.account ? {...account,_ase:summaryRow.account._ase} : account} contacts={contacts} projects={projects} signals={signals} user={user} summaryLoading={summary.isPending} summaryError={summary.error} onSummaryRetry={()=>summary.refetch()} onAccountEnriched={updated=>setAccount(current=>({...current,...updated}))} /></DataverseRecordEdit></TabsContent>
+      <TabsContent value="insurance"><AccountInsurance account={account}/></TabsContent>
       <TabsContent value="contacts" className="space-y-6">
       {/* Linked Contacts */}
       <Section icon={Users} title="People at this organisation" count={contactTotal}>
