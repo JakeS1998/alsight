@@ -1,5 +1,6 @@
 import {approvalSource,approvalView,approvalMetadata} from './documentApprovalRecords.ts';
 import {documentNeedsApproval} from './documentApprovalEligibility.ts';
+import {decisionCanRetry,decisionLeaseActive} from './documentApprovalLease.ts';
 const own = user => ({approver_email:user.email.trim().toLowerCase(),source_requires_approval:{$ne:false}});
 export function approvalQuery(user,input) {
  let query=own(user);
@@ -54,6 +55,5 @@ export async function approvalDetail(base44,user,id) {
  const url=document.link_to_file;
  let documents=[];
  if(/^https:\/\//i.test(url || '')){const name=decodeURIComponent(new URL(url).pathname.split('/').pop() || '');const extension=name.match(/\.([a-z0-9]{1,8})$/i)?.[1];documents=[{name:extension ? name : request.document_title,url,kind:extension ? extension.toUpperCase() : 'Source document',download:false}];}
- const recoverable=request.writeback_status==='error' || (request.writeback_status==='pending' && Date.parse(request.decision_lock_until || '')<Date.now());
- return {request:{...approvalView(request),...approvalMetadata(document,project),project_value:project.estimated_value,can_respond:request.status==='pending',can_retry:recoverable && !!request.response && request.decided_by_id===user.id},documents,history:history.items,history_more:history.has_more,history_cursor:history.next_cursor};
+ return {request:{...approvalView(request),...approvalMetadata(document,project),project_value:project.estimated_value,can_respond:request.status==='pending' && !request.response && !decisionLeaseActive(request),can_retry:decisionCanRetry(request,user)},documents,history:history.items,history_more:history.has_more,history_cursor:history.next_cursor};
 }

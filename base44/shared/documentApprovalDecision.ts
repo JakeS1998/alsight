@@ -1,6 +1,7 @@
 import {approvalSource,approvalAudit,approvalEntity} from './documentApprovalRecords.ts';
 import {flowConfig,flowRequest} from './dataverseFlowApi.ts';
 import {personalDataverseContext,getPersonalDataverseToken} from './dataverseUserAuth.ts';
+import {availableDecisionLease,decisionCanRetry} from './documentApprovalLease.ts';
 const responses=['Approve','Approved - Subject to Comments','Further Review Required'];
 const statusOf=value=>value==='Reject' ? 'rejected' : value==='Further Review Required' ? 'further_review_required' : 'approved';
 export async function decideDocumentApproval(base44,user,input) {
@@ -9,14 +10,14 @@ export async function decideDocumentApproval(base44,user,input) {
  if(!request || request.approver_email!==user.email.trim().toLowerCase())throw new Error('Approval not found in your inbox.');
  const {document}=await approvalSource(base44,request);
  const retry=input.action==='retry',demo=request.request_key?.startsWith('demo:');
- if(retry){const recoverable=request.writeback_status==='error' || (request.writeback_status==='pending' && Date.parse(request.decision_lock_until || '')<Date.now());if(!recoverable || request.decided_by_id!==user.id || !request.response)throw new Error('This decision is not available for retry.');}
+ if(retry){if(!decisionCanRetry(request,user))throw new Error('This decision is not available for retry.');}
  else {
   if(request.status!=='pending' || request.response)throw new Error('This request already has a decision. Refresh your inbox.');
   if(!responses.includes(input.response) || typeof input.comments!=='string' || input.comments.length>4000)throw new Error('Choose a response and keep comments within 4,000 characters.');
   if(input.response==='Approved - Subject to Comments' && !input.comments.trim())throw new Error('Comments are required for approval subject to comments.');
  }
  const now=new Date().toISOString(),lock=crypto.randomUUID();
- const claimed=await db.updateMany({id:request.id,status:'pending',$or:[{decision_lock_until:{$exists:false}},{decision_lock_until:{$lt:now}}]},{$set:{decision_lock:lock,decision_lock_until:new Date(Date.now()+180000).toISOString(),writeback_status:demo ? 'not_required' : 'pending'}});
+ const claimed=await db.updateMany({id:request.id,status:'pending',...availableDecisionLease(now)},{$set:{decision_lock:lock,decision_lock_until:new Date(Date.now()+180000).toISOString(),writeback_status:demo ? 'not_required' : 'pending'}});
  if(!claimed.updated)throw new Error('This decision is already being processed. Refresh your inbox.');
  const response=retry ? request.response : input.response,comments=retry ? request.decision_comments : input.comments.trim(),decidedAt=retry ? request.decided_at : now;
  try {
