@@ -43,6 +43,7 @@ export function ProjectMap({ projects, showValues = true, resizeAware = false })
   return (
     <div className="relative z-0">
       <MapContainer
+        zoomAnimation={false}
         center={[54.5, -2]}
         zoom={6}
         style={{ height: "400px", width: "100%" }}
