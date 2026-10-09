@@ -1,5 +1,6 @@
 import { createClientFromRequest } from 'npm:@base44/sdk@0.8.52';
 import { withPortalUserNames } from '../../shared/portalUserNames.ts';
+import {portalNameAliases} from '../../shared/portalNameAliases.ts';
 
 const ROLES = ['admin', 'director', 'regional_director', 'bsm', 'finance', 'bdm', 'client', 'supplier', 'project_manager', 'framework_stakeholder'];
 
@@ -15,8 +16,9 @@ export default async function(req: Request): Promise<Response> {
       withPortalUserNames(base44.asServiceRole.entities, [user]),
       base44.asServiceRole.entities.PendingPortalAccess.filter({ email }, '-created_date', 2),
     ]);
-    const displayName = namedUsers[0]?.full_name || user.full_name;
-    if (!pending.length) return Response.json({ applied: false, displayName });
+    const displayName = namedUsers[0]?.full_name || 'Full name not recorded';
+    const nameAliases=await portalNameAliases(base44,user);
+    if (!pending.length) return Response.json({ applied: false, displayName,nameAliases });
     if (pending.length > 1) return Response.json({ error: 'Multiple access assignments exist for this email. Contact an administrator.' }, { status: 409 });
     const assignment = pending[0];
     if (!ROLES.includes(assignment.portal_role)) return Response.json({ error: 'Invalid pending access role' }, { status: 400 });
@@ -40,7 +42,7 @@ export default async function(req: Request): Promise<Response> {
       await base44.asServiceRole.entities.Contact.update(contact.id, { aad_id: user.id, portal_role: assignment.portal_role });
     }
     await base44.asServiceRole.entities.PendingPortalAccess.delete(assignment.id);
-    return Response.json({ applied: true, displayName });
+    return Response.json({ applied: true, displayName,nameAliases });
   } catch (error) {
     console.error('Failed to apply pending portal access', error);
     return Response.json({ error: error.message }, { status: 500 });

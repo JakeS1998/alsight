@@ -1,4 +1,5 @@
 import {createClientFromRequest} from 'npm:@base44/sdk@0.8.52';
+import {portalActor} from '../../shared/portalActor.ts';
 import {approvalList,approvalSummary,approvalOptions,approvalDetail} from '../../shared/documentApprovalReads.ts';
 import {decideDocumentApproval} from '../../shared/documentApprovalDecision.ts';
 import {receiveDocumentApproval} from '../../shared/documentApprovalIntake.ts';
@@ -8,7 +9,7 @@ const address=value=>typeof value==='string' ? value.trim().toLowerCase() : '';
 const validId=value=>typeof value==='string' && /^[a-zA-Z0-9_-]{1,100}$/.test(value);
 export default async function(req: Request): Promise<Response> {
  try {
-  const base44=createClientFromRequest(req),user=await base44.auth.me();
+  const base44=createClientFromRequest(req),user=await portalActor(base44);
   if(!user)return Response.json({error:'Sign in to use approvals.'},{status:401});
   const input=await req.json(),email=address(user.email);
   if(!email)return Response.json({error:'A verified portal email is required.'},{status:403});

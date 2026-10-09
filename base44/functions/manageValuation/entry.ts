@@ -1,4 +1,5 @@
 import { createClientFromRequest } from 'npm:@base44/sdk@0.8.52';
+import {portalActor} from '../../shared/portalActor.ts';
 import { pmPathway, pmPathwayRegister } from '../../shared/pmPathway.ts';
 import { supplierCanManage, supplierAccountId, internalRoles } from '../../shared/valuationAccess.ts';
 
@@ -21,7 +22,7 @@ async function allMatches(entity, query) {
 export default async function(req: Request): Promise<Response> {
   try {
     const base44 = createClientFromRequest(req);
-    const user = await base44.auth.me();
+    const user = await portalActor(base44);
     if (!user) return response('Sign in required', 401);
     const input = await req.json();
     const { action, projectId, valuationId } = input;

@@ -1,4 +1,5 @@
 import {createClientFromRequest} from 'npm:@base44/sdk@0.8.52';
+import {portalActor} from '../../shared/portalActor.ts';
 import {internalRoles} from '../../shared/asePolicy.ts';
 import {getASEV2Policy,validateASEV2Config} from '../../shared/aseV2Config.ts';
 import {createASEV2Assessment} from '../../shared/aseV2Assessment.ts';
@@ -15,7 +16,7 @@ import {v2DisplayAssessment} from '../../shared/aseV2Display.ts';
 import {dataRequestError} from '../../shared/dataRequestError.ts';
 export default async function(req: Request): Promise<Response> {
   try {
-    const base44=createClientFromRequest(req),user=await base44.auth.me();
+    const base44=createClientFromRequest(req),user=await portalActor(base44);
     if(!user || !internalRoles.includes(user.role)) return Response.json({error:'ASE v2 is internal-only.'},{status:403});
     const input=await req.json();if(!['detail','history','configuration','saveConfiguration','saveInput','assess','checkRules','leadershipStart','leadershipStep','leadershipStatus','leadershipReview'].includes(input.action)) return Response.json({error:'Invalid ASE v2 operation.'},{status:400});
     if(['saveConfiguration','saveInput','assess','checkRules','leadershipStart','leadershipStep','leadershipStatus','leadershipReview'].includes(input.action) && user.role!=='admin') return Response.json({error:'Only administrators can approve ASE v2 methodology, evidence or assessments.'},{status:403});

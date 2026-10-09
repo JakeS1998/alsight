@@ -1,4 +1,5 @@
 import { createClientFromRequest } from 'npm:@base44/sdk@0.8.52';
+import {portalActor} from '../../shared/portalActor.ts';
 import { internalRoles } from '../../shared/allianceLayerAccess.ts';
 import { nextLookoutDate, ukParts } from '../../shared/lookoutDates.ts';
 import { collectLookoutSources } from '../../shared/lookoutSources.ts';
@@ -7,7 +8,7 @@ import { storeLookoutPdf, storeLookoutDraft } from '../../shared/lookoutPdfStora
 import { publishLookout } from '../../shared/lookoutPublication.ts';
 export default async function(req: Request): Promise<Response> {
   try {
-    const base44=createClientFromRequest(req), user=await base44.auth.me();
+    const base44=createClientFromRequest(req), user=await portalActor(base44);
     if(!user || !internalRoles.includes(user.role)) return Response.json({error:'Internal staff access only.'},{status:403});
     const input=await req.json(), admin=user.role==='admin', db=base44.entities, now=new Date();
     const writes=['generate','scheduledGenerate','scheduledPublish','save','approve','publish'];

@@ -1,10 +1,11 @@
 import React,{useState} from 'react';
+import fullName from '@/components/data/fullName';
 import {Link} from 'react-router-dom';
 export default function AllianceNotificationRows({notifications,onNavigate}) {
   const [error,setError]=useState(''),[busy,setBusy]=useState('');
   if(!notifications.enabled) return null;
   const update=async(row,dismiss=false)=>{setBusy(row.id);setError('');try{await notifications.update(row,dismiss);}catch(e){setError(e.message || 'Unable to update notification.');}finally{setBusy('');}};
-  const title=row=>row.reason==='company' ? `${row.author_name} shared a company update` : row.reason==='everyone' ? `${row.author_name} mentioned @everyone` : `${row.author_name} mentioned you`;
+  const title=row=>row.reason==='company' ? `${fullName(row.author_name,row.author_id)} shared a company update` : row.reason==='everyone' ? `${fullName(row.author_name,row.author_id)} mentioned @everyone` : `${fullName(row.author_name,row.author_id)} mentioned you`;
   return <section className="mt-3 border-b border-border pb-3" aria-label="Alliance Insider notifications">
     <h3 className="text-sm font-medium">Alliance Insider</h3>
     {(error || notifications.error) && <p role="alert" className="mt-2 text-xs text-destructive">{error || notifications.error}</p>}

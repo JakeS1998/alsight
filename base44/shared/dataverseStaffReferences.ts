@@ -1,6 +1,7 @@
 import { flowRequest } from './dataverseFlowApi.ts';
 import { isGuid } from './dataverseFlowFields.ts';
 import { staffEmailQuery } from './staffReportingIdentity.ts';
+import {withPortalUserNames} from './portalUserNames.ts';
 export async function flowReferenceUsers(base44, ids, context) {
   const users = await base44.entities.User.filter({ $or: [{ dataverse_systemuser_id: { $in: ids } }, { staff_aad_id: { $in: ids } }] });
   const missing = ids.filter(id => !users.some(u => [u.dataverse_systemuser_id, u.staff_aad_id].some(v => v?.toLowerCase() === id)));
@@ -16,5 +17,5 @@ export async function flowReferenceUsers(base44, ids, context) {
     const matched = await base44.entities.User.filter({ $or: emails.map(email => ({ email: staffEmailQuery(email) })) });
     for (const user of matched) if (!users.some(u => u.id === user.id)) users.push(user);
   }
-  return { users, identities };
+  return { users:await withPortalUserNames(base44.entities,users), identities };
 }

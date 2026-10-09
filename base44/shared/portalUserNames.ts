@@ -1,7 +1,8 @@
 import { staffEmailQuery } from './staffReportingIdentity.ts';
+import {fullName,contactFullName,missingFullName} from './fullName.ts';
 
 const emailOf = value => String(value || '').trim().toLowerCase();
-const nameOf = contact => String(contact.full_name || [contact.first_name, contact.last_name].filter(Boolean).join(' ')).trim();
+const nameOf = contact => contactFullName(contact);
 
 export async function withPortalUserNames(db, users) {
   const resolved = [];
@@ -18,10 +19,11 @@ export async function withPortalUserNames(db, users) {
       cursor = page.has_more ? page.next_cursor : null;
     } while (cursor);
     for (const user of batch) {
-      const linked = contacts.filter(contact => contact.aad_id === user.id || (user.staff_aad_id && contact.aad_id === user.staff_aad_id));
+      const staffId=user.staff_aad_id || user.data?.staff_aad_id;
+      const linked = contacts.filter(contact => contact.aad_id === user.id || (staffId && contact.aad_id === staffId));
       const matched = linked.length ? linked : contacts.filter(contact => [contact.email, contact.email2, contact.email3].some(email => emailOf(email) && emailOf(email) === emailOf(user.email)));
-      const names = [...new Set(matched.map(nameOf).filter(Boolean))];
-      resolved.push({ ...user, full_name: names.length === 1 ? names[0] : user.full_name });
+      const names = [...new Set(matched.map(nameOf).filter(name=>name!==missingFullName))];
+      resolved.push({ ...user, full_name: names.length === 1 ? names[0] : fullName(user.full_name) });
     }
   }
   return resolved;

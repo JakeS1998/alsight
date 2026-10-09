@@ -1,4 +1,5 @@
 import React from 'react';
+import fullName from '@/components/data/fullName';
 import { useParams, Link } from 'react-router-dom';
 import { useAuth } from '@/lib/AuthContext';
 import useRiskAcceptance from '@/components/risk-approvals/useRiskAcceptance';
@@ -13,7 +14,7 @@ export default function RiskApprovalReview() {
   if (flow.query.error) return <main className="mx-auto max-w-3xl space-y-3 p-8"><h1 className="text-xl font-bold">Approval issue unavailable</h1><p role="alert">{flow.query.error.response?.data?.error || flow.query.error.data?.error || 'Sign in with the email address named in the invitation.'}</p><Link className="underline" to="/account-settings">Manage signed-in account</Link></main>;
   const { packet, stale, is_current: current } = flow.query.data;
   return <main className="mx-auto w-full max-w-[2200px] min-w-0 space-y-5 p-4 md:p-6 xl:p-8">
-    <header><p className="text-xs font-bold uppercase tracking-wide text-muted-foreground">ALSight · Risk register acceptance</p><h1 className="mt-2 text-2xl font-bold">{packet.project_name}</h1><p className="mt-2 text-sm">{packet.reference} · {packet.status}</p><p className="text-xs text-muted-foreground">Signed in as {user?.email} · Issued by {packet.issued_by_name} on {new Date(packet.issued_at).toLocaleString('en-GB')}</p></header>
+    <header><p className="text-xs font-bold uppercase tracking-wide text-muted-foreground">ALSight · Risk register acceptance</p><h1 className="mt-2 text-2xl font-bold">{packet.project_name}</h1><p className="mt-2 text-sm">{packet.reference} · {packet.status}</p><p className="text-xs text-muted-foreground">Signed in as {fullName(user)} · Issued by {fullName(packet.issued_by_name,packet.issued_by_id)} on {new Date(packet.issued_at).toLocaleString('en-GB')}</p></header>
     <RiskApprovalTimeline packet={packet} />
     {stale && <p role="alert" className="rounded-lg border border-destructive bg-card p-4 text-sm text-destructive">The live register has changed or a newer issue exists. This issue cannot receive further acceptance; contact the BDM for a new issue.</p>}
     {!current && <p className="rounded-lg border bg-muted p-4 text-sm">{packet.status === 'active' ? 'This issue is awaiting another party. You will receive an invitation when it is your turn.' : 'This issue is closed to further decisions.'}</p>}

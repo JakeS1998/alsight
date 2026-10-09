@@ -1,4 +1,5 @@
 import React from 'react';
+import fullName from '@/components/data/fullName';
 import {Link} from 'react-router-dom';
 import {Activity,ArrowUpRight,MoreHorizontal,Trash2} from 'lucide-react';
 import {DropdownMenu,DropdownMenuTrigger,DropdownMenuContent,DropdownMenuItem} from '@/components/ui/dropdown-menu';
@@ -7,7 +8,7 @@ import PulseText from '@/components/alliance/PulseText';
 import InsiderPostInteractions from '@/components/alliance/InsiderPostInteractions';
 
 export default function PulsePost({item,user,onRemove,removing,groupOwnerId}) {
-  const author=item.author_name || (item.system ? 'Alliance Insider' : 'Alliance team');
+  const author=item.system && !item.author_id && !item.author_name ? 'Alliance Insider' : fullName(item.author_name,item.author_id);
   const initials=author.split(/\s+/).slice(0,2).map(part=>part[0]).join('').toUpperCase();
   const showHeading=item.system || (item.has_heading ?? (item.title?.trim() !== item.summary?.trim().split('\n')[0].slice(0,200)));
   const canRemove=!item.system && (user.id===item.author_id || user.id===groupOwnerId || ['admin','director'].includes(user.role));

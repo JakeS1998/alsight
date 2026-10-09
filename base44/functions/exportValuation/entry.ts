@@ -1,4 +1,5 @@
 import { createClientFromRequest } from 'npm:@base44/sdk@0.8.52';
+import {portalActor} from '../../shared/portalActor.ts';
 import { createValuationPdf } from '../../shared/valuationPdf.ts';
 import { supplierCanManage, supplierAccountId, internalRoles } from '../../shared/valuationAccess.ts';
 
@@ -9,7 +10,7 @@ const fmtAddr = (a: any) => a ? [a.address_line1, a.address_line2, a.address_cit
 export default async function(req: Request): Promise<Response> {
   try {
     const base44 = createClientFromRequest(req);
-    const user = await base44.auth.me();
+    const user = await portalActor(base44);
     if (!user) return response('Sign in required', 401);
     const input = await req.json();
     const { valuationId, projectId, documentType, action = 'preview' } = input;

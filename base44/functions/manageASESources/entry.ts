@@ -1,4 +1,5 @@
 import { createClientFromRequest } from 'npm:@base44/sdk@0.8.52';
+import {portalActor} from '../../shared/portalActor.ts';
 import { internalRoles,getPolicy,accountModel } from '../../shared/asePolicy.ts';
 import { validateEvidence } from '../../shared/aseAssessment.ts';
 import { sourceNames,sourceIdentifier,evidencePrefix } from '../../shared/aseSourceCommon.ts';
@@ -17,7 +18,7 @@ import {dataRequestError} from '../../shared/dataRequestError.ts';
 export default async function(req: Request): Promise<Response> {
   let base44,attempt;
   try {
-    base44=createClientFromRequest(req);const user=await base44.auth.me();
+    base44=createClientFromRequest(req);const user=await portalActor(base44);
     if(!user || !internalRoles.includes(user.role)) return Response.json({error:'ASE sources are available to internal staff only.'},{status:403});
     const input=await req.json(),keys=Object.keys(sourceNames).filter(key=>key!=='hmrc');
     if(!['status','refresh','review','analyse','previewCouncil','previewGovernance'].includes(input.action) || typeof input.accountId!=='string' || !/^[a-zA-Z0-9_-]{1,64}$/.test(input.accountId)) return Response.json({error:'Valid Account and source operation required.'},{status:400});

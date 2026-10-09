@@ -1,6 +1,8 @@
 import { createClientFromRequest } from 'npm:@base44/sdk@0.8.52';
 import { bdmRequestDefaults } from '../../shared/bdmRequestDefaults.ts';
 import { resolveStaffReportingLine } from '../../shared/staffReportingIdentity.ts';
+import {withPortalUserNames} from '../../shared/portalUserNames.ts';
+import {missingFullName} from '../../shared/fullName.ts';
 
 export default async function(req: Request): Promise<Response> {
   try {
@@ -23,10 +25,10 @@ export default async function(req: Request): Promise<Response> {
       const ids = [...new Set([project.bdm_aad_id, project.bsm_aad_id].filter(Boolean))];
       const names = {};
       if (!ids.length) return Response.json({ names });
-      const users = await base44.asServiceRole.entities.User.filter({ $or: [{ id: { $in: ids } }, { staff_aad_id: { $in: ids } }] });
+      const users = await withPortalUserNames(base44.asServiceRole.entities,await base44.asServiceRole.entities.User.filter({ $or: [{ id: { $in: ids } }, { staff_aad_id: { $in: ids } }] }));
       for (const person of users) {
         const name = String(person.full_name || '').trim();
-        if (!name) continue;
+        if (!name || name===missingFullName) continue;
         for (const id of [person.id, person.staff_aad_id, person.data?.staff_aad_id]) {
           if (ids.includes(id)) names[id] = name;
         }

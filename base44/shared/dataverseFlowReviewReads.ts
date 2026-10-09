@@ -3,6 +3,7 @@ import { flowRequest } from './dataverseFlowApi.ts';
 import { flowSelection, mappedFlowValues, reviewScope, normalisedEmail } from './dataverseFlowValues.ts';
 import { resolveFlowStaffReferences } from './dataverseFlowStaffReferences.ts';
 import { staffEmailQuery } from './staffReportingIdentity.ts';
+import {withPortalUserNames} from './portalUserNames.ts';
 export async function checkedFlowReview(base44, context, table, settings, id) {
   if (typeof id !== 'string' || id.length > 100) throw new Error('Choose a review record.');
   const review = await base44.entities.DataverseSyncReview.get(id), scope = reviewScope(context, table, settings);
@@ -31,7 +32,7 @@ export async function searchReviewTargets(base44, context, table, settings, inpu
   const review = await checkedFlowReview(base44, context, table, settings, input.reviewId), spec = flowSpecs[table], identity = spec.identityField || 'dataverse_id';
   if (table === 'users') {
     const row = await readReviewSource(context, table, settings, review), email = normalisedEmail(row.internalemailaddress);
-    const users = email ? await base44.entities.User.filter({ email: staffEmailQuery(email) }) : [];
+    const users = email ? await withPortalUserNames(base44.entities,await base44.entities.User.filter({ email: staffEmailQuery(email) })) : [];
     return { items: users.filter(user => !user[identity] || user[identity] === review.source_id).map(user => ({ id: user.id, label: `${user.full_name || user.email} · ${user.email}` })), has_more: false };
   }
   const search = typeof input.search === 'string' ? input.search.trim().slice(0, 100) : '';

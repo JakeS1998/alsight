@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from 'react';
+import fullName from '@/components/data/fullName';
 import { Link } from 'react-router-dom';
 import { base44 } from '@/api/base44Client';
 import { stageLabel } from '@/components/crm/crm';
@@ -28,7 +29,7 @@ export default function PipelineOpportunityDetail() {
   return <div className="border-t border-slate-200 px-5 py-5" id="pipeline-timeline-detail">
     <div className="flex flex-wrap items-center justify-between gap-2"><h3 className="font-semibold text-als-navy">Open CRM opportunities</h3><Link to="/crm/opportunities" className="text-sm font-medium text-als-navy underline-offset-2 hover:underline">View all opportunities →</Link></div>
     {error && <p role="alert" className="mt-3 text-sm text-destructive">{error}</p>}
-    {loading && !rows.length ? <p className="mt-4 text-sm text-slate-500">Loading opportunities…</p> : !rows.length && !error ? <p className="mt-4 text-sm text-slate-500">No open opportunities in the pipeline.</p> : <div className="mt-3 max-h-80 divide-y divide-slate-100 overflow-auto">{rows.map(item => <Link key={item.id} to={`/opportunities/${item.id}`} className="flex items-center justify-between gap-3 py-3 text-sm hover:bg-slate-50"><span className="min-w-0"><span className="block font-medium text-slate-900">{item.title}</span><span className="text-xs text-slate-500">{stageLabel(item.stage)} · {item.owner_name || 'Unassigned'}</span></span><span className="shrink-0 font-medium text-slate-800">{formatCurrency(item.budget)}</span></Link>)}</div>}
+    {loading && !rows.length ? <p className="mt-4 text-sm text-slate-500">Loading opportunities…</p> : !rows.length && !error ? <p className="mt-4 text-sm text-slate-500">No open opportunities in the pipeline.</p> : <div className="mt-3 max-h-80 divide-y divide-slate-100 overflow-auto">{rows.map(item => <Link key={item.id} to={`/opportunities/${item.id}`} className="flex items-center justify-between gap-3 py-3 text-sm hover:bg-slate-50"><span className="min-w-0"><span className="block font-medium text-slate-900">{item.title}</span><span className="text-xs text-slate-500">{stageLabel(item.stage)} · {item.owner_id ? fullName(item.owner_name,item.owner_id) : 'Unassigned'}</span></span><span className="shrink-0 font-medium text-slate-800">{formatCurrency(item.budget)}</span></Link>)}</div>}
     {more && <Button variant="outline" size="sm" className="mt-4" disabled={loading} onClick={() => load(cursor)}>{loading ? 'Loading…' : 'Load more'}</Button>}
   </div>;
 }

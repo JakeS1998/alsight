@@ -1,4 +1,5 @@
 import {createClientFromRequest} from 'npm:@base44/sdk@0.8.52';
+import {portalActor} from '../../shared/portalActor.ts';
 import {internalRoles} from '../../shared/allianceLayerAccess.ts';
 import {readLessons,readImpact,readHome} from '../../shared/allianceLayerReads.ts';
 import {addLesson,addPulse,removeItem,savePurpose} from '../../shared/allianceLayerWrites.ts';
@@ -9,7 +10,7 @@ import {updateAllianceNotification} from '../../shared/allianceNotificationActio
 import {insiderInteractions} from '../../shared/insiderInteractions.ts';
 export default async function(req) {
   try {
-    const base44=createClientFromRequest(req),user=await base44.auth.me();
+    const base44=createClientFromRequest(req),user=await portalActor(base44);
     if(!user) return Response.json({error:'Unauthorized'},{status:401});
     if(!internalRoles.includes(user.role)) return Response.json({error:'Alliance internal access only.'},{status:403});
     const input=await req.json();

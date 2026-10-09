@@ -1,4 +1,6 @@
 import {createClientFromRequest} from 'npm:@base44/sdk@0.8.52';
+import {withPortalUserNames} from '../../shared/portalUserNames.ts';
+import {portalUserSearch} from '../../shared/portalUserSearch.ts';
 const hosts=['admin','director','bdm','bsm'];
 const staff=[...hosts,'regional_director','finance','project_manager'];
 const validId=value=>typeof value==='string' && /^[a-zA-Z0-9_-]{1,64}$/.test(value);
@@ -11,8 +13,8 @@ export default async function(req: Request): Promise<Response> {
   if(input.action==='search'){
    if(typeof input.search!=='string' || input.search.length>100 || !['host','attendee','assignee'].includes(input.kind))return Response.json({error:'Invalid staff search.'},{status:400});
    if(input.search.trim().length<2)return Response.json({people:[]});
-   const pattern=input.search.trim().replace(/[.*+?^${}()|[\]\\]/g,'\\$&');
-   const people=await base44.asServiceRole.entities.User.filter({role:{$in:input.kind==='host' ? hosts : staff},$or:[{full_name:{$regex:pattern,$options:'i'}},{email:{$regex:pattern,$options:'i'}}]},'full_name',20);
+   const db=base44.asServiceRole.entities;
+   const people=await withPortalUserNames(db,await db.User.filter({role:{$in:input.kind==='host' ? hosts : staff},...await portalUserSearch(db,input.search)},'full_name',20));
    return Response.json({people:people.map(person=>({id:person.id,name:person.full_name || person.email,role:person.role}))});
   }
   if(input.action!=='save' || !validId(input.sessionId))return Response.json({error:'Invalid meeting operation.'},{status:400});
@@ -25,7 +27,8 @@ export default async function(req: Request): Promise<Response> {
   const ids=[...new Set([...input.hostIds,...input.attendeeIds])];
   const people=await Promise.all(ids.map(id=>base44.asServiceRole.entities.User.get(id)));
   if(people.some(person=>!person || !staff.includes(person.role)) || people.some(person=>input.hostIds.includes(person.id) && !hosts.includes(person.role)))return Response.json({error:'Choose registered internal staff; hosts need meeting-host permissions.'},{status:400});
-  const byId=new Map(people.map(person=>[person.id,{id:person.id,name:person.full_name || person.email}]));
+  const named=await withPortalUserNames(base44.asServiceRole.entities,people);
+  const byId=new Map(named.map(person=>[person.id,{id:person.id,name:person.full_name}]));
   const values={meeting_hosts:[...new Set(input.hostIds)].map(id=>byId.get(id)),meeting_attendees:[...new Set(input.attendeeIds)].map(id=>byId.get(id)),meeting_member_ids:ids};
   const total=await base44.asServiceRole.entities.CRMActivity.count({key_points:session.key_points});
   if(total>5000)return Response.json({error:'This meeting is too large to change its people in one operation.'},{status:400});

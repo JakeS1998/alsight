@@ -1,5 +1,7 @@
 import {createClientFromRequest} from 'npm:@base44/sdk@0.8.52';
 import {insuranceReportData} from '../../shared/insuranceReportData.ts';
+import {withPortalUserNames} from '../../shared/portalUserNames.ts';
+import {portalUserSearch} from '../../shared/portalUserSearch.ts';
 const roles=['admin','director','regional_director','bsm','bdm','finance'];
 const address=value=>String(value || '').trim().toLowerCase();
 const escape=value=>value.replace(/[.*+?^${}()|[\]\\]/g,'\\$&');
@@ -10,11 +12,12 @@ export default async function(req: Request): Promise<Response> {
   const base44=createClientFromRequest(req),user=await base44.auth.me();
   if(!user || user.role!=='admin')return Response.json({error:'Administrator access required.'},{status:403});
   const input=await req.json(),db=base44.entities;
-  if(input.action==='get')return Response.json({settings:await settings(db)});
+  if(input.action==='get'){const config=await settings(db),people=await withPortalUserNames(db,await recipients(db,config.recipient_emails));return Response.json({settings:config,recipientNames:Object.fromEntries(people.map(person=>[address(person.email),person.full_name]))});}
   if(input.action==='people'){
    if(typeof input.search!=='string' || input.search.length>100 || !Number.isInteger(input.offset ?? 0) || (input.offset ?? 0)<0 || (input.offset ?? 0)>10000)throw new Error('Invalid recipient search.');
-   const search=input.search.trim(),users=await db.User.filter({role:{$in:roles},...(search ? {$or:['email','full_name'].map(field=>({[field]:{$regex:escape(search),$options:'i'}}))} : {})},'full_name',21,input.offset || 0);
-   return Response.json({items:users.slice(0,20).map(u=>({id:u.id,name:u.full_name || u.email,email:u.email,role:u.role})),has_more:users.length>20,next_offset:(input.offset || 0)+20});
+   const search=input.search.trim(),users=await db.User.filter({role:{$in:roles},...await portalUserSearch(db,search)},'full_name',21,input.offset || 0);
+   const named=await withPortalUserNames(db,users.slice(0,20));
+   return Response.json({items:named.map(u=>({id:u.id,name:u.full_name,email:u.email,role:u.role})),has_more:users.length>20,next_offset:(input.offset || 0)+20});
   }
   if(input.action==='save'){
    if(typeof input.enabled!=='boolean' || !Array.isArray(input.recipient_emails) || input.recipient_emails.length>20 || input.recipient_emails.some(email=>typeof email!=='string' || email.length>250 || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)))throw new Error('Choose up to 20 registered internal recipients.');

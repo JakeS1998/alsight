@@ -1,6 +1,7 @@
 import React, { createContext, useState, useContext, useEffect } from 'react';
 import { base44 } from '@/api/base44Client';
 import { appParams } from '@/lib/app-params';
+import fullName,{setFullNameAliases} from '@/components/data/fullName';
 
 const AuthContext = createContext();
 
@@ -93,7 +94,8 @@ export const AuthProvider = ({ children }) => {
         console.warn('applyPendingPortalAccess skipped:', pendingError);
       }
       const currentUser = accessResult?.applied ? await base44.auth.me() : signedInUser;
-      setUser(accessResult?.displayName ? { ...currentUser, full_name: accessResult.displayName } : currentUser);
+      setFullNameAliases(accessResult?.nameAliases || []);
+      setUser({ ...currentUser, full_name: fullName(accessResult?.displayName || currentUser.full_name) });
       setIsAuthenticated(true);
       setIsLoadingAuth(false);
       setAuthChecked(true);
@@ -114,6 +116,7 @@ export const AuthProvider = ({ children }) => {
   };
 
   const logout = (shouldRedirect = true) => {
+    setFullNameAliases();
     setUser(null);
     setIsAuthenticated(false);
     

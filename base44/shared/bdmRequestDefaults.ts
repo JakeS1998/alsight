@@ -1,4 +1,5 @@
 import { resolveStaffReportingLine, staffEmailQuery } from './staffReportingIdentity.ts';
+import {withPortalUserNames} from './portalUserNames.ts';
 const regions = {
   'c180b661-4600-f111-8407-000d3a7ed0c8': 'South East & London', '9d15738c-4600-f111-8407-000d3a7ed0c8': 'West Midlands & North Wales',
   '0cde51a5-4600-f111-8407-000d3a7ed0c8': 'East', 'a69051ab-4600-f111-8407-000d3a7ed0c8': 'North',
@@ -32,7 +33,8 @@ export async function bdmRequestDefaults(base44, bdmId) {
       service.User.filter({ role: { $in: directorRoles }, $or: [{ id: { $in: managerIds } }, { staff_aad_id: { $in: managerIds } }, ...(line?.manager_email ? [{ email: staffEmailQuery(line.manager_email) }] : [])] }),
       service.Contact.filter({ $or: [{ aad_id: { $in: managerIds } }, ...(line?.manager_email ? [{ email: staffEmailQuery(line.manager_email) }] : [])], portal_role: { $in: ['admin', 'director', 'regional_director', 'bdm', 'bsm', 'finance'] } }, { limit: 2 }),
     ]);
-    const manager = managers.find(item => item.id === person?.line_manager_id) || managers[0];
+    const named=await withPortalUserNames(service,managers);
+    const manager = named.find(item => item.id === person?.line_manager_id) || named[0];
     const managerContact = managerContacts.items[0];
     if (manager) director = { value: manager.id, label: manager.full_name || managerContact?.full_name || line?.manager_name || '', region: manager.region };
     else if (managerContact) director = { value: managerContact.aad_id, label: managerContact.full_name, region: managerContact.department };

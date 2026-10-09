@@ -1,4 +1,5 @@
 import {loadApprovalRouting,approvalRelatedRules,liveApproverRoles} from './approvalRoutingConfig.ts';
+import {withPortalUserNames} from './portalUserNames.ts';
 const address=value=>String(value || '').trim().toLowerCase();
 const identity=value=>String(value || '').toLowerCase();
 const reference=(document,project,rule)=>identity((rule.document ? document : project)?.[rule.field]);
@@ -32,7 +33,7 @@ export async function resolveApprovalRouting(base44,table,pairs) {
  });
  const emails=[...new Set(candidates.flatMap(c=>c.emails))];
  const grants=emails.length ? (await db.ApprovalAccess.filter({email:{$in:emails},enabled:true},{limit:500,fields:['email']})).items : [];
- const emailUsers=emails.length ? await db.User.filter({$or:emails.map(email=>({email:{$regex:`^${email.replace(/[.*+?^${}()|[\]\\]/g,'\\$&')}$`,$options:'i'}}))},'full_name',500) : [];
+ const emailUsers=emails.length ? await withPortalUserNames(db,await db.User.filter({$or:emails.map(email=>({email:{$regex:`^${email.replace(/[.*+?^${}()|[\]\\]/g,'\\$&')}$`,$options:'i'}}))},'full_name',500)) : [];
  return {config,results:candidates.map(candidate=>{
   const reasons=[...candidate.reasons],approvers=[];
   if(config.enabled)for(const email of candidate.emails){

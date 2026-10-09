@@ -1,4 +1,5 @@
 import { createClientFromRequest } from 'npm:@base44/sdk@0.8.52';
+import {portalActor} from '../../shared/portalActor.ts';
 import { approvalSummary, canIssue, fail, packetPublic, loadSnapshot } from '../../shared/riskApprovalData.ts';
 import { issueRiskApproval } from '../../shared/riskApprovalIssue.ts';
 import { recipientAction } from '../../shared/riskApprovalVerify.ts';
@@ -6,7 +7,7 @@ import { addRiskRecipient } from '../../shared/riskApprovalRecipients.ts';
 import { withPortalUserNames } from '../../shared/portalUserNames.ts';
 export default async function(req) {
   try {
-    const base44 = createClientFromRequest(req); const user = await base44.auth.me();
+    const base44 = createClientFromRequest(req); const user = await portalActor(base44);
     if (!user || !(await base44.auth.isAuthenticated())) return Response.json({ error: 'Please sign in with your registered portal account.' }, { status: 401 });
     const input = await req.json(); const db = base44.asServiceRole.entities;
     if (!['status','recipients','issue','review','send_code','verify','accept','reject','withdraw','retry','history','snapshot','add_recipient','comments','comment'].includes(input.action)) fail('Unknown approval action.');

@@ -1,4 +1,5 @@
 import { createClientFromRequest } from 'npm:@base44/sdk@0.8.52';
+import {portalActor} from '../../shared/portalActor.ts';
 import { internalRoles,defaultModels,accountModel,getPolicy,calculate } from '../../shared/asePolicy.ts';
 import { createAssessment,validateEvidence,currentASESourceQuery } from '../../shared/aseAssessment.ts';
 import { seedDemo } from '../../shared/aseDemo.ts';
@@ -21,7 +22,7 @@ import {aseCurrentRatings} from '../../shared/aseCurrentRatings.ts';
 import {scopedReadCache,invalidateScopedRead} from '../../shared/scopedReadCache.ts';
 export default async function(req: Request): Promise<Response> {
   try {
-    const base44=createClientFromRequest(req), user=await base44.auth.me();
+    const base44=createClientFromRequest(req), user=await portalActor(base44);
     if (!user || !internalRoles.includes(user.role)) return Response.json({error:'ASE is available to internal staff only.'},{status:403});
     const input=await req.json();
     const actions=['policy','savePolicy','seed','summary','detail','addEvidence','previewAssessment','assess','bulkPublish','explain','checkRules','automationScope','automationStart','automationStatus','automationPause','automationResume','automationRetry','automationStep','automationDispatch','automationRules','commercial','commercialContracts','reviewCommercialTerms','structure','hmrcStatus'];
