@@ -10,6 +10,7 @@ export default async function(req: Request): Promise<Response> {
     if (JSON.stringify(input).length > 4000 || typeof input.projectId !== 'string' || !/^[a-zA-Z0-9_-]{1,100}$/.test(input.projectId)) return Response.json({ error: 'Invalid risk register request.' }, { status: 400 });
     const project = await base44.entities.Project.get(input.projectId);
     if (!project) return Response.json({ error: 'Project not accessible.' }, { status: 403 });
+    // Read a temporary copy with Excel note relationships normalised for the parser.
     const document = await riskDocument(base44, input.fileUri, secrets.get('BASE44_APP_ID'));
     const textKeys = ['reference','title','cause','impact_description','mitigation','comments'];
     const properties = Object.fromEntries(textKeys.map(key => [key, { type: 'string' }]));

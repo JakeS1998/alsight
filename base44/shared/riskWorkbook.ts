@@ -1,7 +1,8 @@
 import ExcelJS from 'npm:exceljs@4.4.0';
+import { normaliseRiskWorkbookComments } from './riskWorkbookComments.ts';
 export async function readRiskWorkbook(bytes) {
   const workbook = new ExcelJS.Workbook();
-  await workbook.xlsx.load(bytes);
+  await workbook.xlsx.load(normaliseRiskWorkbookComments(bytes));
   let text = '';
   for (const sheet of workbook.worksheets) {
     text += `\nSHEET: ${sheet.name}\n`;
