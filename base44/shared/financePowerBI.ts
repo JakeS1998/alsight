@@ -19,11 +19,12 @@ export function validateSources(value){
 export async function powerToken(){
  const tenant=secrets.get('POWERBI_TENANT_ID')?.trim(),client=secrets.get('POWERBI_CLIENT_ID')?.trim(),secret=secrets.get('POWERBI_CLIENT_SECRET');
  if(!guid.test(tenant||'')||!guid.test(client||'')||!secret)throw new Error('Ask your Microsoft administrator to confirm the stored Power BI application credentials.');
- const r=await fetch(`https://login.microsoftonline.com/${tenant}/oauth2/v2.0/token`,{method:'POST',redirect:'error',signal:AbortSignal.timeout(20000),headers:{'Content-Type':'application/x-www-form-urlencoded'},body:new URLSearchParams({grant_type:'client_credentials',client_id:client,client_secret:secret,scope:'https://analysis.windows.net/powerbi/api/.default'})});
+ const r=await fetch(`https://login.microsoftonline.com/${tenant}/oauth2/v2.0/token`,{method:'POST',redirect:'manual',signal:AbortSignal.timeout(20000),headers:{'Content-Type':'application/x-www-form-urlencoded'},body:new URLSearchParams({grant_type:'client_credentials',client_id:client,client_secret:secret,scope:'https://analysis.windows.net/powerbi/api/.default'})});
  const d=await r.json();if(!r.ok||!d.access_token)throw new Error('Microsoft could not authorise the Power BI application. Check the tenant, client ID, secret value and expiry.');return d.access_token;
 }
 export async function powerRequest(token,path,body){
- const r=await fetch(`https://api.powerbi.com/v1.0/myorg/${path}`,{method:body?'POST':'GET',redirect:'error',signal:AbortSignal.timeout(45000),headers:{Authorization:`Bearer ${token}`,'Content-Type':'application/json'},...(body?{body:JSON.stringify(body)}:{})});
+ const r=await fetch(`https://api.powerbi.com/v1.0/myorg/${path}`,{method:body?'POST':'GET',redirect:'manual',signal:AbortSignal.timeout(45000),headers:{Authorization:`Bearer ${token}`,'Content-Type':'application/json'},...(body?{body:JSON.stringify(body)}:{})});
+ if(r.status>=300&&r.status<400)throw new Error('Power BI returned an unexpected redirect. Ask your Microsoft administrator to check the connection.');
  const d=await r.json();
  if(!r.ok)throw new Error([401,403].includes(r.status)?'Power BI denied access. Check workspace Read/Build access, service-principal API access and Dataset Execute Queries settings. Models with RLS or SSO need delegated-user access.':r.status===429?'Power BI is busy. Wait a minute before refreshing.':`Power BI could not read this report or model (HTTP ${r.status}). Check the report link and column selections.`);
  return d;

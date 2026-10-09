@@ -1,7 +1,7 @@
 const escape=v=>v.replace(/[.*+?^${}()|[\]\\]/g,'\\$&');
 export function namePattern(name){
  const words=String(name||'').toLowerCase().replace(/&/g,' and ').match(/[a-z0-9]+/g)||[];
- return words.length?'^[^a-z0-9]*'+words.map(w=>w==='and'?'(?:and|&)':escape(w)).join('[^a-z0-9]*')+'[^a-z0-9]*$':null;
+ return words.length?'^[^a-z0-9]*'+words.map((w,i)=>(i?(w==='and'||words[i-1]==='and'?'[^a-z0-9]*':'[^a-z0-9]+'):'')+(w==='and'?'(?:and|&)':escape(w))).join('')+'[^a-z0-9]*$':null;
 }
 export async function sourceKey(dataset,name,code){const bytes=await crypto.subtle.digest('SHA-256',new TextEncoder().encode(JSON.stringify([dataset,name,code])));return Array.from(new Uint8Array(bytes),b=>b.toString(16).padStart(2,'0')).join('');}
 export async function resolveFinanceProjects(base44,config,rows){
