@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import fullName from '@/components/data/fullName';
 import { useInfiniteQuery } from '@tanstack/react-query';
 import { base44 } from '@/api/base44Client';
 import { Button } from '@/components/ui/button';
@@ -12,7 +13,7 @@ export default function RiskFeedbackList({ packetId }) {
       {query.error && <p role="alert" className="text-sm text-destructive">Unable to load comments. <button className="underline" onClick={() => query.refetch()}>Retry</button></p>}
       {query.data?.pages.flatMap(page => page.items).map(comment => <article key={comment.id} className="space-y-2 rounded-lg border bg-card p-3 text-sm">
         <h3 className="font-bold">{comment.risk_reference || 'Unreferenced risk'} · {comment.risk_title}</h3>
-        <p className="text-xs text-muted-foreground">{comment.author_name} · {new Date(comment.created_date).toLocaleString('en-GB')}</p>
+        <p className="text-xs text-muted-foreground">{fullName(comment.author_name,comment.author_id)} · {new Date(comment.created_date).toLocaleString('en-GB')}</p>
         <p className="whitespace-pre-wrap break-words">{comment.comment}</p>
       </article>)}
       {query.data && !query.data.pages[0].items.length && <p className="text-sm text-muted-foreground">No row comments sent for this issue.</p>}

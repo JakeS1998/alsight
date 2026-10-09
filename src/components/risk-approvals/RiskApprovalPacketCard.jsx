@@ -1,4 +1,5 @@
 import React from 'react';
+import fullName from '@/components/data/fullName';
 import { Link } from 'react-router-dom';
 import { useAuth } from '@/lib/AuthContext';
 import { Button } from '@/components/ui/button';
@@ -13,7 +14,7 @@ export default function RiskApprovalPacketCard({ project, packet, editable, onCh
   const assigned = !!packet.steps[packet.current_index]?.user_id;
   return <div className="space-y-3 rounded-lg border bg-card p-3">
     <p className="text-sm font-bold">{packet.reference} · {packet.status}</p>
-    <p className="text-xs text-muted-foreground">Issued by {packet.issued_by_name} on {new Date(packet.issued_at).toLocaleString('en-GB')}</p>
+    <p className="text-xs text-muted-foreground">Issued by {fullName(packet.issued_by_name,packet.issued_by_id)} on {new Date(packet.issued_at).toLocaleString('en-GB')}</p>
     <RiskApprovalTimeline packet={packet} />
     {editable && <RiskFeedbackList packetId={packet.id} />}
     {packet.stale && <p role="alert" className="text-sm text-destructive">The live register has changed. This decision applies to the issued version; reissue for current approval.</p>}
