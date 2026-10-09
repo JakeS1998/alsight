@@ -4,6 +4,7 @@ import { Button } from '@/components/ui/button';
 import useFlowOperation from '@/components/dataverse/useFlowOperation';
 import FlowTableMapping from '@/components/dataverse/FlowTableMapping';
 import FlowAutomaticSyncStatus from '@/components/dataverse/FlowAutomaticSyncStatus';
+import FinanceDataverseMappings from '@/components/finance/FinanceDataverseMappings.jsx';
 export default function DataverseFlowAdmin() {
   const { run, busy, error, notice } = useFlowOperation(), [data, setData] = useState(null);
   const reload = async () => { const result = await run('status'); if (result) setData(result); };
@@ -18,6 +19,7 @@ export default function DataverseFlowAdmin() {
       {data?.configured && <FlowAutomaticSyncStatus state={data.pollState} />}
       {busy && <p role="status" className="text-sm text-muted-foreground">Working…</p>}{error && <><p role="alert" className="text-sm text-destructive">{error}</p><Button variant="outline" onClick={reload}>Reload status</Button></>}{notice && <p role="status" className="text-sm text-success">{notice}</p>}
     </section>
+    {data?.configured && <FinanceDataverseMappings />}
     {data?.configured && Object.entries(data.specs).map(([table, spec]) => <FlowTableMapping key={`${table}-${data.config.tables?.[table]?.logicalName || ''}`} table={table} spec={spec} settings={data.config.tables?.[table]} onUpdated={reload} />)}
   </div>;
 }

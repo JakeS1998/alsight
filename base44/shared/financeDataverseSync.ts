@@ -1,15 +1,16 @@
 import {flowConfig,sharedFlowContext,flowRequest} from './dataverseFlowApi.ts';
 import {discoverFinanceTables,inspectFinanceTable} from './financeDataverseDiscovery.ts';
-import {financeSpecs,financeNamespace} from './financeDataverseSpecs.ts';
+import {financeNamespace} from './financeDataverseSpecs.ts';
+import {configuredFinanceSpecs} from './financeDataverseMappings.ts';
 import {resolveFinanceProjects} from './financeProjectMatching.ts';
 export async function financeSyncState(base44){return (await base44.asServiceRole.entities.FinanceDataverseSync.filter({key:'primary'},{limit:1})).items[0]||null;}
 export async function startFinanceSync(base44){
  const old=await financeSyncState(base44);if(old?.status==='running'&&(new Date(old.lease_until||0)>new Date()||Date.now()-new Date(old.updated_date).getTime()<300000))throw new Error('A finance sync is already processing.');
- const discovered=await discoverFinanceTables(base44),tables=[];
- for(const spec of financeSpecs){
-  const available=discovered.tables.find(t=>t.logical===spec.logical);if(!available){if(spec.logical==='als_supplier')continue;throw new Error(`Dataverse finance table ${spec.logical} is unavailable.`);}
+ const discovered=await discoverFinanceTables(base44),tables=[],specs=configuredFinanceSpecs(await flowConfig(base44));
+ for(const spec of specs){
+  const available=discovered.tables.find(t=>t.logical===spec.logical);if(!available&&!spec.configured){if(spec.key==='als_supplier')continue;throw new Error(`Dataverse finance table ${spec.logical} is unavailable.`);}
   const m=await inspectFinanceTable(base44,spec.logical),fields={};
-  for(const [local,name]of Object.entries(spec.fields)){const attr=m.fields.find(f=>f.name===name);if(attr)fields[local]={name:attr.type==='Lookup'?`_${name}_value`:name,type:attr.type};}
+  for(const [local,name]of Object.entries(spec.fields)){if(!name)continue;const attr=m.fields.find(f=>f.name===name);if(!attr&&spec.configured)throw new Error(`Mapped finance field ${name} is missing from ${spec.logical}. Inspect and verify its mapping again.`);if(attr)fields[local]={name:attr.type==='Lookup'?`_${name}_value`:name,type:attr.type};}
   if(!fields.name||(spec.kind==='projects'&&!fields.reference)||(spec.kind==='purchase_orders'&&!fields.project_source_id)||(spec.kind==='line_items'&&!fields.parent_id))throw new Error(`Required finance relationships are missing from ${spec.logical}.`);
   const selected=[m.PrimaryIdAttribute,'statecode','modifiedon',...Object.values(fields).map(f=>f.name)];
   const context=await sharedFlowContext(base44,await flowConfig(base44));
