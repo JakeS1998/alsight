@@ -1,7 +1,8 @@
+import {professionalIndemnityKey,insuranceAdjustedScore} from './aseProfessionalIndemnity.ts';
 export function v2DisplayAssessment(assessment) {
  if(!assessment)return assessment;
  const provisional=!Number.isFinite(assessment.final_score) && Number.isFinite(assessment.raw_score);
- const score=provisional ? Math.min(assessment.raw_score,...(assessment.caps || []).map(cap=>cap.cap)) : assessment.final_score;
+ const score=provisional ? Math.min(insuranceAdjustedScore(assessment.raw_score,assessment.checks?.find(check=>check.key===professionalIndemnityKey && check.verified===true)),...(assessment.caps || []).map(cap=>cap.cap)) : assessment.final_score;
  const classification=provisional ? assessment.policy_snapshot?.classifications?.find(band=>score>=band.minimum)?.label || 'Unclassified' : assessment.classification;
  return {...assessment,display_score:score,display_classification:classification,is_provisional:provisional};
 }
@@ -9,7 +10,7 @@ export async function v2DisplayRatings(db,ratings) {
  const missing=ratings.filter(row=>!Number.isFinite(row.precise_score));
  if(!missing.length)return ratings;
  const ids=[...new Set(missing.map(row=>row.assessment_id).filter(Boolean))];
- const page=ids.length ? await db.ASEV2Assessment.filter({id:{$in:ids}},{limit:ids.length,fields:['account_id','final_score','raw_score','caps','classification','policy_snapshot']}) : {items:[]};
+ const page=ids.length ? await db.ASEV2Assessment.filter({id:{$in:ids}},{limit:ids.length,fields:['account_id','final_score','raw_score','caps','checks','classification','policy_snapshot']}) : {items:[]};
  return ratings.map(current=>{
   const assessment=page.items.find(row=>row.id===current.assessment_id && row.account_id===current.account_id);
   const display=v2DisplayAssessment(assessment);

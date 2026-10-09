@@ -19,6 +19,7 @@ import {checkASESourceScoringRules} from '../../shared/aseSourceScoringChecks.ts
 import {checkBroaderEvidenceRules} from '../../shared/aseBroaderEvidenceChecks.ts';
 import {dataRequestError} from '../../shared/dataRequestError.ts';
 import {aseCurrentRatings} from '../../shared/aseCurrentRatings.ts';
+import {checkInsuranceRules} from '../../shared/aseInsuranceChecks.ts';
 import {scopedReadCache,invalidateScopedRead} from '../../shared/scopedReadCache.ts';
 export default async function(req: Request): Promise<Response> {
   try {
@@ -68,7 +69,7 @@ export default async function(req: Request): Promise<Response> {
       const b=calculate(defaultModels,'company',full.filter(r=>r.component!=='adverse'),new Date('2026-10-05'));
       const c=calculate(defaultModels,'company',full.slice(0,1),new Date('2026-10-05'));
       const d=calculate(defaultModels,'english_local_authority',defaultModels.english_local_authority.map((r,i)=>make(r.key,[25,1,8,0.5,'5','4','5'][i])),new Date('2026-10-05'));
-      const checks={company:a.precise_score===4.2 && a.displayed_rating===4,missingRenormalised:Math.abs(b.precise_score-37/9)<0.00001,limitedEvidenceConfidence:c.displayed_rating===4 && c.data_confidence==='Low' && c.rating_label==='Good',council:Math.abs(d.precise_score-4.2)<0.00001,...checkPdfAndProvisionalRules(),...checkCommercialScoringRules(),...checkAccountModelRules(),...checkASESourceScoringRules(),...checkBroaderEvidenceRules()};
+      const checks={company:a.precise_score===4.2 && a.displayed_rating===4,missingRenormalised:Math.abs(b.precise_score-37/9)<0.00001,limitedEvidenceConfidence:c.displayed_rating===4 && c.data_confidence==='Low' && c.rating_label==='Good',council:Math.abs(d.precise_score-4.2)<0.00001,...checkPdfAndProvisionalRules(),...checkCommercialScoringRules(),...checkAccountModelRules(),...checkASESourceScoringRules(),...checkBroaderEvidenceRules(),...(await checkInsuranceRules()).checks};
       return Response.json({checks,passed:Object.values(checks).every(Boolean)});
     }
     if (typeof input.accountId!=='string' || !/^[a-zA-Z0-9_-]{1,64}$/.test(input.accountId)) return Response.json({error:'Valid Account is required.'},{status:400});
@@ -102,7 +103,7 @@ export default async function(req: Request): Promise<Response> {
     }
     const [history,sourceEvidence]=await Promise.all([base44.entities.ASEAssessment.filter({account_id:account.id,status:'published'},{sort:'-assessment_date',limit:20,...(input.cursor ? {cursor:input.cursor} : {})}),base44.entities.ASEEvidence.filter(currentASESourceQuery(account),{limit:100})]);
     const hmrc=await hmrcStatus(base44,account);
-    const displayedAssessment=assessment ? {...assessment,explanation:ratingExplanation(componentPage.items,assessment.policy_snapshot?.[assessment.model] || [],assessment.precise_score,assessment.displayed_rating,evidencePage.items)} : null;
+    const displayedAssessment=assessment ? {...assessment,explanation:ratingExplanation(componentPage.items,assessment.policy_snapshot?.[assessment.model] || [],assessment.precise_score,assessment.displayed_rating,evidencePage.items,assessment.commercial_context?.professional_indemnity)} : null;
     return Response.json({account:{id:account.id,name:account.name},model,policy,current:confidenceRating(current),assessment:confidenceRating(displayedAssessment),components:componentPage.items,evidence:evidencePage.items,history:{...history,items:history.items.map(confidenceRating)},sourceEvidence:sourceEvidence.items,sourceHasMore:sourceEvidence.has_more,hmrc});
   } catch(error) {return dataRequestError(error,'Unable to complete ASE operation.',400);}
 }

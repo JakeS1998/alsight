@@ -1,4 +1,5 @@
 import {leadershipDefaults,leadershipSlots,withLeadershipPolicy,validateLeadershipPolicy} from './aseLeadershipConfig.ts';
+import {professionalIndemnityRule} from './aseProfessionalIndemnity.ts';
 export const aseV2Defaults={
   leadership:leadershipDefaults,
   components:[{key:'financial',label:'Financial Health',weight:25},{key:'adverse',label:'Adverse Events & Corporate Stability',weight:20},{key:'profile',label:'Trading & Corporate Profile',weight:10},{key:'dependency',label:'Alliance Dependency',weight:15},{key:'experience',label:'Alliance Experience',weight:10},{key:'market',label:'Market Diversification',weight:10},{key:'esg',label:'ESG & Regulatory',weight:10}],
@@ -11,7 +12,7 @@ export const aseV2Defaults={
   experience_scores:{excellent:5,satisfactory:4,resolved_issue:3,unresolved_material:2,serious_unresolved:1},
   caps:{active_insolvency:1.5,dissolved:1.5,confirmed_material_sanctions:1.5,current_director_disqualification:2.5},classifications:[{minimum:4,label:'Strong'},{minimum:3.5,label:'Good'},{minimum:2.5,label:'Stable / Monitor'},{minimum:1.6,label:'Concern'},{minimum:1,label:'Critical'}],commercial_credit_provider:'None / Awaiting integration'
 };
-export async function getASEV2Policy(db) {const page=await db.ASEV2Policy.filter({},{sort:'-created_date',limit:1});return withLeadershipPolicy(page.items[0] || {version:'ASE-v2-leadership-1',configuration:aseV2Defaults});}
+export async function getASEV2Policy(db) {const page=await db.ASEV2Policy.filter({},{sort:'-created_date',limit:1});const policy=withLeadershipPolicy(page.items[0] || {version:'ASE-v2-leadership-1',configuration:aseV2Defaults});return {...policy,version:policy.version+'|'+professionalIndemnityRule.version,configuration:{...policy.configuration,professional_indemnity:professionalIndemnityRule}};}
 export function validateASEV2Config(c) {
   const keys=aseV2Defaults.components.map(r=>r.key),finite=(v,min,max)=>typeof v==='number' && Number.isFinite(v) && v>=min && v<=max;
   if(!c || !Array.isArray(c.components) || c.components.length!==keys.length || keys.some(k=>c.components.filter(r=>r.key===k).length!==1) || c.components.some(r=>!finite(r.weight,0,100)) || Math.abs(c.components.reduce((s,r)=>s+r.weight,0)-100)>1e-6) throw new Error('All seven weights must be supplied and total 100%.');

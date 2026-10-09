@@ -1,6 +1,6 @@
 const number=value=>new Intl.NumberFormat('en-GB',{maximumFractionDigits:2}).format(value);
 export const confidenceRating=record=>record ? {...record,rating_label:record.rating_label?.replace(/^Provisional(?:\s*[·:–-]\s*|\s+)/i,'')} : record;
-export function ratingExplanation(components,rules,precise,rating,evidence=[]) {
+export function ratingExplanation(components,rules,precise,rating,evidence=[],insurance=null) {
   const used=components.filter(c=>c.score!=null && c.weighting>0);
   if(!used.length) return 'No scored evidence has been analysed in this assessment yet.';
   const byId=new Map(evidence.map(row=>[row.id,row]));
@@ -14,6 +14,10 @@ export function ratingExplanation(components,rules,precise,rating,evidence=[]) {
     const limitation=row?.confidence==='Low' ? ` Low-confidence input: ${row.automatic_reason || row.notes || 'Evidence is incomplete or not independently verified.'}` : '';
     return `${component.component_label}: ${metric}${period}${source} (${component.score}/5; ${number(component.weighting)}% weight).${limitation}`;
   });
+  if(insurance) {
+    const weight=used.reduce((sum,c)=>sum+c.weighting,0),base=used.reduce((sum,c)=>sum+c.score*c.weighting,0)/weight;
+    return `Analysed ${used.length} components: ${descriptions.join('; ')}. Weighted component score ${base.toFixed(3)}/5. ${insurance.reason} Final score ${precise.toFixed(3)}/5; legacy whole-number display ${rating}/5${insurance.cap!=null ? ', kept below the insurance cap' : ''}.`;
+  }
   return `Analysed ${used.length} component${used.length===1 ? '' : 's'}: ${descriptions.join('; ')}. These results give a weighted score of ${precise.toFixed(3)}/5, rounded to ${rating}/5.`;
 }
 export async function publishedRatingExplanation(base44,current) {
@@ -25,5 +29,5 @@ export async function publishedRatingExplanation(base44,current) {
     base44.entities.ASEEvidence.filter({assessment_id:current.assessment_id},{limit:100,fields:['component','value','reporting_period','source','confidence','automatic_reason','notes']})
   ]);
   if(!assessment || assessment.account_id!==current.account_id || assessment.status!=='published') return current;
-  return {...current,explanation:ratingExplanation(components.items,assessment.policy_snapshot?.[assessment.model] || [],assessment.precise_score,assessment.displayed_rating,evidence.items)};
+  return {...current,explanation:ratingExplanation(components.items,assessment.policy_snapshot?.[assessment.model] || [],assessment.precise_score,assessment.displayed_rating,evidence.items,assessment.commercial_context?.professional_indemnity)};
 }

@@ -1,0 +1,19 @@
+import {professionalIndemnitySnapshot,professionalIndemnityCheck,supplierProfessionalIndemnity} from './aseProfessionalIndemnity.ts';
+import {calculateASEV2} from './aseV2Calculation.ts';
+import {aseV2Defaults} from './aseV2Config.ts';
+import {v2DisplayAssessment} from './aseV2Display.ts';
+import {calculate,defaultModels} from './asePolicy.ts';
+export async function checkInsuranceRules() {
+ const policy=structuredClone(aseV2Defaults),all=policy.components.flatMap(c=>Object.keys(policy.slots[c.key]).map(slot=>({key:`${c.key}:${slot}`,component:c.key,slot,label:slot,state:'CLEAR',score:5,confidence:'High'})));
+ const withCover=cover=>calculateASEV2(policy,[...structuredClone(all),professionalIndemnityCheck(professionalIndemnitySnapshot(cover))]);
+ const exact5=withCover(5000000),below5=withCover(4999999),exact2=withCover(2000000),below2=withCover(1999999),missing=withCover(null),zero=withCover(0),low=calculateASEV2(policy,all.map(c=>({...c,score:1})).concat(professionalIndemnityCheck(professionalIndemnitySnapshot(1000000))));
+ const severe=calculateASEV2(policy,all.map(c=>c.key==='adverse:sanctions' ? {...c,state:'ADVERSE',score:1,verified:true,severe_event:'confirmed_material_sanctions'} : c).concat(professionalIndemnityCheck(professionalIndemnitySnapshot(1000000))));
+ const partialChecks=[{...all[0]},professionalIndemnityCheck(professionalIndemnitySnapshot(1000000))],partial=calculateASEV2(policy,partialChecks),display=v2DisplayAssessment({...partial,checks:partialChecks,policy_snapshot:policy});
+ let query;const db={SupplierInsurance:{aggregate:async input=>{query=input.query;return {rows:[{count:2,max_cover_amount:1500000}],truncated:false};}}};
+ const supplier=await supplierProfessionalIndemnity(db,{id:'portal-account',dataverse_id:'source-account',account_type:'supplier'}),sourceQuery=query;
+ query=null;const client=await supplierProfessionalIndemnity(db,{id:'client',account_type:'client'});
+ const evidence=defaultModels.company.filter(r=>r.key!=='commercial_concentration').map((r,i)=>({id:r.key,component:r.key,value:String([50,20,2,5,5,5][i]),period_months:12,currency:'GBP',reporting_period:'2026-03-31',source_date:'2026-09-30',retrieval_date:'2026-10-05T00:00:00Z'}));
+ const legacy=calculate(defaultModels,'company',evidence,new Date('2026-10-09'),professionalIndemnitySnapshot(1000000));
+ const checks={piAt5mNoPenalty:exact5.final_score===5,piBelow5mDeductsQuarter:below5.final_score===4.75,piExactly2mNotCapped:exact2.final_score===4.75 && exact2.caps.length===0,piBelow2mCapped:below2.final_score===2.5 && below2.caps.some(c=>c.event==='professional_indemnity_under_2m'),piZeroCoverIsKnown:zero.final_score===2.5,piUnknownNotZero:missing.final_score===5 && missing.caps.length===0,piFloorOne:low.final_score===1,piStricterCapWins:severe.final_score===1.5,piDoesNotIncreaseCoverage:below2.coverage===exact5.coverage,piDoesNotCreateEvidence:partial.final_score===null,piProvisionalCapped:display.display_score===2.5,piServerMaximumNotStacked:supplier.cover_amount===1500000 && supplier.cap===2.5,piBothAccountAliases:sourceQuery.account_id.$in.includes('portal-account') && sourceQuery.account_id.$in.includes('source-account'),piOnlyActivePolicies:sourceQuery.status==='active',piRecognisesPolicyLabel:new RegExp(sourceQuery.policy_type.$regex,'i').test('Professional Indemnity (PI)') && !new RegExp(sourceQuery.policy_type.$regex,'i').test('Public Liability (PL)'),piClientUnchanged:client===null && query===null,piLegacyPreciseAndDisplayCapped:legacy.precise_score===2.5 && legacy.displayed_rating<=2.5};
+ return {checks,passed:Object.values(checks).every(Boolean)};
+}

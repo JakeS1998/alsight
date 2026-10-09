@@ -14,13 +14,14 @@ import {officialSanctions} from '../../shared/aseLeadershipSanctions.ts';
 import {checkASEV2Scheduling} from '../../shared/aseV2SchedulingChecks.ts';
 import {v2DisplayAssessment} from '../../shared/aseV2Display.ts';
 import {dataRequestError} from '../../shared/dataRequestError.ts';
+import {checkInsuranceRules} from '../../shared/aseInsuranceChecks.ts';
 export default async function(req: Request): Promise<Response> {
   try {
     const base44=createClientFromRequest(req),user=await portalActor(base44);
     if(!user || !internalRoles.includes(user.role)) return Response.json({error:'ASE v2 is internal-only.'},{status:403});
     const input=await req.json();if(!['detail','history','configuration','saveConfiguration','saveInput','assess','checkRules','leadershipStart','leadershipStep','leadershipStatus','leadershipReview'].includes(input.action)) return Response.json({error:'Invalid ASE v2 operation.'},{status:400});
     if(['saveConfiguration','saveInput','assess','checkRules','leadershipStart','leadershipStep','leadershipStatus','leadershipReview'].includes(input.action) && user.role!=='admin') return Response.json({error:'Only administrators can approve ASE v2 methodology, evidence or assessments.'},{status:403});
-    if(input.action==='checkRules') {const core=checkASEV2Rules(),leadership=checkLeadershipRules(),scheduling=await checkASEV2Scheduling(),appointments=await checkAppointmentExposure();let liveSanctions;if(input.liveSources===true){const list=await officialSanctions();liveSanctions={publication_date:list.date,designation_count:list.entries.length,integrity_sha256:list.sha256};}return Response.json({...core,leadership,scheduling,appointments,passed:core.passed && leadership.passed && scheduling.passed && appointments.passed,...(liveSanctions ? {liveSanctions} : {})});}
+    if(input.action==='checkRules') {const core=checkASEV2Rules(),leadership=checkLeadershipRules(),scheduling=await checkASEV2Scheduling(),appointments=await checkAppointmentExposure(),insurance=await checkInsuranceRules();let liveSanctions;if(input.liveSources===true){const list=await officialSanctions();liveSanctions={publication_date:list.date,designation_count:list.entries.length,integrity_sha256:list.sha256};}return Response.json({...core,leadership,scheduling,appointments,insurance,passed:core.passed && leadership.passed && scheduling.passed && appointments.passed && insurance.passed,...(liveSanctions ? {liveSanctions} : {})});}
     const policy=await getASEV2Policy(base44.entities);
     if(input.action==='configuration') return Response.json({policy});
     if(input.action==='saveConfiguration') {if(input.confirmed!==true || JSON.stringify(input.configuration).length>16000) throw new Error('Confirm the bounded methodology configuration.');const configuration=validateASEV2Config(input.configuration);return Response.json({policy:await base44.entities.ASEV2Policy.create({version:`ASE-v2-${new Date().toISOString()}`,configuration,approved_by:user.id})});}
