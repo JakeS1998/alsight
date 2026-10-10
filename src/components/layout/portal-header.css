@@ -4,8 +4,6 @@
 .portal-nav-item { display: inline-flex; align-items: center; flex-shrink: 0; gap: 6px; min-height: 42px; padding: 9px 10px; border-radius: var(--radius); border-bottom: 2px solid transparent; color: hsl(var(--sidebar-foreground) / .78); font-size: 14px; font-weight: 500; white-space: nowrap; transition: color 160ms ease, background-color 160ms ease, border-color 160ms ease; }
 .portal-nav-item:hover { color: hsl(var(--sidebar-foreground)); background: hsl(var(--sidebar-foreground) / .06); }
 .portal-nav-item[data-active="true"] { color: hsl(var(--sidebar-foreground)); border-bottom-color: hsl(var(--primary)); background: hsl(var(--primary) / .07); }
-.portal-nav-item[data-outstanding="true"] { color: hsl(var(--primary)); border-bottom-color: hsl(var(--primary)); background: hsl(var(--primary) / .14); font-weight: 650; }
-.portal-nav-item[data-outstanding="true"]:hover { background: hsl(var(--primary) / .22); }
 .portal-nav-item:focus-visible, .portal-icon-button:focus-visible { outline: 2px solid hsl(var(--ring)); outline-offset: 2px; }
 .portal-nav-item > svg, .portal-nav-item > span[aria-hidden="true"] { width: 16px; height: 16px; flex-shrink: 0; margin-right: 0; }
 .portal-icon-button { display: inline-flex; justify-content: center; align-items: center; width: 42px; height: 42px; flex-shrink: 0; border-radius: var(--radius); color: hsl(var(--sidebar-foreground) / .78); }
