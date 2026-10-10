@@ -13,6 +13,7 @@ import {applyWorkbookFinanceMappings} from '../../shared/financeWorkbookMatching
 import {applyLegacyFinanceNameMappings} from '../../shared/financeNameMatching.ts';
 import {readProjectFinanceOrders} from '../../shared/projectFinanceOrders.ts';
 import {commercialPipelineSummary} from '../../shared/commercialPipelineSummary.ts';
+import {recalculateBlankPOHeaders} from '../../shared/financeRecalculateHeaders.ts';
 export default async function(req){
  try{
   const base44=createClientFromRequest(req),user=await base44.auth.me();
@@ -21,10 +22,11 @@ export default async function(req){
   if(req.method!=='POST')return Response.json({error:'Method not allowed.'},{status:405});
   const raw=await req.text();if(raw.length>20000)throw new Error('Request too large.');const input=JSON.parse(raw);
   if(!financeRoles.includes(user.role)&&!(['projectOrders','projectOrderDetail','projectOrderCashFlow'].includes(input.action)&&['regional_director','bsm','bdm'].includes(user.role)))return Response.json({error:'Finance, director or administrator access required.'},{status:403});
-  const actions=['pipeline','projectOrders','projectOrderDetail','projectOrderCashFlow','applyNameLinks','applyCodeLinks','transactions','dvMappingStatus','dvSaveMapping','forecast','dvContinue','dvStart','dvBatch','dvDetail','dvDiscover','dvInspect','status','configure','preview','confirm','summary','list','mappings','projects','map','orders','poDetail','configureInvoices','invoices'];
+  const actions=['recalculatePOHeaders','pipeline','projectOrders','projectOrderDetail','projectOrderCashFlow','applyNameLinks','applyCodeLinks','transactions','dvMappingStatus','dvSaveMapping','forecast','dvContinue','dvStart','dvBatch','dvDetail','dvDiscover','dvInspect','status','configure','preview','confirm','summary','list','mappings','projects','map','orders','poDetail','configureInvoices','invoices'];
   if(!actions.includes(input.action))throw new Error('Invalid finance operation.');
-  const admin=['applyNameLinks','applyCodeLinks','dvMappingStatus','dvSaveMapping','dvContinue','dvStart','dvBatch','dvDiscover','dvInspect','configure','preview','confirm','mappings','projects','map','configureInvoices'];
+  const admin=['recalculatePOHeaders','applyNameLinks','applyCodeLinks','dvMappingStatus','dvSaveMapping','dvContinue','dvStart','dvBatch','dvDiscover','dvInspect','configure','preview','confirm','mappings','projects','map','configureInvoices'];
   if(admin.includes(input.action)&&user.role!=='admin')return Response.json({error:'Administrator access required.'},{status:403});
+  if(input.action==='recalculatePOHeaders')return Response.json(await recalculateBlankPOHeaders(base44));
   if(input.action==='dvMappingStatus')return Response.json(await financeMappingStatus(base44));
   if(input.action==='dvSaveMapping')return Response.json(await saveFinanceFieldMapping(base44,user,input));
   if(input.action==='dvDiscover')return Response.json(await discoverFinanceTables(base44));
