@@ -11,7 +11,7 @@ import UKLFIcon from '@/components/framework/UKLFIcon';
 import RelationshipNavigation from '@/components/relationships/RelationshipNavigation';
 import useApprovalAccess from '@/components/approvals/useApprovalAccess';
 import useApprovalSummary from '@/components/approvals/useApprovalSummary';
-import { LayoutDashboard, FolderKanban, Building2, UserCircle, Menu, X, Users, BriefcaseBusiness, CircleHelp, House, MessagesSquare, ClipboardCheck } from 'lucide-react';
+import { LayoutDashboard, FolderKanban, Building2, UserCircle, Menu, X, Users, BriefcaseBusiness, CircleHelp, House, MessagesSquare, ClipboardCheck, ChartNoAxesCombined } from 'lucide-react';
 
 const ALL_ROLES = ['admin', 'director', 'regional_director', 'bsm', 'finance', 'bdm', 'client', 'supplier', 'project_manager'];
 const NAV_ITEMS = [
@@ -21,7 +21,7 @@ const NAV_ITEMS = [
   { label: 'Opportunities', path: '/crm/opportunities', icon: BriefcaseBusiness, roles: INTERNAL_ROLES },
   { label: 'Projects', path: '/projects', icon: FolderKanban, roles: ALL_ROLES },
 
-  { label: 'Commercial', path: '/finance', icon: BriefcaseBusiness, roles: ['admin', 'finance', 'director'] },
+  { label: 'Commercial', path: '/finance', icon: ChartNoAxesCombined, roles: ['admin', 'finance', 'director'] },
   { label: 'Approvals', path: '/approvals', icon: ClipboardCheck, roles: ALL_ROLES.concat(['framework_stakeholder']) },
   { label: 'Framework', path: '/framework-reports', icon: UKLFIcon, roles: INTERNAL_ROLES.concat(['framework_stakeholder']) },
   { label: 'Insider', path: '/pulse', icon: MessagesSquare, roles: INTERNAL_ROLES },
