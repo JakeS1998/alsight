@@ -3,6 +3,7 @@ import {flowConfig,sharedFlowContext,flowRequest} from './dataverseFlowApi.ts';
 import {isGuid} from './dataverseFlowFields.ts';
 import {syncDocumentApprovals} from './documentApprovalSync.ts';
 import {resolveApprovalRouting} from './approvalRoutingResolve.ts';
+import {resolveApprovalRequesters} from './approvalProjectRequester.ts';
 export async function receiveDocumentApproval(base44,user,input) {
  if(user.role!=='admin')throw new Error('Only an authenticated administrator can deliver document approval requests.');
  if(!['documents','dma','warranties'].includes(input.table) || !isGuid(input.sourceId) || !/^W\/"[0-9]+"$/.test(input.version || ''))throw new Error('Supply a supported document table, Dataverse row ID and current row version.');
@@ -23,6 +24,7 @@ export async function receiveDocumentApproval(base44,user,input) {
  const db=base44.asServiceRole.entities.DocumentApprovalRequest;
  const page=await db.filter({source_table:input.table,source_id:request.source_id,drafted_date:new Date(document.drafted_date).toISOString(),approver_email:{$in:recipients}},{limit:50});
  const pending=page.items.filter(r=>r.status==='pending' && !r.response);
- if(pending.length)await db.bulkUpdate(pending.map(r=>({id:r.id,requested_at:new Date(input.requestedAt).toISOString(),reason:input.reason || r.reason,requested_by_name:input.requesterName || '',requested_by_role:input.requesterRole || '',requested_by_email:input.requesterEmail || ''})));
+ const requesters=await resolveApprovalRequesters(base44,[project]);
+ if(pending.length)await db.bulkUpdate(pending.map(r=>({id:r.id,requested_at:new Date(input.requestedAt).toISOString(),reason:input.reason || r.reason,...requesters.get(project.id)})));
  return {ok:true,approval_id:page.items[0]?.id,approval_ids:page.items.map(r=>r.id),duplicate:synced.added===0};
 }

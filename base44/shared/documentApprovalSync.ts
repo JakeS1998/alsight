@@ -3,6 +3,7 @@ import {refreshDocumentApprovalDates} from './documentApprovalDates.ts';
 import {documentNeedsApproval} from './documentApprovalEligibility.ts';
 export {documentNeedsApproval} from './documentApprovalEligibility.ts';
 import {resolveApprovalRouting} from './approvalRoutingResolve.ts';
+import {resolveApprovalRequesters} from './approvalProjectRequester.ts';
 const sameDraft=(a,b)=>Number.isFinite(Date.parse(a)) && Date.parse(a)===Date.parse(b);
 const linkedProject=(projects,document)=>{const matches=projects.filter(p=>p.dataverse_id===document.project_id || p.id===document.project_id);return matches.length===1 ? matches[0] : undefined;};
 export async function syncDocumentApprovals(base44,table,documents) {
@@ -15,7 +16,7 @@ export async function syncDocumentApprovals(base44,table,documents) {
  do {const page=await db.DocumentApprovalRequest.filter({source_table:table,source_id:{$in:ids}},{limit:100,...(cursor ? {cursor} : {})});requests.push(...page.items);cursor=page.has_more ? page.next_cursor : null;}while(cursor);
  const parentIds=[...new Set(documents.map(d=>d.project_id).filter(Boolean))];
  const projects=parentIds.length ? (await db.Project.filter({$or:[{dataverse_id:{$in:parentIds}},{id:{$in:parentIds}}]},{limit:100})).items : [];
- const routing=await resolveApprovalRouting(base44,table,documents.map(document=>({document,project:linkedProject(projects,document)})));
+ const [routing,requesters]=await Promise.all([resolveApprovalRouting(base44,table,documents.map(document=>({document,project:linkedProject(projects,document)}))),resolveApprovalRequesters(base44,projects)]);
  const now=new Date().toISOString(),changes=[],newRequests=[],events=[],counts={added:0,removed:0,restored:0,unlinked:0};
  const event=(r,action)=>({approval_id:r.id,action,actor_id:'document-date-sync',actor_name:'Document date sync',occurred_at:now,previous_status:r.status,new_status:r.status,integration_result:'Reconciled with the document drafted and approval dates. Decisions and audit history retained.'});
  for(const document of documents){
@@ -24,7 +25,7 @@ export async function syncDocumentApprovals(base44,table,documents) {
   const recipients=routing.results.find(result=>result.document.id===document.id)?.emails || [];
   for(const request of related){
    const visible=eligible && sameDraft(request.drafted_date,document.drafted_date) && (!!request.response || recipients.includes(request.approver_email));
-   const metadata=project ? {...approvalMetadata(document,project),...(recipients.includes(request.approver_email) ? {routing_assigned:true} : {})} : {};
+   const metadata=project ? {...approvalMetadata(document,project),...requesters.get(project.id),...(recipients.includes(request.approver_email) ? {routing_assigned:true} : {})} : {};
    const live=visible && request.status==='pending' && !request.response && /^W\/"[0-9]+"$/.test(document.approval_source_version || '');
     const mode=live ? {source_version:document.approval_source_version,...(request.request_key?.startsWith('demo:') ? {request_key:`live:${table}:${document.dataverse_id}:${new Date(document.drafted_date).toISOString()}:${request.approver_email}`,writeback_status:'pending'} : {})} : {};
     if(request.source_requires_approval!==visible || Object.entries({...metadata,...mode}).some(([key,value])=>request[key]!==value))changes.push({id:request.id,...metadata,...mode,source_requires_approval:visible});
@@ -38,7 +39,7 @@ export async function syncDocumentApprovals(base44,table,documents) {
   const drafted=new Date(document.drafted_date).toISOString();
   for(const email of recipients){
    if(related.some(r=>r.approver_email===email && sameDraft(r.drafted_date,document.drafted_date)))continue;
-   newRequests.push({request_key:`live:${table}:${document.dataverse_id}:${drafted}:${email}`,source_table:table,source_id:document.dataverse_id,source_version:document.approval_source_version,routing_assigned:true,...approvalMetadata(document,project),drafted_date:drafted,document_title:[document.document_id || document.warranty_id,project.name,document.services].filter(Boolean).join(' — ').slice(0,300),document_url:document.link_to_file || '',approver_email:email,requested_at:now,reason:'Assigned by the table approval routing rule. Document is drafted, marked Approval Pending and has no approval date.'});
+   newRequests.push({request_key:`live:${table}:${document.dataverse_id}:${drafted}:${email}`,source_table:table,source_id:document.dataverse_id,source_version:document.approval_source_version,routing_assigned:true,...approvalMetadata(document,project),...requesters.get(project.id),drafted_date:drafted,document_title:[document.document_id || document.warranty_id,project.name,document.services].filter(Boolean).join(' — ').slice(0,300),document_url:document.link_to_file || '',approver_email:email,requested_at:now,reason:'Assigned by the table approval routing rule. Document is drafted, marked Approval Pending and has no approval date.'});
   }
  }
  for(let offset=0;offset<changes.length;offset+=500)await db.DocumentApprovalRequest.bulkUpdate(changes.slice(offset,offset+500));

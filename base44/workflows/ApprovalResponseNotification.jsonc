@@ -1,0 +1,51 @@
+{
+  "name": "Approval Response Email to Project BSM",
+  "description": "Notifies the registered project BSM when an approver records a new response. Dataverse retries and metadata updates do not resend the email.",
+  "trigger": {
+    "config": {
+      "trigger_type": "entity",
+      "entity_name": "DocumentApprovalRequest",
+      "events": [
+        "update"
+      ]
+    },
+    "condition": "${ (.trigger.data.response // \"\") != \"\" and .trigger.data.response != .trigger.old_data.response and (.trigger.data.requested_by_email // \"\") != \"\" and ((.trigger.data.request_key // \"\") | startswith(\"demo:\") | not) }"
+  },
+  "definition": {
+    "document": {
+      "dsl": "1.0.0",
+      "name": "approval_response_bsm_email",
+      "version": "1.0",
+      "namespace": "base44"
+    },
+    "do": [
+      {
+        "email_project_bsm": {
+          "call": "send_email",
+          "with": {
+            "template_name": "ApprovalResponse",
+            "to": "${ .trigger.data.requested_by_email }",
+            "description": "Shows the document approval response, approver and comments to the project BSM.",
+            "variables": {
+              "bsm_name": "${ .trigger.data.requested_by_name | gsub(\"&\"; \"&amp;\") | gsub(\"<\"; \"&lt;\") | gsub(\">\"; \"&gt;\") }",
+              "project_name": "${ (.trigger.data.project_name // \"Project\") | gsub(\"&\"; \"&amp;\") | gsub(\"<\"; \"&lt;\") | gsub(\">\"; \"&gt;\") }",
+              "project_number": "${ (.trigger.data.project_number // \"Not recorded\") | gsub(\"&\"; \"&amp;\") | gsub(\"<\"; \"&lt;\") | gsub(\">\"; \"&gt;\") }",
+              "project_id": "${ .trigger.data.project_id }",
+              "document_title": "${ (.trigger.data.document_title // \"Approval document\") | gsub(\"&\"; \"&amp;\") | gsub(\"<\"; \"&lt;\") | gsub(\">\"; \"&gt;\") }",
+              "document_number": "${ (.trigger.data.document_number // \"Not recorded\") | gsub(\"&\"; \"&amp;\") | gsub(\"<\"; \"&lt;\") | gsub(\">\"; \"&gt;\") }",
+              "response": "${ .trigger.data.response }",
+              "approver_name": "${ (.trigger.data.decided_by_name // \"Full name not recorded\") | gsub(\"&\"; \"&amp;\") | gsub(\"<\"; \"&lt;\") | gsub(\">\"; \"&gt;\") }",
+              "comments": "${ (.trigger.data.decision_comments // \"\") | if length == 0 then \"No comments provided.\" else . end | gsub(\"&\"; \"&amp;\") | gsub(\"<\"; \"&lt;\") | gsub(\">\"; \"&gt;\") }",
+              "responded_at": "${ .trigger.data.decided_at }"
+            }
+          },
+          "then": "end",
+          "x-base44": {
+            "title": "Notify project BSM",
+            "description": "Approval response and comments"
+          }
+        }
+      }
+    ]
+  }
+}

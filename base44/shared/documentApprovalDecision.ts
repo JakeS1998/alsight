@@ -2,13 +2,14 @@ import {approvalSource,approvalAudit,approvalEntity} from './documentApprovalRec
 import {flowConfig,flowRequest} from './dataverseFlowApi.ts';
 import {personalDataverseContext,getPersonalDataverseToken} from './dataverseUserAuth.ts';
 import {availableDecisionLease,decisionCanRetry} from './documentApprovalLease.ts';
+import {resolveApprovalRequesters} from './approvalProjectRequester.ts';
 const responses=['Approve','Approved - Subject to Comments','Further Review Required'];
 const statusOf=value=>value==='Reject' ? 'rejected' : value==='Further Review Required' ? 'further_review_required' : 'approved';
 export async function decideDocumentApproval(base44,user,input) {
  const db=base44.asServiceRole.entities.DocumentApprovalRequest;
  const request=await base44.entities.DocumentApprovalRequest.get(input.requestId);
  if(!request || request.approver_email!==user.email.trim().toLowerCase())throw new Error('Approval not found in your inbox.');
- const {document}=await approvalSource(base44,request);
+ const {document,project}=await approvalSource(base44,request);
  const retry=input.action==='retry',demo=request.request_key?.startsWith('demo:');
  if(retry){if(!decisionCanRetry(request,user))throw new Error('This decision is not available for retry.');}
  else {
@@ -16,12 +17,13 @@ export async function decideDocumentApproval(base44,user,input) {
   if(!responses.includes(input.response) || typeof input.comments!=='string' || input.comments.length>4000)throw new Error('Choose a response and keep comments within 4,000 characters.');
   if(input.response==='Approved - Subject to Comments' && !input.comments.trim())throw new Error('Comments are required for approval subject to comments.');
  }
+ const requesters=await resolveApprovalRequesters(base44,[project]);
  const now=new Date().toISOString(),lock=crypto.randomUUID();
  const claimed=await db.updateMany({id:request.id,status:'pending',...availableDecisionLease(now)},{$set:{decision_lock:lock,decision_lock_until:new Date(Date.now()+180000).toISOString(),writeback_status:demo ? 'not_required' : 'pending'}});
  if(!claimed.updated)throw new Error('This decision is already being processed. Refresh your inbox.');
  const response=retry ? request.response : input.response,comments=retry ? request.decision_comments : input.comments.trim(),decidedAt=retry ? request.decided_at : now;
  try {
-  const values={response,decision_comments:comments,decided_by_id:user.id,decided_by_name:(user.full_name || user.email).slice(0,200),decided_at:decidedAt};
+  const values={...requesters.get(project.id),response,decision_comments:comments,decided_by_id:user.id,decided_by_name:(user.full_name || user.email).slice(0,200),decided_at:decidedAt};
   if(!retry){await db.update(request.id,values);await approvalAudit(base44,request,user,'Decision recorded',{comment:comments,integration_result:demo ? 'Demo: ALSight only' : 'Integration pending'});}
   if(!demo)await writeDocumentDecision(base44,user,request,{...values,decided_at:decidedAt},document);
   const status=statusOf(response);

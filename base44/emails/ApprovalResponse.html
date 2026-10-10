@@ -1,0 +1,47 @@
+<mjml>
+  <mj-head>
+    <mj-title>Approval response: {{project_name}} | {{response}}</mj-title>
+    <mj-preview>A response has been recorded for {{document_number}} on {{project_name}}.</mj-preview>
+    <mj-attributes>
+      <mj-all font-family="Arial Narrow, Arial, sans-serif" />
+      <mj-section padding="32px 36px" background-color="#ffffff" />
+      <mj-text padding="0" color="#102642" font-size="16px" line-height="1.6" />
+      <mj-button background-color="#f59929" color="#000000" border-radius="7px" font-weight="700" inner-padding="14px 28px" padding="24px 0 0" align="left" />
+      <mj-class name="heading" font-weight="700" color="#102642" />
+      <mj-class name="muted" color="#5f7586" font-size="14px" />
+    </mj-attributes>
+  </mj-head>
+  <mj-body background-color="#eaf4fb" width="640px">
+    <mj-section background-color="#f59929" padding="24px 36px">
+      <mj-group>
+        <mj-column width="25%"><mj-image src="https://media.base44.com/images/public/6ab62433a194f918c54c8249/c6a55826a_logo.jpg" alt="ALSight" width="100px" align="left" padding="0" /></mj-column>
+        <mj-column width="75%"><mj-text color="#000000" font-size="28px" font-weight="700" padding="5px 0 0 16px">ALSight</mj-text></mj-column>
+      </mj-group>
+    </mj-section>
+    <mj-section>
+      <mj-column>
+        <mj-text mj-class="heading" font-size="30px" line-height="1.2">Your approval request has a response</mj-text>
+        <mj-text mj-class="muted" padding="12px 0 24px">A document approval response has been recorded for a project you support as BSM.</mj-text>
+        <mj-text>Hello {{bsm_name}},</mj-text>
+        <mj-text padding="12px 0 0">{{approver_name}} has responded to the approval request for <strong>{{document_title}}</strong>.</mj-text>
+      </mj-column>
+    </mj-section>
+    <mj-section background-color="#eaf4fb" padding="28px 36px">
+      <mj-column width="50%"><mj-text mj-class="muted">Project</mj-text><mj-text mj-class="heading">{{project_name}}</mj-text><mj-text mj-class="muted">{{project_number}}</mj-text></mj-column>
+      <mj-column width="50%"><mj-text mj-class="muted">Response</mj-text><mj-text mj-class="heading">{{response}}</mj-text><mj-text mj-class="muted">Document {{document_number}}</mj-text></mj-column>
+    </mj-section>
+    <mj-section>
+      <mj-column>
+        <mj-text mj-class="heading" font-size="20px">Comments from the approver</mj-text>
+        <mj-text padding="12px 0 0"><div style="white-space:pre-wrap">{{comments}}</div></mj-text>
+        <mj-divider border-color="#e5e7eb" padding="24px 0" />
+        <mj-text mj-class="muted">Responded by: {{approver_name}}<br />Recorded at: {{responded_at}}</mj-text>
+        <mj-text mj-class="muted" padding="16px 0 0">This email confirms the response recorded in ALSight. Open the project to review the document and any follow-up. Dataverse confirmation is managed separately in the approval process.</mj-text>
+        <mj-button href="https://alsight.base44.app/projects/{{project_id}}">Open project in ALSight</mj-button>
+      </mj-column>
+    </mj-section>
+    <mj-section background-color="#eaf4fb" padding="24px 36px">
+      <mj-column><mj-text mj-class="muted">You received this notification because you are the BSM assigned to this project.<br />ALSight, Projects, People &amp; Information Connected.</mj-text></mj-column>
+    </mj-section>
+  </mj-body>
+</mjml>
