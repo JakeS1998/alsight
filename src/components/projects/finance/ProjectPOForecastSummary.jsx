@@ -9,6 +9,7 @@ export default function ProjectPOForecastSummary({ forecast }) {
  const stats = [['PO forecast baseline', forecast.supplierBudget], ['Recorded PO commitments', forecast.committed], ['Remaining PO forecast', forecast.remaining], ['Average additional POs / month', forecast.available ? forecast.monthlyAverage : null]];
  return <div className="rounded-lg border border-border bg-muted p-4 space-y-3">
   <h4 className="font-heading font-semibold">Additional PO forecast</h4>
+  <p className="text-xs text-muted-foreground">Without a submitted fee proposal, estimated project value less committed POs is spread equally across the remaining project months. With a submitted proposal, the supplier-cost baseline is used. Remaining values are capped at zero.</p>
   <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">{stats.map(([label, value]) => <div key={label}><p className="text-xs text-muted-foreground">{label}</p><p className="mt-1 font-semibold tabular-nums">{money(value)}</p></div>)}</div>
   {forecast.budgetExcess > 0 && <p className="text-sm font-semibold text-destructive">Recorded POs exceed the supplier budget by {money(forecast.budgetExcess)}. Check for revised or superseded orders and confirm the budget; no additional PO spend is forecast.</p>}
   <p className="text-xs text-muted-foreground">{!forecast.available ? 'Forecast unavailable. ' : !positive ? 'No remaining supplier budget, so there is no additional PO forecast line. ' : 'Dashed orange line: recorded money out plus additional POs. '}{forecast.note}</p>

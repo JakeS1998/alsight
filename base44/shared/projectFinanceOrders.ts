@@ -7,7 +7,7 @@ export async function readProjectFinanceOrders(base44,state,input){
  // The caller's project permissions are checked before reading privileged finance records.
  const project=await base44.entities.Project.get(input.projectId);
  if(!project)throw new Error('Project not available.');
- if(!state?.active_generation)return input.action==='projectOrderCashFlow'?{entries:[],total:0,available:false}:{items:[],total:0,has_more:false,next_cursor:null,mappings:[]};
+ if(!state?.active_generation)return input.action==='projectOrderCashFlow'?{entries:[],total:0,available:false,forecast:await projectPOForecast(base44.asServiceRole.entities,state,project)}:{items:[],total:0,has_more:false,next_cursor:null,mappings:[]};
  const db=base44.asServiceRole.entities;
  const matches=await db.FinanceProjectMapping.filter({dataset_id:state.namespace,project_id:project.id,status:{$in:['automatic','manual']}},{limit:100,fields:['source_key','source_code','source_name','project_id','matching_method']});
  if(matches.has_more)throw new Error('Project finance links exceed the reporting limit.');

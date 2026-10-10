@@ -12,7 +12,7 @@ export async function projectPOForecast(db, state, selectedProject) {
    const monthEnd=new Date(Date.UTC(Number(month.slice(0,4)),Number(month.slice(5,7)),0)).toISOString().slice(0,10);
    return {date:monthEnd < project.end ? monthEnd : project.end, amount:monthlyShare(project.poRemaining,project,index)};
   });
-  return {today, ...breakdown, rows, monthlyAverage:project.poRemaining/100/project.months, available:true, note:`${project.poNote}. Remaining supplier budget is divided across ${project.months} programme months to ${project.end}; this estimates additional POs, not supplier payment dates.`};
+  return {today, ...breakdown, rows, monthlyAverage:project.poRemaining/100/project.months, available:true, note:`${project.poNote}. Remaining PO forecast value is divided equally across ${project.months} programme months to ${project.end}; this estimates additional POs, not supplier payment dates.`};
  }
  return {today, rows:[], available:false, note:'No positive project value available for forecasting.'};
 }
