@@ -1,0 +1,20 @@
+import React from 'react';
+import {Sparkles,ArrowUpRight} from 'lucide-react';
+import {formatCurrency,formatDate} from '@/lib/portal';
+import {projectStage,nextStageDate} from '@/components/dashboard/pipelineStage';
+import projectFullValue from '@/components/projects/projectFullValue';
+import {constructionAutomation} from '@/components/delivery/constructionAutomation';
+import {riskHeat} from '@/components/delivery/riskHeat';
+import ProjectJourney from '@/components/projects/command/ProjectJourney';
+export default function ProjectCommandCentre({project,client,query,onSelect,compact}) {
+  const data=query.data,delivery=data?.delivery || {},stage=projectStage(project),programme=constructionAutomation(project,delivery),risk=data ? data.risks ? riskHeat(data.maxRisk).label : 'No open risks recorded' : 'Checking…';
+  const counts=[['Open actions',data?.actions,'actions'],['Decisions required',data?.decisions,'decisions'],['High / critical risks',data?.highRisks,'risks'],...(data?.approvals!=null ? [['Pending approvals',data.approvals,'approvals']] : [])];
+  const value=projectFullValue(project),hasValue=project.submitted_proposal_value!=null || project.estimated_value!=null;
+  return <section className="space-y-5" aria-label="Project command centre"><div className="flex flex-wrap items-start justify-between gap-4"><div><p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Project command centre</p><h2 className="mt-1 text-2xl font-semibold">{stage || 'Completion / close-out'}</h2><p className="mt-2 text-sm text-muted-foreground">{client?.name || project.client_name || 'Client not recorded'} · {risk}</p></div><button type="button" className="inline-flex items-center gap-2 rounded-lg border border-border bg-card px-4 py-2 text-sm font-semibold hover:bg-muted" onClick={()=>window.dispatchEvent(new CustomEvent('alsight-open-alice',{detail:{prompt:`Summarise this project: ${project.name}. Project ID: ${project.id}. Explain its recorded stage, risks, outstanding actions, decisions and approvals using records I can access.`,autoSend:true}}))}><Sparkles className="h-4 w-4 text-primary"/>Ask ALICE about this project</button></div>
+    <dl className="grid gap-4 rounded-xl border border-border bg-card p-5 sm:grid-cols-2 xl:grid-cols-4">{[['Project value',hasValue ? formatCurrency(value) : 'Not recorded'],['Programme elapsed',programme.pct_programme==null || programme.pct_programme==='' ? 'Not recorded' : `${programme.pct_programme}%`],['Saved contract sum',delivery.contract_sum==null || delivery.contract_sum==='' ? 'Not recorded' : formatCurrency(delivery.contract_sum)],['Next stage date',formatDate(nextStageDate(project,stage))]].map(([label,text])=><div key={label}><dt className="text-xs text-muted-foreground">{label}</dt><dd className="mt-2 text-lg font-semibold">{query.error && label==='Saved contract sum' ? 'Unavailable' : text}</dd></div>)}</dl>
+    <p className="text-xs text-muted-foreground">Programme elapsed is date-based or manually overridden, not physical completion. Financial figures are recorded values, not a profitability assessment.</p>
+    {query.isPending && <p role="status" className="text-sm text-muted-foreground">Checking connected project records…</p>}{query.error && <p role="alert" className="text-sm text-destructive">Connected summary unavailable. <button className="underline" onClick={()=>query.refetch()}>Retry</button></p>}
+    <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">{counts.map(([label,count,tab])=><button type="button" key={label} onClick={()=>onSelect(tab)} className="flex items-center gap-3 rounded-xl border border-border bg-card p-4 text-left hover:bg-muted"><div className="flex-1"><strong className="text-2xl font-semibold">{query.error ? '—' : count ?? '…'}</strong><p className="mt-1 text-xs font-medium">{label}</p></div><ArrowUpRight className="h-4 w-4 text-muted-foreground"/></button>)}</div>
+    <ProjectJourney project={project} client={client} data={data} query={query} onSelect={onSelect} compact={compact}/>
+  </section>;
+}
