@@ -1,5 +1,6 @@
 import {readDataverseFinance} from './financeDataverseReads.ts';
 import {projectOrderCashFlow} from './projectOrderCashFlow.ts';
+import {projectPOForecast} from './projectPOForecast.ts';
 export async function readProjectFinanceOrders(base44,state,input){
  if(!/^[a-f0-9]{24}$/i.test(input.projectId||''))throw new Error('Choose a valid project.');
  if(String(input.cursor||'').length>8192)throw new Error('Invalid order page.');
@@ -17,9 +18,12 @@ export async function readProjectFinanceOrders(base44,state,input){
   if(!record||record.kind!=='purchase_orders'||!record.active||record.generation!==state.active_generation||record.namespace!==state.namespace||!keys.includes(record.project_key))throw new Error('This purchase order is not linked to the selected project.');
   return readDataverseFinance({entities:db},state,{action:'dvDetail',recordId:record.id,cursor:input.cursor});
  }
- if(!keys.length)return input.action==='projectOrderCashFlow'?{entries:[],total:0,available:true}:{items:[],total:0,has_more:false,next_cursor:null,mappings:[],read_at:state.last_completed_at};
  const query={...base,kind:'purchase_orders',project_key:{$in:keys}};
- if(input.action==='projectOrderCashFlow')return projectOrderCashFlow(db,base,query);
+ if(input.action==='projectOrderCashFlow') {
+  const [cashFlow,forecast]=await Promise.all([keys.length?projectOrderCashFlow(db,base,query):Promise.resolve({entries:[],total:0,available:true}),projectPOForecast(db,state,project.id)]);
+  return {...cashFlow,forecast};
+ }
+ if(!keys.length)return {items:[],total:0,has_more:false,next_cursor:null,mappings:[],read_at:state.last_completed_at};
  const [page,total]=await Promise.all([db.FinanceDataverseRecord.filter(query,{limit:50,sort:'reference',...(input.cursor?{cursor:input.cursor}:{})}),db.FinanceDataverseRecord.count(query)]);
  const ids=page.items.map(r=>r.source_id);
  const lines=ids.length?await db.FinanceDataverseRecord.aggregate({query:{...base,kind:'line_items',parent_id:{$in:ids}},groupBy:['parent_id','has_amount'],sum:'amount'}):{rows:[]};

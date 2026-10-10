@@ -113,6 +113,7 @@ export function ProjectFinanceTab({ project }) {
         loading={cashFlow.loading || (syncedOrders.enabled && orderCashFlow.isPending)}
         error={cashFlow.error || (orderCashFlow.error ? `Purchase-order graph could not be loaded: ${orderCashFlow.error.message}` : '')}
         commitments={orderCashFlow.data?.total > 0 ? orderCashFlow.data.entries : commitments}
+        forecast={orderCashFlow.data?.forecast}
         missingDates={orderCashFlow.data?.missingDates || 0} missingValues={orderCashFlow.data?.missingValues || 0} />
 
       <ValuationPosition project={project} valuations={fin.valuations || []} />
