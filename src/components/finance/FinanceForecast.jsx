@@ -6,10 +6,12 @@ import { financeCall } from '@/components/finance/financeClient';
 import FinanceForecastMonths from '@/components/finance/FinanceForecastMonths.jsx';
 import FinanceForecastProjects from '@/components/finance/FinanceForecastProjects.jsx';
 import FinanceForecastChart from '@/components/finance/FinanceForecastChart';
+import useCommercialScope from '@/components/finance/useCommercialScope';
 export default function FinanceForecast(){
+ const scope=useCommercialScope();
  const [text,setText]=useState(''),[filters,setFilters]=useState({search:'',horizon:12,windowOffset:0,offset:0,month:null,excluded:false});
  useEffect(()=>{const timer=setTimeout(()=>setFilters(f=>({...f,search:text,offset:0})),350);return()=>clearTimeout(timer);},[text]);
- const q=useQuery({queryKey:['finance','forecast',filters],queryFn:()=>financeCall({action:'forecast',...filters}),staleTime:60000});
+ const q=useQuery({queryKey:['finance','forecast',scope,filters],queryFn:()=>financeCall({action:'forecast',...filters}),staleTime:60000});
  const period=(change)=>setFilters(f=>({...f,...change,month:null,offset:0}));
  return <section className="finance-card finance-section finance-delay-3 space-y-4">
   <div><h2 className="font-heading text-lg font-semibold">Monthly invoice & PO forecast <span className="ml-2 rounded-md bg-primary/15 px-2 py-1 text-xs text-foreground">Estimates only</span></h2><p className="mt-2 text-sm text-muted-foreground">All valued projects, spread evenly across remaining calendar months from today through the recorded programme end. Submitted fee proposals take precedence over estimates. All amounts exclude VAT.</p><p className="mt-1 text-xs text-muted-foreground">Invoices use client value; POs use supplier cost budgets less recorded commitments. These are separate income and cost views, not an additive split. Missing invoice amounts leave a clearly labelled full-value planning baseline. Missing cost budgets are unavailable, not zero. No actual invoices or POs are created.</p></div>

@@ -20,7 +20,7 @@ const NAV_ITEMS = [
   { label: 'Opportunities', path: '/crm/opportunities', icon: BriefcaseBusiness, roles: INTERNAL_ROLES },
   { label: 'Projects', path: '/projects', icon: FolderKanban, roles: ALL_ROLES },
   { label: 'Portfolio', path: '/portfolio-overview', icon: LayoutDashboard, roles: INTERNAL_ROLES },
-  { label: 'Finance', path: '/finance', icon: BriefcaseBusiness, roles: ['admin', 'finance', 'director'] },
+  { label: 'Commercial', path: '/finance', icon: BriefcaseBusiness, roles: ['admin', 'finance', 'director'] },
   { label: 'Approvals', path: '/approvals', icon: ClipboardCheck, roles: ALL_ROLES.concat(['framework_stakeholder']) },
   { label: 'Framework', path: '/framework-reports', icon: UKLFIcon, roles: INTERNAL_ROLES.concat(['framework_stakeholder']) },
   { label: 'Insider', path: '/pulse', icon: MessagesSquare, roles: INTERNAL_ROLES },

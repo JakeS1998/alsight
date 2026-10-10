@@ -12,6 +12,7 @@ import {financeMappingStatus,saveFinanceFieldMapping} from '../../shared/finance
 import {applyWorkbookFinanceMappings} from '../../shared/financeWorkbookMatching.ts';
 import {applyLegacyFinanceNameMappings} from '../../shared/financeNameMatching.ts';
 import {readProjectFinanceOrders} from '../../shared/projectFinanceOrders.ts';
+import {commercialPipelineSummary} from '../../shared/commercialPipelineSummary.ts';
 export default async function(req){
  try{
   const base44=createClientFromRequest(req),user=await base44.auth.me();
@@ -20,7 +21,7 @@ export default async function(req){
   if(req.method!=='POST')return Response.json({error:'Method not allowed.'},{status:405});
   const raw=await req.text();if(raw.length>20000)throw new Error('Request too large.');const input=JSON.parse(raw);
   if(!financeRoles.includes(user.role)&&!(['projectOrders','projectOrderDetail','projectOrderCashFlow'].includes(input.action)&&['regional_director','bsm','bdm'].includes(user.role)))return Response.json({error:'Finance, director or administrator access required.'},{status:403});
-  const actions=['projectOrders','projectOrderDetail','projectOrderCashFlow','applyNameLinks','applyCodeLinks','transactions','dvMappingStatus','dvSaveMapping','forecast','dvContinue','dvStart','dvBatch','dvDetail','dvDiscover','dvInspect','status','configure','preview','confirm','summary','list','mappings','projects','map','orders','poDetail','configureInvoices','invoices'];
+  const actions=['pipeline','projectOrders','projectOrderDetail','projectOrderCashFlow','applyNameLinks','applyCodeLinks','transactions','dvMappingStatus','dvSaveMapping','forecast','dvContinue','dvStart','dvBatch','dvDetail','dvDiscover','dvInspect','status','configure','preview','confirm','summary','list','mappings','projects','map','orders','poDetail','configureInvoices','invoices'];
   if(!actions.includes(input.action))throw new Error('Invalid finance operation.');
   const admin=['applyNameLinks','applyCodeLinks','dvMappingStatus','dvSaveMapping','dvContinue','dvStart','dvBatch','dvDiscover','dvInspect','configure','preview','confirm','mappings','projects','map','configureInvoices'];
   if(admin.includes(input.action)&&user.role!=='admin')return Response.json({error:'Administrator access required.'},{status:403});
@@ -31,7 +32,9 @@ export default async function(req){
   if(input.action==='dvContinue')return Response.json(await continueFinanceSync(base44,input));
   if(input.action==='dvStart')return Response.json(await startFinanceSync(base44));
   if(input.action==='dvBatch')return Response.json(await syncFinanceBatch(base44,input));
-  const state=await financeSyncState(base44);
+  if(input.action==='pipeline')return Response.json(await commercialPipelineSummary(base44));
+  const privilegedState=admin.includes(input.action)||['projectOrders','projectOrderDetail','projectOrderCashFlow'].includes(input.action);
+  const state=privilegedState?await financeSyncState(base44):(await base44.entities.FinanceDataverseSync.filter({key:'primary'},{limit:1})).items[0]||null;
   if(['projectOrders','projectOrderDetail','projectOrderCashFlow'].includes(input.action))return Response.json(await readProjectFinanceOrders(base44,state,input));
   if(input.action==='applyNameLinks')return Response.json(await applyLegacyFinanceNameMappings(base44,state,input));
   if(input.action==='applyCodeLinks')return Response.json(await applyWorkbookFinanceMappings(base44,state,input));
@@ -72,6 +75,8 @@ export default async function(req){
   if(input.action==='configureInvoices'){
    const invoices=await validateFinanceInvoices(base44,input.fields||{});await db.FinanceConnection.update(config.id,{invoices});return Response.json({notice:'Sales-invoice fields verified against live Dataverse metadata.'});
   }
+  // A shared Power BI model cannot enforce this app's entity RLS. Non-admin reporting uses the protected snapshot only.
+  if(user.role!=='admin'&&['summary','list','orders'].includes(input.action))return Response.json({error:'Commercial reporting requires the RLS-protected Dataverse snapshot. Ask an administrator to complete the sync.'},{status:403});
   if(!confirmed)throw new Error('The administrator must preview and confirm the selected Power BI data before reporting.');
   if(input.action==='map')return Response.json(await saveFinanceMapping(base44,user,input,config));
   if(input.action==='mappings'){
