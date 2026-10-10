@@ -1,5 +1,5 @@
 export const TASK_SOURCES = [
-  { entity: 'ProjectAction', due: 'due_date', label: 'Project action', done: ['done'], title: 'action', link: r => `/projects/${r.project_id}?tab=delivery` },
+  { entity: 'ProjectAction', due: 'due_date', label: 'Project action', done: ['done'], title: 'action', link: r => `/projects/${r.project_id}?tab=actions` },
   { entity: 'CRMTask', due: 'due_date', label: 'Opportunity task', done: ['completed', 'cancelled'], title: 'title', link: r => `/opportunities/${r.opportunity_id}` },
   { entity: 'CRMContactTask', due: 'due_at', label: 'Contact task', done: ['done'], title: 'title', link: r => `/crm/contacts/${r.contact_id}` },
 ];

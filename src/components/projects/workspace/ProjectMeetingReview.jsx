@@ -1,6 +1,6 @@
 import React from 'react';
 import { TabsTrigger, TabsContent } from '@/components/ui/tabs';
-import { ListChecks, StickyNote } from 'lucide-react';
+import { StickyNote } from 'lucide-react';
 import ProjectDetail from '@/pages/ProjectDetail';
 import ProjectReviewHeader from '@/components/projects/workspace/ProjectReviewHeader';
 import ProjectMeetingActions from '@/components/projects/workspace/ProjectMeetingActions';

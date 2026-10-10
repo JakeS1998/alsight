@@ -1,24 +1,23 @@
 import React, { useState, useRef } from 'react';
 import useStickyHeight from '@/components/projects/useStickyHeight';
-import { Link, useLocation, useNavigate } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '@/lib/AuthContext';
 import { INTERNAL_ROLES } from '@/lib/portal';
 import Logo from '@/components/Logo';
 import NotificationCenter from '@/components/NotificationCenter';
 import UserMenu from '@/components/UserMenu';
 import PortalSearch from '@/components/search/PortalSearch';
-import UKLFIcon from '@/components/framework/UKLFIcon';
+
 import PlatformNavigation from '@/components/layout/PlatformNavigation';
 import { Sparkles } from 'lucide-react';
 import useApprovalAccess from '@/components/approvals/useApprovalAccess';
 import useApprovalSummary from '@/components/approvals/useApprovalSummary';
-import { LayoutDashboard, FolderKanban, Building2, UserCircle, Menu, X, Users, BriefcaseBusiness, CircleHelp, House, MessagesSquare, ClipboardCheck } from 'lucide-react';
+import { Menu, X } from 'lucide-react';
 
 export default function PortalHeader() {
   const headerRef = useRef(null);
   useStickyHeight(headerRef, '--portal-header-height');
   const { user, logout } = useAuth();
-  const location = useLocation();
   const navigate = useNavigate();
   const [menuOpen, setMenuOpen] = useState(false);
   const role = user?.role || 'client';

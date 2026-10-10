@@ -37,7 +37,7 @@ import ProjectChanges from '@/components/alice/ProjectChanges';
 import DocumentInsight from '@/components/alice/DocumentInsight';
 import ProjectAttention from '@/components/projects/ProjectAttention';
 import ProjectPurpose from '@/components/alliance/ProjectPurpose';
-import ProjectLessons from '@/components/alliance/ProjectLessons';
+
 import DataverseRecordEdit from '@/components/dataverse/DataverseRecordEdit';
 import useProjectReportingRefresh from '@/components/projects/useProjectReportingRefresh';
 
