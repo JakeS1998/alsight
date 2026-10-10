@@ -4,7 +4,7 @@
 .home-reference .home-hero { min-height: clamp(320px, 22vw, 440px); border-radius: 14px; }
 .home-reference .home-hero-copy { max-width: 680px; padding: 36px 42px; }
 .home-reference .home-hero h2 { font-size: clamp(44px, 4.2vw, 76px); }
-.home-reference .home-hero-shade { background: linear-gradient(90deg, hsl(var(--als-navy) / .94), hsl(var(--als-navy) / .76) 30%, hsl(var(--als-navy) / .28) 58%, transparent 82%); }
+.home-reference .home-hero-shade { background: linear-gradient(90deg, hsl(var(--als-navy) / .25), hsl(var(--als-navy) / .25) 28%, transparent 48%), linear-gradient(90deg, hsl(var(--als-navy) / .94), hsl(var(--als-navy) / .76) 30%, hsl(var(--als-navy) / .28) 58%, transparent 82%); }
 @media (max-width: 767px) {
   .home-reference .home-hero-shade { background: linear-gradient(90deg, hsl(var(--als-navy) / .88), hsl(var(--als-navy) / .25)), linear-gradient(0deg, hsl(var(--als-navy) / .85), transparent 75%); }
 }
