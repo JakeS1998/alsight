@@ -40,7 +40,7 @@
 .finance-priority-value { font-size:clamp(22px,1.7vw,40px); font-weight:800; color:hsl(var(--primary)); line-height:1; min-width:110px; }
 .finance-priority p { padding-top:4px; }
 .finance-section { margin-top:36px; }
-.finance-analysis-row { display:grid; grid-template-columns:minmax(0,1.1fr) minmax(0,1fr); gap:24px; align-items:start; }
+.finance-analysis-row { display:grid; grid-template-columns:minmax(0,1.1fr) minmax(0,1fr); gap:24px; align-items:stretch; }
 .finance-directory-row { display:grid; grid-template-columns:minmax(0,1fr) minmax(0,1fr); gap:24px; align-items:start; }
 .finance-briefing .finance-controls { display:flex; flex-wrap:wrap; gap:14px; align-items:center; margin:16px 0 18px; }
 .finance-briefing :is(input,select) { font:inherit; font-size:15px; padding:11px 14px; border:1px solid hsl(var(--input)); border-radius:9px; background:hsl(var(--card)); color:hsl(var(--foreground)); height:auto; transition:border-color .2s,box-shadow .2s; }
