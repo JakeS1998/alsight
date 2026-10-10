@@ -6,10 +6,18 @@ import DataQualityCards from '@/components/admin/DataQualityCards';
 import DataQualityIssues from '@/components/admin/DataQualityIssues';
 import useDataQuality from '@/components/admin/useDataQuality';
 import DataQualityRecordEditor from '@/components/admin/DataQualityRecordEditor';
+import CommercialDataChecks from '@/components/admin/CommercialDataChecks';
+import { useQueryClient } from '@tanstack/react-query';
 
 export default function DataQualityDashboard() {
   const { user } = useAuth();
   const quality = useDataQuality();
+  const queryClient = useQueryClient();
+  const refreshChecks = () => {
+    quality.refresh();
+    queryClient.invalidateQueries({ queryKey: ['finance', 'dataverse-summary'] });
+    queryClient.invalidateQueries({ queryKey: ['finance-status'] });
+  };
   const [editing, setEditing] = useState(null);
   if (user?.role !== 'admin') return null;
   const check = quality.summary?.checks.find(item => item.key === quality.selected);
@@ -19,13 +27,14 @@ export default function DataQualityDashboard() {
         <p className="mt-1 text-xs text-muted-foreground">Stale projects are excluded and remain managed manually.</p>
         {quality.summary && <p className="mt-2 text-xs text-muted-foreground">Last checked: {new Date(quality.summary.checkedAt).toLocaleString('en-GB')}</p>}
       </div>
-      <Button variant="outline" onClick={quality.refresh} disabled={quality.checking || quality.loading}><RefreshCw className={quality.checking ? 'animate-spin' : ''} />{quality.checking ? 'Checking…' : 'Refresh checks'}</Button>
+      <Button variant="outline" onClick={refreshChecks} disabled={quality.checking || quality.loading}><RefreshCw className={quality.checking ? 'animate-spin' : ''} />{quality.checking ? 'Checking…' : 'Refresh checks'}</Button>
     </div>
     {quality.error && <p role="alert" className="text-sm text-destructive">{quality.error}</p>}
     {quality.checking ? <p role="status" className="rounded-xl border border-border bg-card p-8 text-sm text-muted-foreground">Checking project, contact, account and legal records…</p> : quality.summary && <>
       <DataQualityCards checks={quality.summary.checks} selected={quality.selected} onSelect={quality.setSelected} />
       {check && <DataQualityIssues check={check} result={quality.result} loading={quality.loading} onMore={quality.loadMore} onEdit={setEditing} />}
     </>}
+    <CommercialDataChecks />
     <DataQualityRecordEditor target={editing} check={quality.selected} onClose={() => setEditing(null)} onSaved={quality.refresh} />
   </div>;
 }
