@@ -2,7 +2,7 @@ import React from 'react';
 import { Link } from 'react-router-dom';
 import { Plus, FileText, CheckSquare, MessageSquare, PoundSterling } from 'lucide-react';
 import ApprovalActionNotice from '@/components/approvals/ApprovalActionNotice.jsx';
-const actions = [['Add opportunity',Plus,'bg-chart-4/15 text-chart-2','opportunity'],['Request project',FileText,'bg-primary/10 text-primary','project'],['Add action',CheckSquare,'bg-success/10 text-success','action'],['Record decision',MessageSquare,'bg-chart-2/10 text-chart-2','decision'],['Submit valuation',PoundSterling,'bg-destructive/10 text-destructive','valuation']];
+const actions = [['Add opportunity',Plus,'bg-chart-4/15 text-chart-2','opportunity'],['Add action',CheckSquare,'bg-success/10 text-success','action'],['Request project',FileText,'bg-primary/10 text-primary','project'],['Record decision',MessageSquare,'bg-chart-2/10 text-chart-2','decision'],['Submit valuation',PoundSterling,'bg-destructive/10 text-destructive','valuation']];
 export default function HomeQuickActions({ project, role }) {
   const canWrite = ['admin','director','bdm','bsm'].includes(role);
   const visible = actions.filter(a => a[3] === 'opportunity' ? canWrite : a[3] === 'project' ? ['admin','director','bdm'].includes(role) : a[3] === 'valuation' ? ['admin','director','bdm','bsm','finance'].includes(role) || project?.can_submit_valuation : canWrite);
