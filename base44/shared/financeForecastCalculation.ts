@@ -20,8 +20,12 @@ export function forecastProject(input,today,snapshot){
  result.invoiceRemaining=Math.max(0,cents(value)-(result.invoiceBaseline?0:cents(invoices.amount)));
  const cost=validMoney(input.cost)?input.cost:validMoney(d.contract_sum)?d.contract_sum:null;
  result.costSource=validMoney(input.cost)?'Submitted proposal supplier costs':cost!=null?'Recorded construction contract sum (construction only)':null;
+ result.supplierBudget=cost;
+ result.poCommitted=verified&&pos.missing===0?pos.amount:null;
+ result.poMissingValues=pos.missing;
+ result.poBudgetExcess=cost!=null&&result.poCommitted!=null?Math.max(0,cents(pos.amount)-cents(cost))/100:null;
  result.poRemaining=cost==null||pos.missing>0?null:Math.max(0,cents(cost)-cents(pos.amount));
- result.poNote=cost==null?'Supplier cost budget not recorded':pos.missing?'Recorded PO amounts incomplete, including missing or incomplete line-item values':!verified?'Cost baseline: no confirmed finance link':`${result.costSource}, less recorded POs${input.poFallback?' (using line-item sums for blank headers)':''}`;
+ result.poNote=cost==null?'Supplier cost budget not recorded':pos.missing?'Recorded PO amounts incomplete, including missing or incomplete line-item values':!verified?'Cost baseline: no confirmed finance link':`${result.costSource}, less recorded POs${input.poFallback?' (using line-item sums for blank headers)':''}${result.poBudgetExcess>0?'. Recorded POs exceed this budget; review the budget and PO records before relying on the forecast':result.poRemaining===0?'. No uncommitted supplier budget remains':''}`;
  result.months=monthIndex(result.end.slice(0,7))-monthIndex(today.slice(0,7))+1;
  result.firstMonth=monthIndex(today.slice(0,7));
  return result;

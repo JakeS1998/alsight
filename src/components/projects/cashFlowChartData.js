@@ -12,11 +12,11 @@ export default function cashFlowChartData(entries, forecast) {
   received+=row.received;spent+=row.spent;
   return {date:row.date,received,spent,balance:received-spent};
  });
- if (!forecast?.available) return actual;
+ if (!forecast?.available || !(forecast.remaining > 0)) return actual;
  const points=new Map(actual.map(row=>[row.date,row]));
  const baseline=[...actual].reverse().find(row=>row.date<=forecast.today);
  let predicted=baseline?.spent||0;
- points.set(forecast.today,{...(points.get(forecast.today)||{date:forecast.today}),poForecast:predicted});
+ points.set(forecast.today,{...(points.get(forecast.today)||{date:forecast.today,...(baseline?{received:baseline.received,spent:baseline.spent,balance:baseline.balance}:{})}),poForecast:predicted});
  for (const row of forecast.rows) {
   predicted+=row.amount;
   points.set(row.date,{...(points.get(row.date)||{date:row.date}),poForecast:predicted});

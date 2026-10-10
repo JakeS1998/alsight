@@ -1,5 +1,5 @@
 import React, { useMemo } from 'react';
-import { CartesianGrid, Legend, Line, LineChart, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts';
+import { CartesianGrid, Legend, Line, LineChart, ReferenceLine, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts';
 import { formatCurrency } from '@/lib/portal';
 import cashFlowChartData from '@/components/projects/cashFlowChartData';
 
@@ -18,7 +18,8 @@ export default function CashFlowChart({ entries, forecast }) {
         <Line type="linear" dataKey="received" name="Payments received" stroke="hsl(var(--chart-1))" strokeWidth={3} dot={{ r: 4 }} activeDot={{ r: 6 }} />
         <Line type="linear" dataKey="spent" name="Money out" stroke="hsl(var(--chart-3))" strokeWidth={3} dot={{ r: 4 }} activeDot={{ r: 6 }} />
         <Line type="linear" dataKey="balance" name="Net balance" stroke="hsl(var(--chart-2))" strokeWidth={3} dot={{ r: 4 }} activeDot={{ r: 6 }} />
-        {forecast?.available && <Line type="linear" dataKey="poForecast" name="Money out + PO forecast (estimate)" stroke="hsl(var(--chart-3))" strokeWidth={3} strokeDasharray="6 4" dot={false} />}
+        {forecast?.available && forecast.remaining > 0 && <ReferenceLine x={forecast.today} stroke="hsl(var(--muted-foreground))" strokeDasharray="3 3" label={{ value: 'Forecast starts', position: 'insideTopRight', fontSize: 11 }} />}
+        {forecast?.available && forecast.remaining > 0 && <Line type="linear" dataKey="poForecast" name="Projected money out (estimate)" stroke="hsl(var(--chart-5))" strokeWidth={3} strokeDasharray="6 4" dot={{ r: 3 }} connectNulls />}
 
       </LineChart>
     </ResponsiveContainer>

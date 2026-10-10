@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { base44 } from '@/api/base44Client';
 import { filterAll } from '@/components/data/loadAll';
 import CashFlowChart from '@/components/projects/CashFlowChart';
+import ProjectPOForecastSummary from '@/components/projects/finance/ProjectPOForecastSummary';
 
 export function useProjectCashFlow(projectId) {
   const [invoices, setInvoices] = useState([]);
@@ -33,7 +34,7 @@ export default function ProjectCashFlow({ entries, commitments = [], loading, er
     <div><h3 className="font-heading text-base font-semibold text-card-foreground">Money in & out</h3>
       <p className="text-xs text-muted-foreground">Cumulative client payments, money out and net cash balance. Approved or issued POs are treated as paid outgoings at their net value because they are raised after payment approval, alongside recorded spending.</p></div>
     {!loading && !error && (missingDates > 0 || missingValues > 0) && <p className="text-xs text-muted-foreground">Excluded from the graph: {[missingDates > 0 && `${missingDates} purchase orders without a valid recorded date`, missingValues > 0 && `${missingValues} purchase orders without a complete net value`].filter(Boolean).join('; ')}.</p>}
-    {!loading && !error && forecast && <p className="text-xs text-muted-foreground">{forecast.available?'Dashed line: money out plus estimated additional POs. ':'PO forecast unavailable: '}{forecast.note}</p>}
+    {!loading && !error && <ProjectPOForecastSummary forecast={forecast} />}
     {loading ? <p className="py-12 text-center text-sm text-muted-foreground">Loading cash flow…</p> : error ? <p role="alert" className="text-sm text-destructive">{error}</p> : <CashFlowChart forecast={forecast} entries={[...entries, ...commitments.map(entry => ({ ...entry, type: 'spent' }))]} />}
   </section>;
 }
