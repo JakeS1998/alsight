@@ -1,8 +1,8 @@
 import { forecastInputs } from './financeForecastInputs.ts';
 import { forecastProject, monthlyShare, monthKey } from './financeForecastCalculation.ts';
-export async function projectPOForecast(db, state, projectId) {
+export async function projectPOForecast(db, state, selectedProject) {
  const today = new Intl.DateTimeFormat('en-CA', {timeZone:'Europe/London',year:'numeric',month:'2-digit',day:'2-digit'}).format(new Date());
- for await (const source of forecastInputs({entities:db}, state, '', projectId)) {
+ for await (const source of forecastInputs({entities:db}, state, '', selectedProject)) {
   const project = forecastProject(source, today, Boolean(state?.active_generation));
   if (project.reason || project.poRemaining == null) return {today, rows:[], note:project.reason || project.poNote, available:false};
   if (project.months > 1200) return {today, rows:[], note:'Programme exceeds the forecast reporting limit.', available:false};

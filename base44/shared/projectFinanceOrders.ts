@@ -20,7 +20,7 @@ export async function readProjectFinanceOrders(base44,state,input){
  }
  const query={...base,kind:'purchase_orders',project_key:{$in:keys}};
  if(input.action==='projectOrderCashFlow') {
-  const [cashFlow,forecast]=await Promise.all([keys.length?projectOrderCashFlow(db,base,query):Promise.resolve({entries:[],total:0,available:true}),projectPOForecast(db,state,project.id)]);
+  const [cashFlow,forecast]=await Promise.all([keys.length?projectOrderCashFlow(db,base,query):Promise.resolve({entries:[],total:0,available:true}),projectPOForecast(db,state,project)]);
   return {...cashFlow,forecast};
  }
  if(!keys.length)return {items:[],total:0,has_more:false,next_cursor:null,mappings:[],read_at:state.last_completed_at};

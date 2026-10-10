@@ -1,13 +1,13 @@
 import { financePOFallbacks } from './financePOFallbacks.ts';
 const fields=['estimated_value','submitted_proposal_value','submitted_proposal_id','practical_completion_date','aa_executed_date','construction_term_weeks',...Array.from({length:5},(_,i)=>`riba${i+1}_system_date`),...Array.from({length:4},(_,i)=>`riba${i+1}_end`),...Array.from({length:4},(_,i)=>`riba${i+1}_term_weeks`)];
 async function aggregate(entity,options){const result=await entity.aggregate({...options,limit:1000});if(result.truncated)throw new Error('Forecast source grouping exceeded its limit. Narrow the project search; partial totals are not displayed.');return result.rows;}
-export async function* forecastInputs(base44,state,search,projectId){
+export async function* forecastInputs(base44,state,search,selectedProject){
  const db=base44.entities,pattern=search.replace(/[.*+?^${}()|[\]\\]/g,'\\$&');
- const query={...(projectId?{id:projectId}:{}),$or:[{estimated_value:{$gt:0}},{submitted_proposal_value:{$gt:0}}],...(pattern?{$and:[{$or:[{name:{$regex:pattern,$options:'i'}},{project_number:{$regex:pattern,$options:'i'}}]}]}:{})};
+ const query={$or:[{estimated_value:{$gt:0}},{submitted_proposal_value:{$gt:0}}],...(pattern?{$and:[{$or:[{name:{$regex:pattern,$options:'i'}},{project_number:{$regex:pattern,$options:'i'}}]}]}:{})};
  let cursor;
  do{
   // Stream only identity metadata. All monetary values, dates and commitments are aggregated in the database.
-  const page=await db.Project.filter(query,{sort:'name',limit:1000,fields:['name','project_number','dataverse_id'],...(cursor?{cursor}:{})});
+  const page=selectedProject?{items:[selectedProject],has_more:false}:await db.Project.filter(query,{sort:'name',limit:1000,fields:['name','project_number','dataverse_id'],...(cursor?{cursor}:{})});
   if(!page.items.length)return;
   const ids=page.items.map(p=>p.id),aliases=page.items.flatMap(p=>[p.id,p.dataverse_id].filter(Boolean));
   const values=await aggregate(db.Project,{query:{id:{$in:ids}},groupBy:'id',max:fields});
