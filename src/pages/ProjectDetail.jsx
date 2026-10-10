@@ -35,6 +35,7 @@ import ProjectPurpose from '@/components/alliance/ProjectPurpose';
 import ProjectLessons from '@/components/alliance/ProjectLessons';
 import DataverseRecordEdit from '@/components/dataverse/DataverseRecordEdit';
 import useProjectReportingRefresh from '@/components/projects/useProjectReportingRefresh';
+import useAutomaticPurposeResearch from '@/components/alliance/useAutomaticPurposeResearch';
 
 
 export default function ProjectDetail({ embedded = false, embeddedProjectId, suppliedAccountMap, extraNavigation, extraContent } = {}) {
@@ -48,6 +49,7 @@ export default function ProjectDetail({ embedded = false, embeddedProjectId, sup
   const supplierAccountId = user?.account_id || user?.data?.account_id;
   const [project, setProject] = useState(null);
   useProjectReportingRefresh(project?.id,setProject);
+  useAutomaticPurposeResearch(project,updated=>setProject(current=>current?.id===updated.id?{...current,...updated}:current));
   const canSeeValuations = isExternalPM || INTERNAL_ROLES.includes(user?.role) || (isSupplier && !!project?.can_submit_valuation);
   const canSeeProjectOverview = isSupplier && !!project?.can_submit_valuation;
   const [activeTab, setActiveTab] = useState('general');

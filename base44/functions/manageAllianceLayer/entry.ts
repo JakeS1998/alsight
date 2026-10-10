@@ -4,7 +4,7 @@ import {internalRoles} from '../../shared/allianceLayerAccess.ts';
 import {readLessons,readImpact,readHome} from '../../shared/allianceLayerReads.ts';
 import {addLesson,addPulse,removeItem,savePurpose} from '../../shared/allianceLayerWrites.ts';
 import {managePulseGroups} from '../../shared/pulseGroupActions.ts';
-import {researchProjectPurpose} from '../../shared/projectPurposeResearch.ts';
+import {researchProjectPurpose,ensureProjectPurpose} from '../../shared/projectPurposeResearch.ts';
 import {mentionPeople} from '../../shared/pulseMentions.ts';
 import {updateAllianceNotification} from '../../shared/allianceNotificationActions.ts';
 import {insiderInteractions} from '../../shared/insiderInteractions.ts';
@@ -30,6 +30,7 @@ export default async function(req) {
     if(input.action==='purposeSave') return Response.json(await savePurpose(base44,user,input));
     // Research sources are attached to evidence; citation numbering is assigned server-side.
     if(input.action==='purposeResearch') return Response.json(await researchProjectPurpose(base44,user,input));
+    if(input.action==='purposeEnsure') return Response.json(await ensureProjectPurpose(base44,user,input));
     return Response.json({error:'Unsupported Alliance operation.'},{status:400});
   } catch(error) { return Response.json({error:error.message || 'Unable to complete this Alliance request.'},{status:/rate limit|too many requests/i.test(error.message) ? 429 : 400}); }
 }

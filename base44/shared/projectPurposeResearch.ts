@@ -1,5 +1,17 @@
 import {internalRoles,projectAccess} from './allianceLayerAccess.ts';
 import {assemblePurposeResearch} from './purposeResearchAssembly.ts';
+export async function ensureProjectPurpose(base44,user,input){
+  if(!['admin','director','bdm'].includes(user.role)) throw new Error('Project purpose editing is not permitted.');
+  const project=await projectAccess(base44,input.projectId);
+  if(project.why_this_matters?.trim()) return {project};
+  const result=await researchProjectPurpose(base44,user,input);
+  const current=await projectAccess(base44,input.projectId);
+  if(current.why_this_matters?.trim()) return {project:current};
+  const warnings=result.warnings.length?`\n\nEvidence gaps:\n${result.warnings.join('\n')}`:'';
+  const purpose=result.purpose.length+warnings.length<=4000?result.purpose+warnings:result.purpose;
+  await base44.entities.Project.updateMany({id:project.id,why_this_matters:current.why_this_matters ?? {$exists:false}},{$set:{why_this_matters:purpose}});
+  return {project:await projectAccess(base44,input.projectId)};
+}
 export async function researchProjectPurpose(base44,user,input) {
   if(!internalRoles.includes(user.role)) throw new Error('Project research is available to Alliance colleagues only.');
   const project=await projectAccess(base44,input.projectId);
