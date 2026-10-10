@@ -1,10 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { useParams, Link, useLocation, useNavigate } from "react-router-dom";
-import useApprovalAccess from '@/components/approvals/useApprovalAccess';
-import useProjectCommandData from '@/components/projects/command/useProjectCommandData';
-import ProjectCommandCentre from '@/components/projects/command/ProjectCommandCentre';
-import ProjectConnectedTabs from '@/components/projects/command/ProjectConnectedTabs';
-import ProjectRecordDetails from '@/components/projects/command/ProjectRecordDetails';
+import { useParams, Link, useLocation } from "react-router-dom";
 import { base44 } from "@/api/base44Client";
 import { useAuth } from "@/lib/AuthContext";
 import { INTERNAL_ROLES } from '@/lib/portal';
@@ -37,42 +32,30 @@ import ProjectChanges from '@/components/alice/ProjectChanges';
 import DocumentInsight from '@/components/alice/DocumentInsight';
 import ProjectAttention from '@/components/projects/ProjectAttention';
 import ProjectPurpose from '@/components/alliance/ProjectPurpose';
-
+import ProjectLessons from '@/components/alliance/ProjectLessons';
 import DataverseRecordEdit from '@/components/dataverse/DataverseRecordEdit';
 import useProjectReportingRefresh from '@/components/projects/useProjectReportingRefresh';
 
 
-export default function ProjectDetail({ embedded = false, embeddedProjectId, suppliedAccountMap, extraNavigation, extraContent, actionsContent } = {}) {
+export default function ProjectDetail({ embedded = false, embeddedProjectId, suppliedAccountMap, extraNavigation, extraContent } = {}) {
   const { projectId: routeProjectId } = useParams();
   const projectId = embedded ? embeddedProjectId : routeProjectId;
   const Header = embedded ? 'div' : ProjectStickyHeader;
-  const location = useLocation(), navigate = useNavigate();
+  const location = useLocation();
   const { user } = useAuth();
-  const internal = INTERNAL_ROLES.includes(user?.role), approvalAccess = useApprovalAccess();
   const isExternalPM = user?.role === 'project_manager';
   const isSupplier = user?.role === 'supplier';
   const supplierAccountId = user?.account_id || user?.data?.account_id;
   const [project, setProject] = useState(null);
-  const command = useProjectCommandData(project, user, approvalAccess.enabled);
   useProjectReportingRefresh(project?.id,setProject);
   const canSeeValuations = isExternalPM || INTERNAL_ROLES.includes(user?.role) || (isSupplier && !!project?.can_submit_valuation);
   const canSeeProjectOverview = isSupplier && !!project?.can_submit_valuation;
   const [activeTab, setActiveTab] = useState('general');
   const [editUKLFKpis, setEditUKLFKpis] = useState(false);
-  const selectTab = tab => {
-    setActiveTab(tab); setEditUKLFKpis(false);
-    if (!embedded) { const params = new URLSearchParams(location.search); params.set('tab', tab); navigate({ pathname: location.pathname, search: params.toString(), hash: location.hash }, { replace: true }); }
-  };
   useEffect(() => {
     if (project?.procurement_route === false && activeTab === 'uklf') setActiveTab('general');
   }, [project?.procurement_route, activeTab]);
-  useEffect(() => {
-    if (embedded) return;
-    const requested = new URLSearchParams(location.search).get('tab');
-    const tab = ({ overview:'general', programme:'timeline', commercial:'finance', journey:'delivery', documents:'drafting' })[requested] || requested;
-    const allowed = isExternalPM ? ['general','valuations','timeline','drafting','warranties','delivery'] : isSupplier ? ['general','timeline','drafting','warranties','purchase-orders',...(canSeeValuations ? ['valuations'] : [])] : ['general','timeline','drafting','warranties','finance','delivery','valuations','uklf',...(internal ? ['activity','risks','actions','decisions','people','handover',...(approvalAccess.enabled ? ['approvals'] : [])] : [])];
-    setActiveTab(allowed.includes(tab) ? tab : 'general');
-  }, [location.search, embedded, isExternalPM, isSupplier, canSeeValuations, internal, approvalAccess.enabled]);
+  useEffect(() => { if (embedded) return; const tab = new URLSearchParams(location.search).get('tab'); setActiveTab(isExternalPM ? (['valuations','timeline','drafting','warranties','delivery'].includes(tab) ? tab : 'general') : isSupplier ? (['general','timeline','drafting','warranties','purchase-orders'].includes(tab) ? tab : tab === 'valuations' && canSeeValuations ? 'valuations' : 'general') : (tab === 'valuations' && !canSeeValuations) ? 'general' : ['general','timeline','drafting','warranties','finance','delivery','valuations','uklf'].includes(tab) ? tab : 'general'); }, [location.search, isExternalPM, isSupplier, canSeeValuations]);
   const documents = useProjectDocuments(project, user);
   const { legalDocs, dmas, jcts, warranties } = documents;
   const [supplierOrders, setSupplierOrders] = useState([]);
@@ -118,16 +101,18 @@ export default function ProjectDetail({ embedded = false, embeddedProjectId, sup
   }
 
   return (
-    <Tabs className={embedded ? 'project-workspace meeting-project-workspace' : 'project-workspace'} orientation="horizontal" value={activeTab} onValueChange={selectTab}>
+    <Tabs className={embedded ? 'project-workspace meeting-project-workspace' : 'project-workspace'} orientation="horizontal" value={activeTab} onValueChange={tab => { setActiveTab(tab); setEditUKLFKpis(false); }}>
       <main className="ws-main">
         <Header className="ws-sticky-header">
           {!embedded && <ProjectWorkspaceHeader project={project} user={user} isSupplier={isSupplier} client={accountMap[project.client_account_id]} />}
-          <ProjectWorkspaceNav user={user} project={project} isSupplier={isSupplier} isExternalPM={isExternalPM} canSeeValuations={canSeeValuations} onSelectTab={selectTab} activeTab={activeTab} approvalAccess={approvalAccess.enabled}>{extraNavigation}</ProjectWorkspaceNav>
+          <ProjectWorkspaceNav user={user} project={project} isSupplier={isSupplier} isExternalPM={isExternalPM} canSeeValuations={canSeeValuations}>{extraNavigation}</ProjectWorkspaceNav>
         </Header>
         <TabsContent value="general" className="ws-content space-y-6">
-          {internal && <><ProjectCommandCentre project={project} client={accountMap[project.client_account_id]} query={command} onSelect={selectTab} compact={embedded}/><ProjectAttention project={project}/></>}
+          {INTERNAL_ROLES.includes(user?.role) && <ProjectAttention project={project}/>}
+          {INTERNAL_ROLES.includes(user?.role) && <ProjectChanges key={project.id} project={project} legalDocs={legalDocs} dmas={dmas} jcts={jcts} />}
           {!INTERNAL_ROLES.includes(user?.role) && <ProjectPurpose key={project.id} project={project} onUpdated={updated=>setProject(current=>({...current,...updated}))} />}
-          <ProjectRecordDetails internal={internal}><DataverseRecordEdit table="projects" record={project} onUpdated={setProject}><ProjectGeneralTab project={project} singleTask={frameworkAgreementRoute(legalDocs, dmas, project.project_number).route === 'single_task'} accountMap={accountMap} legalDocs={legalDocs} jcts={jcts} onProjectUpdated={updated => setProject(current => ({ ...current, ...updated }))} /></DataverseRecordEdit></ProjectRecordDetails>
+          <DataverseRecordEdit table="projects" record={project} onUpdated={setProject}><ProjectGeneralTab project={project} singleTask={frameworkAgreementRoute(legalDocs, dmas, project.project_number).route === 'single_task'} accountMap={accountMap} legalDocs={legalDocs} jcts={jcts} onProjectUpdated={updated => setProject(current => ({ ...current, ...updated }))} /></DataverseRecordEdit>
+          {INTERNAL_ROLES.includes(user?.role) && <ProjectLessons key={project.id} project={project} />}
         </TabsContent>
         <TabsContent value="timeline" className="ws-content mt-6 space-y-6">
           {INTERNAL_ROLES.includes(user?.role) && <ProjectChanges key={project.id} project={project} legalDocs={legalDocs} dmas={dmas} jcts={jcts} />}
@@ -157,7 +142,6 @@ export default function ProjectDetail({ embedded = false, embeddedProjectId, sup
         </TabsContent>}
         {canSeeValuations && <TabsContent value="valuations" className="ws-content mt-6"><ProjectValuationsTab project={project} /></TabsContent>}
         {INTERNAL_ROLES.includes(user?.role) && project.procurement_route !== false && <TabsContent value="uklf" className="ws-content mt-6"><UKLFProjectTab projectId={project.id} startEditing={editUKLFKpis} onEditDone={() => setEditUKLFKpis(false)} /></TabsContent>}
-        {internal && <ProjectConnectedTabs project={project} user={user} query={command} accountMap={accountMap} legalDocs={legalDocs} dmas={dmas} jcts={jcts} actionsContent={actionsContent} approvalAccess={approvalAccess.enabled}/>}
         {extraContent}
       </main>
     </Tabs>

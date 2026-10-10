@@ -2,7 +2,6 @@ import React, { useEffect, useState } from 'react';
 import { Link, useParams, useSearchParams } from 'react-router-dom';
 import {useQueryClient} from '@tanstack/react-query';
 import OpportunityAttention from '@/components/crm/OpportunityAttention';
-import AlsightJourney from '@/components/journey/AlsightJourney';
 import { base44 } from '@/api/base44Client';
 import { useAuth } from '@/lib/AuthContext';
 import OpportunityHeader from '@/components/crm/OpportunityHeader';
@@ -86,7 +85,6 @@ export default function OpportunityDetail() {
   return <div className="min-w-0 space-y-6">
     <Link to="/crm/opportunities" className="text-sm text-primary hover:underline">← All opportunities</Link>
     <OpportunityHeader key={item.id} item={item} account={account} contacts={contacts} canEdit={canEdit} canConvert={['admin','director','bdm'].includes(user?.role)} busy={saving} onSave={savePlan} onStage={changeStage} onOutcome={setOutcome} onConvert={() => setReviewOpen(true)} onActivity={()=>setTab('activity')} onAction={()=>setQuickAction({item,kind:'action'})} />
-    <AlsightJourney activeStage={item.project_id ? 'project' : ['submitted','accepted'].includes(item.fee_status) ? 'fee' : 'opportunity'} links={{relationship:`/accounts/${account.id}`,opportunity:()=>setTab('overview'),fee:()=>setTab('fees'),project:item.project_id ? `/projects/${item.project_id}` : ()=>setTab('handover'),delivery:item.project_id ? `/projects/${item.project_id}?tab=delivery` : null,handover:item.project_id ? `/projects/${item.project_id}?tab=handover` : null}} statuses={{opportunity:item.status==='won' ? 'Won' : item.status==='lost' ? 'Lost' : 'Open opportunity',fee:item.fee_status || 'Not recorded',project:item.project_id ? 'Linked project' : 'Review conversion'}}/>
     {planError && <p role="alert" className="text-sm text-destructive">{planError}</p>}
     {saved && <p role="status" className="text-sm text-emerald-700">Planning saved.</p>}
     <OpportunityAttention item={item} user={user} canEdit={canEdit} onActivity={()=>setTab('activity')} onReview={()=>document.getElementById('opportunity-context')?.scrollIntoView({block:'start'})}/>

@@ -36,5 +36,5 @@ export default function useAssignedTasks(user, dueOnly = false, loadRows = true)
     window.addEventListener('alsight-tasks-changed', refresh);
     return () => { clearInterval(timer); clearTimeout(refreshTimer); stops.forEach(stop => stop()); window.removeEventListener('alsight-tasks-changed', refresh); };
   }, [scope, dueOnly, client, user?.id]);
-  return { rows: (list.data?.pages.flatMap(p => p.rows) || []).sort((a, b) => (a.due || '9999').localeCompare(b.due || '9999')), total: total.data || 0, countLoading: !!user?.id && (identity.isPending || total.isPending), loading: !!user?.id && (identity.isPending || (listEnabled && list.isPending)), error: identity.error || list.error || total.error, more: list.hasNextPage, loadingMore: list.isFetchingNextPage, loadMore: list.fetchNextPage };
+  return { rows: (list.data?.pages.flatMap(p => p.rows) || []).sort((a, b) => (a.due || '9999').localeCompare(b.due || '9999')), total: total.data || 0, loading: !!user?.id && (identity.isPending || (listEnabled && list.isPending)), error: identity.error || list.error || total.error, more: list.hasNextPage, loadingMore: list.isFetchingNextPage, loadMore: list.fetchNextPage };
 }

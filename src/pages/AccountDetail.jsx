@@ -9,7 +9,6 @@ import { Button } from '@/components/ui/button';
 import { formatDate, formatCurrency } from "@/lib/portal";
 import { DocTypeBadge, ExecutedBadge, WarrantyStatusBadge } from "@/components/StatusBadge";
 import AccountCRM from '@/components/crm/AccountCRM';
-import AlsightJourney from '@/components/journey/AlsightJourney';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
 import { useQueryClient } from '@tanstack/react-query';
 import AccountHeader from '@/components/accounts/AccountHeader';
@@ -134,7 +133,6 @@ export default function AccountDetail() {
           {['Overview','Contacts','Projects',...(['admin','director','regional_director','bsm','finance','bdm'].includes(user?.role) ? ['Opportunities'] : []),...(['admin','director','regional_director','bsm','finance','bdm','client'].includes(user?.role) ? ['Financials'] : []),'Activity','Documents','Insurance'].map(title => <TabsTrigger key={title} value={title.toLowerCase()}>{title==='Contacts' ? 'People' : title}</TabsTrigger>)}
         </TabsList>
       </div>
-      {['admin','director','regional_director','bsm','finance','bdm'].includes(user?.role) && <AlsightJourney activeStage="relationship" links={{relationship:`/accounts/${account.id}?tab=overview`,opportunity:`/accounts/${account.id}?tab=opportunities`,project:`/accounts/${account.id}?tab=projects`}} statuses={{project:'Explore linked projects'}}/>}
       <TabsContent value="overview" className="space-y-4">{(account.account_type === 'supplier' || account.relationship_types?.includes('supplier')) && <SupplierCommission account={account} />}<DataverseRecordEdit table="accounts" record={account} onUpdated={setAccount}><AccountOverview account={summaryRow?.account ? {...account,_ase:summaryRow.account._ase} : account} contacts={contacts} projects={projects} signals={signals} user={user} summaryLoading={summary.isPending} summaryError={summary.error} onSummaryRetry={()=>summary.refetch()} onAccountEnriched={updated=>setAccount(current=>({...current,...updated}))} /></DataverseRecordEdit></TabsContent>
       <TabsContent value="insurance"><AccountInsurance account={account}/></TabsContent>
       <TabsContent value="contacts" className="space-y-6">

@@ -1,9 +1,0 @@
-import React from 'react';
-import {Link} from 'react-router-dom';
-import useProjectAssignmentPeople from '@/components/projects/useProjectAssignmentPeople';
-import useProjectTeamAssignments from '@/components/projects/useProjectTeamAssignments';
-export default function ProjectPeopleTab({project,accountMap,legalDocs,jcts}) {
-  const people=useProjectAssignmentPeople(project),team=useProjectTeamAssignments({project,accountMap,legalDocs,jcts}),client=accountMap[project.client_account_id];
-  const assignments=[['BDM',people.staffName(project.bdm_aad_id)],['BSM',people.staffName(project.bsm_aad_id)],['Director',people.directorName],['Project Manager',people.contactName(project.project_manager_id) || team.names['Project Manager']],['Client Representative',people.contactName(project.client_rep_id) || 'Not assigned'],...team.assignments];
-  return <section className="space-y-5 rounded-xl border border-border bg-card p-5"><header><h2 className="text-xl font-semibold">People &amp; organisations</h2><p className="mt-1 text-sm text-muted-foreground">The relationship and delivery team connected to {project.name}.</p></header>{client && <Link to={`/accounts/${client.id}`} className="block rounded-lg border border-border p-4 text-sm font-semibold hover:bg-muted">{client.name}<span className="mt-1 block text-xs font-normal text-muted-foreground">Client organisation · Open relationship</span></Link>}<dl className="grid gap-4 sm:grid-cols-2">{assignments.map(([role,name])=><div key={role} className="rounded-lg bg-muted/50 p-4"><dt className="text-xs text-muted-foreground">{role}</dt><dd className="mt-2 text-sm font-semibold">{name}</dd>{team.accountsByRole[role]?.map(account=><Link key={account.id} to={`/accounts/${account.id}`} className="mt-2 block text-xs font-medium underline">{account.name} · View organisation</Link>)}</div>)}</dl></section>;
-}
