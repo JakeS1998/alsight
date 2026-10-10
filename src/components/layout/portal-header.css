@@ -2,6 +2,7 @@
 .portal-topbar .portal-logo-image { height: 40px; width: 144px; }
 .portal-utilities { display: flex; align-items: center; justify-content: flex-end; gap: 6px; margin-left: auto; min-width: 0; }
 .portal-nav-item { display: inline-flex; align-items: center; flex-shrink: 0; gap: 6px; min-height: 42px; padding: 9px 10px; border-radius: var(--radius); border-bottom: 2px solid transparent; color: hsl(var(--sidebar-foreground) / .78); font-size: 14px; font-weight: 500; white-space: nowrap; transition: color 160ms ease, background-color 160ms ease, border-color 160ms ease; }
+.portal-nav-item.font-bold { font-weight: 700; }
 .portal-nav-item:hover { color: hsl(var(--sidebar-foreground)); background: hsl(var(--sidebar-foreground) / .06); }
 .portal-nav-item[data-active="true"] { color: hsl(var(--sidebar-foreground)); border-bottom-color: hsl(var(--primary)); background: hsl(var(--primary) / .07); }
 .portal-nav-item:focus-visible, .portal-icon-button:focus-visible { outline: 2px solid hsl(var(--ring)); outline-offset: 2px; }
