@@ -26,7 +26,7 @@ export async function readImpact(base44,input) {
   const totals=await projectValueAggregate(base44.entities,{query,groupBy:'live_project',sum:'estimated_value'});
   if(totals.truncated) throw new Error('Impact totals are unavailable for this selection.');
   const completed=await base44.entities.Project.count({...query,practical_completion_date:{$exists:true,$nin:[null,''],$lte:new Date().toISOString()}});
-  const valued=await base44.entities.Project.count({$and:[query,valuedProjectQuery]});
+  const valued=await base44.entities.Project.count({...query,...valuedProjectQuery});
   const purposes=await base44.entities.Project.filter({...query,why_this_matters:{$exists:true,$nin:[null,'']}},{sort:'-updated_date',limit:6,fields:['name','why_this_matters','impact_themes']});
   return {projects:totals.rows.reduce((n,r)=>n+r.count,0),live:totals.rows.find(r=>r.live_project===true)?.count || 0,completed,estimatedInvestment:valued ? totals.rows.reduce((n,r)=>n+(r.sum_estimated_value || 0),0) : null,valuedProjects:valued,purposes:purposes.items};
 }
