@@ -2,6 +2,18 @@
 .project-operations-list { border:1px solid hsl(var(--border)); background:hsl(var(--card)); border-radius:var(--panel-radius); overflow:auto; max-height:420px; overscroll-behavior:contain; }
 .project-operations-detail { border:1px solid hsl(var(--border)); background:hsl(var(--card)); border-radius:var(--panel-radius); overflow:auto; min-height:460px; }
 .project-operations-detail .leaflet-container { height:520px; }
+.project-operations-detail { min-width:0; }
+.project-workspace.meeting-project-workspace { min-height:0; overflow:visible; animation:none; }
+.project-workspace.meeting-project-workspace .ws-main { padding:16px; gap:16px; }
+.project-workspace.meeting-project-workspace .ws-sticky-header { position:sticky; top:0; z-index:10; gap:0; }
+.project-workspace.meeting-project-workspace .ws-project-tabs[role="tablist"] { flex-wrap:wrap; overflow:visible; }
+.project-workspace.meeting-project-workspace .ws-navitem { padding:8px 10px; font-size:12px; gap:6px; }
+.project-workspace.meeting-project-workspace :is(.ws-grid2,.ws-uklf,.ws-lowergrid) { grid-template-columns:minmax(0,1fr); }
+.project-workspace.meeting-project-workspace :is(.ws-summary,.ws-teamgrid,.ws-details,.ws-docgrid) { grid-template-columns:repeat(2,minmax(0,1fr)); }
+.project-workspace.meeting-project-workspace :is(.ws-panel,.ws-summary) { padding:16px; }
+.project-workspace.meeting-project-workspace .ws-sectiontitle { font-size:18px; }
+.project-workspace.meeting-project-workspace .ws-value { font-size:14px; }
+.project-workspace.meeting-project-workspace .ws-dates { overflow-x:auto; }
 @media(min-width:1024px) {
  .project-operations { grid-template-columns:minmax(0,.38fr) minmax(0,.62fr); }
  .project-operations-list { height:calc(100dvh - var(--portal-header-height) - 235px); min-height:440px; max-height:none; }

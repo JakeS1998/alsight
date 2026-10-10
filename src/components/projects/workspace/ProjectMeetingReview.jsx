@@ -1,12 +1,17 @@
-import React,{useState} from 'react';
-import {Tabs,TabsList,TabsTrigger,TabsContent} from '@/components/ui/tabs';
+import React from 'react';
+import { TabsTrigger, TabsContent } from '@/components/ui/tabs';
+import { ListChecks, StickyNote } from 'lucide-react';
+import ProjectDetail from '@/pages/ProjectDetail';
 import ProjectReviewHeader from '@/components/projects/workspace/ProjectReviewHeader';
-import ProjectMeetingOverview from '@/components/projects/workspace/ProjectMeetingOverview';
 import ProjectMeetingActions from '@/components/projects/workspace/ProjectMeetingActions';
-import ProjectMeetingDocuments from '@/components/projects/workspace/ProjectMeetingDocuments';
 import ProjectMeetingNotes from '@/components/projects/workspace/ProjectMeetingNotes';
 export default function ProjectMeetingReview({project,user,staffMap,accountMap,session,sessionKey,onRecord}) {
- const [tab,setTab]=useState('overview');
- if(!project) return <p className="p-8 text-sm text-muted-foreground">Select a project to begin its review.</p>;
- return <div><ProjectReviewHeader project={project} staffMap={staffMap} accountMap={accountMap}/><Tabs value={tab} onValueChange={setTab} className="p-5"><TabsList className="mb-4 w-full">{['overview','actions','documents','notes'].map(t=><TabsTrigger key={t} value={t} className="flex-1 capitalize">{t}</TabsTrigger>)}</TabsList><TabsContent value="overview"><ProjectMeetingOverview project={project} user={user}/></TabsContent><TabsContent value="actions"><ProjectMeetingActions project={project} user={user} onRecord={onRecord}/></TabsContent><TabsContent value="documents"><ProjectMeetingDocuments project={project} user={user}/></TabsContent><TabsContent value="notes"><ProjectMeetingNotes project={project} user={user} session={session} sessionKey={sessionKey} onRecord={onRecord}/></TabsContent></Tabs></div>;
+  if (!project) return <p className="p-8 text-sm text-muted-foreground">Select a project to begin its review.</p>;
+  return <div>
+    <ProjectReviewHeader project={project} staffMap={staffMap} accountMap={accountMap}/>
+    <ProjectDetail key={project.id} embedded embeddedProjectId={project.id} suppliedAccountMap={accountMap}
+      extraNavigation={<><TabsTrigger value="actions" className="ws-navitem"><ListChecks/>Actions</TabsTrigger><TabsTrigger value="notes" className="ws-navitem"><StickyNote/>Meeting notes</TabsTrigger></>}
+      extraContent={<><TabsContent value="actions" className="ws-content"><ProjectMeetingActions project={project} user={user} onRecord={onRecord}/></TabsContent><TabsContent value="notes" className="ws-content"><ProjectMeetingNotes project={project} user={user} session={session} sessionKey={sessionKey} onRecord={onRecord}/></TabsContent></>}
+    />
+  </div>;
 }

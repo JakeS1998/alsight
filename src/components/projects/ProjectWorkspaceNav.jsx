@@ -4,7 +4,7 @@ import { INTERNAL_ROLES } from '@/lib/portal';
 import UKLFIcon from '@/components/framework/UKLFIcon';
 import { FileText, ShieldCheck, LayoutDashboard, Receipt, Calendar, ClipboardList, ListChecks } from 'lucide-react';
 
-export default function ProjectWorkspaceNav({ user, project, isSupplier, isExternalPM, canSeeValuations }) {
+export default function ProjectWorkspaceNav({ user, project, isSupplier, isExternalPM, canSeeValuations, children }) {
   return <nav className="min-w-0" aria-label="Project menu">
     <TabsList className="ws-project-tabs" aria-label="Project navigation">
       <TabsTrigger className="ws-navitem" value="general"><LayoutDashboard />Overview</TabsTrigger>
@@ -16,6 +16,7 @@ export default function ProjectWorkspaceNav({ user, project, isSupplier, isExter
       {canSeeValuations && <TabsTrigger className="ws-navitem" value="valuations"><ListChecks />Valuations</TabsTrigger>}
       <TabsTrigger className="ws-navitem" value="warranties"><ShieldCheck />Warranties</TabsTrigger>
       {INTERNAL_ROLES.includes(user?.role) && project.procurement_route !== false && <TabsTrigger className="ws-navitem" value="uklf"><UKLFIcon />UKLF</TabsTrigger>}
+      {children}
     </TabsList>
   </nav>;
 }

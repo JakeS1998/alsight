@@ -37,8 +37,10 @@ import DataverseRecordEdit from '@/components/dataverse/DataverseRecordEdit';
 import useProjectReportingRefresh from '@/components/projects/useProjectReportingRefresh';
 
 
-export default function ProjectDetail() {
-  const { projectId } = useParams();
+export default function ProjectDetail({ embedded = false, embeddedProjectId, suppliedAccountMap, extraNavigation, extraContent } = {}) {
+  const { projectId: routeProjectId } = useParams();
+  const projectId = embedded ? embeddedProjectId : routeProjectId;
+  const Header = embedded ? 'div' : ProjectStickyHeader;
   const location = useLocation();
   const { user } = useAuth();
   const isExternalPM = user?.role === 'project_manager';
@@ -53,7 +55,7 @@ export default function ProjectDetail() {
   useEffect(() => {
     if (project?.procurement_route === false && activeTab === 'uklf') setActiveTab('general');
   }, [project?.procurement_route, activeTab]);
-  useEffect(() => { const tab = new URLSearchParams(location.search).get('tab'); setActiveTab(isExternalPM ? (['valuations','timeline','drafting','warranties','delivery'].includes(tab) ? tab : 'general') : isSupplier ? (['general','timeline','drafting','warranties','purchase-orders'].includes(tab) ? tab : tab === 'valuations' && canSeeValuations ? 'valuations' : 'general') : (tab === 'valuations' && !canSeeValuations) ? 'general' : ['general','timeline','drafting','warranties','finance','delivery','valuations','uklf'].includes(tab) ? tab : 'general'); }, [location.search, isExternalPM, isSupplier, canSeeValuations]);
+  useEffect(() => { if (embedded) return; const tab = new URLSearchParams(location.search).get('tab'); setActiveTab(isExternalPM ? (['valuations','timeline','drafting','warranties','delivery'].includes(tab) ? tab : 'general') : isSupplier ? (['general','timeline','drafting','warranties','purchase-orders'].includes(tab) ? tab : tab === 'valuations' && canSeeValuations ? 'valuations' : 'general') : (tab === 'valuations' && !canSeeValuations) ? 'general' : ['general','timeline','drafting','warranties','finance','delivery','valuations','uklf'].includes(tab) ? tab : 'general'); }, [location.search, isExternalPM, isSupplier, canSeeValuations]);
   const documents = useProjectDocuments(project, user);
   const { legalDocs, dmas, jcts, warranties } = documents;
   const [supplierOrders, setSupplierOrders] = useState([]);
@@ -67,14 +69,14 @@ export default function ProjectDetail() {
         if (!proj || proj.status === 'inactive') { setProject(null); return; }
         setProject(proj);
         const [accounts, orders] = await Promise.all([
-          listAll(base44.entities.Account, "-name").catch(() => []),
+          suppliedAccountMap ? [] : listAll(base44.entities.Account, "-name").catch(() => []),
           isSupplier ? base44.functions.invoke('supplierProjectAccess', { action: 'orders', projectId }).then(res => res.data.orders || []).catch(() => []) : [],
         ]);
         setSupplierOrders(orders);
 
         const map = {};
         accounts.forEach((a) => { map[a.dataverse_id || a.id] = a; });
-        setAccountMap(map);
+        setAccountMap(suppliedAccountMap || map);
       } finally {
         setLoading(false);
       }
@@ -99,12 +101,12 @@ export default function ProjectDetail() {
   }
 
   return (
-    <Tabs className="project-workspace" orientation="horizontal" value={activeTab} onValueChange={tab => { setActiveTab(tab); setEditUKLFKpis(false); }}>
+    <Tabs className={embedded ? 'project-workspace meeting-project-workspace' : 'project-workspace'} orientation="horizontal" value={activeTab} onValueChange={tab => { setActiveTab(tab); setEditUKLFKpis(false); }}>
       <main className="ws-main">
-        <ProjectStickyHeader className="ws-sticky-header">
-          <ProjectWorkspaceHeader project={project} user={user} isSupplier={isSupplier} client={accountMap[project.client_account_id]} />
-          <ProjectWorkspaceNav user={user} project={project} isSupplier={isSupplier} isExternalPM={isExternalPM} canSeeValuations={canSeeValuations} />
-        </ProjectStickyHeader>
+        <Header className="ws-sticky-header">
+          {!embedded && <ProjectWorkspaceHeader project={project} user={user} isSupplier={isSupplier} client={accountMap[project.client_account_id]} />}
+          <ProjectWorkspaceNav user={user} project={project} isSupplier={isSupplier} isExternalPM={isExternalPM} canSeeValuations={canSeeValuations}>{extraNavigation}</ProjectWorkspaceNav>
+        </Header>
         <TabsContent value="general" className="ws-content space-y-6">
           {INTERNAL_ROLES.includes(user?.role) && <ProjectAttention project={project}/>}
           {INTERNAL_ROLES.includes(user?.role) && <ProjectChanges key={project.id} project={project} legalDocs={legalDocs} dmas={dmas} jcts={jcts} />}
@@ -140,6 +142,7 @@ export default function ProjectDetail() {
         </TabsContent>}
         {canSeeValuations && <TabsContent value="valuations" className="ws-content mt-6"><ProjectValuationsTab project={project} /></TabsContent>}
         {INTERNAL_ROLES.includes(user?.role) && project.procurement_route !== false && <TabsContent value="uklf" className="ws-content mt-6"><UKLFProjectTab projectId={project.id} startEditing={editUKLFKpis} onEditDone={() => setEditUKLFKpis(false)} /></TabsContent>}
+        {extraContent}
       </main>
     </Tabs>
   );
