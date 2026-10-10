@@ -18,8 +18,9 @@ export function forecastProject(input,today,snapshot){
  result.invoiceNote=!verified?'Full-value baseline: no confirmed finance link':invoices.missing?'Full-value baseline: invoice amounts unavailable':'Client value less recorded invoice amounts';
  result.invoiceBaseline=!verified||invoices.missing>0;
  result.invoiceRemaining=Math.max(0,cents(value)-(result.invoiceBaseline?0:cents(invoices.amount)));
- const cost=validMoney(input.cost)?input.cost:validMoney(d.contract_sum)?d.contract_sum:null;
- result.costSource=validMoney(input.cost)?'Submitted proposal supplier costs':cost!=null?'Recorded construction contract sum (construction only)':null;
+ const estimatedBaseline=p.submitted_proposal_value==null&&!p.submitted_proposal_id;
+ const cost=estimatedBaseline?value:validMoney(input.cost)?input.cost:validMoney(d.contract_sum)?d.contract_sum:null;
+ result.costSource=estimatedBaseline?'Estimated project value (planning baseline; no submitted fee proposal)':validMoney(input.cost)?'Submitted proposal supplier costs':cost!=null?'Recorded construction contract sum (construction only)':null;
  result.supplierBudget=cost;
  result.poCommitted=verified&&pos.missing===0?pos.amount:null;
  result.poMissingValues=pos.missing;

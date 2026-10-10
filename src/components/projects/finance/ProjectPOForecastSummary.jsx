@@ -6,7 +6,7 @@ export default function ProjectPOForecastSummary({ forecast }) {
  const [limit, setLimit] = useState(12);
  if (!forecast) return null;
  const positive = forecast.available && forecast.remaining > 0;
- const stats = [['Supplier budget', forecast.supplierBudget], ['Recorded PO commitments', forecast.committed], ['Remaining PO budget', forecast.remaining], ['Average additional POs / month', forecast.available ? forecast.monthlyAverage : null]];
+ const stats = [['PO forecast baseline', forecast.supplierBudget], ['Recorded PO commitments', forecast.committed], ['Remaining PO forecast', forecast.remaining], ['Average additional POs / month', forecast.available ? forecast.monthlyAverage : null]];
  return <div className="rounded-lg border border-border bg-muted p-4 space-y-3">
   <h4 className="font-heading font-semibold">Additional PO forecast</h4>
   <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">{stats.map(([label, value]) => <div key={label}><p className="text-xs text-muted-foreground">{label}</p><p className="mt-1 font-semibold tabular-nums">{money(value)}</p></div>)}</div>
