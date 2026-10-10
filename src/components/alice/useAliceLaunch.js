@@ -9,7 +9,7 @@ export default function useAliceLaunch({ user, guide, open, busy, restoring, sen
     if (guide?.saving) return;
     const { task, prompt, autoSend = true } = event.detail || {};
     if (task && GUIDES[task]?.roles.includes(user?.role)) {
-      setPending(null); setText(''); start(task);
+      setPending(null); setText(''); start(task, event.detail?.project);
     } else if (typeof prompt === 'string' && prompt.trim()) {
       cancel(); setText(prompt.trim()); setPending(autoSend ? {prompt:prompt.trim(),explainOnly:event.detail?.assessment===true} : null);
     }

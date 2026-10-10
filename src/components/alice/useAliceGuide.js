@@ -5,7 +5,7 @@ import { useQueryClient } from '@tanstack/react-query';
 export default function useAliceGuide(user) {
   const queryClient = useQueryClient();
   const [guide, setGuide] = useState(null);
-  const start = type => setGuide({ type, step: 0, answers: {}, transcript: [{ role: 'assistant', content: GUIDES[type].steps[0].question }], saving: false, error: '', result: null });
+  const start = (type, project) => setGuide({ type, step: 0, answers: project?.id && GUIDES[type].steps[0].key === 'project_id' ? { project_id: project } : {}, transcript: [{ role: 'assistant', content: project?.id && GUIDES[type].steps[0].key === 'project_id' ? `Suggested project: ${project.name}. Confirm or choose another project to continue. ${GUIDES[type].steps[0].question}` : GUIDES[type].steps[0].question }], saving: false, error: '', result: null });
   const cancel = () => setGuide(null);
   const next = value => {
     if (!guide || guide.saving) return;
@@ -28,7 +28,7 @@ export default function useAliceGuide(user) {
     setGuide(g => ({ ...g, saving: true, error: '' }));
     try {
       const result = await saveGuide(guide.type, guide.answers, user);
-      ['dashboard-data', 'dashboard-portfolio-extras', 'overview-analytics'].forEach(key => queryClient.invalidateQueries({ queryKey: [key] }));
+      ['dashboard-data', 'dashboard-portfolio-extras', 'overview-analytics', 'today-briefing', 'assigned-tasks'].forEach(key => queryClient.invalidateQueries({ queryKey: [key] }));
       setGuide(g => ({ ...g, saving: false, result, transcript: [...g.transcript, { role: 'assistant', content: result.message }] }));
     } catch (e) { setGuide(g => ({ ...g, saving: false, error: e.message || 'Unable to save. Please try again.' })); }
   };

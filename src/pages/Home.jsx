@@ -7,6 +7,8 @@ import HomeJourneyHero from '@/components/dashboard/HomeJourneyHero';
 import ProjectStickyHeader from '@/components/projects/ProjectStickyHeader';
 import HomeWelcome from '@/components/dashboard/HomeWelcome';
 import HomeJourney from '@/components/dashboard/HomeJourney';
+import TodayBriefing from '@/components/dashboard/TodayBriefing';
+import TodayPeople from '@/components/dashboard/TodayPeople';
 import HomeQuickActions from '@/components/dashboard/HomeQuickActions';
 import DashboardAliceCard from '@/components/dashboard/DashboardAliceCard';
 import HomeToday from '@/components/dashboard/TodayPlanner.jsx';
@@ -28,7 +30,9 @@ export default function Home() {
     <div className="home-intro-grid space-y-4">
       <HomeWelcome user={dashboard.user} metrics={dashboard.portfolio.metrics} opportunities={opportunityCount} tasks={tasks} internal={dashboard.internal} />
     </div>
+    {dashboard.internal && <TodayBriefing dashboard={dashboard} tasks={tasks} />}
     <HomeJourney internal={dashboard.internal} />
+    {dashboard.internal && <TodayPeople user={dashboard.user} />}
     <div className="home-work-grid space-y-4">
       <div className="home-main-stack space-y-4">
         {dashboard.internal && <HomeToday user={dashboard.user} tasks={tasks} />}
