@@ -21,7 +21,7 @@ export function forecastProject(input,today,snapshot){
  const cost=validMoney(input.cost)?input.cost:validMoney(d.contract_sum)?d.contract_sum:null;
  result.costSource=validMoney(input.cost)?'Submitted proposal supplier costs':cost!=null?'Recorded construction contract sum (construction only)':null;
  result.poRemaining=cost==null||pos.missing>0?null:Math.max(0,cents(cost)-cents(pos.amount));
- result.poNote=cost==null?'Supplier cost budget not recorded':pos.missing?'Recorded PO amounts incomplete':!verified?'Cost baseline: no confirmed finance link':`${result.costSource}, less recorded POs`;
+ result.poNote=cost==null?'Supplier cost budget not recorded':pos.missing?'Recorded PO amounts incomplete, including missing or incomplete line-item values':!verified?'Cost baseline: no confirmed finance link':`${result.costSource}, less recorded POs${input.poFallback?' (using line-item sums for blank headers)':''}`;
  result.months=monthIndex(result.end.slice(0,7))-monthIndex(today.slice(0,7))+1;
  result.firstMonth=monthIndex(today.slice(0,7));
  return result;
