@@ -10,8 +10,9 @@ export default function ProjectMeetingReview({project,user,staffMap,accountMap,s
   return <div>
     <ProjectReviewHeader project={project} staffMap={staffMap} accountMap={accountMap}/>
     <ProjectDetail key={project.id} embedded embeddedProjectId={project.id} suppliedAccountMap={accountMap}
-      extraNavigation={<><TabsTrigger value="actions" className="ws-navitem"><ListChecks/>Actions</TabsTrigger><TabsTrigger value="notes" className="ws-navitem"><StickyNote/>Meeting notes</TabsTrigger></>}
-      extraContent={<><TabsContent value="actions" className="ws-content"><ProjectMeetingActions project={project} user={user} onRecord={onRecord}/></TabsContent><TabsContent value="notes" className="ws-content"><ProjectMeetingNotes project={project} user={user} session={session} sessionKey={sessionKey} onRecord={onRecord}/></TabsContent></>}
+      actionsContent={<ProjectMeetingActions project={project} user={user} onRecord={onRecord}/>}
+      extraNavigation={<TabsTrigger value="notes" className="ws-navitem"><StickyNote/>Meeting notes</TabsTrigger>}
+      extraContent={<TabsContent value="notes" className="ws-content"><ProjectMeetingNotes project={project} user={user} session={session} sessionKey={sessionKey} onRecord={onRecord}/></TabsContent>}
     />
   </div>;
 }

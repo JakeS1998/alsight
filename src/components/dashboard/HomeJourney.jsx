@@ -1,7 +1,5 @@
 import React from 'react';
-import { Link } from 'react-router-dom';
-import { Users, Crosshair, FileText, ListChecks, Settings, House, ChevronRight } from 'lucide-react';
-const steps = [['Relationship','Clients & contacts',Users,'/accounts'],['Opportunity','Pipeline & proposals',Crosshair,'/crm'],['Fee','Scope & approval',FileText,'/projects'],['Project','Set up & appointments',ListChecks,'/projects'],['Project Delivery','Track & manage',Settings,'/projects'],['Handover','Completion & warranties',House,'/warranties']];
-export default function HomeJourney({ internal }) {
-  return <section className="dashboard-panel"><h2 className="text-sm font-extrabold">Your ALSight journey</h2><p className="mt-1 text-xs text-muted-foreground">Click a stage to go to the relevant area.</p><div className="home-journey">{steps.filter((step, i) => internal || i !== 1).map(([title, detail, Icon, path], i) => <React.Fragment key={title}>{i > 0 && <ChevronRight className="journey-arrow h-4 w-4 text-muted-foreground" />}<Link to={path} className="flex min-w-0 items-center gap-3 rounded-lg py-3 hover:bg-muted/60"><span className={`flex h-12 w-12 shrink-0 items-center justify-center rounded-full ${i === 0 ? 'bg-primary text-als-navy' : 'bg-als-navy text-sidebar-foreground'}`}><Icon className="h-5 w-5" /></span><span><strong className="block text-xs">{title}</strong><span className="block text-[10px] text-muted-foreground">{detail}</span></span></Link></React.Fragment>)}</div></section>;
+import AlsightJourney from '@/components/journey/AlsightJourney';
+export default function HomeJourney({internal}) {
+  return <AlsightJourney links={{relationship:internal ? '/people' : '/clients',opportunity:internal ? '/crm/opportunities' : null,fee:internal ? '/crm/opportunities' : null,project:'/projects',delivery:'/projects',handover:'/warranties'}}/>;
 }

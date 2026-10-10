@@ -7,7 +7,7 @@
   font-family: var(--font-body); color: var(--ws-navy);
 }
 .portal-main:has(> .project-workspace) { max-width: none; padding: 0; }
-.project-workspace .ws-project-tabs[role="tablist"] { display: flex; justify-content: flex-start; width: 100%; height: auto; overflow-x: auto; }
+.project-workspace .ws-project-tabs[role="tablist"] { display: flex; flex-wrap:wrap; justify-content: flex-start; width: 100%; height: auto; gap:2px; }
 .project-workspace .ws-navitem { flex: 0 0 auto; min-height: 44px; display: inline-flex; align-items: center; gap: 9px; padding: 10px 16px; font-size: 14px; font-weight: 650; white-space: nowrap; cursor: pointer; }
 .project-workspace .ws-navitem svg { width: 18px; height: 18px; flex-shrink: 0; }
 .project-workspace .ws-main { min-width: 0; padding: 34px 48px 70px; display: grid; align-content: start; gap: 27px; }
