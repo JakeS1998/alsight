@@ -18,7 +18,7 @@ export default function FinanceExecutiveBriefing({data,pipeline,cards,missing,re
         {data.coverage_pending&&<p className="finance-small mt-2">A new sync is in progress; table-level mapping coverage will update when that snapshot completes.</p>}
         {user?.role==='admin'&&<Link to="/admin/finance" className="finance-button finance-button-soft mt-4">Review mappings &amp; project links</Link>}
       </section>
-      <section className="finance-card finance-delay-3"><h3>Completed Dataverse snapshot</h3><p className="finance-muted mt-2">Last completed sync: {new Date(data.read_at).toLocaleString('en-GB')}.</p><p className="finance-small mt-2">All figures and records follow your existing data access rules. Sales invoices are not supplier invoices or evidence of payment.</p></section>
+
     </aside>
   </div>;
 }
