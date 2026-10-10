@@ -96,7 +96,7 @@
 .project-workspace .ws-teamitem .ws-value { margin-top: 9px; }
 .project-workspace .ws-dates { animation: enter .7s ease-out .32s both; }
 .project-workspace .ws-date-table { width: 100%; border-collapse: collapse; table-layout: fixed; }
-.project-workspace .ws-date-table th { padding: 13px 15px; color: var(--ws-muted); font-size: 12px; font-weight: 750; border-bottom: 1px solid #e4edf3; text-transform: none; letter-spacing: normal; }
+.project-workspace .ws-date-table th { padding: 13px 15px; text-align: left; color: var(--ws-muted); font-size: 12px; font-weight: 750; border-bottom: 1px solid #e4edf3; text-transform: none; letter-spacing: normal; }
 .project-workspace .ws-date-table td { padding: 16px 15px; border-bottom: 1px solid #edf2f6; font-size: 14px; font-weight: 640; min-height: 22px; color: var(--ws-navy); }
 .project-workspace .ws-date-table td:first-child { font-weight: 750; }
 .project-workspace .ws-date-table input { padding: 7px 10px; border: 1px solid #d7e4ed; background: #fff; border-radius: 8px; color: #49647a; font-size: 13px; min-height: 16px; height: auto; }
