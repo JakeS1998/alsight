@@ -16,17 +16,17 @@ import { LayoutDashboard, FolderKanban, Building2, UserCircle, Menu, X, Users, B
 const ALL_ROLES = ['admin', 'director', 'regional_director', 'bsm', 'finance', 'bdm', 'client', 'supplier', 'project_manager'];
 const NAV_ITEMS = [
   { label: 'Today', path: '/today', icon: House, roles: INTERNAL_ROLES.concat(['client', 'supplier']) },
-  { label: 'Relationships', path: '/accounts', icon: Building2, roles: ALL_ROLES.filter(role => role !== 'supplier') },
+  { label: 'Network', path: '/accounts', icon: Building2, roles: ALL_ROLES.filter(role => role !== 'supplier') },
   { label: 'Opportunities', path: '/crm/opportunities', icon: BriefcaseBusiness, roles: INTERNAL_ROLES },
   { label: 'Projects', path: '/projects', icon: FolderKanban, roles: ALL_ROLES },
   { label: 'Portfolio', path: '/portfolio-overview', icon: LayoutDashboard, roles: INTERNAL_ROLES },
   { label: 'Finance', path: '/finance', icon: BriefcaseBusiness, roles: ['admin', 'finance', 'director'] },
+  { label: 'Approvals', path: '/approvals', icon: ClipboardCheck, roles: ALL_ROLES.concat(['framework_stakeholder']) },
   { label: 'Framework', path: '/framework-reports', icon: UKLFIcon, roles: INTERNAL_ROLES.concat(['framework_stakeholder']) },
   { label: 'Insider', path: '/pulse', icon: MessagesSquare, roles: INTERNAL_ROLES },
   { label: 'My Account', path: '/account', icon: UserCircle, roles: ['client'] },
   { label: 'Contacts', path: '/contacts', icon: Users, roles: ['admin'] },
   { label: 'Help', path: '/help', icon: CircleHelp, roles: ALL_ROLES.concat(['framework_stakeholder']) },
-  { label: 'Approvals', path: '/approvals', icon: ClipboardCheck, roles: ALL_ROLES.concat(['framework_stakeholder']) },
 ];
 export default function PortalHeader() {
   const headerRef = useRef(null);
@@ -44,7 +44,7 @@ export default function PortalHeader() {
     const Icon = item.icon;
     if(item.path==='/accounts') return <RelationshipNavigation key="relationships" compact={compact} showPeople={INTERNAL_ROLES.includes(role)} onNavigate={()=>setMenuOpen(false)}/>;
     const active = item.path === '/crm/opportunities' ? (location.pathname.startsWith('/crm') || location.pathname.startsWith('/opportunities/')) : item.path === '/today' ? location.pathname === '/today' : location.pathname === item.path || location.pathname.startsWith(`${item.path}/`);
-    return <Link key={item.path} to={item.path} onClick={() => setMenuOpen(false)} aria-current={active ? 'page' : undefined} data-active={active} className={`portal-nav-item ${compact ? 'w-full' : ''}`}>{Icon === UKLFIcon ? <UKLFIcon darkBackground /> : <Icon className="h-4 w-4 shrink-0" />}{item.label}{item.path==='/approvals' && approvalSummary.data?.pending>0 && <span className="rounded-full bg-primary px-1.5 py-0.5 text-[10px] font-bold text-primary-foreground">{approvalSummary.data.pending}</span>}</Link>;
+    return <Link key={item.path} to={item.path} onClick={() => setMenuOpen(false)} aria-current={active ? 'page' : undefined} data-active={active} data-outstanding={item.path === '/approvals' && approvalSummary.data?.pending > 0} className={`portal-nav-item ${compact ? 'w-full' : ''}`}>{Icon === UKLFIcon ? <UKLFIcon darkBackground /> : <Icon className="h-4 w-4 shrink-0" />}{item.label}{item.path==='/approvals' && approvalSummary.data?.pending>0 && <span className="rounded-full bg-primary px-1.5 py-0.5 text-[10px] font-bold text-primary-foreground">{approvalSummary.data.pending}</span>}</Link>;
   });
   return <header ref={headerRef} className="sticky top-0 z-40 bg-als-navy text-white shadow-sm">
     <div className="portal-topbar">
