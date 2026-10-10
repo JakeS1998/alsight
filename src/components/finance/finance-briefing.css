@@ -6,6 +6,9 @@
 .finance-briefing h3 { font-family:var(--font-heading); font-size:20px; line-height:1.2; font-weight:800; }
 .finance-briefing-header { display:flex; justify-content:space-between; gap:48px; align-items:flex-start; margin-bottom:40px; }
 .finance-briefing-header p { margin-top:12px; font-size:18px; color:hsl(var(--muted-foreground)); }
+.finance-briefing-header.finance-commercial-header { background:hsl(var(--als-navy)); color:hsl(var(--sidebar-foreground)); border-radius:var(--hero-radius); padding:clamp(24px,3vw,48px); }
+.finance-commercial-header h1 { color:hsl(var(--sidebar-foreground)); }
+.finance-briefing-header.finance-commercial-header p { color:hsl(var(--sidebar-foreground) / .85); }
 .finance-header-actions { display:flex; flex-wrap:wrap; gap:14px; }
 .finance-muted { color:hsl(var(--muted-foreground)); font-size:15px; line-height:1.5; }
 .finance-small { color:hsl(var(--muted-foreground)); font-size:13px; line-height:1.45; }
