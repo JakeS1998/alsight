@@ -1,0 +1,7 @@
+import React from 'react';
+import {Frown,Meh,Smile,ThumbsUp,SmilePlus} from 'lucide-react';
+import {RadioGroup,RadioGroupItem} from '@/components/ui/radio-group';
+const ratings=[['Not useful',Frown],['Slightly useful',Meh],['Okay',Smile],['Useful',ThumbsUp],['Very useful',SmilePlus]];
+export default function PageFeedbackRating({rating,onChange,disabled}) {
+ return <fieldset><legend id="feedback-rating-label" className="mb-3 text-sm font-semibold">How useful do you find this page?</legend><RadioGroup aria-labelledby="feedback-rating-label" orientation="horizontal" value={rating?String(rating):''} onValueChange={value=>onChange(Number(value))} disabled={disabled} className="grid grid-cols-5 gap-1.5">{ratings.map(([label,Icon],index)=><label key={label} className={`relative flex cursor-pointer flex-col items-center gap-1 rounded-lg border p-2 text-xs transition-colors ${rating===index+1?'border-primary bg-primary/15 text-foreground':'border-border bg-card text-muted-foreground hover:bg-muted'}`}><RadioGroupItem id={`page-rating-${index+1}`} value={String(index+1)} aria-label={`${index+1}: ${label}`} className="peer sr-only"/><span className="absolute inset-0 rounded-lg peer-focus-visible:ring-2 peer-focus-visible:ring-ring"/><Icon className="h-5 w-5" aria-hidden="true"/><span>{index+1}</span></label>)}</RadioGroup><p className="mt-2 min-h-4 text-xs text-muted-foreground" aria-live="polite">{rating?ratings[rating-1][0]:'1 · Not useful to 5 · Very useful'}</p></fieldset>;
+}

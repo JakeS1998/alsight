@@ -2,6 +2,7 @@ import React, { useEffect } from 'react';
 import { Outlet, useLocation } from 'react-router-dom';
 import PortalHeader from '@/components/PortalHeader';
 import PortalFooter from '@/components/PortalFooter';
+import PageFeedbackWidget from '@/components/feedback/PageFeedbackWidget';
 import { useAuth } from '@/lib/AuthContext';
 import AliceWidget from '@/components/alice/AliceWidget';
 import aliceAccessKey from '@/components/alice/aliceAccessKey';
@@ -25,6 +26,7 @@ export default function PortalLayout() {
     <PortalHeader />
     <main className="portal-main w-full flex-1"><Outlet /></main>
     <PortalFooter />
+    {user?.id && <PageFeedbackWidget key={`${user.id}:${pathname}`} user={user} route={pathname} />}
     {user?.id && user.role !== 'framework_stakeholder' && <AliceWidget key={aliceAccessKey(user)} />}
   </div>;
 }

@@ -1,0 +1,112 @@
+{
+  "name": "PageFeedback",
+  "type": "object",
+  "properties": {
+    "submission_key": {
+      "type": "string",
+      "maxLength": 160
+    },
+    "user_id": {
+      "type": "string"
+    },
+    "user_name": {
+      "type": "string",
+      "maxLength": 200
+    },
+    "user_email": {
+      "type": "string",
+      "maxLength": 250
+    },
+    "user_role": {
+      "type": "string",
+      "maxLength": 100
+    },
+    "department_id": {
+      "type": "string",
+      "maxLength": 100
+    },
+    "page_key": {
+      "type": "string",
+      "maxLength": 160
+    },
+    "page_name": {
+      "type": "string",
+      "maxLength": 200
+    },
+    "page_route": {
+      "type": "string",
+      "maxLength": 1000
+    },
+    "rating": {
+      "type": "integer",
+      "minimum": 1,
+      "maximum": 5
+    },
+    "feedback_category": {
+      "type": "string",
+      "enum": [
+        "",
+        "Easy to use",
+        "Contains useful information",
+        "Difficult to navigate",
+        "Missing information or functionality",
+        "Something isn\u2019t working"
+      ]
+    },
+    "comment": {
+      "type": "string",
+      "maxLength": 2000
+    },
+    "submitted_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "device_type": {
+      "type": "string",
+      "enum": [
+        "desktop",
+        "tablet",
+        "mobile"
+      ]
+    }
+  },
+  "required": [
+    "submission_key",
+    "user_id",
+    "page_key",
+    "page_name",
+    "page_route",
+    "rating",
+    "submitted_at",
+    "device_type"
+  ],
+  "rls": {
+    "read": {
+      "$or": [
+        {
+          "data.user_id": "{{user.id}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    },
+    "create": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "update": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "delete": {
+      "user_condition": {
+        "role": "admin"
+      }
+    }
+  }
+}

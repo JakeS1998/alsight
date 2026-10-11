@@ -1,0 +1,10 @@
+import React from 'react';
+import {Button} from '@/components/ui/button';
+import {Input} from '@/components/ui/input';
+import {feedbackCategories} from '@/components/feedback/feedbackClient';
+export const emptyFeedbackFilters={page:'',rating:'',category:'',user:'',from:'',to:''};
+export default function FeedbackFilters({filters,onChange,pages=[]}) {
+ const update=(key,value)=>onChange({...filters,[key]:value});
+ const selectClass='h-10 w-full rounded-md border border-input bg-card px-2 text-sm';
+ return <div className="space-y-3"><div className="grid gap-3 md:grid-cols-3"><label className="space-y-1 text-sm">Page<select className={selectClass} value={filters.page} onChange={e=>update('page',e.target.value)}><option value="">All pages</option>{pages.map(page=><option key={page.key} value={page.key}>{page.name}</option>)}</select></label><label className="space-y-1 text-sm">Rating<select className={selectClass} value={filters.rating} onChange={e=>update('rating',e.target.value)}><option value="">All ratings</option>{[1,2,3,4,5].map(value=><option key={value} value={value}>{value}</option>)}</select></label><label className="space-y-1 text-sm">Reason<select className={selectClass} value={filters.category} onChange={e=>update('category',e.target.value)}><option value="">All reasons</option>{feedbackCategories.map(category=><option key={category}>{category}</option>)}</select></label><label className="space-y-1 text-sm">User<Input aria-label="Filter feedback by user" maxLength={120} value={filters.user} placeholder="Name or email…" onChange={e=>update('user',e.target.value)}/></label><label className="space-y-1 text-sm">From<Input aria-label="Feedback start date" type="date" value={filters.from} onChange={e=>update('from',e.target.value)}/></label><label className="space-y-1 text-sm">To<Input aria-label="Feedback end date" type="date" value={filters.to} onChange={e=>update('to',e.target.value)}/></label></div><Button type="button" variant="outline" size="sm" onClick={()=>onChange({...emptyFeedbackFilters})}>Clear filters</Button></div>;
+}
