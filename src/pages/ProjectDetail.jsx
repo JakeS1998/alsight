@@ -1,5 +1,5 @@
-import React, { useEffect, useState } from "react";
-import { useParams, Link, useLocation } from "react-router-dom";
+import React, { lazy, Suspense, useEffect, useState } from "react";
+import { useParams, Link, useLocation, useNavigate } from "react-router-dom";
 import { base44 } from "@/api/base44Client";
 import { useAuth } from "@/lib/AuthContext";
 import { INTERNAL_ROLES } from '@/lib/portal';
@@ -36,6 +36,9 @@ import ProjectLessons from '@/components/alliance/ProjectLessons';
 import DataverseRecordEdit from '@/components/dataverse/DataverseRecordEdit';
 import useProjectReportingRefresh from '@/components/projects/useProjectReportingRefresh';
 import useAutomaticPurposeResearch from '@/components/alliance/useAutomaticPurposeResearch';
+import { visualiserEnabled } from '@/components/visualiser/prototypeConfig';
+import VisualiserBoundary from '@/components/visualiser/VisualiserBoundary';
+const ProjectVisualiser = lazy(() => import('@/components/visualiser/ProjectVisualiser'));
 
 
 export default function ProjectDetail({ embedded = false, embeddedProjectId, suppliedAccountMap, extraNavigation, extraContent } = {}) {
@@ -43,6 +46,7 @@ export default function ProjectDetail({ embedded = false, embeddedProjectId, sup
   const projectId = embedded ? embeddedProjectId : routeProjectId;
   const Header = embedded ? 'div' : ProjectStickyHeader;
   const location = useLocation();
+  const navigate = useNavigate();
   const { user } = useAuth();
   const isExternalPM = user?.role === 'project_manager';
   const isSupplier = user?.role === 'supplier';
@@ -57,7 +61,7 @@ export default function ProjectDetail({ embedded = false, embeddedProjectId, sup
   useEffect(() => {
     if (project?.procurement_route === false && activeTab === 'uklf') setActiveTab('general');
   }, [project?.procurement_route, activeTab]);
-  useEffect(() => { if (embedded) return; const tab = new URLSearchParams(location.search).get('tab'); setActiveTab(isExternalPM ? (['valuations','timeline','drafting','warranties','delivery'].includes(tab) ? tab : 'general') : isSupplier ? (['general','timeline','drafting','warranties','purchase-orders'].includes(tab) ? tab : tab === 'valuations' && canSeeValuations ? 'valuations' : 'general') : (tab === 'valuations' && !canSeeValuations) ? 'general' : ['general','timeline','drafting','warranties','finance','delivery','valuations','uklf'].includes(tab) ? tab : 'general'); }, [location.search, isExternalPM, isSupplier, canSeeValuations]);
+  useEffect(() => { if (embedded) return; const tab = new URLSearchParams(location.search).get('tab'); if (tab === 'visualiser' && !isExternalPM && !isSupplier && visualiserEnabled({ id: projectId })) { setActiveTab('visualiser'); return; } setActiveTab(isExternalPM ? (['valuations','timeline','drafting','warranties','delivery'].includes(tab) ? tab : 'general') : isSupplier ? (['general','timeline','drafting','warranties','purchase-orders'].includes(tab) ? tab : tab === 'valuations' && canSeeValuations ? 'valuations' : 'general') : (tab === 'valuations' && !canSeeValuations) ? 'general' : ['general','timeline','drafting','warranties','finance','delivery','valuations','uklf'].includes(tab) ? tab : 'general'); }, [location.search, isExternalPM, isSupplier, canSeeValuations, projectId]);
   const documents = useProjectDocuments(project, user);
   const { legalDocs, dmas, jcts, warranties } = documents;
   const [supplierOrders, setSupplierOrders] = useState([]);
@@ -144,6 +148,7 @@ export default function ProjectDetail({ embedded = false, embeddedProjectId, sup
         </TabsContent>}
         {canSeeValuations && <TabsContent value="valuations" className="ws-content mt-6"><ProjectValuationsTab project={project} /></TabsContent>}
         {INTERNAL_ROLES.includes(user?.role) && project.procurement_route !== false && <TabsContent value="uklf" className="ws-content mt-6"><UKLFProjectTab projectId={project.id} startEditing={editUKLFKpis} onEditDone={() => setEditUKLFKpis(false)} /></TabsContent>}
+        {!isSupplier && !isExternalPM && visualiserEnabled(project) && <TabsContent value="visualiser" className="ws-content mt-6"><VisualiserBoundary><Suspense fallback={<p role="status" className="py-10 text-center text-sm text-muted-foreground">Loading project visualiser…</p>}><ProjectVisualiser key={project.id} project={project} user={user} onNavigate={(tab, stage) => { if (embedded) { setActiveTab(tab); return; } const params = new URLSearchParams(location.search); params.set('tab', tab); if (stage) params.set('stage', String(stage)); else params.delete('stage'); navigate({ pathname: location.pathname, search: params.toString() }); }} /></Suspense></VisualiserBoundary></TabsContent>}
         {extraContent}
       </main>
     </Tabs>

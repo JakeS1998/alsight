@@ -2,7 +2,8 @@ import React from 'react';
 import { TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { INTERNAL_ROLES } from '@/lib/portal';
 import UKLFIcon from '@/components/framework/UKLFIcon';
-import { FileText, ShieldCheck, LayoutDashboard, Receipt, Calendar, ClipboardList, ListChecks } from 'lucide-react';
+import { FileText, ShieldCheck, LayoutDashboard, Receipt, Calendar, ClipboardList, ListChecks, Box } from 'lucide-react';
+import { visualiserEnabled } from '@/components/visualiser/prototypeConfig';
 
 export default function ProjectWorkspaceNav({ user, project, isSupplier, isExternalPM, canSeeValuations, children }) {
   return <nav className="min-w-0" aria-label="Project menu">
@@ -16,6 +17,7 @@ export default function ProjectWorkspaceNav({ user, project, isSupplier, isExter
       {canSeeValuations && <TabsTrigger className="ws-navitem" value="valuations"><ListChecks />Valuations</TabsTrigger>}
       <TabsTrigger className="ws-navitem" value="warranties"><ShieldCheck />Warranties</TabsTrigger>
       {INTERNAL_ROLES.includes(user?.role) && project.procurement_route !== false && <TabsTrigger className="ws-navitem" value="uklf"><UKLFIcon />UKLF</TabsTrigger>}
+      {!isSupplier && !isExternalPM && visualiserEnabled(project) && <TabsTrigger className="ws-navitem" value="visualiser"><Box />Visualiser</TabsTrigger>}
       {children}
     </TabsList>
   </nav>;
