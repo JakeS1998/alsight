@@ -2,12 +2,12 @@ const clean=value=>String(value || '').trim().toLowerCase();
 export async function capacityResponsibilityIdentity(db,user,references,read) {
   const ids=[...new Set(references.filter(Boolean))];
   const alternatives=[{portal_role:{$in:['bdm','bsm']}},...(ids.length ? [{aad_id:{$in:ids}},{dataverse_id:{$in:ids}},...(ids.some(id=>/^[a-f0-9]{24}$/i.test(id)) ? [{id:{$in:ids.filter(id=>/^[a-f0-9]{24}$/i.test(id))}}] : [])] : [])];
-  const page=await read('responsibility-identities:v1',()=>db.Contact.filter({status:{$ne:'inactive'},$or:alternatives},{limit:1000,fields:['aad_id','dataverse_id','full_name','first_name','last_name','portal_role']}));
+  const page=await read('responsibility-identities:v3',()=>db.Contact.filter({status:{$ne:'inactive'},$or:alternatives},{limit:1000,fields:['aad_id','dataverse_id','full_name','first_name','last_name','portal_role','alliance_bdm_reporting']}));
   if(page.has_more)throw new Error('Responsibility identities exceed the reporting limit. Narrow the portfolio filters.');
   const people=new Map();
   for(const contact of page.items){
     const name=contact.full_name || [contact.first_name,contact.last_name].filter(Boolean).join(' ');
-    const person={key:clean(contact.aad_id || contact.id),name:name || 'Name unavailable',contactId:contact.id,role:contact.portal_role,resolved:!!name};
+    const person={key:clean(contact.aad_id || contact.id),name:name || 'Name unavailable',contactId:contact.id,role:contact.portal_role,allianceBdm:contact.alliance_bdm_reporting,resolved:!!name};
     for(const id of [contact.id,contact.dataverse_id,contact.aad_id].filter(Boolean)){
       const previous=people.get(clean(id));
       people.set(clean(id),previous && previous.key!==person.key ? {key:clean(id),name:'Ambiguous staff identity',resolved:false} : person);

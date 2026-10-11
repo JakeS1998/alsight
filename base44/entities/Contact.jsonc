@@ -106,6 +106,10 @@
       "type": "string",
       "description": "Portal role of the linked user"
     },
+    "alliance_bdm_reporting": {
+      "type": "boolean",
+      "description": "Explicit Alliance BDM workload reporting membership override. False excludes this identity from Alliance BDM figures without changing source project assignments, portal roles or access permissions. Omitted preserves existing classification."
+    },
     "managing_partner_id": {
       "type": "string"
     },
