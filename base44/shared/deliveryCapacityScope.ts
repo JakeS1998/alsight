@@ -8,7 +8,12 @@ export async function capacityScope(db, user, input) {
   if (user.role==='regional_director') clauses.push({department_id:user.region || user.data?.region || '__unassigned_region__'});
   if (user.role==='bsm') clauses.push({bsm_aad_id:{$in:[...identity,user.delegate_of,user.data?.delegate_of].filter(Boolean)}});
   if (user.role==='bdm') clauses.push({$or:['bdm_aad_id','bsm_aad_id'].map(field=>({[field]:{$in:[...identity,user.delegate_of,user.data?.delegate_of].filter(Boolean)}}))});
-  if (Array.isArray(input.projectIds)) clauses.push({id:{$in:input.projectIds.length ? input.projectIds : ['__empty_selection__']}});
   if (input.personal && !managementRoles.includes(user.role)) clauses.push(assigned);
-  return {query:{$and:clauses},identity};
+  const filters=input.filters || {};
+  if(filters.region)clauses.push({department_id:filters.region});
+  if(filters.bdm)clauses.push({bdm_aad_id:filters.bdm});
+  if(filters.status==='on_hold')clauses.push({live_project:false});
+  if(filters.period){const year=new Date().getFullYear()-(new Date().getMonth()<3 ? 1 : 0)-(filters.period==='previous' ? 1 : 0);clauses.push({created_date:{$gte:`${year}-04-01`,$lt:`${year+1}-04-01`}});}
+  // Keep built-in IDs at the top level; nested ID predicates are not reliably applied.
+  return {query:{$and:clauses,...(Array.isArray(input.projectIds) ? {id:{$in:input.projectIds}} : {})},identity};
 }

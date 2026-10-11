@@ -1,6 +1,6 @@
 import { projectCompletionDates } from './projectCompletionDates.ts';
 export const assignmentFields = ['project_manager_id','bdm_aad_id','bsm_aad_id','director_aad_id','strategic_account_manager_aad_id'];
-export const capacityProjectFields = ['id','dataverse_id','name','department_id',...assignmentFields,'aa_executed_date','practical_completion_date','construction_term_weeks',...[1,2,3,4].flatMap(n=>[`riba${n}_end`,`riba${n}_term_weeks`]),...[1,2,3,4,5].map(n=>`riba${n}_system_date`)];
+export const capacityProjectFields = ['id','dataverse_id','name','department_id','client_account_id','account_id','client_name',...assignmentFields,'aa_executed_date','practical_completion_date','construction_term_weeks',...[1,2,3,4].flatMap(n=>[`riba${n}_end`,`riba${n}_term_weeks`]),...[1,2,3,4,5].map(n=>`riba${n}_system_date`)];
 const date = value => value && Number.isFinite(Date.parse(value)) ? String(value).slice(0,10) : null;
 export function projectCommitments(project, delivery, today) {
   const expected = projectCompletionDates(project), events = [];

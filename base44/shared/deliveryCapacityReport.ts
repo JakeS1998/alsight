@@ -3,13 +3,14 @@ import { capacityProjectFields, projectCommitments, classifyCapacity } from './d
 import { capacitySupplierAssignments } from './capacitySupplierAssignments.ts';
 import { scopedReadCache } from './scopedReadCache.ts';
 import { projectCapacityHeatmap } from './projectCapacityHeatmap.ts';
+import { capacityOrganisationReport } from './capacityOrganisationReport.ts';
 
 export async function deliveryCapacityReport(db,user,input) {
-  if(Array.isArray(input.projectIds) && !input.projectIds.length)return {today:new Date().toISOString().slice(0,10),active:0,assigned:0,concentrated:0,upcoming:0,unassigned:0,missingProgramme:0,missingStart:0,people:[],windows:['0–30 days','31–60 days','61–90 days'].map(label=>({label,projects:0,starts:0})),commitments:[],nextOffset:null,context:null,assignmentPage:input.action==='projects' ? {items:[],has_more:false} : null};
+  if(input.action!=='intelligence' && Array.isArray(input.projectIds) && !input.projectIds.length)return {today:new Date().toISOString().slice(0,10),active:0,assigned:0,concentrated:0,upcoming:0,unassigned:0,missingProgramme:0,missingStart:0,people:[],windows:['0–30 days','31–60 days','61–90 days'].map(label=>({label,projects:0,starts:0})),commitments:[],nextOffset:null,context:null,assignmentPage:input.action==='projects' ? {items:[],has_more:false} : null};
   const {query}=await capacityScope(db,user,input);
-  const cacheKey=JSON.stringify([user.id,user.role,user.region,user.data,user.staff_aad_id,user.delegate_of,query,new Date().toISOString().slice(0,10)]);
+  const cacheKey=JSON.stringify([user.id,user.role,user.region,user.data,user.staff_aad_id,user.delegate_of,query,new Date().toISOString().slice(0,10),input.filters || {},input.revision || null]);
   const read=(key,load)=>scopedReadCache(`capacity:suppliers:v1:${cacheKey}:${key}`,load);
-  const result=await read('projects:v2',()=>db.Project.aggregate({query,groupBy:'id',max:capacityProjectFields.filter(field=>field!=='id'),limit:1000}));
+  const result=await read('projects:v3',()=>db.Project.aggregate({query,groupBy:'id',max:capacityProjectFields.filter(field=>field!=='id'),limit:1000}));
   if(result.truncated)throw new Error('Capacity reporting exceeds its grouping limit. Narrow the portfolio filters.');
   const projects=result.rows.map(row=>({id:row.id,count:row.count,...Object.fromEntries(capacityProjectFields.filter(field=>field!=='id').map(field=>[field,row[`max_${field}`]]))}));
   const ids=projects.flatMap(p=>[p.id,p.dataverse_id]).filter(Boolean);
@@ -17,6 +18,7 @@ export async function deliveryCapacityReport(db,user,input) {
   if(delivery.truncated)throw new Error('Programme reporting exceeds its grouping limit. Narrow the portfolio filters.');
   const latest=new Map();
   for(const group of delivery.rows){const row={project_id:group.project_id,updated_date:group.updated_date,...Object.fromEntries(['contract_start','forecast_pc','original_pc','pc_achieved','delivery_team'].map(field=>[field,group[`max_${field}`]]))};const old=latest.get(row.project_id);if(!old || String(row.updated_date)>String(old.updated_date))latest.set(row.project_id,row);}
+  if(input.action==='intelligence')return capacityOrganisationReport(db,user,input,projects,latest,read);
   const suppliers=await capacitySupplierAssignments(db,projects,latest,read),owners=new Map(),today=new Date().toISOString().slice(0,10),commitments=[],allocations=[];
   let unassigned=0,missingProgramme=0,missingStart=0;
   for(const project of projects){
