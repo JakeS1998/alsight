@@ -1,10 +1,10 @@
-export async function capacityOrganisationReads(db,user,input,projects,read,ownerAliases=[]) {
+export async function capacityOrganisationReads(db,user,input,projects,read,ownerAliases=[],totalScope=false) {
   const f=input.filters || {},refs=projects.flatMap(project=>[project.id,project.dataverse_id]).filter(Boolean);
   const opportunityQuery={status:'open',stage:{$nin:['won','lost','on_hold']}};
-  if(f.region || user.role==='regional_director')opportunityQuery.project_id={$in:refs};
+  if(f.region || (!totalScope && user.role==='regional_director'))opportunityQuery.project_id={$in:refs};
   if(f.bdm)opportunityQuery.owner_id={$in:ownerAliases};
   if(f.period){const year=new Date().getFullYear()-(new Date().getMonth()<3 ? 1 : 0)-(f.period==='previous' ? 1 : 0);opportunityQuery.created_date={$gte:`${year}-04-01`,$lt:`${year+1}-04-01`};}
-  // Opportunity access remains user-scoped, including owner/line-manager RLS.
+  // This client computes approved workload figures only; detail references are separately RLS-filtered.
   const opportunities=await read('responsibility-opportunities:v1',()=>db.Opportunity.aggregate({query:opportunityQuery,groupBy:'id',max:['title','owner_id','owner_name','account_id','contact_id','project_id','budget','stage','expected_project_start'],limit:1000}));
   if(opportunities.truncated)throw new Error('Opportunity responsibility reporting exceeds its limit. Narrow the portfolio filters.');
   const related={project_id:{$in:refs},status:{$ne:'inactive'}};
