@@ -23,8 +23,9 @@
       <mj-text font-size="14px" padding="14px 0 0">{{greeting}}</mj-text>
       <mj-text mj-class="muted" font-size="12px" padding="4px 0 0">{{report_date}} · London time</mj-text>
     </mj-column></mj-section>
-    <mj-section padding="0"><mj-column>
-      <mj-raw><table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%"><tr><td style="padding:0 24px;"><table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%" style="font-family:'Arial Narrow',Arial,sans-serif;font-size:14px;line-height:1.5;color:#102642;">{{approval_rows}}</table></td></tr></table></mj-raw>
+    <mj-section padding="0 24px 12px"><mj-column>
+      <mj-text font-size="17px" font-weight="700" padding="0 0 12px">Outstanding approvals</mj-text>
+      <mj-text font-size="14px" line-height="1.6"><div style="white-space:pre-line;overflow-wrap:break-word;">{{approval_list}}</div></mj-text>
     </mj-column></mj-section>
     <mj-section padding="18px 24px 24px"><mj-column>
       <mj-button href="https://alsight.base44.app/approvals">Open Approval Centre</mj-button>

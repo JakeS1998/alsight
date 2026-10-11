@@ -19,7 +19,7 @@ export async function approvalDigestContent(base44, recipient) {
   const db = base44.asServiceRole.entities, email = recipient.email.trim().toLowerCase();
   recipient = (await withPortalUserNames(db, [recipient]))[0];
   const query = { ...approvalQuery({email}, {view:'pending'}), ...pendingDigestQuery };
-  let cursor, approvalRows = '';
+  let cursor, approvalRows = '', approvalList = '';
   let total = 0;
   do {
     const page = await db.DocumentApprovalRequest.filter(query, {sort:'requested_at',limit:25,...(cursor ? {cursor} : {})});
@@ -39,8 +39,9 @@ export async function approvalDigestContent(base44, recipient) {
       const requested = request.requested_at && Number.isFinite(Date.parse(request.requested_at)) ? new Intl.DateTimeFormat('en-GB',{timeZone:'Europe/London',day:'numeric',month:'short',year:'numeric'}).format(new Date(request.requested_at)) : 'Not recorded';
       approvalRows += `<tr><td style="padding:16px 18px;border:1px solid #e5e7eb;border-radius:7px;background-color:#eaf4fb;"><p style="margin:0 0 5px;font-size:11px;color:#5f7586;">${escapeApprovalEmail(type)}${request.document_number ? ' · '+escapeApprovalEmail(request.document_number) : ''}</p><p style="margin:0 0 6px;font-size:17px;line-height:1.3;font-weight:bold;color:#102642;">${escapeApprovalEmail(request.document_title)}</p><p style="margin:0 0 4px;font-size:14px;color:#102642;">${escapeApprovalEmail(request.project_name || 'Project not recorded')}${request.project_number ? ' · '+escapeApprovalEmail(request.project_number) : ''}</p>${request.client_name ? `<p style="margin:0 0 4px;font-size:13px;color:#5f7586;">${escapeApprovalEmail(request.client_name)}</p>` : ''}<p style="margin:0 0 10px;font-size:12px;color:#5f7586;">Requested ${escapeApprovalEmail(requested)}${fullName(request.requested_by_name) !== missingFullName ? ' by '+escapeApprovalEmail(fullName(request.requested_by_name)) : ''}</p><a href="${link}" style="color:#102642;text-decoration:underline;font-size:14px;font-weight:bold;">Review this approval</a></td></tr><tr><td height="12" style="height:12px;font-size:1px;line-height:1px;">&#160;</td></tr>`;
       total++;
+      approvalList += `${total}. ${escapeApprovalEmail(request.document_title)}\n${escapeApprovalEmail(type)}${request.document_number ? ' · '+escapeApprovalEmail(request.document_number) : ''}\n${escapeApprovalEmail(request.project_name || 'Project not recorded')}${request.project_number ? ' · '+escapeApprovalEmail(request.project_number) : ''}${request.client_name ? '\n'+escapeApprovalEmail(request.client_name) : ''}\nRequested ${escapeApprovalEmail(requested)}${fullName(request.requested_by_name) !== missingFullName ? ' by '+escapeApprovalEmail(fullName(request.requested_by_name)) : ''}\n\n`;
     }
     cursor = page.has_more ? page.next_cursor : null;
   } while (cursor);
-  return { count:total, variables:{report_date:new Intl.DateTimeFormat('en-GB',{timeZone:'Europe/London',weekday:'long',day:'numeric',month:'long',year:'numeric'}).format(new Date()),greeting:recipient.full_name !== missingFullName ? `Hello, ${escapeApprovalEmail(recipient.full_name)}.` : 'Hello.',approval_count:total,approval_rows:approvalRows} };
+  return { count:total, variables:{report_date:new Intl.DateTimeFormat('en-GB',{timeZone:'Europe/London',weekday:'long',day:'numeric',month:'long',year:'numeric'}).format(new Date()),greeting:recipient.full_name !== missingFullName ? `Hello, ${escapeApprovalEmail(recipient.full_name)}.` : 'Hello.',approval_count:total,approval_rows:approvalRows,approval_list:approvalList.trim()} };
 }
