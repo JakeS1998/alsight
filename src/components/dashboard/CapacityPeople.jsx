@@ -1,8 +1,18 @@
-import React from 'react';
-import { Link } from 'react-router-dom';
-import { Building2 } from 'lucide-react';
-const tones={Balanced:'bg-secondary text-foreground',Elevated:'bg-primary/10 text-foreground',Concentrated:'bg-primary/25 text-foreground','Insufficient information':'bg-muted text-muted-foreground'};
+import React, { useId } from 'react';
+import CapacitySupplierDetail from '@/components/dashboard/CapacitySupplierDetail';
+const tones={Balanced:'bg-chart-2/10 text-foreground',Elevated:'bg-primary/20 text-foreground',Concentrated:'bg-primary/50 text-foreground','Insufficient information':'bg-muted text-muted-foreground'};
 export default function CapacityPeople({people,onSelect,selected}) {
-  const maximum=Math.max(1,...people.map(p=>p.active));
-  return <div className="space-y-3">{!people.length ? <p className="text-sm text-muted-foreground">No delivery supplier assignments recorded for these active projects.</p> : people.map(person=><div key={person.key} className="rounded-lg border border-border p-3"><div className="flex flex-wrap items-center gap-3"><Building2 className="h-8 w-8 shrink-0 text-muted-foreground" aria-hidden="true"/><div className="min-w-0 flex-1">{person.accountId ? <Link to={`/accounts/${person.accountId}`} className="text-sm font-semibold hover:underline">{person.name}</Link> : <p className="text-sm font-semibold">{person.name}</p>}<p className="text-xs text-muted-foreground">{person.active} active · {person.near} with commitments in 30 days · {person.demanding} late design / construction</p></div><span title={person.signals.join('. ') || 'Comparison evidence is limited.'} className={`rounded-md px-2 py-1 text-xs ${tones[person.classification]}`}>{person.classification}</span><button onClick={()=>onSelect(selected===person.key ? null : person.key)} aria-pressed={selected===person.key} className="text-xs font-semibold text-chart-2 underline">{selected===person.key ? 'Show all' : 'View projects'}</button></div><progress aria-label={`${person.name}: ${person.active} active projects relative to visible assignments`} max={maximum} value={person.active} className="mt-2 h-1.5 w-full accent-primary"/>{person.clashes.map(clash=><p key={clash.month} className="mt-1 text-xs text-muted-foreground">{clash.count} projects have commitments in {new Date(clash.month+'-01T12:00:00').toLocaleDateString('en-GB',{month:'long',year:'numeric'})}; consider coordination.</p>)}</div>)}</div>;
+  const detailId=useId();
+  const supplier=people.find(person=>person.key===selected);
+  if(!people.length)return <p className="text-sm text-muted-foreground">No delivery supplier assignments recorded for these active projects.</p>;
+  return <div className="space-y-3">
+    <p className="text-xs text-muted-foreground">Select a supplier to expand their workload and projects. Numbers show active projects.</p>
+    <div className="grid max-h-64 grid-cols-2 gap-2 overflow-y-auto p-1 sm:grid-cols-3" aria-label="Delivery supplier workload heatmap">
+      {people.map(person=><button type="button" key={person.key} onClick={()=>onSelect(selected===person.key ? null : person.key)} aria-expanded={selected===person.key} aria-controls={selected===person.key ? detailId : undefined} aria-label={`${person.name}: ${person.active} active projects, ${person.classification}. ${selected===person.key ? 'Collapse' : 'Expand'} details.`} title={`${person.name} · ${person.classification}`} className={`flex min-h-20 flex-col justify-between rounded-md border p-2 text-left focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring ${tones[person.classification] || tones['Insufficient information']} ${selected===person.key ? 'border-foreground ring-2 ring-foreground/30' : 'border-border hover:border-foreground/50'}`}>
+        <span className="line-clamp-2 text-xs font-medium leading-tight">{person.name}</span><span className="mt-1 text-lg font-semibold leading-none">{person.active}</span>
+      </button>)}
+    </div>
+    <div className="flex flex-wrap gap-x-3 gap-y-1 text-xs text-muted-foreground" aria-label="Workload signal legend">{Object.entries(tones).map(([label,tone])=><span key={label} className="inline-flex items-center gap-1"><span className={`h-2.5 w-2.5 rounded-sm border border-border ${tone}`} aria-hidden="true"/>{label}</span>)}</div>
+    {supplier && <CapacitySupplierDetail id={detailId} supplier={supplier} onClose={()=>onSelect(null)}/>}
+  </div>;
 }
