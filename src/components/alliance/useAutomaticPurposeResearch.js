@@ -8,7 +8,7 @@ export default function useAutomaticPurposeResearch(project,onUpdated){
   const query=useQuery({queryKey:['automatic-project-purpose',user?.id,project?.id],enabled,retry:false,staleTime:Infinity,queryFn:()=>allianceRequest('purposeEnsure',{projectId:project.id})});
   useEffect(()=>{
     const updated=query.data?.project;
-    if(updated?.id===project?.id && updated.why_this_matters && !project.why_this_matters?.trim()){
+    if(updated?.id && updated.id===project?.id && updated.why_this_matters && !project.why_this_matters?.trim()){
       onUpdated?.({id:updated.id,why_this_matters:updated.why_this_matters});
       refreshAlliance(cache);
       cache.invalidateQueries({queryKey:['dashboard-data']});

@@ -17,7 +17,7 @@ export async function deliveryCapacityReport(db,user,input) {
   if(delivery.truncated)throw new Error('Programme reporting exceeds its grouping limit. Narrow the portfolio filters.');
   const latest=new Map();
   for(const group of delivery.rows){const row={project_id:group.project_id,updated_date:group.updated_date,...Object.fromEntries(['contract_start','forecast_pc','original_pc','pc_achieved'].map(field=>[field,group[`max_${field}`]]))};const old=latest.get(row.project_id);if(!old || String(row.updated_date)>String(old.updated_date))latest.set(row.project_id,row);}
-  const people=await read('people',()=>capacityPeople(db,user,projects)),owners=new Map(),today=new Date().toISOString().slice(0,10),commitments=[];
+  const people=await read('contact-people:v2',()=>capacityPeople(db,user,projects)),owners=new Map(),today=new Date().toISOString().slice(0,10),commitments=[];
   const allocations=[];
   let unassigned=0,missingProgramme=0,missingStart=0;
   for(const project of projects){
