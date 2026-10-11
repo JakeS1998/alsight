@@ -8,6 +8,7 @@ import ProjectStickyHeader from '@/components/projects/ProjectStickyHeader';
 import HomeWelcome from '@/components/dashboard/HomeWelcome';
 import HomeJourney from '@/components/dashboard/HomeJourney';
 import TodayBriefing from '@/components/dashboard/TodayBriefing';
+import TodayCapacityInsight from '@/components/dashboard/TodayCapacityInsight';
 import TodayPeople from '@/components/dashboard/TodayPeople';
 import HomeQuickActions from '@/components/dashboard/HomeQuickActions';
 import DashboardAliceCard from '@/components/dashboard/DashboardAliceCard';
@@ -31,6 +32,7 @@ export default function Home() {
       <HomeWelcome user={dashboard.user} metrics={dashboard.portfolio.metrics} opportunities={opportunityCount} tasks={tasks} internal={dashboard.internal} />
     </div>
     {dashboard.internal && <TodayBriefing dashboard={dashboard} tasks={tasks} />}
+    {dashboard.internal && <TodayCapacityInsight dashboard={dashboard} />}
     <HomeJourney internal={dashboard.internal} />
     {dashboard.internal && <TodayPeople user={dashboard.user} />}
     <div className="home-work-grid space-y-4">

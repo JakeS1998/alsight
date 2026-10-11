@@ -18,6 +18,7 @@ import { ProjectMap } from '@/components/dashboard/ProjectMap';
 import '@/components/dashboard/dashboard-reference.css';
 import WorkspacePageHeader from '@/components/layout/WorkspacePageHeader';
 import PortfolioImpact from '@/components/alliance/PortfolioImpact';
+import PortfolioCapacity from '@/components/dashboard/PortfolioCapacity';
 export default function PortfolioOverview() {
   const [filters, setFilters] = useState({});
   const dashboard = useDashboardData(filters);
@@ -35,6 +36,7 @@ export default function PortfolioOverview() {
       <PortfolioImpact projectIds={dashboard.projects.map(p=>p.id)} />
       <OverviewKpis metrics={metrics} businessContext={data.businessContext} onRisk={() => document.getElementById('overview-attention')?.scrollIntoView({behavior:'smooth',block:'center'})} />
       <div className="overview-journey-row"><PipelineTimeline projects={dashboard.portfolio.pipeline} accountMap={dashboard.accountMap} stageSummary={data.stages} opportunitySummary={opportunities} /><OverviewHealth metrics={metrics} /></div>
+      <PortfolioCapacity dashboard={dashboard} />
       <div className="overview-middle"><OverviewRegions rows={data.regions} /><OverviewCommercial rows={data.opportunities} poNet={metrics.poNet} /><OverviewReadiness data={data} metrics={metrics} fees={dashboard.portfolio.fees} /></div>
       <div className="overview-bottom"><OverviewAttention portfolio={dashboard.portfolio} user={dashboard.user} /><DashboardPanel title="Project locations" link="/projects" linkLabel="View projects" className="overview-map"><ProjectMap projects={dashboard.portfolio.pipeline} resizeAware /></DashboardPanel><OverviewUpdates rows={data.recent} since={since} /><DashboardAliceCard portfolio /></div>
     </>}
