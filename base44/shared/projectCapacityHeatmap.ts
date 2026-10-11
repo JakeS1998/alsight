@@ -21,7 +21,7 @@ export function projectCapacityHeatmap(allocations, projectId, owners, allowedKe
     const cells=[own.active,own.demanding,...own.windows].map((value,index)=>({value,median:baselines[index],level:!sufficient ? 'unknown' : value>baselines[index] ? 'high' : value<baselines[index] && !missingProgramme ? 'low' : 'typical'}));
     const pressure=[cells[0].level==='high',cells[1].level==='high',cells[2].level==='high' && cells[2].value>1].filter(Boolean).length;
     const status=!sufficient ? 'Insufficient information' : pressure>=2 ? 'Possible overload' : pressure ? 'Higher recorded demand' : cells[0].level==='low' ? 'Potential spare capacity' : 'Typical recorded demand';
-    rows.push({key:own.key,personKey:member.key,name:person.name,contactId:person.contactId,role,status,cells,missingProgramme,peerCount:peers.length});
+    rows.push({key:own.key,personKey:member.key,name:person.name,accountId:person.accountId,role,status,cells,missingProgramme,peerCount:peers.length});
   }
-  return {rows,reason:rows.length ? null : 'No team assignments are available for comparison within your authorised scope.'};
+  return {rows,reason:rows.length ? null : 'No delivery supplier assignments are available for comparison within your authorised scope.'};
 }
