@@ -21,7 +21,7 @@ export async function capacitySupplierAssignments(db,projects,latest,read) {
     references.set(project.id,refs);
   }
   const refs=[...references.values()].flat(),accountIds=[...new Set(refs.map(ref=>ref.id).filter(Boolean))],numbers=[...new Set(refs.map(ref=>ref.number).filter(Boolean))];
-  const accounts=refs.length ? await read('supplier-companies:v1',()=>db.Account.aggregate({query:{$or:[...(accountIds.length ? [{id:{$in:accountIds}},{dataverse_id:{$in:accountIds}}] : []),...(numbers.length ? [{company_number:{$in:numbers}},{ch_company_number:{$in:numbers}}] : [])]},groupBy:'id',max:['name','company_name','company_number','ch_company_number','dataverse_id'],limit:1000})) : {rows:[]};
+  const accounts=refs.length ? await read('supplier-companies:v1',()=>db.Account.aggregate({query:{$or:[...(accountIds.some(id=>/^[a-f0-9]{24}$/i.test(id)) ? [{id:{$in:accountIds.filter(id=>/^[a-f0-9]{24}$/i.test(id))}}] : []),...(accountIds.length ? [{dataverse_id:{$in:accountIds}}] : []),...(numbers.length ? [{company_number:{$in:numbers}},{ch_company_number:{$in:numbers}}] : [])]},groupBy:'id',max:['name','company_name','company_number','ch_company_number','dataverse_id'],limit:1000})) : {rows:[]};
   if(accounts.truncated)throw new Error('Supplier company reporting exceeds its grouping limit. Narrow the portfolio filters.');
   const byId=new Map(),byNumber=new Map();
   for(const row of accounts.rows){

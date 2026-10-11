@@ -54,6 +54,13 @@ export async function deliveryCapacityReport(db,user,input) {
   const offset=input.offset || 0;
   const selectedOwner=input.person ? owners.get(input.person) : null;
   let assignmentPage=null;
-  if(input.action==='projects') assignmentPage=await db.Project.filter({$and:[query,{id:{$in:selectedOwner?.projectIds || []}}]},{sort:'name',limit:10,fields:['name'],...(input.cursor ? {cursor:input.cursor} : {})});
+  if(input.action==='projects'){
+    // The authorised aggregate already supplies supplier project IDs and names.
+    const projectIndex=new Map(projects.map(project=>[project.id,project]));
+    const rows=(selectedOwner?.projectIds || []).map(id=>projectIndex.get(id)).filter(Boolean).sort((a,b)=>String(a.name || '').localeCompare(String(b.name || '')) || a.id.localeCompare(b.id));
+    const start=/^supplier-offset:\d+$/.test(input.cursor || '') ? Number(input.cursor.slice(16)) : 0;
+    const hasMore=start+10<rows.length;
+    assignmentPage={items:rows.slice(start,start+10).map(project=>({id:project.id,name:project.name})),has_more:hasMore,next_cursor:hasMore ? `supplier-offset:${start+10}` : null};
+  }
   return {today,active:projects.reduce((n,p)=>n+p.count,0),assigned:owners.size,concentrated:distribution.filter(p=>p.classification==='Concentrated').length,upcoming:commitments.length,unassigned,missingProgramme,missingStart,people:distribution,windows,commitments:matching.slice(offset,offset+10),nextOffset:offset+10<matching.length ? offset+10 : null,context,assignmentPage,heatmap};
 }
