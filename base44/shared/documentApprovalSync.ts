@@ -46,7 +46,9 @@ export async function syncDocumentApprovals(base44,table,documents) {
  for(let offset=0;offset<events.length;offset+=500)await db.DocumentApprovalEvent.bulkCreate(events.slice(offset,offset+500));
  for(let offset=0;offset<newRequests.length;offset+=500){
   const result=await db.DocumentApprovalRequest.upsert(newRequests.slice(offset,offset+500),{key:'request_key'});counts.added+=result.created;
-  await db.DocumentApprovalRequest.updateMany({request_key:{$in:result.records.map(r=>r.request_key)},status:'pending',response:{$exists:false},writeback_status:'not_required'},{$set:{writeback_status:'pending'}});
+  // Single updates deliberately emit the ready-for-approval event; bulk upserts skip workflow side effects.
+  const ready=result.records.filter(r=>r.status==='pending' && r.response===undefined && r.writeback_status==='not_required');
+  for(let start=0;start<ready.length;start+=5)await Promise.all(ready.slice(start,start+5).map(r=>db.DocumentApprovalRequest.update(r.id,{writeback_status:'pending'})));
   if(result.created)await db.DocumentApprovalEvent.bulkCreate(result.records.filter(r=>!r.response && r.status==='pending').map(r=>event(r,'Added from document sync')));
  }
  return counts;

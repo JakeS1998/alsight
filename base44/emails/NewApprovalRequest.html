@@ -1,0 +1,37 @@
+<mjml>
+  <mj-head>
+    <mj-title>Approval requested: {{document_title}}</mj-title>
+    <mj-preview>A new document approval is assigned to you for {{project_name}}.</mj-preview>
+    <mj-attributes>
+      <mj-all font-family="Arial Narrow, Arial, sans-serif" />
+      <mj-section background-color="#ffffff" padding="0 24px" />
+      <mj-text color="#102642" font-size="15px" line-height="1.6" padding="0" />
+      <mj-button background-color="#f59929" color="#000000" border-radius="7px" font-weight="700" inner-padding="14px 24px" padding="0" align="left" />
+      <mj-class name="muted" color="#5f7586" />
+    </mj-attributes>
+  </mj-head>
+  <mj-body width="600px" background-color="#eaf4fb">
+    <mj-section background-color="#f59929" padding="18px 24px"><mj-group>
+      <mj-column width="18%"><mj-image src="https://media.base44.com/images/public/6ab62433a194f918c54c8249/c6a55826a_logo.jpg" alt="ALSight logo" width="48px" align="left" padding="0" /></mj-column>
+      <mj-column width="82%"><mj-text color="#000000" font-size="22px" font-weight="700" line-height="1.2" padding="2px 0 0 8px">ALSight</mj-text><mj-text color="#000000" font-size="11px" padding="4px 0 0 8px">NEW APPROVAL REQUEST</mj-text></mj-column>
+    </mj-group></mj-section>
+    <mj-section padding="24px 24px"><mj-column>
+      <mj-text font-size="24px" font-weight="700" line-height="1.25">Your approval is requested</mj-text>
+      <mj-text mj-class="muted" padding="8px 0 0">A new document is assigned to you and is awaiting your decision.</mj-text>
+    </mj-column></mj-section>
+    <mj-section background-color="#eaf4fb" padding="24px"><mj-column>
+      <mj-text font-size="18px" font-weight="700">{{document_title}}</mj-text>
+      <mj-text padding="10px 0 0"><strong>Document:</strong> {{document_number}}<br /><strong>Type:</strong> {{approval_type}}<br /><strong>Project:</strong> {{project_name}}<br /><strong>Project number:</strong> {{project_number}}<br /><strong>Client:</strong> {{client_name}}</mj-text>
+      <mj-text mj-class="muted" font-size="13px" padding="12px 0 0"><strong>Requested by:</strong> {{requester_name}}<br /><strong>Requested:</strong> {{requested_at}}</mj-text>
+    </mj-column></mj-section>
+    <mj-section padding="24px"><mj-column>
+      <mj-text font-weight="700">Request summary</mj-text>
+      <mj-text padding="8px 0 20px"><div style="white-space:pre-line;">{{reason}}</div></mj-text>
+      <mj-button href="{{approval_url}}">Review this approval</mj-button>
+      <mj-text mj-class="muted" font-size="12px" padding="14px 0 0">Sign in with your ALSight account to review the document and record your decision.</mj-text>
+    </mj-column></mj-section>
+    <mj-section background-color="#eaf4fb" padding="16px 24px"><mj-column>
+      <mj-text mj-class="muted" font-size="12px">ALSight · Approval notification<br />You received this email because this approval is assigned to you.</mj-text>
+    </mj-column></mj-section>
+  </mj-body>
+</mjml>
