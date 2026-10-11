@@ -4,17 +4,18 @@ import { capacityPeople } from './deliveryCapacityPeople.ts';
 import { scopedReadCache } from './scopedReadCache.ts';
 const roleNames=['Project manager','BDM','BSM','Director','Strategic account manager'];
 export async function deliveryCapacityReport(db,user,input) {
+  if(Array.isArray(input.projectIds) && !input.projectIds.length)return {today:new Date().toISOString().slice(0,10),active:0,assigned:0,concentrated:0,upcoming:0,unassigned:0,missingProgramme:0,missingStart:0,people:[],windows:['0–30 days','31–60 days','61–90 days'].map(label=>({label,projects:0,starts:0})),commitments:[],nextOffset:null,context:null,assignmentPage:input.action==='projects' ? {items:[],has_more:false} : null};
   const {query,identity}=await capacityScope(db,user,input);
   const cacheKey=JSON.stringify([user.id,user.role,user.region,user.data,user.staff_aad_id,user.delegate_of,query,new Date().toISOString().slice(0,10)]);
   const read=(key,load)=>scopedReadCache(`capacity:${cacheKey}:${key}`,load);
-  const result=await read('projects',()=>db.Project.aggregate({query,groupBy:capacityProjectFields,limit:1000}));
+  const result=await read('projects:v2',()=>db.Project.aggregate({query,groupBy:'id',max:capacityProjectFields.filter(field=>field!=='id'),limit:1000}));
   if(result.truncated)throw new Error('Capacity reporting exceeds its grouping limit. Narrow the portfolio filters.');
-  const projects=result.rows;
+  const projects=result.rows.map(row=>({id:row.id,count:row.count,...Object.fromEntries(capacityProjectFields.filter(field=>field!=='id').map(field=>[field,row[`max_${field}`]]))}));
   const ids=projects.flatMap(p=>[p.id,p.dataverse_id]).filter(Boolean);
-  const delivery=ids.length ? await read('programme',()=>db.ProjectDelivery.aggregate({query:{project_id:{$in:ids}},groupBy:['project_id','contract_start','forecast_pc','original_pc','pc_achieved','updated_date'],limit:1000})) : {rows:[]};
+  const delivery=ids.length ? await read('programme:v2',()=>db.ProjectDelivery.aggregate({query:{project_id:{$in:ids}},groupBy:['project_id','updated_date'],max:['contract_start','forecast_pc','original_pc','pc_achieved'],limit:1000})) : {rows:[]};
   if(delivery.truncated)throw new Error('Programme reporting exceeds its grouping limit. Narrow the portfolio filters.');
   const latest=new Map();
-  for(const row of delivery.rows){const old=latest.get(row.project_id);if(!old || String(row.updated_date)>String(old.updated_date))latest.set(row.project_id,row);}
+  for(const group of delivery.rows){const row={project_id:group.project_id,updated_date:group.updated_date,...Object.fromEntries(['contract_start','forecast_pc','original_pc','pc_achieved'].map(field=>[field,group[`max_${field}`]]))};const old=latest.get(row.project_id);if(!old || String(row.updated_date)>String(old.updated_date))latest.set(row.project_id,row);}
   const people=await read('people',()=>capacityPeople(db,user,projects)),owners=new Map(),today=new Date().toISOString().slice(0,10),commitments=[];
   let unassigned=0,missingProgramme=0,missingStart=0;
   for(const project of projects){
@@ -40,7 +41,7 @@ export async function deliveryCapacityReport(db,user,input) {
   }
   const managerOwners=[...owners.values()].filter(p=>p.managed>0);
   // Distribution measures PM assignments only; other responsibilities remain context, not added project weight.
-  const managerGroups=managerOwners.map(owner=>{const managerIds=new Set(projects.filter(p=>p.project_manager_id && (people.get(p.project_manager_id)?.key || p.project_manager_id)===owner.key).map(p=>p.id));const rows=projects.filter(p=>managerIds.has(p.id));let near=0,demanding=0,evidence=0;for(const p of rows){const path=latest.get(p.id) || latest.get(p.dataverse_id);const s=projectCommitments(p,path,today);near+=s.events.some(e=>Date.parse(e.date)-Date.parse(today)<=30*86400000) ? p.count : 0;demanding+=s.demanding ? p.count : 0;evidence+=s.evidence ? p.count : 0;}return {...owner,active:owner.managed,near,demanding,evidence};});
+  const managerGroups=managerOwners.map(owner=>{const managerIds=new Set(projects.filter(p=>p.project_manager_id && (people.get(p.project_manager_id)?.key || p.project_manager_id)===owner.key).map(p=>p.id));const rows=projects.filter(p=>managerIds.has(p.id));let near=0,demanding=0,evidence=0;for(const p of rows){const path=latest.get(p.id) || latest.get(p.dataverse_id);const s=projectCommitments(p,path,today);near+=s.events.some(e=>Date.parse(e.date)-Date.parse(today)<=30*86400000) ? p.count : 0;demanding+=s.demanding ? p.count : 0;evidence+=s.evidence ? p.count : 0;}const months=new Map([...owner.months].map(([month,set])=>[month,new Set([...set].filter(id=>managerIds.has(id)))]));return {...owner,active:owner.managed,near,demanding,evidence,months};});
   const distribution=classifyCapacity(managerGroups).map(p=>({key:p.key,name:p.name,contactId:p.contactId,photo:p.photo,active:p.active,near:p.near,demanding:p.demanding,classification:p.classification,signals:p.signals,clashes:[...p.months].filter(([,set])=>set.size>1).map(([month,set])=>({month,count:set.size}))})).sort((a,b)=>b.active-a.active || a.name.localeCompare(b.name));
   const windows=[[0,30],[30,60],[60,90]].map(([from,to])=>{const inWindow=e=>{const days=(Date.parse(e.date)-Date.parse(today))/86400000;return (from===0 ? days>=0 : days>from) && days<=to;};return {label:from===0 ? '0–30 days' : `${from+1}–${to} days`,projects:commitments.filter(p=>p.events.some(inWindow)).length,starts:commitments.filter(p=>p.events.some(e=>e.label==='Construction start' && inWindow(e))).length};});
   const contextProject=projects.find(p=>p.id===input.projectId);
