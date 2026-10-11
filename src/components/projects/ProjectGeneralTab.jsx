@@ -11,7 +11,7 @@ import ProjectDocumentStatuses from '@/components/projects/ProjectDocumentStatus
 import Project360Strip from '@/components/projects/Project360Strip';
 import ProjectWorkspaceFields from '@/components/projects/ProjectWorkspaceFields';
 import ProjectWorkspaceDates from '@/components/projects/ProjectWorkspaceDates';
-import ProjectPeopleCommitments from '@/components/projects/ProjectPeopleCommitments';
+import ProjectCapacitySection from '@/components/projects/ProjectCapacitySection';
 import ProjectBriefHistory from '@/components/projects/ProjectBriefHistory';
 import useProjectTeamAssignments from '@/components/projects/useProjectTeamAssignments';
 import SupplierCommission from '@/components/accounts/SupplierCommission.jsx';
@@ -129,7 +129,7 @@ export function ProjectGeneralTab({ project, accountMap, onProjectUpdated, singl
           ] },
         ]}
       />
-      <ProjectPeopleCommitments project={project} />
+      <ProjectCapacitySection project={project} />
       <ProjectWorkspaceDates project={project} singleTask={singleTask} ribaRows={ribaRows} expectedDates={expectedDates} ribaDates={ribaDates} setRibaDates={setRibaDates} canEdit={canEdit} saving={saving} saved={saved} saveError={saveError} onSave={handleSave} />
 
       {INTERNAL_ROLES.includes(role) && <ValuationSnapshot project={project} />}
