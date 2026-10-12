@@ -7,6 +7,7 @@ import AccountRecentActivity from '@/components/accounts/AccountRecentActivity';
 import AccountCurrentWork from '@/components/accounts/AccountCurrentWork';
 import CompaniesHousePanel from '@/components/accounts/CompaniesHousePanel';
 import AccountRelationshipSummary from '@/components/accounts/AccountRelationshipSummary';
+import SupplierCommission from '@/components/accounts/SupplierCommission';
 import AccountInsightCard from '@/components/accounts/AccountInsightCard';
 import { INTERNAL_ROLES } from '@/lib/portal';
 import { hasCompanyRegistry } from '@/components/accounts/accountSections';
@@ -21,6 +22,7 @@ export default function AccountOverview({ account, contacts, projects, signals, 
     </div>
     <div className="account-summary-column">
       <AccountRelationshipSummary account={account} signals={signals} loading={summaryLoading} error={summaryError} onRetry={onSummaryRetry} />
+      {(account.account_type==='supplier' || account.relationship_types?.includes('supplier')) && <SupplierCommission account={account}/>}
       <AccountKeyPeople account={account} />
       <div className="account-work-row"><AccountCurrentWork account={account} projects={projects}/></div>
       <div className="account-activity-slot"><AccountRecentActivity account={account} /></div>

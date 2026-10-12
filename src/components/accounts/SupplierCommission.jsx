@@ -9,9 +9,11 @@ export default function SupplierCommission({account,compact=false}){
  if(!allowed||!account?.id)return null;
  const value=query.isPending?'Loading…':query.error?'Unavailable':query.data.average==null?'Not available':`${query.data.average.toFixed(2)}%`;
  const help='Project-value-weighted average: average the recorded rates within each project, then weight each project once by its full value excluding VAT. Only accessible, uniquely linked projects with a positive value are included.';
- return <div className={compact?'mt-1 text-xs text-muted-foreground':'account-panel'} title={help}>
-  {!compact&&<h2>Average commission</h2>}
-  <p className={compact?'':'mt-3 text-sm'}>{compact?'Average commission: ':''}<strong className="text-foreground">{value}</strong></p>
-  {!compact&&<p className="mt-2 text-xs text-muted-foreground">{help}{query.data&&` Based on ${query.data.projects} projects; ${query.data.excluded} unlinked, inaccessible or unvalued project groups excluded.`}</p>}
+ return <div className={compact?'mt-1 text-xs text-muted-foreground':'min-w-0 rounded-lg border border-border bg-card px-4 py-3'} title={help}>
+  {compact ? <p>Average commission: <strong className="text-foreground">{value}</strong></p> : <>
+   <div className="flex flex-wrap items-center justify-between gap-2"><h2 className="text-xs font-semibold">Average commission</h2><strong className="text-base tabular-nums text-foreground">{value}</strong></div>
+   {query.data && <p className="mt-1 text-[11px] text-muted-foreground">Project-value weighted · {query.data.projects} {query.data.projects===1?'project':'projects'}</p>}
+   <details className="mt-1 text-[11px] text-muted-foreground"><summary className="cursor-pointer">Calculation details</summary><p className="mt-2 leading-relaxed">{help}{query.data&&` Based on ${query.data.projects} projects; ${query.data.excluded} unlinked, inaccessible or unvalued project groups excluded.`}</p></details>
+  </>}
  </div>;
 }
