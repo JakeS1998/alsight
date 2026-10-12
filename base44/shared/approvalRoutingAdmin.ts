@@ -13,7 +13,7 @@ export async function approvalRoutingAdmin(base44,user,input) {
   const page=await db.Contact.filter(query,{sort:'full_name',limit:20,cursor:input.cursor,fields:['full_name','email','portal_role']});
   const emails=page.items.map(p=>p.email?.trim().toLowerCase()).filter(Boolean);
   const grants=emails.length ? (await db.ApprovalAccess.filter({email:{$in:emails},enabled:true},{limit:100,fields:['email']})).items : [];
-  const users=emails.length ? await db.User.filter({$or:emails.map(email=>({email:{$regex:`^${escape(email)}$`,$options:'i'}}))},'full_name',100) : [];
+  const users=emails.length ? await base44.asServiceRole.entities.User.filter({$or:emails.map(email=>({email:{$regex:`^${escape(email)}$`,$options:'i'}}))},'full_name',100) : [];
   return {...page,items:page.items.map(p=>({...p,email:p.email.trim().toLowerCase(),enabled:grants.some(g=>g.email===p.email.trim().toLowerCase()) && users.some(u=>u.email?.trim().toLowerCase()===p.email.trim().toLowerCase() && liveApproverRoles.includes(u.role))}))};
  }
  if(!approvalTables[input.table])throw new Error('Choose an approval-enabled document table.');
@@ -26,7 +26,7 @@ export async function approvalRoutingAdmin(base44,user,input) {
   if(named_emails.length && input.enabled){
    const grants=await db.ApprovalAccess.filter({email:{$in:named_emails},enabled:true},{limit:20,fields:['email']});
    if(named_emails.some(email=>!grants.items.some(g=>g.email===email)))throw new Error('Grant approval access to every selected person before saving.');
-   const users=await db.User.filter({$or:named_emails.map(email=>({email:{$regex:`^${escape(email)}$`,$options:'i'}}))},'full_name',100);
+   const users=await base44.asServiceRole.entities.User.filter({$or:named_emails.map(email=>({email:{$regex:`^${escape(email)}$`,$options:'i'}}))},'full_name',100);
    if(named_emails.some(email=>{const matches=users.filter(u=>u.email?.trim().toLowerCase()===email);return matches.length!==1 || !liveApproverRoles.includes(matches[0].role);}))throw new Error('Every named approver needs a registered internal portal account for live Dataverse approvals.');
   }
   const result=await db.ApprovalRouting.upsert([{table:input.table,named_emails,related_rules,enabled:input.enabled,changed_by:user.id,changed_at:new Date().toISOString()}],{key:'table'});
