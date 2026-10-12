@@ -66,6 +66,7 @@
 .finance-chart-column[data-selected="true"] { background:hsl(var(--primary) / .07); transition:opacity .3s; }
 .finance-chart-bars { display:flex; gap:10px; align-items:flex-end; height:200px; }
 .finance-chart-bar { width:54px; background:hsl(var(--als-navy)); border-radius:6px 6px 0 0; transform-origin:bottom; animation:finance-grow 1s .5s cubic-bezier(.2,.7,.2,1) both; transition:opacity .3s; }
+.finance-chart-bar.bg-primary { background:hsl(var(--primary)); }
 .finance-chart-estimate { background:repeating-linear-gradient(45deg,hsl(var(--primary)) 0 8px,hsl(var(--primary) / .55) 8px 16px); }
 .finance-chart-unavailable { width:54px; height:26px; border:2px dashed hsl(var(--destructive)); background:hsl(var(--card)); border-radius:6px 6px 0 0; color:hsl(var(--destructive)); font-size:9px; font-weight:800; display:flex; align-items:center; justify-content:center; }
 .finance-chart-bar:hover { opacity:.8; }

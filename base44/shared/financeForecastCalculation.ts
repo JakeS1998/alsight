@@ -6,7 +6,7 @@ const validMoney=value=>typeof value==='number'&&Number.isFinite(value)&&value>=
 const cents=value=>Math.round(value*100);
 export function forecastProject(input,today,snapshot){
  const {project:p,delivery:d,actuals,linked}=input,value=p.submitted_proposal_value??p.estimated_value;
- const result={id:p.id,name:p.name,code:p.project_number||'',value:validMoney(value)?value:0,valueSource:p.submitted_proposal_value!=null?'Submitted fee proposal':'Estimated value',end:null,endBasis:null,reason:null,invoiceNote:null,poNote:null};
+ const result={id:p.id,name:p.name,code:p.project_number||'',sourceKeys:input.sourceKeys||[],value:validMoney(value)?value:0,valueSource:p.submitted_proposal_value!=null?'Submitted fee proposal':'Estimated value',end:null,endBasis:null,reason:null,invoiceNote:null,poNote:null};
  if(!validMoney(value)||value<=0)return {...result,reason:'No positive value after applying the submitted proposal override'};
  if((date(d.pc_achieved)&&date(d.pc_achieved)<=today)||(date(p.practical_completion_date)&&date(p.practical_completion_date)<=today))return {...result,reason:'Practical completion already recorded'};
  const expected=projectCompletionDates(p).riba5_system_date;
@@ -14,7 +14,7 @@ export function forecastProject(input,today,snapshot){
  if(!result.end)return {...result,reason:'No usable programme end date'};
  if(result.end<=today)return {...result,reason:'Programme end date is not in the future'};
  const totals=kind=>{const rows=actuals.filter(a=>a.kind===kind);return {amount:rows.reduce((n,a)=>n+(a.has_amount===true?(a.sum_amount||0):0),0),missing:rows.reduce((n,a)=>n+(a.has_amount===true?0:a.count),0)};};
- const invoices=totals('invoices'),pos=totals('purchase_orders'),verified=snapshot&&linked;
+ const invoices=totals(input.invoiceKind||'invoices'),pos=totals('purchase_orders'),verified=snapshot&&linked;
  result.invoiceNote=!verified?'Full-value baseline: no confirmed finance link':invoices.missing?'Full-value baseline: invoice amounts unavailable':'Client value less recorded invoice amounts';
  result.invoiceBaseline=!verified||invoices.missing>0;
  result.invoiceRemaining=Math.max(0,cents(value)-(result.invoiceBaseline?0:cents(invoices.amount)));
