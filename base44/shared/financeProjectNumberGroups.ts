@@ -1,7 +1,7 @@
-export function mainProjectNumber(code){return String(code||'').trim().replace(/^(PROJ\d+)-R\d+$/i,'$1').toUpperCase();}
+export function mainProjectNumber(code){return String(code||'').trim().replace(/^(PROJ\d+)\s*-.*$/i,'$1').toUpperCase();}
 export function projectNumberPattern(codes){
  const escaped=[...new Set(codes.map(mainProjectNumber))].map(code=>code.replace(/[.*+?^${}()|[\]\\]/g,'\\$&'));
- return `^(?:${escaped.join('|')})(?:-R\\d+)?$`;
+ return `^(?:${escaped.join('|')})(?:\\s*-.*)?$`;
 }
 function compareProjectNumbers(a,b){
  const left=String(a).split('-')[0].trim(),right=String(b).split('-')[0].trim();

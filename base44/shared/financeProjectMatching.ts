@@ -17,8 +17,10 @@ export async function resolveFinanceProjects(base44,config,rows){
  const old=previous.find(m=>m.source_key===row.source_key),codeMatch=workbook.get(String(row.Code||'').trim().toUpperCase());
  const rule=numberRules.get(String(row.Code||''));
  if(rule){const mapping={source_key:row.source_key,dataset_id:config.dataset_id,source_name:String(row.Project||''),source_code:String(row.Code||''),...rule,linked_at:new Date().toISOString()};updates.push(mapping);return {...row,mapping:{...old,...mapping}};}
- if(old?.project_id||old?.status==='manual')return {...row,mapping:old};
- const nameMatch=names.get(row.source_key);
+ if(old?.status==='manual')return {...row,mapping:old};
+   if(codeMatch?.matching_method==='number'){const mapping={source_key:row.source_key,dataset_id:config.dataset_id,source_name:String(row.Project||''),source_code:String(row.Code||''),...codeMatch,linked_at:new Date().toISOString()};updates.push(mapping);return {...row,mapping:{...old,...mapping}};}
+   if(old?.project_id)return {...row,mapping:old};
+   const nameMatch=names.get(row.source_key);
  if(nameMatch?.project_id){const mapping={source_key:row.source_key,dataset_id:config.dataset_id,source_name:String(row.Project||''),source_code:String(row.Code||''),...nameMatch};updates.push(mapping);return {...row,mapping:{...old,...mapping}};}
  if(codeMatch){const mapping={source_key:row.source_key,dataset_id:config.dataset_id,source_name:String(row.Project||''),source_code:String(row.Code||''),...codeMatch,linked_at:new Date().toISOString()};updates.push(mapping);return {...row,mapping:{...old,...mapping}};}
  if(old)return {...row,mapping:old};

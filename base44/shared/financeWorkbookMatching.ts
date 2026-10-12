@@ -1,3 +1,4 @@
+import {directFinanceNumberMatches} from './financeDirectNumberMatching.ts';
 const normalize=value=>String(value||'').trim().toUpperCase();
 export async function workbookFinanceMatches(base44,rows){
  const db=base44.asServiceRole.entities,codes=[...new Set(rows.map(r=>normalize(r.Code)).filter(Boolean))];
@@ -16,6 +17,8 @@ export async function workbookFinanceMatches(base44,rows){
   const unique=expected.length===1&&candidates.length===1?candidates[0]:null;
   matches.set(code,{project_id:unique?.id||'',project_name:unique?.name||'',project_code:unique?.project_number||'',status:unique?'automatic':expected.length>1||candidates.length>1?'ambiguous':'unmatched',...(unique?{matching_method:'number'}:{}),candidates:candidates.slice(0,3),linked_by:'Call Off Contract project-to-Sage table'});
  }
+ const direct=await directFinanceNumberMatches(base44,rows);
+ for(const [code,match] of direct)matches.set(code,match);
  return matches;
 }
 export async function applyWorkbookFinanceMappings(base44,state,input){
