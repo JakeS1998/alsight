@@ -4,10 +4,10 @@ import WorkspacePageHeader from '@/components/layout/WorkspacePageHeader';
 export default function CommercialPageHeader({ status, user }) {
  const completedAt = status?.sync?.last_completed_at;
  const description = <>
-  Project pipeline, Power BI purchase-order commitments and sales orders.
+  Project pipeline, Power BI purchase-order commitments and client invoices (sales orders).
   {status?.confirmed && <span className="mt-4 block text-xs text-sidebar-foreground/65">
    {status?.source==='powerbi'?'Power BI semantic-model PO/SO snapshot':'Dataverse snapshot'}{completedAt ? ` · Last completed sync: ${new Date(completedAt).toLocaleString('en-GB')}` : ''}
-   <span className="mt-1 block">Your existing access rules apply to all figures and records. Sales orders are not invoices or evidence of payment.</span>
+   <span className="mt-1 block">Your existing access rules apply to all figures and records. Sales orders represent client invoices, not evidence of payment.</span>
   </span>}
  </>;
  const actions = <>
