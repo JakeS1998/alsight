@@ -1,5 +1,7 @@
 import React from 'react';
-import {formatCurrency} from '@/lib/portal';
-export default function FinanceBalanceTotals({data}){
- return <div className="grid grid-cols-2 gap-4 xl:grid-cols-4">{data.totals.flatMap(t=>[{label:t.kind==='creditors'?'Creditors outstanding':'Debtors outstanding',amount:t.amount},{label:t.kind==='creditors'?'Creditors overdue':'Debtors overdue',amount:t.overdue}]).map(item=><div key={item.label} className="rounded-lg border border-border bg-muted p-4"><p className="text-sm text-muted-foreground">{item.label}</p><p className="mt-2 text-xl font-bold">{item.amount==null?'Unavailable':formatCurrency(item.amount)}</p></div>)}</div>;
+export default function FinanceBalanceTotals({data,kind}){
+ const total=data.totals.find(t=>t.kind===kind),known=total?.amount!=null,severe=data.rows.filter(r=>r.Kind===kind&&['31–60 days','61–90 days','90+ days'].includes(r.Bucket)).reduce((sum,r)=>sum+(r.Amount||0),0);
+ const money=value=>value==null?'Unavailable':new Intl.NumberFormat('en-GB',{style:'currency',currency:'GBP',notation:'compact',maximumFractionDigits:2}).format(value);
+ const metrics=[{label:kind==='creditors'?'Total creditors':'Total debtors',value:money(total?.amount)},{label:'% overdue',value:known&&total.amount!==0?`${(total.overdue/total.amount*100).toFixed(1)}%`:known?'0%':'Unavailable'},{label:'Severely overdue (30+ days)',value:known?money(severe):'Unavailable',danger:true},{label:'Overdue balance',value:money(total?.overdue)}];
+ return <div className="grid grid-cols-2 gap-4 rounded-lg border border-primary p-5 xl:grid-cols-4">{metrics.map(item=><div key={item.label} className="min-w-0"><p className="truncate text-2xl font-semibold tabular-nums md:text-3xl">{item.value}</p><p className={`mt-2 text-xs ${item.danger?'text-destructive':'text-muted-foreground'}`}>{item.label}</p></div>)}</div>;
 }
