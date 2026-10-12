@@ -1,0 +1,409 @@
+{
+  "definition": {
+    "document": {
+      "dsl": "1.0.0",
+      "name": "powerbi_quarter_hourly_sync",
+      "version": "1.0",
+      "namespace": "base44"
+    },
+    "do": [
+      {
+        "begin_sync": {
+          "call": "invoke_backend_function",
+          "with": {
+            "function_name": "managePowerBIOrders",
+            "args": {
+              "action": "sync",
+              "begin": true
+            }
+          },
+          "then": "check_start",
+          "x-base44": {
+            "title": "Start or resume Power BI sync",
+            "description": "Use previously confirmed mappings"
+          }
+        }
+      },
+      {
+        "check_start": {
+          "switch": [
+            {
+              "when": "${ .begin_sync.status == \"running\" }",
+              "then": "batch_1"
+            },
+            {
+              "when": "${ true }",
+              "then": "end"
+            }
+          ],
+          "x-base44": {
+            "title": "Check import availability",
+            "description": "Protect pending manual reviews"
+          }
+        }
+      },
+      {
+        "batch_1": {
+          "call": "invoke_backend_function",
+          "with": {
+            "function_name": "managePowerBIOrders",
+            "args": {
+              "action": "sync",
+              "generation": "${ .begin_sync.generation }",
+              "attempt": 0,
+              "batches": 3
+            }
+          },
+          "then": "check_1",
+          "x-base44": {
+            "title": "Import order batch window 1",
+            "description": "Reconcile and publish when complete"
+          }
+        }
+      },
+      {
+        "check_1": {
+          "switch": [
+            {
+              "when": "${ .batch_1.status == \"running\" }",
+              "then": "batch_2"
+            },
+            {
+              "when": "${ true }",
+              "then": "end"
+            }
+          ],
+          "x-base44": {
+            "title": "Check window 1 progress"
+          }
+        }
+      },
+      {
+        "batch_2": {
+          "call": "invoke_backend_function",
+          "with": {
+            "function_name": "managePowerBIOrders",
+            "args": {
+              "action": "sync",
+              "generation": "${ .begin_sync.generation }",
+              "attempt": 1,
+              "batches": 3
+            }
+          },
+          "then": "check_2",
+          "x-base44": {
+            "title": "Import order batch window 2",
+            "description": "Reconcile and publish when complete"
+          }
+        }
+      },
+      {
+        "check_2": {
+          "switch": [
+            {
+              "when": "${ .batch_2.status == \"running\" }",
+              "then": "batch_3"
+            },
+            {
+              "when": "${ true }",
+              "then": "end"
+            }
+          ],
+          "x-base44": {
+            "title": "Check window 2 progress"
+          }
+        }
+      },
+      {
+        "batch_3": {
+          "call": "invoke_backend_function",
+          "with": {
+            "function_name": "managePowerBIOrders",
+            "args": {
+              "action": "sync",
+              "generation": "${ .begin_sync.generation }",
+              "attempt": 2,
+              "batches": 3
+            }
+          },
+          "then": "check_3",
+          "x-base44": {
+            "title": "Import order batch window 3",
+            "description": "Reconcile and publish when complete"
+          }
+        }
+      },
+      {
+        "check_3": {
+          "switch": [
+            {
+              "when": "${ .batch_3.status == \"running\" }",
+              "then": "batch_4"
+            },
+            {
+              "when": "${ true }",
+              "then": "end"
+            }
+          ],
+          "x-base44": {
+            "title": "Check window 3 progress"
+          }
+        }
+      },
+      {
+        "batch_4": {
+          "call": "invoke_backend_function",
+          "with": {
+            "function_name": "managePowerBIOrders",
+            "args": {
+              "action": "sync",
+              "generation": "${ .begin_sync.generation }",
+              "attempt": 3,
+              "batches": 3
+            }
+          },
+          "then": "check_4",
+          "x-base44": {
+            "title": "Import order batch window 4",
+            "description": "Reconcile and publish when complete"
+          }
+        }
+      },
+      {
+        "check_4": {
+          "switch": [
+            {
+              "when": "${ .batch_4.status == \"running\" }",
+              "then": "batch_5"
+            },
+            {
+              "when": "${ true }",
+              "then": "end"
+            }
+          ],
+          "x-base44": {
+            "title": "Check window 4 progress"
+          }
+        }
+      },
+      {
+        "batch_5": {
+          "call": "invoke_backend_function",
+          "with": {
+            "function_name": "managePowerBIOrders",
+            "args": {
+              "action": "sync",
+              "generation": "${ .begin_sync.generation }",
+              "attempt": 4,
+              "batches": 3
+            }
+          },
+          "then": "check_5",
+          "x-base44": {
+            "title": "Import order batch window 5",
+            "description": "Reconcile and publish when complete"
+          }
+        }
+      },
+      {
+        "check_5": {
+          "switch": [
+            {
+              "when": "${ .batch_5.status == \"running\" }",
+              "then": "batch_6"
+            },
+            {
+              "when": "${ true }",
+              "then": "end"
+            }
+          ],
+          "x-base44": {
+            "title": "Check window 5 progress"
+          }
+        }
+      },
+      {
+        "batch_6": {
+          "call": "invoke_backend_function",
+          "with": {
+            "function_name": "managePowerBIOrders",
+            "args": {
+              "action": "sync",
+              "generation": "${ .begin_sync.generation }",
+              "attempt": 5,
+              "batches": 3
+            }
+          },
+          "then": "check_6",
+          "x-base44": {
+            "title": "Import order batch window 6",
+            "description": "Reconcile and publish when complete"
+          }
+        }
+      },
+      {
+        "check_6": {
+          "switch": [
+            {
+              "when": "${ .batch_6.status == \"running\" }",
+              "then": "batch_7"
+            },
+            {
+              "when": "${ true }",
+              "then": "end"
+            }
+          ],
+          "x-base44": {
+            "title": "Check window 6 progress"
+          }
+        }
+      },
+      {
+        "batch_7": {
+          "call": "invoke_backend_function",
+          "with": {
+            "function_name": "managePowerBIOrders",
+            "args": {
+              "action": "sync",
+              "generation": "${ .begin_sync.generation }",
+              "attempt": 6,
+              "batches": 3
+            }
+          },
+          "then": "check_7",
+          "x-base44": {
+            "title": "Import order batch window 7",
+            "description": "Reconcile and publish when complete"
+          }
+        }
+      },
+      {
+        "check_7": {
+          "switch": [
+            {
+              "when": "${ .batch_7.status == \"running\" }",
+              "then": "batch_8"
+            },
+            {
+              "when": "${ true }",
+              "then": "end"
+            }
+          ],
+          "x-base44": {
+            "title": "Check window 7 progress"
+          }
+        }
+      },
+      {
+        "batch_8": {
+          "call": "invoke_backend_function",
+          "with": {
+            "function_name": "managePowerBIOrders",
+            "args": {
+              "action": "sync",
+              "generation": "${ .begin_sync.generation }",
+              "attempt": 7,
+              "batches": 3
+            }
+          },
+          "then": "check_8",
+          "x-base44": {
+            "title": "Import order batch window 8",
+            "description": "Reconcile and publish when complete"
+          }
+        }
+      },
+      {
+        "check_8": {
+          "switch": [
+            {
+              "when": "${ .batch_8.status == \"running\" }",
+              "then": "batch_9"
+            },
+            {
+              "when": "${ true }",
+              "then": "end"
+            }
+          ],
+          "x-base44": {
+            "title": "Check window 8 progress"
+          }
+        }
+      },
+      {
+        "batch_9": {
+          "call": "invoke_backend_function",
+          "with": {
+            "function_name": "managePowerBIOrders",
+            "args": {
+              "action": "sync",
+              "generation": "${ .begin_sync.generation }",
+              "attempt": 8,
+              "batches": 3
+            }
+          },
+          "then": "check_9",
+          "x-base44": {
+            "title": "Import order batch window 9",
+            "description": "Reconcile and publish when complete"
+          }
+        }
+      },
+      {
+        "check_9": {
+          "switch": [
+            {
+              "when": "${ .batch_9.status == \"running\" }",
+              "then": "batch_10"
+            },
+            {
+              "when": "${ true }",
+              "then": "end"
+            }
+          ],
+          "x-base44": {
+            "title": "Check window 9 progress"
+          }
+        }
+      },
+      {
+        "batch_10": {
+          "call": "invoke_backend_function",
+          "with": {
+            "function_name": "managePowerBIOrders",
+            "args": {
+              "action": "sync",
+              "generation": "${ .begin_sync.generation }",
+              "attempt": 9,
+              "batches": 3
+            }
+          },
+          "then": "end",
+          "x-base44": {
+            "title": "Finish bounded import window",
+            "description": "Publish if complete; otherwise resume next quarter hour"
+          }
+        }
+      }
+    ]
+  },
+  "trigger": {
+    "condition": null,
+    "config": {
+      "trigger_type": "scheduled",
+      "events": [],
+      "schedule_mode": "recurring",
+      "cron_expression": "*/15 * * * *",
+      "one_time_date": null,
+      "timezone": "Europe/London",
+      "interval_value": null,
+      "interval_unit": null,
+      "interval_anchor": null,
+      "ends_type": "never",
+      "ends_on_date": null,
+      "ends_after_count": null
+    }
+  },
+  "name": "Power BI Automatic Sync Every 15 Minutes",
+  "description": "Imports Power BI purchase orders and client invoices on the same quarter-hour cadence as Dataverse, independently so a failure in one source does not stop the other. Uses previously confirmed mappings, reconciles before automatically publishing, and retains the last confirmed snapshot on failure. Processes a finite window of up to 30 protected batches; larger imports resume on the next scheduled pass."
+}

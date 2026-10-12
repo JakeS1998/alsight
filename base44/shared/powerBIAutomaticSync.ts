@@ -28,7 +28,12 @@ export async function syncPowerBIOrders(base44,user,input){
  if(!Number.isInteger(input.attempt)||input.attempt<0||input.attempt>=60)throw new Error('Invalid automatic sync continuation.');
  if(state.status==='completed')return state.active_generation===state.generation?{status:'completed',published:true}:publish(base44,user,state);
  if(state.status!=='running')throw new Error(state.error||'Automatic import is not running. The last confirmed snapshot remains active.');
- const result=await batchPowerBIOrders(base44,{generation:state.generation});
- state=result.state;
- return state.status==='completed'?publish(base44,user,state):progress(state,input.attempt+1,Boolean(result.busy));
+ const batches=input.batches??1;
+ if(!Number.isInteger(batches)||batches<1||batches>3)throw new Error('Invalid automatic batch limit.');
+ let busy=false;const started=Date.now();
+ for(let i=0;i<batches&&state.status==='running'&&(i===0||Date.now()-started<60000);i++){
+  const result=await batchPowerBIOrders(base44,{generation:state.generation});state=result.state;busy=Boolean(result.busy);
+  if(busy)break;
+ }
+ return state.status==='completed'?publish(base44,user,state):progress(state,input.attempt+1,busy);
 }
