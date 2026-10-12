@@ -1,10 +1,11 @@
 import React from 'react';
 import DashboardPanel from '@/components/dashboard/DashboardPanel';
 import HomeAgendaRow from '@/components/dashboard/HomeAgendaRow';
+import HomeRoleAgenda from '@/components/dashboard/HomeRoleAgenda';
 import { plannerDay, plannerTime } from '@/components/dashboard/plannerDates';
 import { Link } from 'react-router-dom';
 import { formatDate } from '@/lib/portal';
-export default function HomeAgenda({ tasks, reminders, calendar, onFollowup, onDone, onTaskDone, busy }) {
+export default function HomeAgenda({ tasks, reminders, calendar, roleAgenda, role, onFollowup, onDone, onTaskDone, busy }) {
   const today = plannerDay();
   const taskRows = tasks.rows.map(task => {
     const day = task.due?.slice(0, 10), overdue = day < today;
@@ -24,6 +25,7 @@ export default function HomeAgenda({ tasks, reminders, calendar, onFollowup, onD
     {calendar.more && <button disabled={calendar.loadingMore} onClick={() => calendar.loadMore()} className="mt-3 block text-xs font-semibold text-chart-2 disabled:opacity-50">{calendar.loadingMore ? 'Loading…' : 'Load more Outlook events'}</button>}
     {tasks.more && <button disabled={tasks.loadingMore} onClick={() => tasks.loadMore()} className="mt-3 text-xs font-semibold text-chart-2 disabled:opacity-50">{tasks.loadingMore ? 'Loading…' : 'Load more assigned tasks'}</button>}
     {reminders.more && <button disabled={reminders.loadingMore} onClick={() => reminders.loadMore()} className="mt-3 block text-xs font-semibold text-chart-2 disabled:opacity-50">{reminders.loadingMore ? 'Loading…' : 'Load more follow-ups'}</button>}
+    <HomeRoleAgenda agenda={roleAgenda} role={role} onFollowup={onFollowup} />
     </div>
   </DashboardPanel>;
 }
