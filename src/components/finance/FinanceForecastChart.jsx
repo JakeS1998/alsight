@@ -1,5 +1,4 @@
 import React from 'react';
-import { formatCurrency } from '@/lib/portal';
 import FinanceForecastColumn from '@/components/finance/FinanceForecastColumn';
 export default function FinanceForecastChart({rows,selected}) {
   const maximum=Math.max(...rows.flatMap(row=>[row.invoice,row.po||0]),1);
