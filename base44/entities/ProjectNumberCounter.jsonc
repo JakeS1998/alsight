@@ -1,0 +1,70 @@
+{
+  "name": "ProjectNumberCounter",
+  "type": "object",
+  "properties": {
+    "key": {
+      "type": "string",
+      "enum": [
+        "primary"
+      ]
+    },
+    "last_used": {
+      "type": "integer",
+      "minimum": 0,
+      "maximum": 999999999
+    },
+    "prefix": {
+      "type": "string",
+      "default": "PROJ"
+    },
+    "enabled_from": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "lease_token": {
+      "type": "string"
+    },
+    "lease_until": {
+      "type": "string",
+      "format": "date-time",
+      "default": "1970-01-01T00:00:00.000Z"
+    },
+    "pending_request_id": {
+      "type": "string"
+    },
+    "pending_number": {
+      "type": "integer"
+    },
+    "changed_by": {
+      "type": "string"
+    },
+    "changed_at": {
+      "type": "string",
+      "format": "date-time"
+    }
+  },
+  "required": [
+    "key",
+    "last_used",
+    "prefix",
+    "enabled_from"
+  ],
+  "rls": {
+    "read": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "create": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "update": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "delete": false
+  }
+}

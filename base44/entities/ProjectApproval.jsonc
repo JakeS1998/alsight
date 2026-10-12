@@ -1,0 +1,119 @@
+{
+  "name": "ProjectApproval",
+  "type": "object",
+  "properties": {
+    "project_id": {
+      "type": "string"
+    },
+    "project_name": {
+      "type": "string"
+    },
+    "snapshot": {
+      "type": "object",
+      "additionalProperties": true
+    },
+    "approver_emails": {
+      "type": "array",
+      "maxItems": 20,
+      "items": {
+        "type": "string",
+        "format": "email"
+      }
+    },
+    "route_revision": {
+      "type": "string"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "pending",
+        "approved",
+        "rejected"
+      ],
+      "default": "pending"
+    },
+    "response": {
+      "type": "string",
+      "enum": [
+        "Approve",
+        "Reject"
+      ]
+    },
+    "rejection_reason": {
+      "type": "string",
+      "enum": [
+        "",
+        "Duplicate",
+        "No Sharepoint Folder",
+        "No PCS",
+        "No PSO",
+        "Other (Comments Added)"
+      ]
+    },
+    "comments": {
+      "type": "string",
+      "maxLength": 4000
+    },
+    "assigned_number": {
+      "type": "integer",
+      "minimum": 0
+    },
+    "assigned_project_number": {
+      "type": "string"
+    },
+    "decided_by_id": {
+      "type": "string"
+    },
+    "decided_by_name": {
+      "type": "string"
+    },
+    "decided_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "writeback_status": {
+      "type": "string",
+      "enum": [
+        "pending",
+        "confirmed",
+        "error"
+      ],
+      "default": "pending"
+    },
+    "integration_error": {
+      "type": "string",
+      "maxLength": 1000
+    }
+  },
+  "required": [
+    "project_id",
+    "project_name",
+    "status",
+    "approver_emails"
+  ],
+  "rls": {
+    "read": {
+      "$or": [
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        },
+        {
+          "data.approver_emails": "{{user.email}}"
+        }
+      ]
+    },
+    "create": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "update": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "delete": false
+  }
+}

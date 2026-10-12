@@ -1,0 +1,15 @@
+import React,{useState} from 'react';
+import {Button} from '@/components/ui/button';
+import {Textarea} from '@/components/ui/textarea';
+import projectApprovalClient from '@/components/approvals/projectApprovalClient';
+const reasons=['Duplicate','No Sharepoint Folder','No PCS','No PSO','Other (Comments Added)'];
+export default function ProjectApprovalDecisionForm({request,onSaved,userId,isAdmin}) {
+ const [response,setResponse]=useState('Approve'),[reason,setReason]=useState(''),[comments,setComments]=useState(''),[busy,setBusy]=useState(false),[error,setError]=useState('');
+ const save=async(event)=>{event.preventDefault();setBusy(true);setError('');try{const result=await projectApprovalClient(request.response ? 'retry' : 'respond',{requestId:request.id,response,reason,comments});if(!result.ok){setError(result.error || result.notice);onSaved();}else onSaved(result.notice);}catch(error){setError(error.response?.data?.error || error.message);}finally{setBusy(false);}};
+ if(request.response && request.decided_by_id!==userId && !isAdmin)return <p className="text-sm text-muted-foreground">A decision has been recorded by {request.decided_by_name}. Its approver must retry any incomplete update.</p>;
+ return <form onSubmit={save} className="space-y-3 border-t border-border pt-3">
+  {request.response ? <p className="text-sm">Saved decision: {request.response}{request.assigned_project_number && ` · ${request.assigned_project_number}`}. Retry without allocating another number.</p> : <><label className="block text-sm font-medium">Decision<select className="mt-1 w-full rounded-md border border-input bg-card p-2" value={response} onChange={e=>setResponse(e.target.value)} disabled={busy}><option>Approve</option><option>Reject</option></select></label>{response==='Reject' && <label className="block text-sm font-medium">Rejection reason<select required className="mt-1 w-full rounded-md border border-input bg-card p-2" value={reason} onChange={e=>setReason(e.target.value)} disabled={busy}><option value="">Select a reason</option>{reasons.map(value=><option key={value}>{value}</option>)}</select></label>}<label className="block text-sm font-medium">Comments{response==='Reject' && reason==='Other (Comments Added)' ? ' (required)' : ' (optional)'}<Textarea className="mt-1" value={comments} maxLength={4000} required={response==='Reject' && reason==='Other (Comments Added)'} onChange={e=>setComments(e.target.value)} disabled={busy}/></label></>}
+  {(error || request.integration_error) && <p role="alert" className="text-sm text-destructive">{error || request.integration_error}</p>}
+  <Button disabled={busy}>{busy ? 'Saving…' : request.response ? 'Retry saved decision' : 'Submit decision'}</Button>
+ </form>;
+}

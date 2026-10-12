@@ -1,0 +1,51 @@
+{
+  "name": "ProjectNumberChange",
+  "type": "object",
+  "properties": {
+    "previous_number": {
+      "type": "integer"
+    },
+    "last_used": {
+      "type": "integer"
+    },
+    "reason": {
+      "type": "string",
+      "maxLength": 1000
+    },
+    "changed_by_id": {
+      "type": "string"
+    },
+    "changed_by_name": {
+      "type": "string"
+    },
+    "changed_at": {
+      "type": "string",
+      "format": "date-time"
+    }
+  },
+  "required": [
+    "previous_number",
+    "last_used",
+    "reason",
+    "changed_by_id",
+    "changed_at"
+  ],
+  "rls": {
+    "read": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "create": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "update": {
+      "user_condition": {
+        "role": "project_number_audit_maintenance"
+      }
+    },
+    "delete": false
+  }
+}

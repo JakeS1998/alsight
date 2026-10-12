@@ -1,4 +1,4 @@
-export const approvalTables = {documents:'Legal documents',dma:'Development agreements (DMA)',warranties:'Warranties'};
+export const approvalTables = {documents:'Legal documents',dma:'Development agreements (DMA)',warranties:'Warranties',projects:'New projects'};
 export const approvalRelatedRules = {
  project_bsm:{label:'Linked project BSM',field:'bsm_aad_id',kind:'staff'},
  project_bdm:{label:'Linked project BDM',field:'bdm_aad_id',kind:'staff'},
@@ -14,5 +14,5 @@ export async function loadApprovalRouting(base44,table) {
  if(!approvalTables[table])throw new Error('Choose an approval-enabled document table.');
  const page=await base44.asServiceRole.entities.ApprovalRouting.filter({table},{limit:2});
  if(page.items.length>1)throw new Error('Duplicate approval routing rules need administrator attention.');
- return page.items[0] || {table,named_emails:['jake@allianceleisure.co.uk'],related_rules:[],enabled:true,inherited:true};
+ return page.items[0] || {table,named_emails:table==='projects' ? [] : ['jake@allianceleisure.co.uk'],related_rules:[],enabled:table!=='projects',inherited:true};
 }

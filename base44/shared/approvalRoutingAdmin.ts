@@ -1,6 +1,7 @@
 import {approvalTables,approvalRelatedRules,loadApprovalRouting,liveApproverRoles} from './approvalRoutingConfig.ts';
 import {resolveApprovalRouting} from './approvalRoutingResolve.ts';
 import {approvalEntity} from './documentApprovalRecords.ts';
+import {refreshPendingProjectApprovers} from './projectApprovalIntake.ts';
 const escape=value=>value.replace(/[.*+?^${}()|[\]\\]/g,'\\$&');
 export async function approvalRoutingAdmin(base44,user,input) {
  if(user.role!=='admin')throw new Error('Only administrators can configure approval routing.');
@@ -19,6 +20,7 @@ export async function approvalRoutingAdmin(base44,user,input) {
  if(input.action==='saveRouting'){
   if(typeof input.enabled!=='boolean' || !Array.isArray(input.named_emails) || input.named_emails.length>20 || !Array.isArray(input.related_rules) || input.related_rules.length>8)throw new Error('Invalid routing rule.');
   if(input.named_emails.some(email=>typeof email!=='string' || email.length>250 || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) || input.related_rules.some(key=>!approvalRelatedRules[key]))throw new Error('Choose valid people and linked project roles.');
+  if(input.table==='projects' && input.related_rules.length)throw new Error('New project approvals use specified users only.');
   const named_emails=[...new Set(input.named_emails.map(email=>email.trim().toLowerCase()))],related_rules=[...new Set(input.related_rules)];
   if(input.enabled && !named_emails.length && !related_rules.length)throw new Error('Choose at least one person or linked project role, or disable this route.');
   if(named_emails.length && input.enabled){
@@ -28,7 +30,8 @@ export async function approvalRoutingAdmin(base44,user,input) {
    if(named_emails.some(email=>{const matches=users.filter(u=>u.email?.trim().toLowerCase()===email);return matches.length!==1 || !liveApproverRoles.includes(matches[0].role);}))throw new Error('Every named approver needs a registered internal portal account for live Dataverse approvals.');
   }
   const result=await db.ApprovalRouting.upsert([{table:input.table,named_emails,related_rules,enabled:input.enabled,changed_by:user.id,changed_at:new Date().toISOString()}],{key:'table'});
-  return {rule:result.records[0],notice:'Routing saved. Apply it to existing pending documents below; automatic sync also uses this rule.'};
+  if(input.table==='projects')await refreshPendingProjectApprovers(base44,result.records[0]);
+  return {rule:result.records[0],notice:input.table==='projects' ? 'Project approvers saved and applied to undecided pending projects.' : 'Routing saved. Apply it to existing pending documents below; automatic sync also uses this rule.'};
  }
  if(input.action==='routingPreview'){
   if(typeof input.recordId!=='string' || !/^[a-zA-Z0-9_-]{1,100}$/.test(input.recordId))throw new Error('Choose a linked document.');
