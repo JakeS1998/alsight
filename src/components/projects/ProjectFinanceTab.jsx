@@ -1,9 +1,9 @@
-import React, { useEffect, useState, useMemo } from "react";
+import React, { useMemo } from "react";
 import { base44 } from "@/api/base44Client";
 import { listAll } from "@/components/data/loadAll";
 import { loadProjectPOs, isLegacyProject } from '@/components/projects/poLinking';
 import { formatCurrency } from "@/lib/portal";
-import ProjectCashFlow, { useProjectCashFlow } from '@/components/projects/ProjectCashFlow';
+import ProjectCashFlow from '@/components/projects/ProjectCashFlow';
 import InvoiceReceipts from '@/components/projects/InvoiceReceipts';
 import useProjectPaymentBalance from '@/components/projects/finance/useProjectPaymentBalance';
 import { useFinanceData } from './finance/useFinanceData';
@@ -34,71 +34,23 @@ function Spinner() {
 }
 
 export function ProjectFinanceTab({ project }) {
-  const [pos, setPos] = useState([]);
-  const [lineItems, setLineItems] = useState([]);
-  const [glCodes, setGlCodes] = useState([]);
-  const [customers, setCustomers] = useState([]);
-  const [accounts, setAccounts] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const cashFlow = useProjectCashFlow(project.id);
-  const payments = useProjectPaymentBalance(project);
   const fin = useFinanceData(project);
   const contingency = useProjectClientContingency(project.id);
   const riskScores = useProjectRiskScores(project.id);
   const syncedOrders = useProjectFinanceOrders(project);
+  const salesOrders = useProjectFinanceOrders(project, 'SO');
   const orderCashFlow = useProjectOrderCashFlow(project, syncedOrders.enabled);
-
-  useEffect(() => {
-    (async () => {
-      try {
-        const [poData, liData, glData, custData, accData] = await Promise.all([
-          loadProjectPOs(project).catch(() => []),
-          listAll(base44.entities.PurchaseOrderLineItem).catch(() => []),
-          listAll(base44.entities.GLCode, "-name").catch(() => []),
-          listAll(base44.entities.Customer, "-name").catch(() => []),
-          listAll(base44.entities.Account, "-name").catch(() => []),
-        ]);
-        setPos(poData);
-        setLineItems(liData);
-        setGlCodes(glData);
-        setCustomers(custData);
-        setAccounts(accData);
-      } finally {
-        setLoading(false);
-      }
-    })();
-  }, [project.id]);
-
-  const supplierMap = useMemo(() => {
-    const m = {};
-    accounts.forEach((a) => { if (a.company_number) m[a.company_number] = a.name; });
-    customers.forEach((c) => { if (c.company_number) m[c.company_number] = c.name; });
-    return m;
-  }, [accounts, customers]);
-
-  const poIds = useMemo(() => new Set(pos.map((p) => p.dataverse_id)), [pos]);
-  const projectLineItems = useMemo(() => lineItems.filter((li) => poIds.has(li.po_id)), [lineItems, poIds]);
-  const lineItemsByPo = useMemo(() => {
-    const m = {};
-    projectLineItems.forEach((li) => { (m[li.po_id] = m[li.po_id] || []).push(li); });
-    return m;
-  }, [projectLineItems]);
-
-  const commitments = useMemo(() => pos.filter(po => po.status !== 'inactive' && (po.approved || po.sent)).map(po => ({
-    date: (po.approval_date || po.sent_date || po.created_date || '').slice(0, 10),
-    amount: po.total_net_value != null ? Number(po.total_net_value) : (lineItemsByPo[po.dataverse_id] || []).reduce((sum, li) => sum + (Number(li.net_value) || 0), 0),
-  })).filter(po => po.date && po.amount > 0), [pos, lineItemsByPo]);
-
+  const pos = syncedOrders.data?.items || [];
   const delivery = fin.deliveries?.[0];
   const riskEstimate = useMemo(() => ({ ...riskScoreAllowance(contingency.error ? null : contingency.data ?? null, riskScores.error ? null : riskScores.data), contingency: contingency.error ? null : contingency.data ?? null }), [contingency.data, contingency.error, riskScores.data, riskScores.error]);
   const summary = useMemo(() => commercialSummary(delivery, fin.decisions || [], fin.valuations || [], riskEstimate), [delivery, fin.decisions, fin.valuations, riskEstimate]);
-  const health = useMemo(() => payments.error ? { status: 'watch', factors: [{ label: 'Payment balance could not be verified; commercial health is not confirmed.', level: 'watch' }] } : commercialHealth(summary, fin.valuations || [], payments.data), [summary, fin.valuations, payments.data, payments.error]);
+  const health = useMemo(() => {const result= commercialHealth(summary, fin.valuations || [], null);return {...result,status:result.status==='healthy'?'watch':result.status,factors:[...result.factors,{label:'The Power BI order model does not supply payment receipts; cash balance is not confirmed.',level:'watch'}]};}, [summary, fin.valuations]);
   const consultants = useMemo(() => consultantFees(delivery), [delivery]);
   const alerts = useMemo(() => commercialAlerts(summary, fin.valuations || [], pos, project, consultants), [summary, fin.valuations, pos, project, consultants]);
   const milestones = useMemo(() => commercialMilestones(project, fin.feeProposals || [], pos, fin.jcts || [], fin.valuations || [], delivery), [project, fin.feeProposals, pos, fin.jcts, fin.valuations, delivery]);
   const retention = useMemo(() => retentionInfo(fin.valuations || [], project), [fin.valuations, project]);
 
-  if (loading || fin.loading || contingency.isPending || riskScores.isPending || payments.isPending || (syncedOrders.enabled && syncedOrders.isPending)) return <FinanceComingSoon><Spinner /></FinanceComingSoon>;
+  if (fin.loading || contingency.isPending || riskScores.isPending || (syncedOrders.enabled && syncedOrders.isPending) || (salesOrders.enabled && salesOrders.isPending)) return <FinanceComingSoon><Spinner /></FinanceComingSoon>;
 
   return (
     <FinanceComingSoon>
@@ -109,23 +61,19 @@ export function ProjectFinanceTab({ project }) {
       {riskScores.error && <p role="alert" className="text-sm text-destructive">Unable to calculate risk allowance: {riskScores.error.message}<button type="button" className="ml-2 underline" disabled={riskScores.isFetching} onClick={() => riskScores.refetch()}>Try again</button></p>}
       <CommercialSummary summary={summary} health={health} projectId={project.id} />
 
-      <ProjectCashFlow {...cashFlow}
-        loading={cashFlow.loading || (syncedOrders.enabled && orderCashFlow.isPending)}
-        error={cashFlow.error || (orderCashFlow.error ? `Purchase-order graph could not be loaded: ${orderCashFlow.error.message}` : '')}
-        commitments={orderCashFlow.data?.total > 0 ? orderCashFlow.data.entries : commitments}
+      <ProjectCashFlow entries={[]} powerBI
+        loading={syncedOrders.enabled && orderCashFlow.isPending}
+        error={orderCashFlow.error ? `Power BI purchase-order graph could not be loaded: ${orderCashFlow.error.message}` : ''}
+        commitments={orderCashFlow.data?.entries || []}
         forecast={orderCashFlow.data?.forecast}
         missingDates={orderCashFlow.data?.missingDates || 0} missingValues={orderCashFlow.data?.missingValues || 0} />
 
       <ValuationPosition project={project} valuations={fin.valuations || []} />
 
       {syncedOrders.enabled && syncedOrders.error && <p role="alert" className="rounded-panel border border-border bg-card p-4 text-sm text-destructive">Synced purchase orders could not be loaded: {syncedOrders.error.message}<button type="button" className="ml-2 underline" onClick={()=>syncedOrders.refetch()}>Try again</button></p>}
-      {syncedOrders.data?.total > 0 ? <ProjectSyncedPurchaseOrders project={project} orders={syncedOrders}/> : pos.length > 0 ? (
-        <FinancePurchaseOrders pos={pos} lineItemsByPo={lineItemsByPo} supplierMap={supplierMap} project={project} isLegacy={isLegacyProject(project)} />
-      ) : !syncedOrders.error ? (
-        <div className="rounded-2xl border border-dashed border-slate-300 bg-white py-12 text-center">
-          <p className="text-sm text-slate-500">No purchase orders linked to {project.name}{project.project_number ? ` (${project.project_number})` : ''}.</p>
-        </div>
-      ) : null}
+      {syncedOrders.data && <ProjectSyncedPurchaseOrders project={project} orders={syncedOrders}/>}
+      {salesOrders.error && <p role="alert" className="text-sm text-destructive">Power BI sales orders could not be loaded: {salesOrders.error.message}<button type="button" className="ml-2 underline" onClick={()=>salesOrders.refetch()}>Try again</button></p>}
+      {salesOrders.data && <ProjectSyncedPurchaseOrders project={project} orders={salesOrders} type="SO"/>}
 
       <VariationsSummary project={project} decisions={fin.decisions || []} />
 
@@ -138,7 +86,7 @@ export function ProjectFinanceTab({ project }) {
 
       <CommercialAlerts alerts={alerts} />
 
-      <InvoiceReceipts invoices={cashFlow.invoices} loading={cashFlow.loading} error={cashFlow.error} />
+      <p className="text-sm text-muted-foreground">PO/SO figures come only from the Power BI model. Invoice receipts, payment dates and approval details are not supplied by this model; sales orders are not evidence of payment.</p>
     </div>
     </FinanceComingSoon>
   );

@@ -6,9 +6,9 @@ export async function financeDashboardSummary(base44,state,base){
  const grouped=await db.FinanceDataverseRecord.aggregate({query:base,groupBy:['kind','source_table','has_amount'],sum:'amount'});
  if(grouped.truncated)throw new Error('Finance coverage exceeded the grouping limit. Partial figures are not displayed.');
  const poScope=await financeLinkedPOScope(db,state,base);
- const linked=await db.FinanceDataverseRecord.aggregate({query:{...base,$or:[{kind:'purchase_orders',project_key:poScope.headers.project_key},{kind:'line_items',parent_id:poScope.lines.parent_id}]},groupBy:['kind','has_amount'],sum:'amount'});
+ const linked=await db.FinanceDataverseRecord.aggregate({query:{...base,$or:[{kind:'purchase_orders',project_key:poScope.headers.project_key},...(state.source==='powerbi'?[{kind:'sales_orders',project_key:poScope.headers.project_key}]:[]),{kind:'line_items',parent_id:poScope.lines.parent_id}]},groupBy:['kind','has_amount'],sum:'amount'});
  if(linked.truncated)throw new Error('Linked PO totals exceeded the grouping limit. Partial figures are not displayed.');
- const reportingRows=[...grouped.rows.filter(row=>!['purchase_orders','line_items'].includes(row.kind)),...linked.rows];
+ const reportingRows=[...grouped.rows.filter(row=>!['purchase_orders','line_items',...(state.source==='powerbi'?['sales_orders']:[])].includes(row.kind)),...linked.rows];
  const amounts=[];
  for(const row of reportingRows){let total=amounts.find(r=>r.kind===row.kind&&r.has_amount===row.has_amount);if(!total){total={kind:row.kind,has_amount:row.has_amount,count:0,sum_amount:0};amounts.push(total);}total.count+=row.count;total.sum_amount+=row.sum_amount||0;}
  const matches=await db.FinanceProjectMapping.aggregate({query:{dataset_id:state.namespace},groupBy:'status'});

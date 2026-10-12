@@ -38,16 +38,17 @@ export default async function(req){
   if(input.action==='dvBatch')return Response.json(await syncFinanceBatch(base44,input));
   if(input.action==='pipeline')return Response.json(await commercialPipelineSummary(base44));
   const privilegedState=admin.includes(input.action)||['projectOrders','projectOrderDetail','projectOrderCashFlow'].includes(input.action);
-  const dataverseState=privilegedState?await financeSyncState(base44):(await base44.entities.FinanceDataverseSync.filter({key:'primary'},{limit:1})).items[0]||null;
-  const powerBI=publishedPowerBIState(await powerBIOrderState(base44));
-  const state=powerBI||dataverseState;
+  const importedPowerBI=await powerBIOrderState(base44),powerBI=publishedPowerBIState(importedPowerBI);
+  const state=powerBI;
+  if(input.action==='status')return Response.json({source:'powerbi',configured:Boolean(importedPowerBI),confirmed:Boolean(powerBI),sync:powerBI,report:powerBI?{name:powerBI.report_name,url:powerBI.report_url}:null});
+  if(['summary','list','orders','invoices','transactions','dvDetail'].includes(input.action)&&!powerBI)throw new Error('Complete and activate the Power BI order import before loading finance reporting. Dataverse finance is no longer used by these views.');
   if(['projectOrders','projectOrderDetail','projectOrderCashFlow'].includes(input.action))return Response.json(await readProjectFinanceOrders(base44,state,input));
   if(input.action==='applyNameLinks')return Response.json(await applyLegacyFinanceNameMappings(base44,state,input));
   if(input.action==='applyCodeLinks')return Response.json(await applyWorkbookFinanceMappings(base44,state,input));
   if(input.action==='forecast')return Response.json(await readFinanceForecast(base44,user,state,input));
   if(powerBI){
    if(input.action==='status')return Response.json({source:'powerbi',configured:true,confirmed:true,sync:powerBI,report:{name:powerBI.report_name,url:powerBI.report_url}});
-   if(['transactions','summary','list','orders','invoices','dvDetail'].includes(input.action))return Response.json(await readPowerBIOrderFinance(base44,powerBI,dataverseState,input));
+   if(['transactions','summary','list','orders','invoices','dvDetail'].includes(input.action))return Response.json(await readPowerBIOrderFinance(base44,powerBI,input));
   }
   if(state){
    if(input.action==='status')return Response.json({source:'dataverse',configured:true,confirmed:Boolean(state.active_generation),sync:state,report:state.active_generation?{name:'Dataverse finance tables',url:null}:null});

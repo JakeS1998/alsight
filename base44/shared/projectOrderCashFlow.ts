@@ -1,6 +1,6 @@
-export async function projectOrderCashFlow(db, base, query) {
+export async function projectOrderCashFlow(db, base, query, powerBI = false) {
  const total = await db.FinanceDataverseRecord.count(query);
- const outgoing = {...query, $or: [{approved:true},{sent:true}]};
+ const outgoing = powerBI ? query : {...query, $or: [{approved:true},{sent:true}]};
  const headers = await db.FinanceDataverseRecord.aggregate({query:outgoing,groupBy:['source_id','date','has_amount'],sum:'amount',limit:1000});
  if(headers.truncated)throw new Error('Purchase-order history exceeds the graph reporting limit.');
  const missingIds = headers.rows.filter(row=>!row.has_amount).map(row=>row.source_id);
@@ -13,7 +13,7 @@ export async function projectOrderCashFlow(db, base, query) {
   const amount=row.has_amount?row.sum_amount:incomplete.has(row.source_id)?null:totals.get(row.source_id);
   if(!row.date||!Number.isFinite(Date.parse(row.date))){missingDates+=row.count;continue;}
   if(amount==null||!Number.isFinite(amount)){missingValues+=row.count;continue;}
-  entries.push({date:row.date,amount,type:'spent'});
+  if(!powerBI)entries.push({date:row.date,amount,type:'spent'});
  }
- return {entries,total,missingDates,missingValues,available:true};
+ return {entries,total,missingDates,missingValues,available:!powerBI};
 }
