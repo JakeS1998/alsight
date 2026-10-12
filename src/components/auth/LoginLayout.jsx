@@ -1,5 +1,6 @@
 import React from "react";
 import Logo from "@/components/Logo";
+import PortalFooter from '@/components/PortalFooter';
 import LoopingHeroVideo from "@/components/auth/LoopingHeroVideo";
 
 const HERO_IMAGE = "https://allianceleisure.co.uk/wp-content/uploads/2025/10/Wilsons-Cath-Thom-Open-Day-101025-31.jpg";
@@ -8,7 +9,7 @@ const FEATURED_PROJECT_NAME = "Featured leisure centre";
 
 export default function LoginLayout({ children }) {
   return (
-    <main className="relative flex min-h-[100svh] flex-col overflow-hidden bg-als-navy font-body lg:block lg:min-h-screen">
+    <><main className="relative flex min-h-[100svh] flex-col overflow-hidden bg-als-navy font-body lg:block lg:min-h-screen">
       <div className="absolute inset-0 bg-cover bg-center" style={{ backgroundImage: `url(${HERO_IMAGE})` }} aria-hidden="true" />
       <LoopingHeroVideo poster={HERO_IMAGE} />
       <div className="absolute inset-0 bg-als-navy/60" aria-hidden="true" />
@@ -36,6 +37,6 @@ export default function LoginLayout({ children }) {
         </section>
       </div>
       <p className="relative z-10 px-5 pb-6 text-xs text-white/75 sm:px-10 lg:absolute lg:bottom-6 lg:left-[8vw] lg:p-0">{FEATURED_PROJECT_NAME} · Alliance Leisure Project</p>
-    </main>
+    </main><PortalFooter/></>
   );
 }

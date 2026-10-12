@@ -60,13 +60,16 @@ const Lookout = lazy(() => import('@/pages/Lookout'));
 const LookoutAdmin = lazy(() => import('@/pages/LookoutAdmin'));
 const ApprovalCentre = lazy(() => import('@/pages/ApprovalCentre.jsx'));
 const ApprovalSetup = lazy(() => import('@/pages/ApprovalSetup.jsx'));
+const PrivacyPolicy = lazy(() => import('@/pages/PrivacyPolicy'));
+const TermsOfService = lazy(() => import('@/pages/TermsOfService'));
 
 const AuthenticatedApp = () => {
   const { isLoadingAuth, isLoadingPublicSettings, authError, user } = useAuth();
   const location = useLocation();
+  const isPublicLegalPage = ['/privacy-policy','/terms-of-service'].includes(location.pathname.replace(/\/$/,''));
   const useStakeholderView = user?.role === 'framework_stakeholder';
 
-  if (isLoadingPublicSettings || isLoadingAuth) {
+  if (!isPublicLegalPage && (isLoadingPublicSettings || isLoadingAuth)) {
     return (
       <div className="fixed inset-0 flex items-center justify-center">
         <div className="w-8 h-8 border-4 border-slate-200 border-t-slate-800 rounded-full animate-spin"></div>
@@ -74,7 +77,7 @@ const AuthenticatedApp = () => {
     );
   }
 
-  if (authError) {
+  if (authError && !isPublicLegalPage) {
     if (authError.type === 'user_not_registered') {
       return <UserNotRegisteredError />;
     }
@@ -89,6 +92,8 @@ const AuthenticatedApp = () => {
       <Route path="/register" element={<Register />} />
       <Route path="/forgot-password" element={<ForgotPassword />} />
       <Route path="/reset-password" element={<ResetPassword />} />
+      <Route path="/privacy-policy" element={<PrivacyPolicy />} />
+      <Route path="/terms-of-service" element={<TermsOfService />} />
       <Route element={<ProtectedRoute unauthenticatedElement={<Navigate to={`/login?returnTo=${encodeURIComponent(location.pathname + location.search)}`} replace />} />}>
         <Route path="/risk-approvals/:packetId" element={<RiskApprovalReview />} />
         <Route path="/dataverse-callback" element={<DataverseCallback />} />
