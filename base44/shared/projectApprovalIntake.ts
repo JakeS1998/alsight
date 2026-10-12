@@ -1,4 +1,5 @@
 import {withProjectNumberLease} from './projectNumberLease.ts';
+import {advanceSyncedProjectCounter} from './projectNumberSync.ts';
 export async function projectCounter(base44) {
  const page=await base44.asServiceRole.entities.ProjectNumberCounter.filter({key:'primary'},{limit:2});
  if(page.items.length!==1)throw new Error('The shared project-number counter needs administrator setup.');
@@ -17,11 +18,12 @@ export async function refreshPendingProjectApprovers(base44,rule) {
 export async function receiveProjectApproval(base44,projectId) {
  const db=base44.asServiceRole.entities,counter=await projectCounter(base44),project=await db.Project.get(projectId);
  if(Date.parse(project.created_date)<Date.parse(counter.enabled_from))return {skipped:true};
- return withProjectNumberLease(base44,async()=>{
+ return withProjectNumberLease(base44,async(lockedCounter,assertLease)=>{
  const old=(await db.ProjectApproval.filter({project_id:project.id},{limit:2})).items;
  if(old.length>1)throw new Error('Duplicate project approvals need administrator attention.');
  let request=old[0];
  if(!request){
+  await advanceSyncedProjectCounter(base44,lockedCounter,project,assertLease);
   const rule=await projectRoute(base44);
   const snapshot=Object.fromEntries(['description','client_name','estimated_value','site_postcode','link_to_legals','link_to_pcs','link_to_pso','link_to_project_questionnaire','dataverse_id'].map(key=>[key,project[key] ?? null]));
   const result=await db.ProjectApproval.upsert([{project_id:project.id,project_name:project.name,snapshot,approver_emails:rule.enabled ? rule.named_emails : [],route_revision:rule.changed_at || '',status:'pending'}],{key:'project_id'});
