@@ -1,0 +1,2 @@
+export async function powerBIOrderState(base44){return (await base44.asServiceRole.entities.PowerBIOrderImport.filter({key:'primary'},{limit:1})).items[0]||null;}
+export function publishedPowerBIState(state){return state?.active_generation?{...state,source:'powerbi',generation:state.active_generation,tables:{list:[]},last_completed_at:state.confirmed_at}:null;}

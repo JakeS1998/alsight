@@ -1,0 +1,122 @@
+{
+  "name": "PowerBIOrderImport",
+  "type": "object",
+  "properties": {
+    "key": {
+      "type": "string",
+      "enum": [
+        "primary"
+      ]
+    },
+    "namespace": {
+      "type": "string"
+    },
+    "dataset_id": {
+      "type": "string"
+    },
+    "report_url": {
+      "type": "string"
+    },
+    "report_name": {
+      "type": "string"
+    },
+    "sources": {
+      "type": "object",
+      "additionalProperties": true
+    },
+    "revision": {
+      "type": "string"
+    },
+    "generation": {
+      "type": "string"
+    },
+    "active_generation": {
+      "type": "string"
+    },
+    "active_sources": {
+      "type": "object",
+      "additionalProperties": true
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "configured",
+        "running",
+        "completed",
+        "error"
+      ]
+    },
+    "table_index": {
+      "type": "integer"
+    },
+    "tables": {
+      "type": "object",
+      "additionalProperties": true
+    },
+    "lease_token": {
+      "type": "string"
+    },
+    "lease_until": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "last_completed_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "confirmed_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "confirmed_by": {
+      "type": "string"
+    },
+    "error": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "key",
+    "namespace",
+    "dataset_id",
+    "sources",
+    "revision",
+    "status"
+  ],
+  "rls": {
+    "read": {
+      "$or": [
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        },
+        {
+          "user_condition": {
+            "role": "finance"
+          }
+        },
+        {
+          "user_condition": {
+            "role": "director"
+          }
+        }
+      ]
+    },
+    "create": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "update": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "delete": {
+      "user_condition": {
+        "role": "admin"
+      }
+    }
+  }
+}

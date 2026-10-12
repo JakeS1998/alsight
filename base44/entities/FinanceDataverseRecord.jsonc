@@ -18,6 +18,7 @@
         "suppliers",
         "customers",
         "purchase_orders",
+        "sales_orders",
         "line_items",
         "invoices"
       ]
@@ -50,6 +51,9 @@
       "type": "string"
     },
     "supplier_source_id": {
+      "type": "string"
+    },
+    "supplier_name": {
       "type": "string"
     },
     "customer_source_id": {

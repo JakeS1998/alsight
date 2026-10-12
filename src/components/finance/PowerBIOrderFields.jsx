@@ -1,0 +1,7 @@
+import React from 'react';
+import {Label} from '@/components/ui/label';
+export default function PowerBIOrderFields({type,value,columns,onChange}){
+ const tables=[...new Set(columns.map(c=>c.Table))];
+ const fields=[['project','Project name'],['code','Original project code'],['reference','Unique order reference'],['value','Order value (confirm GBP excluding VAT)'],['supplier','Supplier name (optional)']];
+ return <fieldset className="space-y-3 rounded-panel border border-border p-4"><legend className="px-2 font-semibold">{type==='PO'?'Purchase orders':'Sales orders'}</legend><Label>Model table<select aria-label={`${type} model table`} className="mt-1 block w-full rounded-md border border-input bg-card p-2" value={value.table||''} onChange={e=>onChange({table:e.target.value})}><option value="">Select table</option>{tables.map(t=><option key={t}>{t}</option>)}</select></Label>{fields.map(([key,label])=><Label key={key} className="block">{label}<select aria-label={`${type} ${label}`} className="mt-1 block w-full rounded-md border border-input bg-card p-2" value={value[key]||''} onChange={e=>onChange({...value,[key]:e.target.value})}><option value="">Not mapped</option>{columns.filter(c=>c.Table===value.table&&(key!=='value'||['Number','Decimal','Currency','Integer','Double','Int64','Decimal Number','Fixed Decimal Number'].includes(c.DataType))).map(c=><option key={c.Column} value={c.Column}>{c.Column} ({c.DataType})</option>)}</select></Label>)}</fieldset>;
+}

@@ -1,0 +1,2 @@
+import {base44} from '@/api/base44Client';
+export default async function powerBIOrdersClient(input){const {data}=await base44.functions.invoke('managePowerBIOrders',input);if(data.error)throw new Error(data.error);return data;}

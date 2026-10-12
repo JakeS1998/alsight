@@ -9,7 +9,7 @@ export default async function(req){
   if(req.method!=='POST')return Response.json({error:'Method not allowed.'},{status:405});
   const raw=await req.text();if(raw.length>15000)throw new Error('Sign-in response is too large.');
   const input=JSON.parse(raw);
-  if(!['status','begin','finish','check','retry','discover','disconnect'].includes(input.action))throw new Error('Invalid Power BI connection operation.');
+  if(!['status','begin','finish','check','retry','discover','inspectOrders','disconnect'].includes(input.action))throw new Error('Invalid Power BI connection operation.');
   if(input.action==='begin')return Response.json(await beginPowerBISignIn(base44,user));
   if(input.action==='finish')return Response.json(await finishPowerBISignIn(base44,user,input));
   const record=await powerBIConnectionRecord(base44);
@@ -26,6 +26,10 @@ export default async function(req){
   if(!token)throw new Error('Sign in with Microsoft before checking report access.');
   const report=await powerRequest(token,`groups/${address.workspace_id}/reports/${address.report_id}`);
   if(!/^[0-9a-f-]{36}$/i.test(report.datasetId||''))throw new Error('This report does not expose a supported semantic model.');
+  if(input.action==='inspectOrders'){
+   const rows=await Promise.all(['PO_Log','SO_Log'].map(async table=>({table,summary:await powerQuery(token,report.datasetId,`EVALUATE ROW("Rows",COUNTROWS('${table}'),"Orders",DISTINCTCOUNT('${table}'[Document number]),"Total",SUM('${table}'[Total]),"Missing",COUNTBLANK('${table}'[Total]))`),sample:await powerQuery(token,report.datasetId,`EVALUATE TOPN(5,SELECTCOLUMNS('${table}',"Reference",[Document number],"Project",[Project name],"Code",[Project],"Amount",[Total]),[Reference],ASC)`)})));
+   return Response.json({rows});
+  }
   if(input.action==='discover'){
    const columns=await powerQuery(token,report.datasetId,'EVALUATE SELECTCOLUMNS(INFO.VIEW.COLUMNS(), "Table", [Table], "Column", [Name], "DataType", [DataType], "Hidden", [IsHidden])');
    if(columns.length>3000)throw new Error('Model metadata exceeds the supported mapping size.');
