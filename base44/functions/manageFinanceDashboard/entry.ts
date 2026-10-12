@@ -19,6 +19,7 @@ import {readPowerBIOrderFinance} from '../../shared/powerBIOrderReads.ts';
 import {readProjectNumberMappings,saveProjectNumberMapping} from '../../shared/financeProjectNumberMapping.ts';
 import {readPowerBIBalances} from '../../shared/powerBIBalances.ts';
 import {commercialRoles,commercialAccessScope} from '../../shared/commercialAccessScope.ts';
+import {readPowerBIBalanceTrend} from '../../shared/powerBIBalanceTrend.ts';
 export default async function(req){
  try{
   const base44=createClientFromRequest(req),user=await base44.auth.me();
@@ -27,9 +28,9 @@ export default async function(req){
   if(req.method!=='POST')return Response.json({error:'Method not allowed.'},{status:405});
   const raw=await req.text();if(raw.length>20000)throw new Error('Request too large.');const input=JSON.parse(raw);
   if(!commercialRoles.includes(user.role))return Response.json({error:'Commercial reporting access required.'},{status:403});
-  const actions=['balanceModel','balanceTrend','balanceSummary','balanceInvoices','recalculatePOHeaders','pipeline','projectOrders','projectOrderDetail','projectOrderCashFlow','applyNameLinks','applyCodeLinks','transactions','dvMappingStatus','dvSaveMapping','forecast','dvContinue','dvStart','dvBatch','dvDetail','dvDiscover','dvInspect','status','configure','preview','confirm','summary','list','numberMappings','mapNumber','mappings','projects','map','orders','poDetail','configureInvoices','invoices'];
+  const actions=['balanceTrend','balanceSummary','balanceInvoices','recalculatePOHeaders','pipeline','projectOrders','projectOrderDetail','projectOrderCashFlow','applyNameLinks','applyCodeLinks','transactions','dvMappingStatus','dvSaveMapping','forecast','dvContinue','dvStart','dvBatch','dvDetail','dvDiscover','dvInspect','status','configure','preview','confirm','summary','list','numberMappings','mapNumber','mappings','projects','map','orders','poDetail','configureInvoices','invoices'];
   if(!actions.includes(input.action))throw new Error('Invalid finance operation.');
-  const admin=['balanceModel','recalculatePOHeaders','applyNameLinks','applyCodeLinks','dvMappingStatus','dvSaveMapping','dvContinue','dvStart','dvBatch','dvDiscover','dvInspect','configure','preview','confirm','numberMappings','mapNumber','mappings','projects','map','configureInvoices'];
+  const admin=['recalculatePOHeaders','applyNameLinks','applyCodeLinks','dvMappingStatus','dvSaveMapping','dvContinue','dvStart','dvBatch','dvDiscover','dvInspect','configure','preview','confirm','numberMappings','mapNumber','mappings','projects','map','configureInvoices'];
   if(admin.includes(input.action)&&user.role!=='admin')return Response.json({error:'Administrator access required.'},{status:403});
   if(input.action==='recalculatePOHeaders')return Response.json(await recalculateBlankPOHeaders(base44));
   if(input.action==='dvMappingStatus')return Response.json(await financeMappingStatus(base44));
@@ -43,9 +44,10 @@ export default async function(req){
   const privilegedState=admin.includes(input.action)||['projectOrders','projectOrderDetail','projectOrderCashFlow'].includes(input.action);
   const importedPowerBI=await powerBIOrderState(base44),powerBI=publishedPowerBIState(importedPowerBI);
   const state=powerBI;
-  if(input.action==='balanceModel')return Response.json({measures:await powerQuery(await powerToken(base44),state.dataset_id,'EVALUATE SELECTCOLUMNS(INFO.VIEW.MEASURES(), "Name", [Name], "Expression", [Expression], "Table", [Table])')});
+
   const scope=await commercialAccessScope(base44,user,state),reporting=scope.client;
   if(input.action==='pipeline')return Response.json(await commercialPipelineSummary(reporting));
+  if(input.action==='balanceTrend')return Response.json(await readPowerBIBalanceTrend(base44,state,input,scope));
   
   if(['balanceSummary','balanceInvoices'].includes(input.action))return Response.json(await readPowerBIBalances(base44,user,state,input,scope));
   if(input.action==='status')return Response.json({source:'powerbi',configured:Boolean(importedPowerBI),confirmed:Boolean(powerBI),restricted:scope.restricted,sync:scope.restricted&&powerBI?{active_generation:powerBI.active_generation,last_completed_at:powerBI.last_completed_at,status:powerBI.status}:powerBI,report:powerBI?{name:powerBI.report_name,...(!scope.restricted?{url:powerBI.report_url}:{})}:null});

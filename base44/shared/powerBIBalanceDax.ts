@@ -9,7 +9,7 @@ export function balanceVariables(asOf,codes=null){
  VAR amounts=ADDCOLUMNS(FILTER(grouped,ABS([Control])>0.005 && [Allowed]=1 && [Blocked]=0),"Balance",IF(ISBLANK([Entered]),BLANK(),ROUND((ABS([Entered])-ABS(COALESCE([Paid],0)))*SIGN([Control])*IF([Kind]="creditors",-1,1),2)),"Days",IF(ISBLANK([DueDate]),-1,MAX(0,DATEDIFF([DueDate],todayDate,DAY))))
  VAR invoices=ADDCOLUMNS(FILTER(amounts,ISBLANK([Balance])||ABS([Balance])>0.005),"Bucket",SWITCH(TRUE(),ISBLANK([Balance]),"Unknown balance",ISBLANK([DueDate]),"No due date",[Days]=0,"Current",[Days]<=30,"1–30 days",[Days]<=60,"31–60 days",[Days]<=90,"61–90 days","90+ days"))`;
 }
-export function balanceSummaryDax(asOf,codes=null){return `EVALUATE ${balanceVariables(asOf,codes)} RETURN GROUPBY(invoices,[Kind],[Bucket],"Amount",SUMX(CURRENTGROUP(),[Balance]),"Invoices",COUNTX(CURRENTGROUP(),1))`;}
+export function balanceSummaryDax(asOf,codes=null){return `EVALUATE ${balanceVariables(asOf,codes)} VAR summary=GROUPBY(invoices,[Kind],[Bucket],"Amount",SUMX(CURRENTGROUP(),[Balance]),"Invoices",COUNTX(CURRENTGROUP(),1),"DaysTotal",SUMX(CURRENTGROUP(),IF(ISBLANK([DueDate]),0,DATEDIFF([DueDate],todayDate,DAY))),"DatedInvoices",SUMX(CURRENTGROUP(),IF(ISBLANK([DueDate]),0,1))) RETURN ADDCOLUMNS(summary,"HistoricDays",VAR selectedKind=[Kind] RETURN AVERAGEX(FILTER(grouped,[Kind]=selectedKind && [Allowed]=1 && [Blocked]=0 && NOT(ISBLANK([DueDate])) && NOT(ISBLANK([PaidDate])) && NOT(ISBLANK([Entered])) && ABS(ABS([Entered])-ABS([Paid]))<=0.005),DATEDIFF([DueDate],[PaidDate],DAY)))`;}
 export function balanceInvoiceDax(asOf,input,codes=null){
  const tests=['NOT(ISBLANK([Balance]))'];
  if(input.kind!=='all')tests.push(`[Kind]=${literal(input.kind)}`);

@@ -53,6 +53,9 @@
 .portal-main .finance-briefing table th { padding:14px 12px; background:hsl(var(--secondary)); font-weight:800; color:hsl(var(--foreground)); }
 .portal-main .finance-briefing table td { padding:14px 12px; border-bottom:1px solid hsl(var(--border)); vertical-align:top; }
 .finance-briefing table tr.bg-primary\/10 td { background:hsl(var(--primary) / .14); }
+.portal-main .finance-briefing .finance-balance-invoices table { font-size:12px; }
+.portal-main .finance-briefing .finance-balance-invoices table :is(th,td) { padding:8px 10px; }
+.finance-briefing .finance-balance-invoices button { padding:6px 12px; font-size:12px; }
 .finance-briefing .finance-month-button { display:inline-block; font:inherit; font-weight:800; color:hsl(var(--foreground)); background:none; border:0; text-decoration:underline; text-underline-offset:4px; cursor:pointer; padding:0; transition:opacity .2s; }
 .finance-briefing .finance-month-button:hover { color:hsl(var(--primary)); }
 .finance-briefing .finance-month-button:focus-visible { outline:3px solid hsl(var(--primary)); }

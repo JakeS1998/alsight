@@ -7,7 +7,7 @@ export async function readPowerBIBalances(base44,user,state,input,scope){
  const token=await powerToken(base44);
  if(input.action==='balanceSummary'){
   const rows=await powerQuery(token,state.dataset_id,balanceSummaryDax(asOf,scope.codes));
-  const totals=['creditors','debtors'].map(kind=>{const groups=rows.filter(r=>r.Kind===kind),missing=groups.find(r=>r.Bucket==='Unknown balance')?.Invoices||0;return {kind,amount:missing?null:groups.reduce((n,r)=>n+(r.Amount||0),0),overdue:missing?null:groups.filter(r=>['1–30 days','31–60 days','61–90 days','90+ days'].includes(r.Bucket)).reduce((n,r)=>n+(r.Amount||0),0),missing};});
+  const totals=['creditors','debtors'].map(kind=>{const groups=rows.filter(r=>r.Kind===kind),missing=groups.find(r=>r.Bucket==='Unknown balance')?.Invoices||0;return {kind,amount:missing?null:groups.reduce((n,r)=>n+(r.Amount||0),0),overdue:missing?null:groups.filter(r=>['1–30 days','31–60 days','61–90 days','90+ days'].includes(r.Bucket)).reduce((n,r)=>n+(r.Amount||0),0),missing,current_days:groups.reduce((n,r)=>n+(r.DatedInvoices||0),0)?groups.reduce((n,r)=>n+(r.DaysTotal||0),0)/groups.reduce((n,r)=>n+(r.DatedInvoices||0),0):null,historic_days:groups[0]?.HistoricDays??null};});
   return {rows,totals,as_of:asOf,read_at:new Date().toISOString(),scope:scope.restricted?'projects':'company'};
  }
  const kind=input.kind||'all',age=input.age||'all',search=String(input.search||'').trim();
