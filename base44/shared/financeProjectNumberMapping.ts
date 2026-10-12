@@ -7,12 +7,16 @@ export async function readProjectNumberMappings(base44,state,input){
  const codes=page.items;if(!codes.length)return {...page,items:[]};
  const pattern={$regex:projectNumberPattern(codes),$options:'i'};
  const [groups,orders]=await Promise.all([
-  db.FinanceProjectMapping.aggregate({query:{...base,source_code:pattern},groupBy:['source_code','project_id','source_name'],limit:1000}),
+  db.FinanceProjectMapping.aggregate({query:{...base,source_code:pattern},groupBy:['source_code','project_id','source_name','status'],limit:1000}),
   db.FinanceDataverseRecord.aggregate({query:{namespace:state.namespace,generation:state.generation,kind:{$in:['purchase_orders','sales_orders']},project_code:pattern},groupBy:'project_code',limit:1000})
  ]);
  if(groups.truncated||orders.truncated)throw new Error('Too many source groups for this page.');
  const ids=[...new Set(groups.rows.map(r=>r.project_id).filter(Boolean))],projects=ids.length?(await db.Project.filter({id:{$in:ids}},{limit:1000,fields:['name','project_number']})).items:[];
- return {...page,items:codes.map(code=>{const rows=groups.rows.filter(r=>mainProjectNumber(r.source_code)===code),linked=rows.filter(r=>r.project_id),complete=linked.length>0&&rows.every(r=>r.project_id===linked[0].project_id),p=complete?projects.find(p=>p.id===linked[0].project_id):null;return {source_key:code,source_code:code,source_name:[...new Set(rows.map(r=>r.source_name).filter(name=>typeof name==='string'&&name.trim()))].join(' / ')||`Project number ${code}`,code_group:true,status:complete?'manual':linked.length?'ambiguous':'unmatched',project_id:p?.id||'',project_name:p?.name||'',project_code:p?.project_number||'',source_groups:rows.reduce((n,r)=>n+r.count,0),order_count:orders.rows.filter(r=>mainProjectNumber(r.project_code)===code).reduce((n,r)=>n+r.count,0),source_codes:[...new Set(rows.map(r=>r.source_code))]};})};
+ return {...page,items:codes.map(code=>{
+  const rows=groups.rows.filter(r=>mainProjectNumber(r.source_code)===code),linked=rows.filter(r=>r.project_id),complete=linked.length>0&&rows.every(r=>r.project_id===linked[0].project_id),p=complete?projects.find(p=>p.id===linked[0].project_id):null;
+  const status=complete?(rows.every(r=>r.status==='automatic')?'automatic':'manual'):linked.length?'ambiguous':'unmatched';
+  return {source_key:code,source_code:code,source_name:[...new Set(rows.map(r=>r.source_name).filter(name=>typeof name==='string'&&name.trim()))].join(' / ')||`Project number ${code}`,code_group:true,status,project_id:p?.id||'',project_name:p?.name||'',project_code:p?.project_number||'',source_groups:rows.reduce((n,r)=>n+r.count,0),order_count:orders.rows.filter(r=>mainProjectNumber(r.project_code)===code).reduce((n,r)=>n+r.count,0),source_codes:[...new Set(rows.map(r=>r.source_code))]};
+ })};
 }
 export async function saveProjectNumberMapping(base44,user,input,state){
  if(typeof input.sourceCode!=='string'||!input.sourceCode.trim()||input.sourceCode.length>250||typeof input.projectId!=='string'||input.projectId.length>100)throw new Error('Choose a project number and an existing project.');
