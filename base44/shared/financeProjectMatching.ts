@@ -1,4 +1,5 @@
 import {workbookFinanceMatches} from './financeWorkbookMatching.ts';
+import {savedProjectNumberRules} from './financeProjectNumberMapping.ts';
 import {namePattern} from './financeProjectNames.ts';
 import {legacyFinanceNameMatches} from './financeNameMatching.ts';
 export {namePattern} from './financeProjectNames.ts';
@@ -9,10 +10,13 @@ export async function resolveFinanceProjects(base44,config,rows){
  if(!keyed.length)return [];
  const previous=(await db.FinanceProjectMapping.filter({dataset_id:config.dataset_id,source_key:{$in:keyed.map(r=>r.source_key)}},{limit:100})).items;
  const workbook=await workbookFinanceMatches(base44,keyed),updates=[],result=[];
+ const numberRules=await savedProjectNumberRules(base44,config.dataset_id,[...new Set(keyed.map(r=>String(r.Code||'')).filter(Boolean))]);
  const pending=keyed.filter(row=>!previous.find(m=>m.source_key===row.source_key)?.project_id&&!workbook.get(String(row.Code||'').trim().toUpperCase())?.project_id);
  const names=await legacyFinanceNameMatches(base44,pending);
  for(let i=0;i<keyed.length;i+=3){const batch=await Promise.all(keyed.slice(i,i+3).map(async row=>{
  const old=previous.find(m=>m.source_key===row.source_key),codeMatch=workbook.get(String(row.Code||'').trim().toUpperCase());
+ const rule=numberRules.get(String(row.Code||''));
+ if(rule){const mapping={source_key:row.source_key,dataset_id:config.dataset_id,source_name:String(row.Project||''),source_code:String(row.Code||''),...rule,linked_at:new Date().toISOString()};updates.push(mapping);return {...row,mapping:{...old,...mapping}};}
  if(old?.project_id||old?.status==='manual')return {...row,mapping:old};
  const nameMatch=names.get(row.source_key);
  if(nameMatch?.project_id){const mapping={source_key:row.source_key,dataset_id:config.dataset_id,source_name:String(row.Project||''),source_code:String(row.Code||''),...nameMatch};updates.push(mapping);return {...row,mapping:{...old,...mapping}};}

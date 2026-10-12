@@ -2,6 +2,7 @@ import {createClientFromRequest} from 'npm:@base44/sdk@0.8.52';
 import {powerBIOrderState} from '../../shared/powerBIOrderState.ts';
 import {configurePowerBIOrders,startPowerBIOrders,batchPowerBIOrders,confirmPowerBIOrders} from '../../shared/powerBIOrderImport.ts';
 import {saveFinanceMapping} from '../../shared/financeProjectMatching.ts';
+import {readProjectNumberMappings,saveProjectNumberMapping} from '../../shared/financeProjectNumberMapping.ts';
 export default async function(req){
  try{
   const base44=createClientFromRequest(req),user=await base44.auth.me();
@@ -16,7 +17,9 @@ export default async function(req){
   const state=await powerBIOrderState(base44);
   if(input.action==='status')return Response.json({state});
   if(!state)throw new Error('Configure the model first.');
-  if(input.action==='map')return Response.json(await saveFinanceMapping(base44,user,input,{dataset_id:state.namespace}));
+  if(input.action==='numberMappings')return Response.json(await readProjectNumberMappings(base44,state,input));
+   if(input.action==='mapNumber')return Response.json(await saveProjectNumberMapping(base44,user,input,state));
+   if(input.action==='map')return Response.json(await saveFinanceMapping(base44,user,input,{dataset_id:state.namespace}));
   if(input.action==='mappings')return Response.json(await base44.entities.FinanceProjectMapping.filter({dataset_id:state.namespace,...(input.status==='review'?{status:{$in:['unmatched','ambiguous']}}:input.status==='linked'?{status:{$in:['manual','automatic']}}:{})},{limit:50,sort:'source_code',...(input.cursor?{cursor:input.cursor}:{})}));
   if(input.action==='preview'){
    if(!['purchase_orders','sales_orders'].includes(input.kind))throw new Error('Choose an order type.');

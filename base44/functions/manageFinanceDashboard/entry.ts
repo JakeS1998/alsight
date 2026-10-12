@@ -16,6 +16,7 @@ import {commercialPipelineSummary} from '../../shared/commercialPipelineSummary.
 import {recalculateBlankPOHeaders} from '../../shared/financeRecalculateHeaders.ts';
 import {powerBIOrderState,publishedPowerBIState} from '../../shared/powerBIOrderState.ts';
 import {readPowerBIOrderFinance} from '../../shared/powerBIOrderReads.ts';
+import {readProjectNumberMappings,saveProjectNumberMapping} from '../../shared/financeProjectNumberMapping.ts';
 export default async function(req){
  try{
   const base44=createClientFromRequest(req),user=await base44.auth.me();
@@ -24,9 +25,9 @@ export default async function(req){
   if(req.method!=='POST')return Response.json({error:'Method not allowed.'},{status:405});
   const raw=await req.text();if(raw.length>20000)throw new Error('Request too large.');const input=JSON.parse(raw);
   if(!financeRoles.includes(user.role)&&!(['projectOrders','projectOrderDetail','projectOrderCashFlow'].includes(input.action)&&['regional_director','bsm','bdm'].includes(user.role)))return Response.json({error:'Finance, director or administrator access required.'},{status:403});
-  const actions=['recalculatePOHeaders','pipeline','projectOrders','projectOrderDetail','projectOrderCashFlow','applyNameLinks','applyCodeLinks','transactions','dvMappingStatus','dvSaveMapping','forecast','dvContinue','dvStart','dvBatch','dvDetail','dvDiscover','dvInspect','status','configure','preview','confirm','summary','list','mappings','projects','map','orders','poDetail','configureInvoices','invoices'];
+  const actions=['recalculatePOHeaders','pipeline','projectOrders','projectOrderDetail','projectOrderCashFlow','applyNameLinks','applyCodeLinks','transactions','dvMappingStatus','dvSaveMapping','forecast','dvContinue','dvStart','dvBatch','dvDetail','dvDiscover','dvInspect','status','configure','preview','confirm','summary','list','numberMappings','mapNumber','mappings','projects','map','orders','poDetail','configureInvoices','invoices'];
   if(!actions.includes(input.action))throw new Error('Invalid finance operation.');
-  const admin=['recalculatePOHeaders','applyNameLinks','applyCodeLinks','dvMappingStatus','dvSaveMapping','dvContinue','dvStart','dvBatch','dvDiscover','dvInspect','configure','preview','confirm','mappings','projects','map','configureInvoices'];
+  const admin=['recalculatePOHeaders','applyNameLinks','applyCodeLinks','dvMappingStatus','dvSaveMapping','dvContinue','dvStart','dvBatch','dvDiscover','dvInspect','configure','preview','confirm','numberMappings','mapNumber','mappings','projects','map','configureInvoices'];
   if(admin.includes(input.action)&&user.role!=='admin')return Response.json({error:'Administrator access required.'},{status:403});
   if(input.action==='recalculatePOHeaders')return Response.json(await recalculateBlankPOHeaders(base44));
   if(input.action==='dvMappingStatus')return Response.json(await financeMappingStatus(base44));
@@ -51,7 +52,9 @@ export default async function(req){
    if(['transactions','summary','list','orders','invoices','dvDetail'].includes(input.action))return Response.json(await readPowerBIOrderFinance(base44,powerBI,input));
   }
   if(state){
-   if(input.action==='status')return Response.json({source:'dataverse',configured:true,confirmed:Boolean(state.active_generation),sync:state,report:state.active_generation?{name:'Dataverse finance tables',url:null}:null});
+      if(input.action==='numberMappings')return Response.json(await readProjectNumberMappings(base44,state,input));
+      if(input.action==='mapNumber')return Response.json(await saveProjectNumberMapping(base44,user,input,state));
+      if(input.action==='status')return Response.json({source:'dataverse',configured:true,confirmed:Boolean(state.active_generation),sync:state,report:state.active_generation?{name:'Dataverse finance tables',url:null}:null});
    if(input.action==='map')return Response.json(await saveFinanceMapping(base44,user,input,{dataset_id:state.namespace}));
    if(input.action==='mappings')return Response.json(await base44.entities.FinanceProjectMapping.filter({dataset_id:state.namespace,...(input.status==='review'?{status:{$in:['unmatched','ambiguous']}}:input.status==='linked'?{status:{$in:['manual','automatic']}}:{})},{limit:50,sort:'-updated_date',...(input.cursor?{cursor:input.cursor}:{})}));
    if(['transactions','summary','list','orders','invoices','dvDetail'].includes(input.action)){if(!state.active_generation)throw new Error('The first Dataverse finance sync is still running; figures will appear after all tables finish.');return Response.json(await readDataverseFinance(base44,state,input));}

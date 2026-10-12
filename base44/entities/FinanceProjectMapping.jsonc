@@ -25,6 +25,10 @@
     "project_code": {
       "type": "string"
     },
+    "code_rule": {
+      "type": "boolean",
+      "description": "This manually confirmed link applies to all source groups sharing this project number, including future imports."
+    },
     "matching_method": {
       "type": "string",
       "enum": [
