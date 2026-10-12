@@ -3,14 +3,15 @@ import {forecastProject,monthIndex,monthKey,monthlyShare} from './financeForecas
 import {scopedReadCache} from './scopedReadCache.ts';
 import {forecastHistory,historicalMonth} from './financeForecastHistory.ts';
 import {currentMonthFigures} from './financeForecastCurrentMonth.ts';
+import {financeForecastBudgetWarnings} from './financeForecastBudgetWarnings.ts';
 export async function readFinanceForecast(base44,user,state,input){
  const search=String(input.search||'').trim();if(search.length>120)throw new Error('Project search is too long.');
  const horizon=input.horizon??12,windowOffset=input.windowOffset??-2,offset=input.offset??0;
  if(![6,12,24].includes(horizon)||!Number.isInteger(windowOffset)||windowOffset< -24||windowOffset>1200||!Number.isInteger(offset)||offset<0||offset>100000)throw new Error('Invalid forecast period or project page.');
  const parts=new Intl.DateTimeFormat('en-GB',{timeZone:'Europe/London',year:'numeric',month:'2-digit',day:'2-digit'}).formatToParts(new Date());
  const part=key=>parts.find(p=>p.type===key).value,today=`${part('year')}-${part('month')}-${part('day')}`;
- const key=JSON.stringify(['finance-forecast-powerbi-invoices-history-v6',base44.financeScope?.projectIds,base44.financeScope?.keys,input.refreshKey||'',user.id,user.role,user.data,user.account_id,user.region,user.delegate_region,user.staff_aad_id,user.dataverse_systemuser_id,user.delegate_of,search,today,state?.namespace,state?.active_generation,state?.last_completed_at]);
- const projects=await scopedReadCache(key,async()=>{const rows=[];for await(const source of forecastInputs(base44,state,search))rows.push(forecastProject(source,today,Boolean(state?.active_generation)));return rows;});
+ const key=JSON.stringify(['finance-forecast-powerbi-invoices-history-v7-transaction-warnings',base44.financeScope?.projectIds,base44.financeScope?.keys,input.refreshKey||'',user.id,user.role,user.data,user.account_id,user.region,user.delegate_region,user.staff_aad_id,user.dataverse_systemuser_id,user.delegate_of,search,today,state?.namespace,state?.active_generation,state?.last_completed_at]);
+ const projects=await scopedReadCache(key,async()=>{const rows=[];for await(const source of forecastInputs(base44,state,search))rows.push(forecastProject({...source,budgetWarningBasis:state?.source==='powerbi'?'transactions':'purchase_orders'},today,Boolean(state?.active_generation)));return rows;});
  const first=monthIndex(today.slice(0,7))+windowOffset,last=first+horizon-1,eligible=projects.filter(p=>!p.reason),excluded=projects.filter(p=>p.reason);
  const month=input.month&&/^\d{4}-\d{2}$/.test(input.month)&&monthIndex(input.month)>=first&&monthIndex(input.month)<=last?input.month:monthKey(Math.min(last,Math.max(first,monthIndex(today.slice(0,7))))),selected=monthIndex(month);
  const currentIndex=monthIndex(today.slice(0,7)),historicalLast=Math.min(last,currentIndex);
@@ -19,5 +20,7 @@ export async function readFinanceForecast(base44,user,state,input){
  const historical=selected<currentIndex,current=selected===currentIndex,historicalIds=new Set(history.rows.filter(r=>r.Month===month).map(r=>r.Project));
  const contributions=input.excluded===true?excluded:historical?projects.filter(p=>historicalIds.has(p.id)):current?projects.filter(p=>historicalIds.has(p.id)||monthlyShare(p.invoiceRemaining,p,selected)!=null):eligible.filter(p=>monthlyShare(p.invoiceRemaining,p,selected)!=null);
  const items=contributions.slice(offset,offset+25).map(p=>historical&&input.excluded!==true?{...p,...historicalMonth({...history,rows:history.rows.filter(r=>r.Project===p.id)},month)}:current&&input.excluded!==true?{...p,...currentMonthFigures({invoice:p.reason?0:monthlyShare(p.invoiceRemaining,p,selected),po:p.reason?0:monthlyShare(p.poRemaining,p,selected),projects:p.reason?0:1},historicalMonth({...history,rows:history.rows.filter(r=>r.Project===p.id)},month))}:{...p,invoice:p.reason?null:monthlyShare(p.invoiceRemaining,p,selected),po:p.reason?null:monthlyShare(p.poRemaining,p,selected)});
- return {today,monthly,month,items,historical,current,total:contributions.length,has_more:offset+25<contributions.length,eligible:eligible.length,excluded:excluded.length,has_later:last<monthIndex(today.slice(0,7))||eligible.some(p=>p.firstMonth+p.months-1>last),history_missing_dates:history.missingDates,history_missing_values:history.missingValues,snapshot_at:state?.last_completed_at||null};
+ const assessed=await scopedReadCache(`${key}:budget-warnings:${items.map(p=>p.id).join(',')}`,()=>financeForecastBudgetWarnings(base44,state,items));
+ const warnings=new Map(assessed.map(p=>[p.id,p]));
+ return {today,monthly,month,items:items.map(p=>{const warning=warnings.get(p.id);return warning?{...p,budgetWarningBasis:warning.budgetWarningBasis,supplierSpend:warning.supplierSpend,poBudgetExcess:warning.poBudgetExcess}:p;}),historical,current,total:contributions.length,has_more:offset+25<contributions.length,eligible:eligible.length,excluded:excluded.length,has_later:last<monthIndex(today.slice(0,7))||eligible.some(p=>p.firstMonth+p.months-1>last),history_missing_dates:history.missingDates,history_missing_values:history.missingValues,snapshot_at:state?.last_completed_at||null};
 }
