@@ -18,6 +18,25 @@
       ],
       "default": "client"
     },
+    "duty_roles": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "enum": [
+          "bsm",
+          "bdm"
+        ]
+      },
+      "maxItems": 2,
+      "description": "Additional administrator-assigned operational roles. Does not replace the access role or independently grant data permissions.",
+      "rls": {
+        "write": {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      }
+    },
     "account_id": {
       "type": "string",
       "description": "Dataverse GUID of account this user belongs to"

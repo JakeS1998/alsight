@@ -22,6 +22,8 @@ export default async function(req: Request): Promise<Response> {
     if (pending.length > 1) return Response.json({ error: 'Multiple access assignments exist for this email. Contact an administrator.' }, { status: 409 });
     const assignment = pending[0];
     if (!ROLES.includes(assignment.portal_role)) return Response.json({ error: 'Invalid pending access role' }, { status: 400 });
+    const dutyRoles=assignment.duty_roles || [];
+    if(!Array.isArray(dutyRoles) || dutyRoles.length>2 || dutyRoles.some(role=>!['bsm','bdm'].includes(role)))return Response.json({error:'Invalid pending duty roles'},{status:400});
 
     const contact = await base44.asServiceRole.entities.Contact.get(assignment.contact_id);
     const supplierAccounts = assignment.portal_role === 'supplier' && assignment.account_id
@@ -30,6 +32,7 @@ export default async function(req: Request): Promise<Response> {
     await base44.asServiceRole.entities.User.update(user.id, {
       contact_dataverse_id: assignment.portal_role === 'project_manager' && contact?.email?.trim().toLowerCase() === email ? (contact.dataverse_id || null) : null,
       role: assignment.portal_role,
+      duty_roles: [...new Set(dutyRoles.filter(role=>role!==assignment.portal_role))],
       staff_aad_id: assignment.staff_aad_id || null,
       delegate_of: null,
       delegate_of_name: null,

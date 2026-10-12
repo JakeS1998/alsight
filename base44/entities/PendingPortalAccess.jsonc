@@ -24,6 +24,17 @@
         "framework_stakeholder"
       ]
     },
+    "duty_roles": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "enum": [
+          "bsm",
+          "bdm"
+        ]
+      },
+      "maxItems": 2
+    },
     "account_id": {
       "type": "string"
     },

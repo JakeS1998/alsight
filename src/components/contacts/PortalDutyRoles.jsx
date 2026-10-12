@@ -1,0 +1,5 @@
+import React from 'react';
+export default function PortalDutyRoles({ value, onChange, accessRole }) {
+  const options = [{value:'bsm',label:'BSM · document drafting'}, {value:'bdm',label:'BDM · project stage reviews'}];
+  return <fieldset className="space-y-2"><legend className="text-sm font-medium">Additional duty roles</legend><p className="text-xs text-muted-foreground">Receive the duties of these roles without losing your existing access role.</p>{options.filter(option=>option.value!==accessRole).map(option=><label key={option.value} className="flex items-center gap-2 text-sm"><input type="checkbox" checked={value.includes(option.value)} onChange={event=>onChange(event.target.checked ? [...value,option.value] : value.filter(role=>role!==option.value))}/>{option.label}</label>)}</fieldset>;
+}

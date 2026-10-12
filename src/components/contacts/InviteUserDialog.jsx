@@ -10,6 +10,8 @@ import { FormField, formInputClass } from "@/components/forms/PowerForm";
 import { AccountCombobox } from "@/components/contacts/AccountCombobox";
 import PortalOrganisationSelect from '@/components/relationships/PortalOrganisationSelect';
 import { REGION_OPTIONS } from "@/lib/portal";
+import PortalDutyRoles from '@/components/contacts/PortalDutyRoles';
+import { useAuth } from '@/lib/AuthContext';
 import { Loader2, Mail, CheckCircle2, ShieldCheck, UserPlus } from "lucide-react";
 
 const ROLES = [
@@ -27,6 +29,8 @@ const ROLES = [
 
 export function InviteUserDialog({ open, onOpenChange, contact, accounts, existingUser, pendingAssignment, onDone }) {
   const [role, setRole] = useState("client");
+  const [dutyRoles,setDutyRoles]=useState([]);
+  const {user:signedInUser,checkUserAuth}=useAuth();
   const [accountId, setAccountId] = useState("");
   const [region, setRegion] = useState("");
   const [email, setEmail] = useState("");
@@ -38,6 +42,7 @@ export function InviteUserDialog({ open, onOpenChange, contact, accounts, existi
   useEffect(() => {
     if (open && contact) {
       setEmail(contact.email || "");
+      setDutyRoles(existingUser?.duty_roles || pendingAssignment?.duty_roles || []);
       if (existingUser || pendingAssignment) {
         setRole(existingUser?.role || pendingAssignment?.portal_role || "client");
         setAccountId(existingUser?.account_id || pendingAssignment?.account_id || "");
@@ -76,13 +81,14 @@ export function InviteUserDialog({ open, onOpenChange, contact, accounts, existi
       if(administrator.role!=='admin')throw new Error('Only administrators can manage portal access.');
       const organisation=accountId ? await base44.entities.Account.filter({dataverse_id:accountId},{limit:1}).then(p=>p.items[0]) : null;
       const companyNumber=role==='supplier' ? organisation?.company_number || null : null;
-      const staffLine = ['bsm', 'bdm'].includes(role)
+      const staffLine = [role,...dutyRoles].some(value=>['bsm','bdm'].includes(value))
         ? await base44.entities.StaffReportingLine.filter({ contact_id: contact.id }, { limit: 1 }).then(page => page.items[0])
         : null;
       if (existingUser) {
         await base44.entities.User.update(existingUser.id, {
           role,
-          staff_aad_id: staffLine?.staff_aad_id || null,
+          duty_roles: dutyRoles.filter(value=>value!==role),
+          staff_aad_id: staffLine?.staff_aad_id || existingUser?.staff_aad_id || null,
           ...(existingUser.role !== role ? { delegate_of: null, delegate_of_name: null, delegate_region: null } : {}),
           account_id: linkedAccountId,
           company_number: companyNumber,
@@ -99,6 +105,7 @@ export function InviteUserDialog({ open, onOpenChange, contact, accounts, existi
           contact_id: contact.id,
           email: address,
           portal_role: role,
+          duty_roles: dutyRoles.filter(value=>value!==role),
           account_id: linkedAccountId || "",
           staff_aad_id: staffLine?.staff_aad_id || '',
           region: role === "regional_director" ? (region || "") : "",
@@ -119,6 +126,7 @@ export function InviteUserDialog({ open, onOpenChange, contact, accounts, existi
         if (created) {
           await base44.entities.User.update(created.id, {
             role,
+            duty_roles: dutyRoles.filter(value=>value!==role),
             staff_aad_id: staffLine?.staff_aad_id || null,
             account_id: linkedAccountId,
             region: role === "regional_director" ? (region || null) : null,
@@ -130,7 +138,8 @@ export function InviteUserDialog({ open, onOpenChange, contact, accounts, existi
           await base44.entities.Contact.update(contact.id, { email: address });
         }
       }
-      await base44.entities.CRMActivity.create({contact_id:contact.id,owner_id:administrator.id,author_id:administrator.id,author_name:administrator.full_name || administrator.email,type:'system',occurred_at:new Date().toISOString(),subject:existingUser || pendingAssignment ? 'Portal access updated' : 'Portal invitation sent',description:`Person: ${contact.full_name}\nPortal role: ${role}\nOrganisation access: ${organisation?.name || 'Not assigned'}`});
+      await base44.entities.CRMActivity.create({contact_id:contact.id,owner_id:administrator.id,author_id:administrator.id,author_name:administrator.full_name || administrator.email,type:'system',occurred_at:new Date().toISOString(),subject:existingUser || pendingAssignment ? 'Portal access updated' : 'Portal invitation sent',description:`Person: ${contact.full_name}\nPortal role: ${role}\nAdditional duty roles: ${dutyRoles.filter(value=>value!==role).join(', ') || 'None'}\nOrganisation access: ${organisation?.name || 'Not assigned'}`});
+      if(existingUser?.id===signedInUser?.id)await checkUserAuth();
       setSuccess(true);
       onDone?.(address);
     } catch (err) {
@@ -194,11 +203,13 @@ export function InviteUserDialog({ open, onOpenChange, contact, accounts, existi
               </FormField>
             )}
 
-            <FormField label="Portal Role" required>
+            <FormField label="Access Role" required>
               <SearchableSelect value={role} onChange={(e) => setRole(e.target.value)} className={formInputClass}>
                 {ROLES.map((r) => <option key={r.value} value={r.value}>{r.label}</option>)}
               </SearchableSelect>
             </FormField>
+
+            <PortalDutyRoles value={dutyRoles} onChange={setDutyRoles} accessRole={role}/>
 
             {role === "regional_director" && (
               <FormField label="Region" description="Determines which projects this Regional Director can see">
