@@ -5,9 +5,9 @@ import {base44} from '@/api/base44Client';
 import {Button} from '@/components/ui/button';
 import {Textarea} from '@/components/ui/textarea';
 import ProjectActivityHistory from '@/components/projects/workspace/ProjectActivityHistory';
-export default function ProjectMeetingNotes({project,user,session,sessionKey,onRecord,kind='meeting_note'}) {
+export default function ProjectMeetingNotes({project,user,session,sessionKey,onRecord,kind='meeting_note',readOnly=false}) {
  const operation=useContext(MeetingOperationContext),comment=kind==='comment';
- const cache=useQueryClient(),[note,setNote]=useState(''),[busy,setBusy]=useState(false),[error,setError]=useState(''),canWrite=['admin','director','bdm','bsm'].includes(user.role);
+ const cache=useQueryClient(),[note,setNote]=useState(''),[busy,setBusy]=useState(false),[error,setError]=useState(''),canWrite=!readOnly && ['admin','director','bdm','bsm'].includes(user.role);
  const save=async e=>{e.preventDefault();setBusy(true);setError('');operation.begin();try{
   await base44.entities.CRMActivity.create({project_id:project.id,account_id:project.client_account_id || '',type:comment ? 'note' : 'project_meeting',subject:`${comment ? 'Project comment' : 'Project meeting note'} · ${project.name}`,description:note.trim(),occurred_at:new Date().toISOString(),author_id:user.id,author_name:user.full_name || user.email,owner_id:session?.owner_id || user.id,line_manager_id:session?.line_manager_id || user.data?.line_manager_id || user.line_manager_id || '',meeting_member_ids:session?.meeting_member_ids || [user.id],key_points:sessionKey,next_action:comment ? 'project_comment' : 'meeting_note'});
   setNote('');await onRecord('notes');cache.invalidateQueries({queryKey:['project-meeting-history',project.id]});cache.invalidateQueries({queryKey:['meeting-overview',project.id]});

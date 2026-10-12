@@ -2,6 +2,7 @@ import {base44} from '@/api/base44Client';
 export const meetingKey=id=>`Meeting session: ${id}`;
 export const meetingWriter=user=>['admin','director','bdm','bsm'].includes(user?.role);
 export const meetingHost=(session,user)=>meetingWriter(user) && (session?.owner_id===user.id || !!session?.meeting_hosts?.some(person=>person.id===user.id));
+export const meetingMember=(session,user)=>meetingHost(session,user) || !!session?.meeting_attendees?.some(person=>person.id===user?.id) || !!session?.meeting_member_ids?.includes(user?.id);
 export async function appendMeetingActivity(user,session,event,{project,text,action}={}) {
  return base44.entities.CRMActivity.create({type:event==='meeting_start' ? 'internal_meeting' : 'system',next_action:event,key_points:session.key_points,subject:event==='meeting_start' ? session.subject : `${session.subject} · ${event.replace('meeting_','').replaceAll('_',' ')}`,description:text || '',occurred_at:new Date().toISOString(),owner_id:session.owner_id || user.id,author_id:user.id,author_name:user.full_name || user.email,line_manager_id:session.line_manager_id || user.data?.line_manager_id || user.line_manager_id || '',meeting_hosts:session.meeting_hosts || [{id:user.id,name:user.full_name || user.email}],meeting_attendees:session.meeting_attendees || [],meeting_member_ids:session.meeting_member_ids || [user.id],...(project ? {project_id:project.id,account_id:project.client_account_id || ''} : {}),commitments:action?.id || project?.id || ''});
 }

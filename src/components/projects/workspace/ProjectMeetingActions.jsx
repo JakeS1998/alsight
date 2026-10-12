@@ -5,9 +5,9 @@ import {Button} from '@/components/ui/button';
 import ProjectMeetingActionForm from '@/components/projects/workspace/ProjectMeetingActionForm';
 import ProjectMeetingActionRow from '@/components/projects/workspace/ProjectMeetingActionRow';
 import ReviewQueryState from '@/components/projects/workspace/ReviewQueryState';
-export default function ProjectMeetingActions({project,user,onRecord}) {
+export default function ProjectMeetingActions({project,user,onRecord,readOnly=false}) {
  const [pending,setPending]=useState(null),[retrying,setRetrying]=useState(false);
- const cache=useQueryClient(),canEdit=['admin','director','bdm','bsm'].includes(user.role);
+ const cache=useQueryClient(),canEdit=!readOnly && ['admin','director','bdm','bsm'].includes(user.role);
  const query=useInfiniteQuery({queryKey:['meeting-actions',project.id,user.id,user.role],initialPageParam:null,queryFn:({pageParam})=>base44.entities.ProjectAction.filter({project_id:project.id,status:{$ne:'done'}},{sort:'due_date',limit:25,...(pageParam ? {cursor:pageParam} : {})}),getNextPageParam:p=>p.has_more ? p.next_cursor : undefined});
  const changed=async(kind,row)=>{cache.invalidateQueries({queryKey:['meeting-actions',project.id]});cache.invalidateQueries({queryKey:['workspace-action-metrics']});if(kind){const result=await onRecord(kind,row);if(!result)setPending({kind,row});}};
  const retry=async()=>{setRetrying(true);const result=await onRecord(pending.kind,pending.row);if(result)setPending(null);setRetrying(false);};
