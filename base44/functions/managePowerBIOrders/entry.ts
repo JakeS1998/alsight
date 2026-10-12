@@ -1,5 +1,6 @@
 import {createClientFromRequest} from 'npm:@base44/sdk@0.8.52';
 import {powerBIOrderState} from '../../shared/powerBIOrderState.ts';
+import {mapPowerBIOrderDates} from '../../shared/powerBIOrderDates.ts';
 import {configurePowerBIOrders,startPowerBIOrders,batchPowerBIOrders,confirmPowerBIOrders} from '../../shared/powerBIOrderImport.ts';
 import {saveFinanceMapping} from '../../shared/financeProjectMatching.ts';
 import {readProjectNumberMappings,saveProjectNumberMapping} from '../../shared/financeProjectNumberMapping.ts';
@@ -24,7 +25,8 @@ export default async function(req){
   if(input.action==='preview'){
    if(!['purchase_orders','sales_orders'].includes(input.kind))throw new Error('Choose an order type.');
    const query={namespace:state.namespace,generation:state.generation,kind:input.kind};
-   return Response.json({...await base44.entities.FinanceDataverseRecord.filter(query,{limit:20,sort:'reference',...(input.cursor?{cursor:input.cursor}:{})}),total:await base44.entities.FinanceDataverseRecord.count(query)});
+   const page=await base44.entities.FinanceDataverseRecord.filter(query,{limit:20,sort:'reference',...(input.cursor?{cursor:input.cursor}:{})});
+    return Response.json({...page,items:await mapPowerBIOrderDates(base44,state,page.items),total:await base44.entities.FinanceDataverseRecord.count(query)});
   }
   throw new Error('Invalid model import operation.');
  }catch(error){return Response.json({error:error.message||'Power BI order import failed.'},{status:400});}

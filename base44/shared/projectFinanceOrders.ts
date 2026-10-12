@@ -2,6 +2,7 @@ import {readDataverseFinance} from './financeDataverseReads.ts';
 import {projectOrderCashFlow} from './projectOrderCashFlow.ts';
 import {projectPOForecast} from './projectPOForecast.ts';
 import {powerBIProjectCashFlow} from './powerBIProjectCashFlow.ts';
+import {mapPowerBIOrderDates} from './powerBIOrderDates.ts';
 export async function readProjectFinanceOrders(base44,state,input){
  if(!/^[a-f0-9]{24}$/i.test(input.projectId||''))throw new Error('Choose a valid project.');
  if(String(input.cursor||'').length>8192)throw new Error('Invalid order page.');
@@ -18,7 +19,9 @@ export async function readProjectFinanceOrders(base44,state,input){
   if(!/^[a-f0-9]{24}$/i.test(input.recordId||''))throw new Error('Choose a valid purchase order.');
   const record=await db.FinanceDataverseRecord.get(input.recordId);
   if(!record||!['purchase_orders','sales_orders'].includes(record.kind)||!record.active||record.generation!==state.active_generation||record.namespace!==state.namespace||!keys.includes(record.project_key))throw new Error('This purchase order is not linked to the selected project.');
-  return {...await readDataverseFinance({entities:db},state,{action:'dvDetail',recordId:record.id,cursor:input.cursor}),powerbi:true};
+  const detail=await readDataverseFinance({entities:db},state,{action:'dvDetail',recordId:record.id,cursor:input.cursor});
+   if(state.source==='powerbi')detail.record=(await mapPowerBIOrderDates(base44,state,[detail.record]))[0];
+   return {...detail,powerbi:true};
  }
  const query={...base,kind:input.type==='SO'?'sales_orders':'purchase_orders',project_key:{$in:keys}};
  if(input.action==='projectOrderCashFlow') {
@@ -33,5 +36,5 @@ export async function readProjectFinanceOrders(base44,state,input){
  const supplierIds=[...new Set(page.items.map(r=>r.supplier_source_id).filter(Boolean))];
  const suppliers=supplierIds.length?await db.FinanceDataverseRecord.filter({...base,kind:'suppliers',active:{$in:[true,false]},source_id:{$in:supplierIds}},{limit:100,fields:['source_id','name']}):{items:[]};
  const items=page.items.map(r=>{const valued=lines.rows.find(l=>l.parent_id===r.source_id&&l.has_amount),missing=lines.rows.find(l=>l.parent_id===r.source_id&&!l.has_amount)?.count||0;return {...r,supplier_name:r.supplier_name||suppliers.items.find(s=>s.source_id===r.supplier_source_id)?.name||'',display_net:r.has_amount?r.amount:valued&&!missing?valued.sum_amount:null,value_source:r.has_amount?'PO header':valued&&!missing?'Line items':'Unavailable',missing_line_values:missing};});
- return {...page,items,total,mappings:matches.items,source:'powerbi',read_at:state.last_completed_at};
+ return {...page,items:state.source==='powerbi'?await mapPowerBIOrderDates(base44,state,items):items,total,mappings:matches.items,source:'powerbi',read_at:state.last_completed_at};
 }

@@ -2,6 +2,7 @@ import {powerToken,powerRequest,reportAddress,powerQuery} from './financePowerBI
 import {powerBIOrderState} from './powerBIOrderState.ts';
 import {modelColumns,validateOrderSources,orderTotalsDax,orderPageDax} from './powerBIOrderDax.ts';
 import {sourceKey,resolveFinanceProjects} from './financeProjectMatching.ts';
+import {mapPowerBIOrderDates} from './powerBIOrderDates.ts';
 export async function configurePowerBIOrders(base44,input){
  const old=await powerBIOrderState(base44);if(old?.status==='running')throw new Error('Wait for the current import to finish before changing its mappings.');
  const address=reportAddress(input.reportURL),token=await powerToken(base44),report=await powerRequest(token,`groups/${address.workspace_id}/reports/${address.report_id}`);
@@ -29,9 +30,10 @@ export async function batchPowerBIOrders(base44,input){
  try{
   const tables=state.tables.list,t=tables[state.table_index],token=await powerToken(base44),rows=await powerQuery(token,state.dataset_id,orderPageDax(state.sources[t.type],t.cursor));
   if(rows.length>100||rows.some(r=>!r.Reference)||new Set(rows.map(r=>r.Reference)).size!==rows.length)throw new Error('Order paging returned duplicate or missing references. No partial snapshot is published.');
-  const at=new Date().toISOString(),pairs=[...new Map(rows.map(r=>[JSON.stringify([r.Project,r.Code]),{Project:r.Project,Code:r.Code}])).values()];
+  const dated=await mapPowerBIOrderDates(base44,state,rows,token),dateByRef=new Map(dated.map(row=>[row.Reference,row.date]));
+   const at=new Date().toISOString(),pairs=[...new Map(rows.map(r=>[JSON.stringify([r.Project,r.Code]),{Project:r.Project,Code:r.Code}])).values()];
   const mapped=await resolveFinanceProjects(base44,{dataset_id:state.namespace},pairs),keys=new Map(mapped.map(r=>[JSON.stringify([r.Project,r.Code]),r.source_key]));
-  const records=rows.map(r=>({record_key:`${state.generation}:${t.type}:${r.Reference}`,generation:state.generation,namespace:state.namespace,kind:t.kind,source_table:t.logical,source_id:`${t.type}:${r.Reference}`,reference:r.Reference,name:r.Reference,project_key:keys.get(JSON.stringify([r.Project,r.Code])),project_name:r.Project,project_code:r.Code,supplier_name:r.Supplier||'',amount:typeof r.Amount==='number'?r.Amount:null,has_amount:typeof r.Amount==='number',date:null,vat:null,gross:null,active:true,synced_at:at}));
+  const records=rows.map(r=>({record_key:`${state.generation}:${t.type}:${r.Reference}`,generation:state.generation,namespace:state.namespace,kind:t.kind,source_table:t.logical,source_id:`${t.type}:${r.Reference}`,reference:r.Reference,name:r.Reference,project_key:keys.get(JSON.stringify([r.Project,r.Code])),project_name:r.Project,project_code:r.Code,supplier_name:r.Supplier||'',amount:typeof r.Amount==='number'?r.Amount:null,has_amount:typeof r.Amount==='number',date:dateByRef.get(r.Reference)||null,vat:null,gross:null,active:true,synced_at:at}));
   const projects=mapped.map(r=>({record_key:`${state.generation}:project:${r.source_key}`,namespace:state.namespace,generation:state.generation,kind:'projects',source_table:'Power BI order projects',source_id:r.source_key,project_key:r.source_key,project_name:r.Project,project_code:r.Code,name:r.Project,reference:r.Code,has_amount:false,active:true,synced_at:at}));
   if(records.length)await db.FinanceDataverseRecord.upsert([...records,...projects],{key:'record_key'});
   t.processed+=rows.length;t.cursor=rows.at(-1)?.Reference||t.cursor;t.complete=rows.length<100;
