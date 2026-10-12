@@ -11,7 +11,7 @@ export default function FinanceForecastColumn({row,selected,height}){
   </div>
   <span className="finance-chart-value">Invoice {invoice==null?'Unavailable':formatCurrency(invoice)}</span>
   <span className="text-xs tabular-nums text-muted-foreground">PO {po==null?'Unavailable':formatCurrency(po)}{!row.historical&&row.projects>0&&po!=null&&row.missingCosts>0?' · partial':''} · {basis.toLowerCase()}</span>
-  {row.current&&<div className="text-center text-[10px] tabular-nums text-muted-foreground"><p>Actual: invoice {row.actualInvoice==null?'Unavailable':formatCurrency(row.actualInvoice)} · PO {row.actualPo==null?'Unavailable':formatCurrency(row.actualPo)}</p><p>Forecast: invoice {formatCurrency(row.forecastInvoice)} · PO {row.forecastPo==null?'Unavailable':formatCurrency(row.forecastPo)}</p></div>}
+  <div className="text-center text-[10px] tabular-nums text-muted-foreground">{row.current&&<><p>Actual: invoice {row.actualInvoice==null?'Unavailable':formatCurrency(row.actualInvoice)} · PO {row.actualPo==null?'Unavailable':formatCurrency(row.actualPo)}</p><p>Forecast: invoice {formatCurrency(row.forecastInvoice)} · PO {row.forecastPo==null?'Unavailable':formatCurrency(row.forecastPo)}</p></>}</div>
   <span className="finance-chart-month">{monthLabel(row.month)}</span>
  </div>;
 }
