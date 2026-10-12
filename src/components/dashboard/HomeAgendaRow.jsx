@@ -2,9 +2,11 @@ import React from 'react';
 import { Link } from 'react-router-dom';
 import { CalendarDays, ListChecks, Bell } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import deadlineRowTone from '@/components/dashboard/deadlineRowTone';
 export default function HomeAgendaRow({ row, onFollowup, onDone, onTaskDone }) {
   const Icon = row.kind === 'calendar' ? CalendarDays : row.kind === 'reminder' ? Bell : ListChecks;
-  return <li className="flex items-start gap-3 rounded-lg border border-border p-3">
+  const deadline = deadlineRowTone(row);
+  return <li className={`flex items-start gap-3 rounded-lg border p-3 ${deadline?.className || 'border-border'}`} title={deadline?.label} aria-label={deadline ? `${row.title}. ${deadline.label}` : undefined}>
     <span className={`w-16 shrink-0 pt-1 text-xs font-semibold text-muted-foreground ${row.ended ? 'line-through' : ''}`}>{row.time}</span>
     <Icon className="mt-1 h-4 w-4 shrink-0 text-chart-2" />
     <div className="min-w-0 flex-1"><p className={row.ended ? 'text-sm font-semibold text-muted-foreground line-through' : 'text-sm font-semibold'}>{row.title}</p><p className={`mt-1 text-xs text-muted-foreground ${row.ended ? 'line-through' : ''}`}>{row.detail}</p><div className="mt-2 flex flex-wrap items-center gap-3 text-xs">
