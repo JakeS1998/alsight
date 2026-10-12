@@ -1,11 +1,13 @@
+import { inactiveProjectDocumentScope } from './inactiveProjectDocumentScope.ts';
 const blank=field=>({$or:[{[field]:{$exists:false}},{[field]:null},{[field]:''}]});
 const dateLabel=value=>new Intl.DateTimeFormat('en-GB',{timeZone:'Europe/London',day:'numeric',month:'short',year:'numeric'}).format(new Date(value));
 export async function todayDocumentBriefing(base44,identities,day,end) {
  const db=base44.entities,sources=['LegalDocument','DMA','JCT'].flatMap(entity=>['signing','drafting'].map(category=>({entity,category,field:category==='signing' ? 'signing_target_date' : 'drafting_due_date'})));
+ const documentScope=await inactiveProjectDocumentScope(base44);
  const pages=[];
  for(let start=0;start<sources.length;start+=3){
   pages.push(...await Promise.all(sources.slice(start,start+3).map(async source=>{
-   const query={status:{$ne:'inactive'},bsm_aad_id:{$in:identities},is_bsm_document_owner:{$ne:false},[source.field]:{$regex:'\\S',$lt:source.category==='signing' ? day : `${end}T23:59:59.999Z`},$and:[blank('date_of_execution'),...(source.category==='drafting' ? [blank('drafted_date')] : [])]};
+   const query={...documentScope,status:{$ne:'inactive'},bsm_aad_id:{$in:identities},is_bsm_document_owner:{$ne:false},[source.field]:{$regex:'\\S',$lt:source.category==='signing' ? day : `${end}T23:59:59.999Z`},$and:[blank('date_of_execution'),...(source.category==='drafting' ? [blank('drafted_date')] : [])]};
    const [total,page]=await Promise.all([db[source.entity].count(query),db[source.entity].filter(query,{sort:source.field,limit:3,fields:['document_id','document_type','project_id',source.field]})]);
    return {source,total,rows:page.items};
   })));
