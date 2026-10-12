@@ -1,0 +1,8 @@
+import {environmentSupplier} from './aseEnvironmentIdentity.ts';
+export function environmentAgencyCheck(account,source) {
+ const check={key:'esg:environment_agency',component:'esg',slot:'environment_agency',label:'Environment Agency',source:'Environment Agency public registers',state:'UNAVAILABLE',score:null,confidence:'Low',verified:false,reason:source?.reason || 'No current Environment Agency enforcement search is available.'};
+ if(!environmentSupplier(account)){check.reason='Supplier environmental screening is not applicable to this client account.';return check;}
+ if(source?.audit){const audit=source.audit,records=audit.summary?.records || [];Object.assign(check,{state:'LIMITED',checked_at:audit.refreshed_at,matching_status:'Context only; identity review required',reason:`${records.length} published enforcement candidate records retained. ${audit.summary?.complete ? 'Bounded name search completed.' : 'Search incomplete.'} England only. Historical actions and name/address matches do not prove a current breach; no matches do not establish a clean record. Registration checks are live-only. No automatic ESG score is assigned.`,source_reference:'https://environment.data.gov.uk/public-register/view/index',records:records.map(row=>({title:`${row.type}: ${row.name} (${row.matching_status})`,date:row.date,reference:row.reference}))});}
+ else if(source?.state)check.state=source.state;
+ return check;
+}

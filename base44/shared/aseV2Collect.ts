@@ -1,9 +1,10 @@
 import {accountModel} from './asePolicy.ts';
+import {environmentSupplier} from './aseEnvironmentIdentity.ts';
 import {sourceIdentifier} from './aseSourceCommon.ts';
 import {collectASESource} from './aseCollectSource.ts';
 import {gazetteWaitSeconds} from './aseProviderPolicy.ts';
 export async function collectV2Sources(base44,account,user,configuration,{refresh=true,now=new Date()}={}) {
-  const model=accountModel(account),keys=model==='english_local_authority' ? ['local_authority','council_governance'] : ['registry','accounts','gazette'],sources={};
+  const model=accountModel(account),keys=model==='english_local_authority' ? ['local_authority','council_governance'] : ['registry','accounts','gazette',...(environmentSupplier(account) ? ['environment_agency'] : [])],sources={};
   for(const key of keys) {
     let identifier;
     try {identifier=sourceIdentifier(account,key==='registry' ? 'accounts' : key);}catch(error){sources[key]={state:'UNAVAILABLE',reason:error.message};continue;}

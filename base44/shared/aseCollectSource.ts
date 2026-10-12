@@ -1,16 +1,17 @@
 import {sourceNames,sourceIdentifier} from './aseSourceCommon.ts';
+import {retrieveEnvironmentAgency} from './aseEnvironmentSource.ts';
 import {retrieveAccounts} from './aseAccountsSource.ts';
 import {retrieveGazette} from './aseGazetteSource.ts';
 import {retrieveLocalAuthority} from './aseLocalAuthoritySource.ts';
 import {retrieveCouncilGovernance} from './aseCouncilGovernance.ts';
 import {automaticEvidence,automaticRegistryFacts} from './aseAutomaticEvidence.ts';
 import {eligibilityReport} from './aseEligibilityReport.ts';
-const providers={accounts:retrieveAccounts,gazette:retrieveGazette,local_authority:retrieveLocalAuthority,council_governance:retrieveCouncilGovernance};
+const providers={environment_agency:retrieveEnvironmentAgency,accounts:retrieveAccounts,gazette:retrieveGazette,local_authority:retrieveLocalAuthority,council_governance:retrieveCouncilGovernance};
 export async function collectASESource(base44,account,source,user) {
   if(source==='hmrc') throw new Error('HMRC is excluded from automated ASE.');
   if(source!=='registry' && !providers[source]) throw new Error('Unsupported automatic source.');
   const identifier=sourceIdentifier(account,source==='registry' ? 'accounts' : source);
-  const canonical=['registry','accounts','gazette'].includes(source) ? {...account,company_number:identifier} : {...account,local_authority_code:identifier};
+  const canonical=source==='environment_agency' ? account : ['registry','accounts','gazette'].includes(source) ? {...account,company_number:identifier} : {...account,local_authority_code:identifier};
   if(source==='registry') {
     let audit;
     const read=await base44.functions.invoke('manageCompaniesHouse',{action:'read',accountId:account.id});

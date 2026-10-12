@@ -13,7 +13,8 @@
         "gazette",
         "hmrc",
         "local_authority",
-        "council_governance"
+        "council_governance",
+        "environment_agency"
       ]
     },
     "identifier": {

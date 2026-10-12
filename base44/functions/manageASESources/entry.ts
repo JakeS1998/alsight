@@ -10,6 +10,7 @@ import { retrieveAccounts } from '../../shared/aseAccountsSource.ts';
 import { retrieveCouncilGovernance } from '../../shared/aseCouncilGovernance.ts';
 import { validateGovernanceReview } from '../../shared/aseGovernanceReview.ts';
 import {collectASESource} from '../../shared/aseCollectSource.ts';
+import {liveEnvironmentRegistrations} from '../../shared/aseEnvironmentSource.ts';
 import {getASEV2Policy} from '../../shared/aseV2Config.ts';
 import {createASEV2Assessment} from '../../shared/aseV2Assessment.ts';
 import {withASEAutomationLease} from '../../shared/aseAutomationLease.ts';
@@ -21,9 +22,13 @@ export default async function(req: Request): Promise<Response> {
     base44=createClientFromRequest(req);const user=await portalActor(base44);
     if(!user || !internalRoles.includes(user.role)) return Response.json({error:'ASE sources are available to internal staff only.'},{status:403});
     const input=await req.json(),keys=Object.keys(sourceNames).filter(key=>key!=='hmrc');
-    if(!['status','refresh','review','analyse','previewCouncil','previewGovernance'].includes(input.action) || typeof input.accountId!=='string' || !/^[a-zA-Z0-9_-]{1,64}$/.test(input.accountId)) return Response.json({error:'Valid Account and source operation required.'},{status:400});
+    if(!['status','refresh','review','analyse','previewCouncil','previewGovernance','previewEnvironment'].includes(input.action) || typeof input.accountId!=='string' || !/^[a-zA-Z0-9_-]{1,64}$/.test(input.accountId)) return Response.json({error:'Valid Account and source operation required.'},{status:400});
     const account=await base44.entities.Account.get(input.accountId);
     if(!account) return Response.json({error:'Account unavailable.'},{status:404});
+    if(input.action==='previewEnvironment') {
+      if(account.name.startsWith('ASE Demo')) return Response.json({error:'Fictional Accounts cannot use real source checks.'},{status:400});
+      return Response.json(await liveEnvironmentRegistrations(account));
+    }
     if(input.action==='status') {
       const sources=await Promise.all(keys.map(async key=>{
         let identifier,blocked;try{identifier=sourceIdentifier(account,key);}catch(error){blocked=error.message;}
