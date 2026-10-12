@@ -2,6 +2,7 @@ import { base44 } from '@/api/base44Client';
 import { createCRMOpportunity } from '@/components/crm/crm';
 import projectTaskGuides from '@/components/alice/aliceProjectTaskGuides';
 import saveAliceProjectTask from '@/components/alice/saveAliceProjectTask';
+import createProjectRequest from '@/components/projects/createProjectRequest';
 
 export const GUIDES = {
   ...projectTaskGuides,
@@ -39,8 +40,9 @@ export async function saveGuide(type, answers, user) {
     return { message: `Opportunity “${record.title}” created.`, path: `/opportunities/${record.id}`, link: 'Open opportunity' };
   }
   if (type === 'project') {
-    const record = await base44.entities.Project.create({ name: answers.name, description: answers.description || '', client_account_id: answers.client_account_id?.dataverse_id || answers.client_account_id?.id || null, client_name: answers.client_account_id?.name || null, estimated_value: answers.estimated_value ? Number(answers.estimated_value) : null, site_postcode: answers.site_postcode || null, bdm_aad_id: user.id, project_number: '', live_project: true, status: 'active' });
-    return { message: `Project “${record.name}” created.`, path: `/projects/${record.id}`, link: 'Open project' };
+    answers.projectRequestId ||= crypto.randomUUID();
+    const record = await createProjectRequest({ name: answers.name, description: answers.description || '', client_account_id: answers.client_account_id?.dataverse_id || answers.client_account_id?.id || null, estimated_value: answers.estimated_value ? Number(answers.estimated_value) : null, site_postcode: answers.site_postcode || null, bdm_aad_id: user.id }, answers.projectRequestId);
+    return { message: `Project “${record.name}” created in Dataverse and submitted for approval.`, path: `/projects/${record.id}`, link: 'Open project' };
   }
   if (type === 'risk') {
     const project = answers.project_id;

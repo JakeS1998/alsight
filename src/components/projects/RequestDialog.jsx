@@ -1,4 +1,5 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useRef } from "react";
+import createProjectRequest from '@/components/projects/createProjectRequest';
 import { base44 } from "@/api/base44Client";
 import { filterAll } from "@/components/data/loadAll";
 import { Button } from "@/components/ui/button";
@@ -29,6 +30,7 @@ const EMPTY = {
 export function RequestDialog({ open, onOpenChange, accounts, users, user, onCreated }) {
   const [form, setForm] = useState(EMPTY);
   const [submitting, setSubmitting] = useState(false);
+  const requestId = useRef(crypto.randomUUID());
   const [bdmOptions, setBdmOptions] = useState([]);
   const [directorOptions, setDirectorOptions] = useState([]);
 
@@ -75,7 +77,7 @@ export function RequestDialog({ open, onOpenChange, accounts, users, user, onCre
     setSubmitError('');
     try {
       const briefFileUri = await brief.archive(user);
-      await base44.entities.Project.create({
+      await createProjectRequest({
         ...(briefFileUri ? { request_brief_file_uri: briefFileUri } : {}),
         name: form.name.trim(),
         description: form.description.trim(),
@@ -95,7 +97,8 @@ export function RequestDialog({ open, onOpenChange, accounts, users, user, onCre
         link_to_pcs: form.link_to_pcs.trim() || null,
         live_project: true,
         status: "active",
-      });
+      }, requestId.current);
+      requestId.current = crypto.randomUUID();
       setForm(EMPTY);
       brief.reset();
       onOpenChange(false);
@@ -112,7 +115,7 @@ export function RequestDialog({ open, onOpenChange, accounts, users, user, onCre
       <DialogContent className="flex max-h-[calc(100dvh-2rem)] w-[calc(100%-2rem)] flex-col overflow-hidden sm:max-w-2xl">
         <DialogHeader className="shrink-0 pr-6">
           <DialogTitle>{mode === 'review' ? 'Review your project request' : 'Request a new project'}</DialogTitle>
-          <DialogDescription>{mode === 'review' ? 'ALICE has filled in your draft. Check and change any details below, then confirm to submit your request. Nothing has been submitted yet.' : 'Submit a leisure construction project request for director review.'}</DialogDescription>
+          <DialogDescription>{mode === 'review' ? 'ALICE has filled in your draft. Check and change any details below, then confirm to submit your request. Nothing has been submitted yet.' : 'Create the project in Dataverse and submit it through the normal approval process. Your own Dataverse account must be connected.'}</DialogDescription>
         </DialogHeader>
         {mode === 'alice' ? <ProjectBriefChat brief={brief} ready={choicesReady} onManual={() => setMode('manual')} onReview={() => setMode('review')} /> : <form onSubmit={submit} className="flex min-h-0 flex-col gap-4 overflow-hidden">
           <button type="button" onClick={() => setMode('alice')} className="shrink-0 text-left text-sm font-medium text-foreground underline underline-offset-4">Back to ALICE</button>

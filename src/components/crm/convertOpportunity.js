@@ -2,10 +2,11 @@ import { base44 } from '@/api/base44Client';
 import { SCOPING_KEYS } from '@/components/delivery/ScopingFields';
 import { chance } from '@/components/crm/crm';
 import { opportunityFeeData } from '@/components/crm/opportunityFeeData';
+import createProjectRequest from '@/components/projects/createProjectRequest';
 
 export async function convertOpportunity(item, account) {
   if (item.status !== 'won') throw new Error('Mark the opportunity Won before creating a project.');
-  const project = item.project_id ? { id: item.project_id } : await base44.entities.Project.create({
+  const project = item.project_id ? { id: item.project_id } : await createProjectRequest({
     name: item.title, description: item.scope_summary || item.project_details || '',
     client_account_id: account.dataverse_id || account.id, client_name: account.name,
     ...(item.owner_id ? { bdm_aad_id: item.owner_id } : {}),
@@ -13,7 +14,7 @@ export async function convertOpportunity(item, account) {
     ...((item.confirmed_project_value ?? item.budget) != null ? { estimated_value: item.confirmed_project_value ?? item.budget } : {}),
     ...(item.site_postcode ? { site_postcode: item.site_postcode } : {}),
     live_project: true, status: 'active',
-  });
+  }, `opportunity-${item.id}`);
   // Store the link before the other writes so retrying a partial conversion cannot create another project.
   if (!item.project_id) await base44.entities.Opportunity.update(item.id, { project_id: project.id });
   const scope = { ...Object.fromEntries(SCOPING_KEYS.map(key => [key, item[key] ?? ''])), scope_summary: item.scope_summary || item.project_details || '', probability: chance(item), site_visit_completed: !!item.site_visit_completed, contract_start: item.expected_project_start || undefined, delivery_team: JSON.stringify(item.design_team || []) };
