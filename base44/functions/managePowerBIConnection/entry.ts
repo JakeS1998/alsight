@@ -1,6 +1,7 @@
 import {createClientFromRequest} from 'npm:@base44/sdk@0.8.52';
 import {powerBIConnectionRecord,powerBIConnectionSummary,beginPowerBISignIn,finishPowerBISignIn,delegatedPowerBIToken} from '../../shared/powerBIUserAuth.ts';
 import {reportAddress,powerToken,powerRequest,powerQuery} from '../../shared/financePowerBI.ts';
+
 export default async function(req){
  try{
   const base44=createClientFromRequest(req),user=await base44.auth.me();
@@ -27,6 +28,7 @@ export default async function(req){
   const report=await powerRequest(token,`groups/${address.workspace_id}/reports/${address.report_id}`);
   if(!/^[0-9a-f-]{36}$/i.test(report.datasetId||''))throw new Error('This report does not expose a supported semantic model.');
   if(input.action==='inspectOrders'){
+
    const rows=await Promise.all(['PO_Log','SO_Log'].map(async table=>({table,summary:await powerQuery(token,report.datasetId,`EVALUATE ROW("Rows",COUNTROWS('${table}'),"Orders",DISTINCTCOUNT('${table}'[Document number]),"Total",SUM('${table}'[Total]),"Missing",COUNTBLANK('${table}'[Total]))`),sample:await powerQuery(token,report.datasetId,`EVALUATE TOPN(5,SELECTCOLUMNS('${table}',"Reference",[Document number],"Project",[Project name],"Code",[Project],"Amount",[Total]),[Reference],ASC)`)})));
    return Response.json({rows});
   }

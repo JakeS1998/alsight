@@ -29,11 +29,12 @@ export function useProjectCashFlow(projectId) {
   return { invoices, entries, loading, error };
 }
 
-export default function ProjectCashFlow({ entries, commitments = [], loading, error, missingDates = 0, missingValues = 0, forecast, powerBI = false }) {
+export default function ProjectCashFlow({ entries, commitments = [], loading, error, missingDates = 0, missingValues = 0, forecast, powerBI = false, dueDateFallback = 0 }) {
   return <section className="rounded-2xl border border-border bg-card p-5 space-y-5">
     <div><h3 className="font-heading text-base font-semibold text-card-foreground">Money in & out</h3>
-      <p className="text-xs text-muted-foreground">{powerBI ? 'Power BI order totals are commitments, not cash payments. This model does not supply payment receipts, order dates or approval evidence, so actual money in and out cannot be established.' : 'Cumulative client payments, money out and net cash balance. Approved or issued POs are treated as paid outgoings at their net value because they are raised after payment approval, alongside recorded spending.'}</p></div>
-    {!loading && !error && (missingDates > 0 || missingValues > 0) && <p className="text-xs text-muted-foreground">Excluded from the graph: {[missingDates > 0 && `${missingDates} purchase orders without a valid recorded date`, missingValues > 0 && `${missingValues} purchase orders without a complete net value`].filter(Boolean).join('; ')}.</p>}
+      <p className="text-xs text-muted-foreground">{powerBI ? 'Power BI transaction values use the paid date first and the due date when no paid date is recorded. Dashed lines include expected payments, not confirmed cash receipts. PO totals remain commitments, not payments.' : 'Cumulative client payments, money out and net cash balance. Approved or issued POs are treated as paid outgoings at their net value because they are raised after payment approval, alongside recorded spending.'}</p></div>
+    {!loading && !error && (missingDates > 0 || missingValues > 0) && <p className="text-xs text-muted-foreground">Excluded from the graph: {[missingDates > 0 && `${missingDates} transactions without a paid date or due date`, missingValues > 0 && `${missingValues} purchase orders without a complete net value`].filter(Boolean).join('; ')}.</p>}
+    {!loading && !error && dueDateFallback > 0 && <p className="text-xs text-muted-foreground">{dueDateFallback} transaction lines use the due date because no paid date is recorded; these are shown as expected payments.</p>}
     {!loading && !error && <ProjectPOForecastSummary forecast={forecast} />}
     {loading ? <p className="py-12 text-center text-sm text-muted-foreground">Loading cash flow…</p> : error ? <p role="alert" className="text-sm text-destructive">{error}</p> : <CashFlowChart forecast={forecast} entries={[...entries, ...commitments.map(entry => ({ ...entry, type: 'spent' }))]} />}
   </section>;

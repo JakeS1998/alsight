@@ -54,10 +54,10 @@ export function ProjectFinanceTab({ project }) {
       {riskScores.error && <p role="alert" className="text-sm text-destructive">Unable to calculate risk allowance: {riskScores.error.message}<button type="button" className="ml-2 underline" disabled={riskScores.isFetching} onClick={() => riskScores.refetch()}>Try again</button></p>}
       <CommercialSummary summary={summary} health={health} projectId={project.id} />
 
-      <ProjectCashFlow entries={[]} powerBI
+      <ProjectCashFlow entries={orderCashFlow.data?.entries || []} powerBI
         loading={syncedOrders.enabled && orderCashFlow.isPending}
         error={orderCashFlow.error ? `Power BI purchase-order graph could not be loaded: ${orderCashFlow.error.message}` : ''}
-        commitments={orderCashFlow.data?.entries || []}
+        dueDateFallback={orderCashFlow.data?.dueDateFallback || 0}
         forecast={orderCashFlow.data?.forecast}
         missingDates={orderCashFlow.data?.missingDates || 0} missingValues={orderCashFlow.data?.missingValues || 0} />
 
@@ -79,7 +79,7 @@ export function ProjectFinanceTab({ project }) {
 
       <CommercialAlerts alerts={alerts} />
 
-      <p className="text-sm text-muted-foreground">PO/SO figures come only from the Power BI model. Invoice receipts, payment dates and approval details are not supplied by this model; sales orders are not evidence of payment.</p>
+      <p className="text-sm text-muted-foreground">PO/SO figures and payment dates come from the Power BI model. The chart uses paid dates first, falling back to due dates for expected payments. Sales orders and due dates are not evidence of payment.</p>
     </div>
     </FinanceComingSoon>
   );

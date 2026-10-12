@@ -6,7 +6,7 @@ import cashFlowChartData from '@/components/projects/cashFlowChartData';
 export default function CashFlowChart({ entries, forecast }) {
   const data = useMemo(() => cashFlowChartData(entries, forecast), [entries, forecast]);
 
-  if (!data.length) return <p className="py-10 text-center text-sm text-muted-foreground">No paid invoices, dated spending or dated outgoing POs recorded for this project yet.</p>;
+  if (!data.length) return <p className="py-10 text-center text-sm text-muted-foreground">No transactions with a paid date or due date recorded for this project yet.</p>;
   return <div className="h-72 w-full" role="img" aria-label="Cumulative client payments, outgoing payments including POs, and net cash balance over time">
     <ResponsiveContainer width="100%" height="100%">
       <LineChart data={data} margin={{ top: 8, right: 16, bottom: 8, left: 12 }}>
@@ -17,7 +17,9 @@ export default function CashFlowChart({ entries, forecast }) {
         <Legend />
         <Line type="linear" dataKey="received" name="Payments received" stroke="hsl(var(--chart-1))" strokeWidth={3} dot={{ r: 4 }} activeDot={{ r: 6 }} />
         <Line type="linear" dataKey="spent" name="Money out" stroke="hsl(var(--chart-3))" strokeWidth={3} dot={{ r: 4 }} activeDot={{ r: 6 }} />
-        <Line type="linear" dataKey="balance" name="Net balance" stroke="hsl(var(--chart-2))" strokeWidth={3} dot={{ r: 4 }} activeDot={{ r: 6 }} />
+        {data.some(row=>row.expectedReceived!==undefined)&&<Line type="linear" dataKey="expectedReceived" name="Money in including due payments (expected)" stroke="hsl(var(--chart-1))" strokeWidth={2} strokeDasharray="6 4" dot={{r:3}} />}
+        {data.some(row=>row.expectedSpent!==undefined)&&<Line type="linear" dataKey="expectedSpent" name="Money out including due payments (expected)" stroke="hsl(var(--chart-3))" strokeWidth={2} strokeDasharray="6 4" dot={{r:3}} />}
+        <Line type="linear" dataKey="balance" name="Net balance (paid dates only)" stroke="hsl(var(--chart-2))" strokeWidth={3} dot={{ r: 4 }} activeDot={{ r: 6 }} />
         {forecast?.available && forecast.remaining > 0 && <ReferenceLine x={forecast.today} stroke="hsl(var(--muted-foreground))" strokeDasharray="3 3" label={{ value: 'Forecast starts', position: 'insideTopRight', fontSize: 11 }} />}
         {forecast?.available && forecast.remaining > 0 && <Line type="linear" dataKey="poForecast" name="Projected money out (estimate)" stroke="hsl(var(--chart-5))" strokeWidth={3} strokeDasharray="6 4" dot={{ r: 3 }} connectNulls />}
 

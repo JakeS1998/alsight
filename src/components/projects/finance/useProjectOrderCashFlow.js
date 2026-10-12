@@ -3,5 +3,5 @@ import {useAuth} from '@/lib/AuthContext';
 import {financeCall} from '@/components/finance/financeClient';
 export default function useProjectOrderCashFlow(project, enabled){
  const {user}=useAuth();
- return useQuery({queryKey:['finance','project-order-cash-flow-project-value-forecast-v3',user?.id,user?.role,project.id],enabled,staleTime:60000,queryFn:()=>financeCall({action:'projectOrderCashFlow',projectId:project.id})});
+ return useQuery({queryKey:['finance','project-order-cash-flow-paid-or-due-v4',user?.id,user?.role,project.id],enabled,staleTime:60000,queryFn:()=>financeCall({action:'projectOrderCashFlow',projectId:project.id})});
 }

@@ -1,6 +1,7 @@
 import {readDataverseFinance} from './financeDataverseReads.ts';
 import {projectOrderCashFlow} from './projectOrderCashFlow.ts';
 import {projectPOForecast} from './projectPOForecast.ts';
+import {powerBIProjectCashFlow} from './powerBIProjectCashFlow.ts';
 export async function readProjectFinanceOrders(base44,state,input){
  if(!/^[a-f0-9]{24}$/i.test(input.projectId||''))throw new Error('Choose a valid project.');
  if(String(input.cursor||'').length>8192)throw new Error('Invalid order page.');
@@ -21,7 +22,7 @@ export async function readProjectFinanceOrders(base44,state,input){
  }
  const query={...base,kind:input.type==='SO'?'sales_orders':'purchase_orders',project_key:{$in:keys}};
  if(input.action==='projectOrderCashFlow') {
-  const [cashFlow,forecast]=await Promise.all([keys.length?projectOrderCashFlow(db,base,query,state.source==='powerbi'):Promise.resolve({entries:[],total:0,available:true}),projectPOForecast(db,state,project)]);
+  const [cashFlow,forecast]=await Promise.all([state.source==='powerbi'?powerBIProjectCashFlow(base44,state,matches.items):keys.length?projectOrderCashFlow(db,base,query):Promise.resolve({entries:[],total:0,available:true}),projectPOForecast(db,state,project)]);
   return {...cashFlow,forecast};
  }
  if(!keys.length)return {items:[],total:0,has_more:false,next_cursor:null,mappings:[],source:'powerbi',read_at:state.last_completed_at};

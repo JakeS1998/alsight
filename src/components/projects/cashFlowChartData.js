@@ -1,16 +1,17 @@
 export default function cashFlowChartData(entries, forecast) {
  const byDate = new Map();
+ const hasExpectedReceived=entries.some(entry=>entry.type==='expectedReceived'),hasExpectedSpent=entries.some(entry=>entry.type==='expectedSpent');
  entries.forEach(({date,type,amount}) => {
-  if (!date || !['received','spent'].includes(type)) return;
+  if (!date || !['received','spent','expectedReceived','expectedSpent'].includes(type)) return;
   date=date.slice(0,10);
-  const row=byDate.get(date)||{date,received:0,spent:0};
+  const row=byDate.get(date)||{date,received:0,spent:0,expectedReceived:0,expectedSpent:0};
   row[type]+=Number(amount)||0;
   byDate.set(date,row);
  });
- let received=0,spent=0;
+ let received=0,spent=0,expectedReceived=0,expectedSpent=0;
  const actual=[...byDate.values()].sort((a,b)=>a.date.localeCompare(b.date)).map(row=>{
-  received+=row.received;spent+=row.spent;
-  return {date:row.date,received,spent,balance:received-spent};
+  received+=row.received;spent+=row.spent;expectedReceived+=row.expectedReceived;expectedSpent+=row.expectedSpent;
+  return {date:row.date,received,spent,balance:received-spent,...(hasExpectedReceived?{expectedReceived:received+expectedReceived}:{}),...(hasExpectedSpent?{expectedSpent:spent+expectedSpent}:{})};
  });
  if (!forecast?.available || !(forecast.remaining > 0)) return actual;
  const points=new Map(actual.map(row=>[row.date,row]));
