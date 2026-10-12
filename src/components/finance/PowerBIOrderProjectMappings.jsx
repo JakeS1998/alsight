@@ -1,0 +1,10 @@
+import React,{useState} from 'react';
+import {useQuery,useQueryClient} from '@tanstack/react-query';
+import {Button} from '@/components/ui/button';
+import FinanceMappingRow from '@/components/finance/FinanceMappingRow';
+import powerBIOrdersClient from '@/components/finance/powerBIOrdersClient';
+export default function PowerBIOrderProjectMappings({generation}){
+ const client=useQueryClient(),[status,setStatus]=useState('review'),[cursor,setCursor]=useState(null);
+ const q=useQuery({queryKey:['powerbi-project-mappings',generation,status,cursor],queryFn:()=>powerBIOrdersClient({action:'mappings',status,cursor})});
+ return <section className="space-y-3"><h3 className="font-semibold">Power BI project matching</h3><p className="text-sm text-muted-foreground">Original model codes are retained. Review unmatched or ambiguous projects before confirming the reporting source.</p><select aria-label="Power BI project mapping status" value={status} className="rounded-md border border-input bg-card p-2" onChange={e=>{setStatus(e.target.value);setCursor(null);}}><option value="review">Needs review</option><option value="linked">Linked projects</option><option value="all">All projects</option></select>{q.isPending&&<p role="status">Loading project mappings…</p>}{q.error&&<p role="alert" className="text-destructive">{q.error.message}</p>}{q.data?.items.map(m=><FinanceMappingRow key={m.source_key} mapping={m} onMap={powerBIOrdersClient} onSaved={()=>{client.invalidateQueries({queryKey:['powerbi-project-mappings']});client.invalidateQueries({queryKey:['finance']});}}/>)}{q.data&&!q.data.items.length&&<p className="text-sm text-muted-foreground">No projects in this category.</p>}<div className="flex gap-2">{cursor&&<Button variant="outline" onClick={()=>setCursor(null)}>First mappings</Button>}{q.data?.has_more&&<Button variant="outline" onClick={()=>setCursor(q.data.next_cursor)}>Next mappings</Button>}</div></section>;
+}
