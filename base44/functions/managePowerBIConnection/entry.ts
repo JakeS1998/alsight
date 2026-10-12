@@ -9,7 +9,7 @@ export default async function(req){
   if(req.method!=='POST')return Response.json({error:'Method not allowed.'},{status:405});
   const raw=await req.text();if(raw.length>15000)throw new Error('Sign-in response is too large.');
   const input=JSON.parse(raw);
-  if(!['status','begin','finish','check','retry','disconnect'].includes(input.action))throw new Error('Invalid Power BI connection operation.');
+  if(!['status','begin','finish','check','retry','discover','disconnect'].includes(input.action))throw new Error('Invalid Power BI connection operation.');
   if(input.action==='begin')return Response.json(await beginPowerBISignIn(base44,user));
   if(input.action==='finish')return Response.json(await finishPowerBISignIn(base44,user,input));
   const record=await powerBIConnectionRecord(base44);
@@ -26,6 +26,11 @@ export default async function(req){
   if(!token)throw new Error('Sign in with Microsoft before checking report access.');
   const report=await powerRequest(token,`groups/${address.workspace_id}/reports/${address.report_id}`);
   if(!/^[0-9a-f-]{36}$/i.test(report.datasetId||''))throw new Error('This report does not expose a supported semantic model.');
+  if(input.action==='discover'){
+   const columns=await powerQuery(token,report.datasetId,'EVALUATE SELECTCOLUMNS(INFO.VIEW.COLUMNS(), "Table", [Table], "Column", [Name], "DataType", [DataType], "Hidden", [IsHidden])');
+   if(columns.length>3000)throw new Error('Model metadata exceeds the supported mapping size.');
+   return Response.json({...address,report_name:report.name,dataset_id:report.datasetId,columns});
+  }
   await powerQuery(token,report.datasetId,'EVALUATE ROW("AccessCheck", 1)');
   const checked=record?await base44.asServiceRole.entities.PowerBIUserConnection.update(record.id,{last_checked_at:new Date().toISOString()}):null;
   return Response.json({...powerBIConnectionSummary(checked),report_name:report.name,dataset_id:report.datasetId,notice:`${input.action==='retry'?'The current Power BI application credentials':'Microsoft sign-in'} can read ${report.name} and query its semantic model (${report.datasetId}). Existing Dataverse reporting has not been changed.`});
