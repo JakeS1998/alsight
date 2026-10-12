@@ -53,6 +53,8 @@
 .portal-main .finance-briefing table th { padding:14px 12px; background:hsl(var(--secondary)); font-weight:800; color:hsl(var(--foreground)); }
 .portal-main .finance-briefing table td { padding:14px 12px; border-bottom:1px solid hsl(var(--border)); vertical-align:top; }
 .finance-briefing table tr.bg-primary\/10 td { background:hsl(var(--primary) / .14); }
+.finance-balance-panel { background:hsl(var(--card)); border:1px solid hsl(var(--border)); border-radius:var(--panel-radius); box-shadow:var(--surface-shadow); }
+.finance-balance-summary { background:hsl(var(--muted)); box-shadow:none; }
 .portal-main .finance-briefing .finance-balance-invoices table { font-size:12px; }
 .portal-main .finance-briefing .finance-balance-invoices table :is(th,td) { padding:8px 10px; }
 .finance-briefing .finance-balance-invoices button { padding:6px 12px; font-size:12px; }
