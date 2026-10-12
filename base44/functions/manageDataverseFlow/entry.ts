@@ -13,11 +13,10 @@ import { writeFlowContext, loadFlowRecord, saveFlowRecord } from '../../shared/d
 import { flowSelection, mappedFlowValues } from '../../shared/dataverseFlowValues.ts';
 import { listFlowReviews, decideFlowReview } from '../../shared/dataverseFlowReview.ts';
 import { flowReviewDetails, searchReviewTargets } from '../../shared/dataverseFlowReviewReads.ts';
-import { dataverseAdminUserReads } from '../../shared/dataverseAdminUserReads.ts';
 // Supplier commission tables are included in the shared read-only catalogue.
 export default async function(req) {
   try {
-    let base44 = createClientFromRequest(req), user = await base44.auth.me();
+    const base44 = createClientFromRequest(req), user = await base44.auth.me();
     if (!user) return Response.json({ error: 'Sign in to continue.' }, { status: 401 });
     if (!dataverseRoles.includes(user.role)) return Response.json({ error: 'Internal staff only.' }, { status: 403 });
     if (req.method !== 'POST') return Response.json({ error: 'Method not allowed.' }, { status: 405 });
@@ -26,7 +25,6 @@ export default async function(req) {
     const input = JSON.parse(raw), adminActions = ['confirmJake', 'checkShared', 'discover', 'inspect', 'mapping', 'preview', 'sync', 'poll', 'relationships', 'cleanDMA', 'reviews', 'reviewDetails', 'reviewTargets', 'decideReview'];
     if (!['status', 'load', 'save', ...adminActions].includes(input.action)) return Response.json({ error: 'Invalid operation.' }, { status: 400 });
     if (adminActions.includes(input.action) && user.role !== 'admin') return Response.json({ error: 'Administrator access required.' }, { status: 403 });
-    if (adminActions.includes(input.action)) base44 = dataverseAdminUserReads(base44, user);
     let config = await flowConfig(base44);
     if (input.action === 'status') {
       const pollState = user.role === 'admin' ? (await base44.entities.DataversePollState.filter({ key: 'primary' }, { limit: 1, fields: ['status', 'last_activity', 'last_completed_at', 'error'] })).items[0] || null : null;
