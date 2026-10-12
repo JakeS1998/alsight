@@ -6,7 +6,7 @@ export default function CommercialPageHeader({ status, user }) {
  const description = <>
   Project pipeline, purchase-order commitments and recorded sales invoices.
   {status?.confirmed && <span className="mt-4 block text-xs text-sidebar-foreground/65">
-   Dataverse snapshot{completedAt ? ` · Last completed sync: ${new Date(completedAt).toLocaleString('en-GB')}` : ''}
+   {status?.source==='powerbi'?'Power BI PO/SO snapshot; Dataverse invoices retained':'Dataverse snapshot'}{completedAt ? ` · Last completed sync: ${new Date(completedAt).toLocaleString('en-GB')}` : ''}
    <span className="mt-1 block">Your existing access rules apply to all figures and records. Sales invoices are not supplier invoices or evidence of payment.</span>
   </span>}
  </>;
