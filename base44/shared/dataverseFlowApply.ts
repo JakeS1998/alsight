@@ -5,7 +5,7 @@ import {projectValueSyncUpdates} from './projectValueSyncUpdates.ts';
 import {withUKLFRecordLease} from './uklfRecordLease.ts';
 import {createMissingUKLFRecords} from './uklfRecordCreation.ts';
 import {uklfProjectFields} from './uklfRecordValues.ts';
-import {receiveProjectApproval} from './projectApprovalIntake.ts';
+import {receiveProjectApproval,projectCounter} from './projectApprovalIntake.ts';
 export async function applyFlowUpdates(base44, table, spec, updates, appliedReviews, sourceIds=updates.map(row=>row.dataverse_id)) {
   if (table === 'users') {
     for (let start = 0; start < updates.length; start += 4) {
@@ -17,9 +17,10 @@ export async function applyFlowUpdates(base44, table, spec, updates, appliedRevi
   }
   if (table === 'projects' && updates.length) {
     await propagateFlowProjectAccess(base44, updates);
-    const approvalProjects=await base44.asServiceRole.entities.Project.filter({dataverse_id:{$in:sourceIds}},{limit:100,fields:['created_date']});
+    const approvalCounter=await projectCounter(base44);
+    const approvalProjects=await base44.asServiceRole.entities.Project.filter({dataverse_id:{$in:sourceIds},created_date:{$gte:approvalCounter.enabled_from}},{limit:100,fields:['created_date']});
     if(approvalProjects.has_more)throw new Error('Project approval sync exceeds its safe batch limit.');
-    for(let start=0;start<approvalProjects.items.length;start+=4)await Promise.all(approvalProjects.items.slice(start,start+4).map(project=>receiveProjectApproval(base44,project.id)));
+    for(const project of approvalProjects.items)await receiveProjectApproval(base44,project.id);
     const projects=await base44.entities.Project.filter({dataverse_id:{$in:sourceIds},procurement_route:true},{limit:100,fields:uklfProjectFields});
     if(projects.has_more)throw new Error('UKLF project sync exceeds its safe batch limit.');
     if(projects.items.length)await withUKLFRecordLease(base44,(_,assertLease)=>createMissingUKLFRecords(base44,projects.items,assertLease));

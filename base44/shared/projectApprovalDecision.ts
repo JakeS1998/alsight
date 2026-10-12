@@ -18,8 +18,8 @@ export async function decideProjectApproval(base44,user,input) {
    if(request.response==='Approve' && !request.assigned_project_number){
     const number=counter.last_used+1,formatted=`${counter.prefix}${number}`;
     if(!Number.isSafeInteger(number) || number>999999999)throw new Error('The project counter is out of range.');
-    const [projects,reserved]=await Promise.all([db.Project.count({project_number:formatted,id:{$ne:project.id}}),db.ProjectApproval.count({assigned_project_number:formatted,id:{$ne:request.id}})]);
-    if(projects || reserved)throw new Error(`${formatted} is already in use or reserved. Correct the project counter before retrying; existing numbers will not be overwritten.`);
+    const [projects,reserved]=await Promise.all([db.Project.filter({project_number:formatted},{limit:2,fields:['id']}),db.ProjectApproval.filter({assigned_project_number:formatted},{limit:2,fields:['id']})]);
+    if(projects.has_more || reserved.has_more || projects.items.some(row=>row.id!==project.id) || reserved.items.some(row=>row.id!==request.id))throw new Error(`${formatted} is already in use or reserved. Correct the project counter before retrying; existing numbers will not be overwritten.`);
     await assertLease();
     await db.ProjectNumberCounter.update(counter.id,{last_used:number,pending_request_id:request.id,pending_number:number,changed_at:new Date().toISOString(),changed_by:user.id});
     request=await db.ProjectApproval.update(request.id,{assigned_number:number,assigned_project_number:formatted});

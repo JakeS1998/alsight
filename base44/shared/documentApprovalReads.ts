@@ -35,7 +35,12 @@ export async function approvalSummary(base44,user) {
  const pending=await db.count({...query,status:'pending'});
  const approved=await db.count({...query,status:'approved',decided_by_id:user.id,decided_at:{$gte:new Date(Date.now()-30*86400000).toISOString()}});
  const total=await db.count(query);
- return {pending,approved,total};
+ const projectQuery=user.role==='admin' ? {} : {approver_emails:user.email.trim().toLowerCase()};
+ const [projectGroups,projectApproved]=await Promise.all([
+  base44.asServiceRole.entities.ProjectApproval.aggregate({query:projectQuery,groupBy:'status'}),
+  base44.asServiceRole.entities.ProjectApproval.count({...projectQuery,status:'approved',decided_by_id:user.id,decided_at:{$gte:new Date(Date.now()-30*86400000).toISOString()}})
+ ]);
+ return {pending:pending+(projectGroups.rows.find(row=>row.status==='pending')?.count || 0),approved:approved+projectApproved,total:total+projectGroups.rows.reduce((sum,row)=>sum+row.count,0)};
 }
 export async function approvalOptions(base44,user) {
  const db=base44.entities.DocumentApprovalRequest,query=own(user),options={};

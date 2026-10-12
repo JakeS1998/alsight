@@ -1,3 +1,4 @@
+import {withProjectNumberLease} from './projectNumberLease.ts';
 export async function projectCounter(base44) {
  const page=await base44.asServiceRole.entities.ProjectNumberCounter.filter({key:'primary'},{limit:2});
  if(page.items.length!==1)throw new Error('The shared project-number counter needs administrator setup.');
@@ -16,6 +17,7 @@ export async function refreshPendingProjectApprovers(base44,rule) {
 export async function receiveProjectApproval(base44,projectId) {
  const db=base44.asServiceRole.entities,counter=await projectCounter(base44),project=await db.Project.get(projectId);
  if(Date.parse(project.created_date)<Date.parse(counter.enabled_from))return {skipped:true};
+ return withProjectNumberLease(base44,async()=>{
  const old=(await db.ProjectApproval.filter({project_id:project.id},{limit:2})).items;
  if(old.length>1)throw new Error('Duplicate project approvals need administrator attention.');
  let request=old[0];
@@ -29,4 +31,5 @@ export async function receiveProjectApproval(base44,projectId) {
  const values={approval_status:status,...(request.status==='approved' ? {project_number:request.assigned_project_number} : {})};
  if(project.approval_status!==status || (values.project_number && project.project_number!==values.project_number))await db.Project.update(project.id,values);
  return {requestId:request.id,status:request.status};
+ });
 }
