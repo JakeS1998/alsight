@@ -15,13 +15,13 @@ export default function CashFlowChart({ entries, forecast }) {
         <YAxis tickFormatter={v => `£${Intl.NumberFormat('en-GB', { notation: 'compact' }).format(v)}`} tick={{ fontSize: 11 }} width={68} />
         <Tooltip labelFormatter={d => new Date(`${d}T12:00:00`).toLocaleDateString('en-GB', { dateStyle: 'medium' })} formatter={(v, name) => [formatCurrency(v), name]} />
         <Legend />
-        <Line type="linear" dataKey="received" name="Payments received" stroke="hsl(var(--chart-1))" strokeWidth={3} dot={{ r: 4 }} activeDot={{ r: 6 }} />
-        <Line type="linear" dataKey="spent" name="Money out" stroke="hsl(var(--chart-3))" strokeWidth={3} dot={{ r: 4 }} activeDot={{ r: 6 }} />
-        {data.some(row=>row.expectedReceived!==undefined)&&<Line type="linear" dataKey="expectedReceived" name="Money in including due payments (expected)" stroke="hsl(var(--chart-1))" strokeWidth={2} strokeDasharray="6 4" dot={{r:3}} />}
-        {data.some(row=>row.expectedSpent!==undefined)&&<Line type="linear" dataKey="expectedSpent" name="Money out including due payments (expected)" stroke="hsl(var(--chart-3))" strokeWidth={2} strokeDasharray="6 4" dot={{r:3}} />}
-        <Line type="linear" dataKey="balance" name="Net balance (paid dates only)" stroke="hsl(var(--chart-2))" strokeWidth={3} dot={{ r: 4 }} activeDot={{ r: 6 }} />
+        <Line type="monotoneX" dataKey="received" name="Payments received" stroke="hsl(var(--chart-1))" strokeWidth={3} dot={{ r: 4 }} activeDot={{ r: 6 }} />
+        <Line type="monotoneX" dataKey="spent" name="Money out" stroke="hsl(var(--chart-3))" strokeWidth={3} dot={{ r: 4 }} activeDot={{ r: 6 }} />
+        {data.some(row=>row.expectedReceived!==undefined)&&<Line type="monotoneX" dataKey="expectedReceived" name="Money in including due payments (expected)" stroke="hsl(var(--chart-1))" strokeWidth={2} strokeDasharray="6 4" dot={{r:3}} />}
+        {data.some(row=>row.expectedSpent!==undefined)&&<Line type="monotoneX" dataKey="expectedSpent" name="Money out including due payments (expected)" stroke="hsl(var(--chart-3))" strokeWidth={2} strokeDasharray="6 4" dot={{r:3}} />}
+        <Line type="monotoneX" dataKey="balance" name="Net balance (paid dates only)" stroke="hsl(var(--chart-2))" strokeWidth={3} dot={{ r: 4 }} activeDot={{ r: 6 }} />
         {forecast?.available && forecast.remaining > 0 && <ReferenceLine x={forecast.today} stroke="hsl(var(--muted-foreground))" strokeDasharray="3 3" label={{ value: 'Forecast starts', position: 'insideTopRight', fontSize: 11 }} />}
-        {forecast?.available && forecast.remaining > 0 && <Line type="linear" dataKey="poForecast" name="Projected money out (estimate)" stroke="hsl(var(--chart-5))" strokeWidth={3} strokeDasharray="6 4" dot={{ r: 3 }} connectNulls />}
+        {forecast?.available && forecast.remaining > 0 && <Line type="monotoneX" dataKey="poForecast" name="Projected money out (estimate)" stroke="hsl(var(--chart-5))" strokeWidth={3} strokeDasharray="6 4" dot={{ r: 3 }} connectNulls />}
 
       </LineChart>
     </ResponsiveContainer>
