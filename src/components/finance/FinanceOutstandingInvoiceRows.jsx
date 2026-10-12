@@ -1,0 +1,6 @@
+import React from 'react';
+import {formatCurrency} from '@/lib/portal';
+export default function FinanceOutstandingInvoiceRows({items}){
+ if(!items.length)return <p className="py-6 text-sm text-muted-foreground">No outstanding invoices match these filters.</p>;
+ return <div className="overflow-x-auto"><table className="w-full text-sm"><thead><tr className="border-b border-border text-muted-foreground">{['Type','Supplier / customer','Invoice','Reference','Project','Due date','Ageing','Outstanding'].map(h=><th key={h} className="whitespace-nowrap p-3 text-left last:text-right">{h}</th>)}</tr></thead><tbody>{items.map(item=><tr key={item.Key} className="border-b border-border"><td className="p-3">{item.Kind==='creditors'?'Creditor':'Debtor'}</td><td className="p-3">{item.Party||'Not recorded'}</td><td className="p-3">{item.Document}</td><td className="p-3">{item.Reference||'—'}</td><td className="p-3">{item.Project||'—'}</td><td className="whitespace-nowrap p-3">{item.DueDate?new Date(item.DueDate).toLocaleDateString('en-GB'):'Not recorded'}</td><td className={`whitespace-nowrap p-3 ${item.Days>0?'text-destructive':'text-muted-foreground'}`}>{item.Days>0?`${item.Days} days overdue`:item.Bucket}</td><td className="p-3 text-right font-semibold tabular-nums">{formatCurrency(item.Balance)}</td></tr>)}</tbody></table></div>;
+}
