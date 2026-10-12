@@ -11,7 +11,7 @@ export default function CommercialPageHeader({ status, user }) {
   </span>}
  </>;
  const actions = <>
-  {status?.report?.url && <a href={status.report.url} target="_blank" rel="noopener noreferrer" className="finance-button finance-button-primary">Open Power BI report</a>}
+
 
  </>;
  return <div className="mb-10 [&_h1]:text-sidebar-foreground"><WorkspacePageHeader title="Commercial" eyebrow="Alliance Leisure" description={description} image="https://media.base44.com/images/public/6ab62433a194f918c54c8249/40e479c05_generated_3ad03444.png" imageAlt="Project cost planning with architectural drawings, financial charts, a calculator and a leisure-centre model" actions={actions}/></div>;
