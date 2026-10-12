@@ -16,7 +16,7 @@ export async function prepareFlowBatch(base44, context, table, settings, rows, s
     try { values.push(mappedFlowValues(table, settings, row)); errors.push(''); }
     catch (error) { values.push(null); errors.push(error.message); }
   }
-  const resolved = await resolveFlowStaffReferences(base44, table, values, context);
+  const resolved = await resolveFlowStaffReferences(base44, table, values, context, table === 'documents');
   const related = await resolveFlowProjectReferences(base44, table, resolved.map(item => item.value));
   const commissions = await resolveCommissionReferences(base44, context, table, related);
   const insurance = await resolveInsuranceReferences(base44, table, commissions);

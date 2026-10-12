@@ -1,10 +1,10 @@
 import { flowSpecs } from './dataverseFlowFields.ts';
 import { flowReferenceUsers } from './dataverseStaffReferences.ts';
-export async function resolveFlowStaffReferences(base44, table, values, context) {
+export async function resolveFlowStaffReferences(base44, table, values, context, toleratePermissionDenied = false) {
   const fields = table === 'users' ? [] : Object.keys(flowSpecs[table].fields).filter(key => key.endsWith('_aad_id'));
   const ids = [...new Set(values.flatMap(value => fields.map(field => value?.[field]).filter(Boolean).map(id => id.toLowerCase())))];
   if (!ids.length) return values.map(value => ({ value }));
-  const { users, identities } = await flowReferenceUsers(base44, ids, context);
+  const { users, identities } = await flowReferenceUsers(base44, ids, context, table === 'documents' && toleratePermissionDenied);
   return values.map(value => {
     if (!value) return { value };
     const resolved = { ...value };
