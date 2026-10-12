@@ -3,6 +3,7 @@ import {powerBIOrderState} from '../../shared/powerBIOrderState.ts';
 import {mapPowerBIOrderDates} from '../../shared/powerBIOrderDates.ts';
 import {configurePowerBIOrders,startPowerBIOrders,batchPowerBIOrders,confirmPowerBIOrders} from '../../shared/powerBIOrderImport.ts';
 import {saveFinanceMapping} from '../../shared/financeProjectMatching.ts';
+import {syncPowerBIOrders} from '../../shared/powerBIAutomaticSync.ts';
 import {readProjectNumberMappings,saveProjectNumberMapping} from '../../shared/financeProjectNumberMapping.ts';
 export default async function(req){
  try{
@@ -11,6 +12,7 @@ export default async function(req){
   if(user.role!=='admin')return Response.json({error:'Administrator access required.'},{status:403});
   if(req.method!=='POST')return Response.json({error:'Method not allowed.'},{status:405});
   const raw=await req.text();if(raw.length>15000)throw new Error('Request too large.');const input=JSON.parse(raw);
+  if(input.action==='sync')return Response.json(await syncPowerBIOrders(base44,user,input));
   if(input.action==='configure')return Response.json(await configurePowerBIOrders(base44,input));
   if(input.action==='start')return Response.json(await startPowerBIOrders(base44));
   if(input.action==='batch')return Response.json(await batchPowerBIOrders(base44,input));

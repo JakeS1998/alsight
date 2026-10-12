@@ -10,22 +10,24 @@ export async function configurePowerBIOrders(base44,input){
  const values={key:'primary',namespace:`powerbi:${report.datasetId}`,dataset_id:report.datasetId,...address,report_name:report.name,sources,revision:crypto.randomUUID(),status:'configured',error:'',...(old&&old.dataset_id!==report.datasetId?{active_generation:''}:{})};
  const record=old?await base44.entities.PowerBIOrderImport.update(old.id,values):await base44.entities.PowerBIOrderImport.create(values);return {state:record,notice:'Model field mappings verified and saved. Import the data to review it before switching reporting.'};
 }
-export async function startPowerBIOrders(base44){
+export async function startPowerBIOrders(base44,options={}){
  const state=await powerBIOrderState(base44);if(!state)throw new Error('Save the semantic-model mappings first.');
  if(state.status==='running')throw new Error('An import is already running. Continue it rather than starting again.');
+ if(state.lease_until>new Date().toISOString()&&state.lease_token!==options.leaseToken)throw new Error('Another import is starting. Wait for its progress to appear.');
+ if(options.automatic&&(state.revision!==options.approvedRevision||JSON.stringify(state.sources)!==JSON.stringify(state.active_sources)))throw new Error('Review and confirm changed mappings before automatic imports can publish them.');
  const token=await powerToken(base44),tables=[];
  for(const type of ['PO','SO']){
   const summary=(await powerQuery(token,state.dataset_id,orderTotalsDax(state.sources[type])))[0];
   if(summary.Rows!==summary.Orders||summary.BlankReferences)throw new Error(`${type}: each source row needs a unique, nonblank order reference; map an order-level table rather than line items.`);
   tables.push({type,kind:type==='PO'?'purchase_orders':'sales_orders',logical:state.sources[type].table,label:type==='PO'?'Purchase orders':'Sales orders',fields:{amount:state.sources[type].value},expected:summary.Rows,expected_amount:summary.Amount??null,expected_missing:summary.Missing||0,processed:0,cursor:'',complete:false});
  }
- const record=await base44.entities.PowerBIOrderImport.update(state.id,{status:'running',generation:crypto.randomUUID(),table_index:0,tables:{list:tables},error:'',lease_token:'',lease_until:'1970-01-01T00:00:00.000Z'});return {state:record};
+ const record=await base44.entities.PowerBIOrderImport.update(state.id,{status:'running',generation:crypto.randomUUID(),table_index:0,tables:{list:tables,...(options.automatic?{automatic:{revision:state.revision,started_at:new Date().toISOString()}}:{})},error:'',lease_token:'',lease_until:'1970-01-01T00:00:00.000Z'});return {state:record};
 }
 export async function batchPowerBIOrders(base44,input){
  const state=await powerBIOrderState(base44);if(!state||state.status!=='running')return {state};
  if(input.generation!==state.generation)throw new Error('This import has changed. Reload its progress.');
  const db=base44.entities,now=new Date().toISOString(),lease=crypto.randomUUID();
- const lock=await db.PowerBIOrderImport.updateMany({id:state.id,status:'running',generation:state.generation,lease_until:{$lt:now}},{$set:{lease_token:lease,lease_until:new Date(Date.now()+240000).toISOString()}});
+ const lock=await db.PowerBIOrderImport.updateMany({id:state.id,status:'running',generation:state.generation,updated_date:state.updated_date,lease_until:{$lt:now}},{$set:{lease_token:lease,lease_until:new Date(Date.now()+240000).toISOString()}});
  if(!lock.updated)return {state,busy:true};
  try{
   const tables=state.tables.list,t=tables[state.table_index],token=await powerToken(base44),rows=await powerQuery(token,state.dataset_id,orderPageDax(state.sources[t.type],t.cursor));
@@ -47,7 +49,7 @@ export async function batchPowerBIOrders(base44,input){
     table.imported_amount=amount;
    }
   }
-  const completed=index===tables.length;const record=await db.PowerBIOrderImport.update(state.id,{tables:{list:tables},table_index:index,status:completed?'completed':'running',lease_token:'',lease_until:'1970-01-01T00:00:00.000Z',...(completed?{last_completed_at:at}:{})});return {state:record,processed:rows.length};
+  const completed=index===tables.length;const record=await db.PowerBIOrderImport.update(state.id,{tables:{...state.tables,list:tables},table_index:index,status:completed?'completed':'running',lease_token:'',lease_until:'1970-01-01T00:00:00.000Z',...(completed?{last_completed_at:at}:{})});return {state:record,processed:rows.length};
  }catch(error){await db.PowerBIOrderImport.update(state.id,{status:'error',error:String(error.message).slice(0,1000),lease_token:'',lease_until:'1970-01-01T00:00:00.000Z'});throw error;}
 }
 export async function confirmPowerBIOrders(base44,user,input){
