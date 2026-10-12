@@ -1,6 +1,7 @@
 import {aseV2Defaults,validateASEV2Config} from './aseV2Config.ts';
 import {calculateASEV2,dependencyScore} from './aseV2Calculation.ts';
 import {scoreAllianceContractExposure} from './aseV2DependencyScoring.ts';
+import {checkEnvironmentRules} from './aseEnvironmentRules.ts';
 export function checkASEV2Rules() {
   const policy=structuredClone(aseV2Defaults),all=policy.components.flatMap(c=>Object.keys(policy.slots[c.key]).map(slot=>({key:`${c.key}:${slot}`,component:c.key,slot,label:slot,state:'CLEAR',score:5,confidence:'High'})));
   const full=calculateASEV2(policy,all),failed=calculateASEV2(policy,all.map(c=>c.key==='esg:environment_agency' ? {...c,state:'CHECK FAILED',score:null} : c));
@@ -23,5 +24,6 @@ export function checkASEV2Rules() {
   const pdf=scoreAllianceContractExposure(exposure,{...turnover,annual_verified:false,confidence:'Low'},policy,now);
   const applied=calculateASEV2(policy,all.map(c=>c.component==='dependency' ? estimated.check : c));
   Object.assign(checks,{contractExposureScored:scored.dependency.percentage===50 && scored.check.score===2,annualisedExposureNotWholeContractValue:scored.dependency.exposure===500000,pathwayExposureScored:estimated.check.score===2 && estimated.check.confidence==='Low' && estimated.check.verified===false,incompleteExposureScoredWithLowerConfidence:incomplete.check.score===2 && incomplete.check.quality===policy.quality.Low,missingExposureNotZeroDependency:missing.check.score===null && missing.dependency.status==='unavailable',missingTurnoverNotScored:noTurnover.check.score===null,zeroTurnoverNotScored:zeroTurnover.check.score===null,pdfTurnoverLowConfidence:pdf.check.score===2 && pdf.check.confidence==='Low',exposureFeedsDependencyComponent:applied.components.find(c=>c.key==='dependency').score===2,exposureFeedsWeightedASE:applied.raw_score===4.55 && applied.final_score===4.55 && applied.coverage===92.5});
+  Object.assign(checks,checkEnvironmentRules());
   return {checks,passed:Object.values(checks).every(Boolean)};
 }

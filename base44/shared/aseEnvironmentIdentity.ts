@@ -6,7 +6,9 @@ export function environmentSearchName(account) {
  if(!environmentSupplier(account))throw new Error('Environment Agency checks apply to suppliers only.');
  const name=String(account.company_name || account.name || '').trim();
  if(name.length<3 || name.length>200)throw new Error('Record a supplier legal name before checking Environment Agency registers.');
- return name.replace(/\s+(?:LIMITED|LTD|PLC)\.?$/i,'').replace(/[^\p{L}\p{N}\s&'-]/gu,' ').trim();
+ const search=name.replace(/\s+(?:LIMITED|LTD|PLC)\.?$/i,'').replace(/[^\p{L}\p{N}\s&'-]/gu,' ').trim();
+ if(search.length<3)throw new Error('A usable supplier legal name is required.');
+ return search;
 }
 export function environmentIdentifier(account) {return JSON.stringify([environmentSearchName(account),account.company_number || '',account.company_registered_office?.postal_code || account.address_postcode || '']);}
 export function environmentReference(value) {
