@@ -1,0 +1,129 @@
+{
+  "description": "New ALSight projects enter approval. If project numbering is busy, two durable waits allow up to three intake attempts. Dataverse bulk imports call the same intake directly.",
+  "trigger": {
+    "condition": null,
+    "config": {
+      "trigger_type": "entity",
+      "events": [
+        "create"
+      ],
+      "entity_name": "Project"
+    }
+  },
+  "definition": {
+    "document": {
+      "dsl": "1.0.0",
+      "name": "new_project_approval",
+      "version": "1.2",
+      "namespace": "base44"
+    },
+    "do": [
+      {
+        "receive_project": {
+          "call": "invoke_backend_function",
+          "with": {
+            "function_name": "manageProjectApprovals",
+            "args": {
+              "action": "receive",
+              "projectId": "${ .trigger.entity_id }",
+              "allowWait": true
+            }
+          },
+          "then": "check_first_attempt",
+          "x-base44": {
+            "title": "Start project approval",
+            "description": "Route to specified users"
+          }
+        }
+      },
+      {
+        "check_first_attempt": {
+          "switch": [
+            {
+              "when": "${ .receive_project.busy == true }",
+              "then": "wait_for_lock"
+            },
+            {
+              "when": "${ true }",
+              "then": "end"
+            }
+          ],
+          "x-base44": {
+            "title": "Check numbering lock"
+          }
+        }
+      },
+      {
+        "wait_for_lock": {
+          "wait": "PT4M",
+          "then": "retry_intake",
+          "x-base44": {
+            "title": "Wait for current decision"
+          }
+        }
+      },
+      {
+        "retry_intake": {
+          "call": "invoke_backend_function",
+          "with": {
+            "function_name": "manageProjectApprovals",
+            "args": {
+              "action": "receive",
+              "projectId": "${ .trigger.entity_id }",
+              "allowWait": true,
+              "attempt": 2
+            }
+          },
+          "then": "check_second_attempt",
+          "x-base44": {
+            "title": "Retry project intake"
+          }
+        }
+      },
+      {
+        "check_second_attempt": {
+          "switch": [
+            {
+              "when": "${ .retry_intake.busy == true }",
+              "then": "wait_once_more"
+            },
+            {
+              "when": "${ true }",
+              "then": "end"
+            }
+          ],
+          "x-base44": {
+            "title": "Check second attempt"
+          }
+        }
+      },
+      {
+        "wait_once_more": {
+          "wait": "PT4M",
+          "then": "final_attempt",
+          "x-base44": {
+            "title": "Wait once more"
+          }
+        }
+      },
+      {
+        "final_attempt": {
+          "call": "invoke_backend_function",
+          "with": {
+            "function_name": "manageProjectApprovals",
+            "args": {
+              "action": "receive",
+              "projectId": "${ .trigger.entity_id }",
+              "attempt": 3
+            }
+          },
+          "then": "end",
+          "x-base44": {
+            "title": "Complete intake or report error"
+          }
+        }
+      }
+    ]
+  },
+  "name": "New project approval"
+}
