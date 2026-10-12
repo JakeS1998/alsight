@@ -17,6 +17,7 @@ import {recalculateBlankPOHeaders} from '../../shared/financeRecalculateHeaders.
 import {powerBIOrderState,publishedPowerBIState} from '../../shared/powerBIOrderState.ts';
 import {readPowerBIOrderFinance} from '../../shared/powerBIOrderReads.ts';
 import {readProjectNumberMappings,saveProjectNumberMapping} from '../../shared/financeProjectNumberMapping.ts';
+import {inspectPowerBIBalances} from '../../shared/powerBIBalanceInspection.ts';
 export default async function(req){
  try{
   const base44=createClientFromRequest(req),user=await base44.auth.me();
@@ -25,9 +26,9 @@ export default async function(req){
   if(req.method!=='POST')return Response.json({error:'Method not allowed.'},{status:405});
   const raw=await req.text();if(raw.length>20000)throw new Error('Request too large.');const input=JSON.parse(raw);
   if(!financeRoles.includes(user.role)&&!(['projectOrders','projectOrderDetail','projectOrderCashFlow'].includes(input.action)&&['regional_director','bsm','bdm'].includes(user.role)))return Response.json({error:'Finance, director or administrator access required.'},{status:403});
-  const actions=['recalculatePOHeaders','pipeline','projectOrders','projectOrderDetail','projectOrderCashFlow','applyNameLinks','applyCodeLinks','transactions','dvMappingStatus','dvSaveMapping','forecast','dvContinue','dvStart','dvBatch','dvDetail','dvDiscover','dvInspect','status','configure','preview','confirm','summary','list','numberMappings','mapNumber','mappings','projects','map','orders','poDetail','configureInvoices','invoices'];
+  const actions=['balancesInspect','recalculatePOHeaders','pipeline','projectOrders','projectOrderDetail','projectOrderCashFlow','applyNameLinks','applyCodeLinks','transactions','dvMappingStatus','dvSaveMapping','forecast','dvContinue','dvStart','dvBatch','dvDetail','dvDiscover','dvInspect','status','configure','preview','confirm','summary','list','numberMappings','mapNumber','mappings','projects','map','orders','poDetail','configureInvoices','invoices'];
   if(!actions.includes(input.action))throw new Error('Invalid finance operation.');
-  const admin=['recalculatePOHeaders','applyNameLinks','applyCodeLinks','dvMappingStatus','dvSaveMapping','dvContinue','dvStart','dvBatch','dvDiscover','dvInspect','configure','preview','confirm','numberMappings','mapNumber','mappings','projects','map','configureInvoices'];
+  const admin=['balancesInspect','recalculatePOHeaders','applyNameLinks','applyCodeLinks','dvMappingStatus','dvSaveMapping','dvContinue','dvStart','dvBatch','dvDiscover','dvInspect','configure','preview','confirm','numberMappings','mapNumber','mappings','projects','map','configureInvoices'];
   if(admin.includes(input.action)&&user.role!=='admin')return Response.json({error:'Administrator access required.'},{status:403});
   if(input.action==='recalculatePOHeaders')return Response.json(await recalculateBlankPOHeaders(base44));
   if(input.action==='dvMappingStatus')return Response.json(await financeMappingStatus(base44));
@@ -41,6 +42,7 @@ export default async function(req){
   const privilegedState=admin.includes(input.action)||['projectOrders','projectOrderDetail','projectOrderCashFlow'].includes(input.action);
   const importedPowerBI=await powerBIOrderState(base44),powerBI=publishedPowerBIState(importedPowerBI);
   const state=powerBI;
+  if(input.action==='balancesInspect')return Response.json(await inspectPowerBIBalances(base44,state));
   if(input.action==='status')return Response.json({source:'powerbi',configured:Boolean(importedPowerBI),confirmed:Boolean(powerBI),sync:powerBI,report:powerBI?{name:powerBI.report_name,url:powerBI.report_url}:null});
   if(['summary','list','orders','invoices','transactions','dvDetail'].includes(input.action)&&!powerBI)throw new Error('Complete and activate the Power BI order import before loading finance reporting. Dataverse finance is no longer used by these views.');
   if(['projectOrders','projectOrderDetail','projectOrderCashFlow'].includes(input.action))return Response.json(await readProjectFinanceOrders(base44,state,input));
