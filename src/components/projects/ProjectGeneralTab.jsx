@@ -15,6 +15,7 @@ import ProjectCapacitySection from '@/components/projects/ProjectCapacitySection
 import ProjectBriefHistory from '@/components/projects/ProjectBriefHistory';
 import useProjectTeamAssignments from '@/components/projects/useProjectTeamAssignments';
 import SupplierCommission from '@/components/accounts/SupplierCommission.jsx';
+import agreementNames from '@/components/projects/agreementNames';
 import { formatDate, formatCurrency, regionName, INTERNAL_ROLES } from "@/lib/portal";
 import { ExternalLink } from "lucide-react";
 
@@ -124,7 +125,7 @@ export function ProjectGeneralTab({ project, accountMap, onProjectUpdated, singl
             ['Live Project', project.live_project ? 'Yes' : 'No'],
           ] },
           { title: 'Governance', fields: [
-            ['AA Executed', formatDate(project.aa_executed_date)],
+            [`${agreementNames(project.project_number).accessShort} Executed`, formatDate(project.aa_executed_date)],
             ['PQ Approval', formatDate(project.pq_approval_date)],
           ] },
         ]}
