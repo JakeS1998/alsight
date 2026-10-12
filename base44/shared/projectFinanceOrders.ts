@@ -25,7 +25,8 @@ export async function readProjectFinanceOrders(base44,state,input){
  }
  const query={...base,kind:input.type==='SO'?'sales_orders':'purchase_orders',project_key:{$in:keys}};
  if(input.action==='projectOrderCashFlow') {
-  const [cashFlow,forecast]=await Promise.all([state.source==='powerbi'?powerBIProjectCashFlow(base44,state,matches.items):keys.length?projectOrderCashFlow(db,base,query):Promise.resolve({entries:[],total:0,available:true}),projectPOForecast(db,state,project)]);
+  const cashFlow=state.source==='powerbi'?await powerBIProjectCashFlow(base44,state,matches.items):keys.length?await projectOrderCashFlow(db,base,query):{entries:[],total:0,available:true};
+  const forecast=await projectPOForecast(db,state,project,state.source==='powerbi'?cashFlow.transactionSpend:null);
   return {...cashFlow,forecast};
  }
  if(!keys.length)return {items:[],total:0,has_more:false,next_cursor:null,mappings:[],source:'powerbi',read_at:state.last_completed_at};
