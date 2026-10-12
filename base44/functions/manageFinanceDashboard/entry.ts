@@ -20,6 +20,7 @@ import {readProjectNumberMappings,saveProjectNumberMapping} from '../../shared/f
 import {readPowerBIBalances} from '../../shared/powerBIBalances.ts';
 import {commercialRoles,commercialAccessScope} from '../../shared/commercialAccessScope.ts';
 import {readPowerBIBalanceTrend} from '../../shared/powerBIBalanceTrend.ts';
+import {scopedReadCache} from '../../shared/scopedReadCache.ts';
 export default async function(req){
  try{
   const base44=createClientFromRequest(req),user=await base44.auth.me();
@@ -58,7 +59,11 @@ export default async function(req){
   if(input.action==='forecast')return Response.json(await readFinanceForecast(reporting,user,state,input));
   if(powerBI){
    if(input.action==='status')return Response.json({source:'powerbi',configured:true,confirmed:true,sync:powerBI,report:{name:powerBI.report_name,url:powerBI.report_url}});
-   if(['transactions','summary','list','orders','invoices','dvDetail'].includes(input.action))return Response.json(await readPowerBIOrderFinance(reporting,scope.restricted?{...powerBI,tables:{list:[]}}:powerBI,input));
+   if(input.action==='summary'){
+    const key=JSON.stringify(['finance-summary-v2',user.id,user.role,powerBI.namespace,powerBI.active_generation,powerBI.last_completed_at,scope.projectIds]);
+    return Response.json(await scopedReadCache(key,()=>readPowerBIOrderFinance(reporting,scope.restricted?{...powerBI,tables:{list:[]}}:powerBI,input)));
+   }
+   if(['transactions','list','orders','invoices','dvDetail'].includes(input.action))return Response.json(await readPowerBIOrderFinance(reporting,scope.restricted?{...powerBI,tables:{list:[]}}:powerBI,input));
   }
   if(state){
       if(input.action==='numberMappings')return Response.json(await readProjectNumberMappings(base44,state,input));

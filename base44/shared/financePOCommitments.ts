@@ -3,7 +3,7 @@ export async function financePOCommitments(db, base, amounts) {
  const headers = amounts.find(row => row.kind === 'purchase_orders' && row.has_amount);
  const blanks = amounts.find(row => row.kind === 'purchase_orders' && !row.has_amount)?.count || 0;
  let amount = headers?.sum_amount || 0, fallbackCount = 0, partialCount = 0, missingLines = 0;
- for await (const row of financePOFallbacks(db, base)) {
+ if(blanks) for await (const row of financePOFallbacks(db, base)) {
   if (row.valued) { amount += row.amount; fallbackCount++; }
   if (row.valued && row.missing) { partialCount++; missingLines += row.missing; }
  }

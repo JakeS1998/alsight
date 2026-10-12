@@ -13,14 +13,15 @@ import { financeCall } from '@/components/finance/financeClient';
 import FinanceForecast from '@/components/finance/FinanceForecast';
 import FinanceBalances from '@/components/finance/FinanceBalances';
 import useCommercialScope from '@/components/finance/useCommercialScope';
+import loadReportingTotals from '@/components/finance/loadReportingTotals';
 export default function FinanceDashboardContent({snapshot,pipeline}){
  const scope=useCommercialScope();
  const client=useQueryClient(),[text,setText]=useState(''),[search,setSearch]=useState(''),[after,setAfter]=useState(null),[selected,setSelected]=useState(null);
  useEffect(()=>{const timer=setTimeout(()=>{setSearch(text);setAfter(null);},350);return()=>clearTimeout(timer);},[text]);
- const summary=useQuery({queryKey:['finance','dataverse-summary',scope,snapshot],queryFn:()=>financeCall({action:'summary'}),staleTime:60000});
+ const summary=useQuery({queryKey:['finance','dataverse-summary-v2',scope,snapshot],queryFn:loadReportingTotals,staleTime:60000,retry:false,refetchOnMount:'always'});
  const list=useQuery({queryKey:['finance','dataverse-projects',scope,snapshot,search,after],queryFn:()=>financeCall({action:'list',search,after}),staleTime:60000});
  const refresh=()=>{client.invalidateQueries({queryKey:['finance']});client.invalidateQueries({queryKey:['finance-orders']});client.invalidateQueries({queryKey:['finance-invoices']});};
- return <div>{summary.isPending&&<p role="status">Reading reporting totals…</p>}{summary.error&&<p role="alert" className="text-destructive">Reporting totals unavailable: {summary.error.message}</p>}{summary.data&&<FinanceDataverseSummary data={summary.data} pipeline={pipeline}/>}
+ return <div>{summary.isPending&&<p role="status">Reading reporting totals…</p>}{summary.error&&<div role="alert" className="space-y-2"><p className="text-destructive">Reporting totals unavailable: {summary.error.message}</p><Button variant="outline" disabled={summary.isFetching} onClick={()=>summary.refetch()}>{summary.isFetching?'Reading totals…':'Try again'}</Button></div>}{summary.data&&<FinanceDataverseSummary data={summary.data} pipeline={pipeline}/>}
  <FinanceForecast snapshot={snapshot}/>
  <FinanceBalances snapshot={snapshot}/>
  {summary.data&&<div className="finance-analysis-row finance-section items-stretch"><div className="flex min-w-0 flex-col gap-6"><FinanceDataverseSummary data={summary.data} section="ranking"/></div><CommercialInsightsPanel data={summary.data}/></div>}
