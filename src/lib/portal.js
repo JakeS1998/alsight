@@ -56,6 +56,7 @@ export const CLIENT_HIDDEN_DOC_TYPES = ["appointment_pm", "appointment_pd_cdm", 
 // ─── Document type (bss_documenttype) ───
 export const DOCUMENT_TYPE = {
   access_agreement: { label: "Access Agreement", code: "760820000", order: 1 },
+  'Access Agreement Variation': { label: "Access Agreement Variation", code: "760820010", order: 1.5 },
   additional_works: { label: "Additional Works", code: "760820001", order: 2 },
   appointment_pm: { label: "Appointment – PM", code: "760820002", order: 3 },
   appointment_pd_cdm: { label: "Appointment – PD CDM", code: "760820003", order: 4 },

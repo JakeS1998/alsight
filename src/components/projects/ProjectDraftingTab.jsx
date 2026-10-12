@@ -19,7 +19,7 @@ import {
 const STAGES = [
   { key: "pq", label: "Project Questionnaire", icon: FileSearch, kind: "pq" },
   { key: "aa", label: "Access Agreement", icon: FileCheck, kind: "legal", docTypes: ["access_agreement"] },
-  { key: "precon", label: "Pre-Construction", icon: UserCheck, kind: "legal", docTypes: ["appointment_pm", "appointment_pd_cdm", "appointment_architect", "appointment_pd_br", "pcsa", "additional_works"] },
+  { key: "precon", label: "Pre-Construction", icon: UserCheck, kind: "legal", docTypes: ["appointment_pm", "appointment_pd_cdm", "appointment_architect", "appointment_pd_br", "pcsa", "additional_works", "Access Agreement Variation"] },
   { key: "riba4", label: "RIBA 4 report", icon: FileCheck, kind: "report" },
   { key: "dma", label: "Development Management Agreement", icon: FileCheck, kind: "dma" },
   { key: "loi", label: "Letters of Intent (LOI)", icon: FilePlus, kind: "legal", docTypes: ["loi"] },
@@ -30,7 +30,7 @@ const STAGES = [
 ];
 
 const PM_STAGES = [
-  { key: "aa", label: "Access Agreement", icon: FileCheck, kind: "legal", docTypes: ["access_agreement"] },
+  { key: "aa", label: "Access Agreement", icon: FileCheck, kind: "legal", docTypes: ["access_agreement", "Access Agreement Variation"] },
   { key: "pcsa", label: "Pre-Construction Services Agreement", icon: UserCheck, kind: "legal", docTypes: ["pcsa"] },
   { key: "riba4", label: "RIBA 4 report", icon: FileCheck, kind: "report" },
   { key: "dma", label: "Development Management Agreement", icon: FileCheck, kind: "dma" },
@@ -182,7 +182,7 @@ export function ProjectDraftingTab({ project, legalDocs, dmas, jcts, accountMap,
                     docs.map((doc) => {
                       const psoOutstanding = !!doc.drafted_date && (
                         (doc.document_type === "access_agreement" && !psoStatus.aa) ||
-                        (doc.document_type === "additional_works" && !psoStatus.aa_variations)
+                        (["additional_works", "Access Agreement Variation"].includes(doc.document_type) && !psoStatus.aa_variations)
                       );
                       return <LegalDocumentCard key={doc.id} doc={doc} projectName={project.name} projectNumber={project.project_number} accountName={accountMap[doc.account_id]?.name} psoOutstanding={psoOutstanding} hideFinancials={pmView} />;
                     })}
