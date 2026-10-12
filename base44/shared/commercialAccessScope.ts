@@ -7,7 +7,7 @@ export async function commercialAccessScope(base44,user,state){
  const identity=[...new Set([user.id,user.staff_aad_id,user.data?.staff_aad_id,user.dataverse_systemuser_id,user.data?.dataverse_systemuser_id,user.delegate_of,user.data?.delegate_of].filter(Boolean))];
  const roles=[user.role,...(user.duty_roles||user.data?.duty_roles||[])],rules=[];
  if(roles.includes('bdm'))rules.push({bdm_aad_id:{$in:identity}});
- if(roles.includes('bsm'))rules.push({bsm_aad_id:{$in:identity}});
+ if(roles.includes('bdm')||roles.includes('bsm'))rules.push({bsm_aad_id:{$in:identity}});
  if(user.role==='regional_director'){const regions=[user.region,user.data?.region,user.delegate_region,user.data?.delegate_region].filter(Boolean);rules.push({department_id:{$in:regions}});}
  // Project RLS remains authoritative; assignment filters also reject empty-identity matches.
  const projectIds=await commercialDistinct(base44.entities.Project,{$or:rules},'id');
