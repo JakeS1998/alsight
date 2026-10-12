@@ -1,16 +1,9 @@
 import React, { useMemo } from "react";
-import { base44 } from "@/api/base44Client";
-import { listAll } from "@/components/data/loadAll";
-import { loadProjectPOs, isLegacyProject } from '@/components/projects/poLinking';
-import { formatCurrency } from "@/lib/portal";
 import ProjectCashFlow from '@/components/projects/ProjectCashFlow';
-import InvoiceReceipts from '@/components/projects/InvoiceReceipts';
-import useProjectPaymentBalance from '@/components/projects/finance/useProjectPaymentBalance';
 import { useFinanceData } from './finance/useFinanceData';
 import { commercialSummary, commercialHealth, commercialAlerts, commercialMilestones, consultantFees, retentionInfo } from './finance/financeCalculations';
 import CommercialSummary from './finance/CommercialSummary';
 import ValuationPosition from './finance/ValuationPosition';
-import FinancePurchaseOrders from './finance/FinancePurchaseOrders';
 import VariationsSummary from './finance/VariationsSummary';
 import ProfessionalFees from './finance/ProfessionalFees';
 import RetentionSummary from './finance/RetentionSummary';
