@@ -1,4 +1,4 @@
 import React from 'react';
 import { Navigate,Outlet } from 'react-router-dom';
 import { useAuth } from '@/lib/AuthContext';
-export default function FinanceRoute(){const {user}=useAuth();return ['admin','finance','director'].includes(user?.role)?<Outlet/>:<Navigate to="/today" replace/>;}
+export default function FinanceRoute(){const {user}=useAuth();return ['admin','finance','director','regional_director','bdm','bsm'].includes(user?.role)?<Outlet/>:<Navigate to="/today" replace/>;}

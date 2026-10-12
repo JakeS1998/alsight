@@ -18,6 +18,7 @@ import {powerBIOrderState,publishedPowerBIState} from '../../shared/powerBIOrder
 import {readPowerBIOrderFinance} from '../../shared/powerBIOrderReads.ts';
 import {readProjectNumberMappings,saveProjectNumberMapping} from '../../shared/financeProjectNumberMapping.ts';
 import {readPowerBIBalances} from '../../shared/powerBIBalances.ts';
+import {commercialRoles,commercialAccessScope} from '../../shared/commercialAccessScope.ts';
 export default async function(req){
  try{
   const base44=createClientFromRequest(req),user=await base44.auth.me();
@@ -25,7 +26,7 @@ export default async function(req){
 
   if(req.method!=='POST')return Response.json({error:'Method not allowed.'},{status:405});
   const raw=await req.text();if(raw.length>20000)throw new Error('Request too large.');const input=JSON.parse(raw);
-  if(!financeRoles.includes(user.role)&&!(['projectOrders','projectOrderDetail','projectOrderCashFlow'].includes(input.action)&&['regional_director','bsm','bdm'].includes(user.role)))return Response.json({error:'Finance, director or administrator access required.'},{status:403});
+  if(!commercialRoles.includes(user.role))return Response.json({error:'Commercial reporting access required.'},{status:403});
   const actions=['balanceSummary','balanceInvoices','recalculatePOHeaders','pipeline','projectOrders','projectOrderDetail','projectOrderCashFlow','applyNameLinks','applyCodeLinks','transactions','dvMappingStatus','dvSaveMapping','forecast','dvContinue','dvStart','dvBatch','dvDetail','dvDiscover','dvInspect','status','configure','preview','confirm','summary','list','numberMappings','mapNumber','mappings','projects','map','orders','poDetail','configureInvoices','invoices'];
   if(!actions.includes(input.action))throw new Error('Invalid finance operation.');
   const admin=['recalculatePOHeaders','applyNameLinks','applyCodeLinks','dvMappingStatus','dvSaveMapping','dvContinue','dvStart','dvBatch','dvDiscover','dvInspect','configure','preview','confirm','numberMappings','mapNumber','mappings','projects','map','configureInvoices'];
@@ -38,21 +39,23 @@ export default async function(req){
   if(input.action==='dvContinue')return Response.json(await continueFinanceSync(base44,input));
   if(input.action==='dvStart')return Response.json(await startFinanceSync(base44));
   if(input.action==='dvBatch')return Response.json(await syncFinanceBatch(base44,input));
-  if(input.action==='pipeline')return Response.json(await commercialPipelineSummary(base44));
+
   const privilegedState=admin.includes(input.action)||['projectOrders','projectOrderDetail','projectOrderCashFlow'].includes(input.action);
   const importedPowerBI=await powerBIOrderState(base44),powerBI=publishedPowerBIState(importedPowerBI);
   const state=powerBI;
+  const scope=await commercialAccessScope(base44,user,state),reporting=scope.client;
+  if(input.action==='pipeline')return Response.json(await commercialPipelineSummary(reporting));
   
-  if(['balanceSummary','balanceInvoices'].includes(input.action))return Response.json(await readPowerBIBalances(base44,user,state,input));
-  if(input.action==='status')return Response.json({source:'powerbi',configured:Boolean(importedPowerBI),confirmed:Boolean(powerBI),sync:powerBI,report:powerBI?{name:powerBI.report_name,url:powerBI.report_url}:null});
+  if(['balanceSummary','balanceInvoices'].includes(input.action))return Response.json(await readPowerBIBalances(base44,user,state,input,scope));
+  if(input.action==='status')return Response.json({source:'powerbi',configured:Boolean(importedPowerBI),confirmed:Boolean(powerBI),restricted:scope.restricted,sync:scope.restricted&&powerBI?{active_generation:powerBI.active_generation,last_completed_at:powerBI.last_completed_at,status:powerBI.status}:powerBI,report:powerBI?{name:powerBI.report_name,...(!scope.restricted?{url:powerBI.report_url}:{})}:null});
   if(['summary','list','orders','invoices','transactions','dvDetail'].includes(input.action)&&!powerBI)throw new Error('Complete and activate the Power BI order import before loading finance reporting. Dataverse finance is no longer used by these views.');
-  if(['projectOrders','projectOrderDetail','projectOrderCashFlow'].includes(input.action))return Response.json(await readProjectFinanceOrders(base44,state,input));
+  if(['projectOrders','projectOrderDetail','projectOrderCashFlow'].includes(input.action))return Response.json(await readProjectFinanceOrders(reporting,state,input));
   if(input.action==='applyNameLinks')return Response.json(await applyLegacyFinanceNameMappings(base44,state,input));
   if(input.action==='applyCodeLinks')return Response.json(await applyWorkbookFinanceMappings(base44,state,input));
-  if(input.action==='forecast')return Response.json(await readFinanceForecast(base44,user,state,input));
+  if(input.action==='forecast')return Response.json(await readFinanceForecast(reporting,user,state,input));
   if(powerBI){
    if(input.action==='status')return Response.json({source:'powerbi',configured:true,confirmed:true,sync:powerBI,report:{name:powerBI.report_name,url:powerBI.report_url}});
-   if(['transactions','summary','list','orders','invoices','dvDetail'].includes(input.action))return Response.json(await readPowerBIOrderFinance(base44,powerBI,input));
+   if(['transactions','summary','list','orders','invoices','dvDetail'].includes(input.action))return Response.json(await readPowerBIOrderFinance(reporting,scope.restricted?{...powerBI,tables:{list:[]}}:powerBI,input));
   }
   if(state){
       if(input.action==='numberMappings')return Response.json(await readProjectNumberMappings(base44,state,input));
@@ -62,6 +65,7 @@ export default async function(req){
    if(input.action==='mappings')return Response.json(await base44.entities.FinanceProjectMapping.filter({dataset_id:state.namespace,...(input.status==='review'?{status:{$in:['unmatched','ambiguous']}}:input.status==='linked'?{status:{$in:['manual','automatic']}}:{})},{limit:50,sort:'-updated_date',...(input.cursor?{cursor:input.cursor}:{})}));
    if(['transactions','summary','list','orders','invoices','dvDetail'].includes(input.action)){if(!state.active_generation)throw new Error('The first Dataverse finance sync is still running; figures will appear after all tables finish.');return Response.json(await readDataverseFinance(base44,state,input));}
   }
+  if(scope.restricted)return Response.json({error:'This operation is not available within project-scoped Commercial access.'},{status:403});
   const db=base44.asServiceRole.entities;
   let config=(await db.FinanceConnection.filter({key:'primary'},{limit:1})).items[0]||null;
   const confirmed=Boolean(config?.revision&&config.confirmed_revision===config.revision);
