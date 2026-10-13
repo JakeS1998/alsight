@@ -140,7 +140,7 @@ export default function ProjectDetail({ embedded = false, embeddedProjectId, sup
           <ProjectFinanceTab project={project} />
         </TabsContent>}
         {!isSupplier && <TabsContent value="delivery" className="ws-content mt-6">
-          {isExternalPM ? <PMProjectPathway project={project} /> : <ProjectDeliveryTab project={project} legalDocs={legalDocs} dmas={dmas} jcts={jcts} warranties={warranties} accountMap={accountMap} />}
+          {isExternalPM ? <PMProjectPathway project={project} /> : <DataverseRecordEdit table="projects" record={project} onUpdated={setProject}><ProjectDeliveryTab project={project} legalDocs={legalDocs} dmas={dmas} jcts={jcts} warranties={warranties} accountMap={accountMap} /></DataverseRecordEdit>}
           <ProjectPathwayAbout />
         </TabsContent>}
         {canSeeValuations && <TabsContent value="valuations" className="ws-content mt-6"><ProjectValuationsTab project={project} /></TabsContent>}

@@ -1,5 +1,6 @@
 import React from "react";
-import { FormSection, FormField, formInputClass } from "@/components/forms/PowerForm";
+import { FormSection, FormField } from "@/components/forms/PowerForm";
+import InlineDataverseField from '@/components/dataverse/InlineDataverseField';
 import ScopingFields from '@/components/delivery/ScopingFields';
 import { Button } from "@/components/ui/button";
 import { Loader2, Building2, MapPin, PoundSterling, User } from "lucide-react";
@@ -19,7 +20,7 @@ export function DeliveryScoping({ project, accountMap, bdmName, delivery, setFie
         </div>
 
         <ScopingFields value={delivery} setField={setField}>
-          <FormField label="Project type"><input value={project.description || ''} disabled className={`${formInputClass} bg-slate-50 text-slate-500`} /></FormField>
+          <FormField label="Project type"><InlineDataverseField field="description" label="Project type"><div className="min-h-10 rounded-lg border border-input bg-card px-3 py-2 text-sm">{project.description || 'Not recorded'}</div></InlineDataverseField></FormField>
         </ScopingFields>
 
         <div className="flex justify-end">
