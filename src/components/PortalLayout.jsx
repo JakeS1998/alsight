@@ -28,7 +28,7 @@ export default function PortalLayout() {
     <PortalHeader />
     <main className="portal-main w-full flex-1"><Outlet /></main>
     <PortalFooter />
-    {user?.id && <PageFeedbackWidget key={`${user.id}:${pathname}`} user={user} route={pathname} />}
+    {user?.id && <PageFeedbackWidget key={user.id} user={user} route={pathname} />}
     {user?.id && internalMessagingRoles.includes(user.role) && <DirectMessagesWidget key={user.id} user={user} />}
     {user?.id && user.role !== 'framework_stakeholder' && <AliceWidget key={aliceAccessKey(user)} />}
   </div>;

@@ -1,6 +1,6 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
-import { CalendarDays, ChevronDown, KeyRound, LogOut, UserCog, ClipboardCheck } from 'lucide-react';
+import { CalendarDays, ChevronDown, KeyRound, LogOut, UserCog, ClipboardCheck, MessageSquareText } from 'lucide-react';
 import useApprovalAccess from '@/components/approvals/useApprovalAccess';
 import ProfilePicture from '@/components/profile/ProfilePicture';
 import { ROLE_LABELS, ROLE_BADGE_CLASS, INTERNAL_ROLES } from '@/lib/portal';
@@ -26,6 +26,7 @@ export default function UserMenu({ user, onSignOut, onNavigate, mobile = false }
       {role === 'client' && <DropdownMenuItem asChild><Link to="/account" onClick={onNavigate}>My Account</Link></DropdownMenuItem>}
       {role === 'admin' && <DropdownMenuItem asChild><Link to="/people" onClick={onNavigate}>People</Link></DropdownMenuItem>}
       <DropdownMenuItem asChild><Link to="/help" onClick={onNavigate}>Help</Link></DropdownMenuItem>
+      <DropdownMenuItem onSelect={() => { onNavigate?.(); window.dispatchEvent(new Event('als-open-page-feedback')); }}><MessageSquareText /> Feedback</DropdownMenuItem>
       <DropdownMenuSeparator />
       <DropdownMenuItem onSelect={onSignOut}><LogOut /> Sign out</DropdownMenuItem>
     </DropdownMenuContent>
