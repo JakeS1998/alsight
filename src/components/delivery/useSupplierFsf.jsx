@@ -1,10 +1,11 @@
 import { useState } from 'react';
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { base44 } from '@/api/base44Client';
 import { isAlsStaff } from '@/components/delivery/supplierFsf';
 
 export default function useSupplierFsf(user, proposalId, projectId) {
   const allowed = isAlsStaff(user);
+  const cache = useQueryClient();
   const [draft, setDraft] = useState(null);
   const query = useQuery({
     queryKey: ['fee-proposal-fsf', user?.id, proposalId],
@@ -24,6 +25,7 @@ export default function useSupplierFsf(user, proposalId, projectId) {
     if (supplier_rates.some(row => !Number.isFinite(row.fsf_pct) || row.fsf_pct < 0 || row.fsf_pct > 100)) throw new Error('Each FSF percentage must be between 0 and 100.');
     await base44.entities.FeeProposalFsf.upsert([{ fee_proposal_id: proposalId, project_id: projectId, supplier_rates }], { key: 'fee_proposal_id' });
     await query.refetch();
+    await cache.invalidateQueries({ queryKey: ['supplier-commission'] });
   };
   return { allowed, rates, update, save, loading: allowed && !!proposalId && query.isPending, error: allowed ? query.error : null };
 }

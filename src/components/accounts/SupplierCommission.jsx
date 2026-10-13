@@ -9,7 +9,7 @@ export default function SupplierCommission({account,compact=false}){
  const query=useQuery({queryKey:['supplier-commission',account?.id,user?.id,user?.role],enabled:allowed&&!!account?.id,staleTime:300000,retry:false,queryFn:async()=>{const {data}=await base44.functions.invoke('getSupplierCommission',{accountId:account.id});if(data.error)throw new Error(data.error);return data;}});
  if(!allowed||!account?.id||query.data?.eligible===false)return null;
  const value=query.isPending?'Loading…':query.error?'Unavailable':query.data.average==null?'Not available':`${query.data.average.toFixed(2)}%`;
- const help='Project-value-weighted average: average the recorded rates within each project, then weight each project once by its full value excluding VAT. Only accessible, uniquely linked projects with a positive value are included.';
+ const help='Project-value-weighted average: use the saved FSF rate from the latest current fee proposal for each project first. Where no valid FSF rate is available, use the project’s average commission rate from cr78c_coms. A saved 0% is valid, and each project is counted once, weighted by its full value excluding VAT. Only accessible, uniquely linked projects with a positive value are included.';
  return <div className={compact?'mt-1 text-xs text-muted-foreground':'min-w-0 rounded-lg border border-border bg-card px-4 py-3'} title={help}>
   {compact ? <p>Average commission: <strong className="text-foreground">{value}</strong></p> : <>
    <div className="flex flex-wrap items-center justify-between gap-2"><h2 className="text-xs font-semibold">Average commission</h2><strong className="text-base tabular-nums text-foreground">{value}</strong></div>

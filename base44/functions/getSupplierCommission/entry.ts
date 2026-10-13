@@ -1,5 +1,6 @@
 import {createClientFromRequest} from 'npm:@base44/sdk@0.8.52';
 import {supplierPrincipalContractor} from '../../shared/supplierPrincipalContractor.ts';
+import {supplierCommissionFsf} from '../../shared/supplierCommissionFsf.ts';
 export default async function(req){
  try{
   const base44=createClientFromRequest(req),user=await base44.auth.me();
@@ -12,8 +13,10 @@ export default async function(req){
   if(!account)throw new Error('Supplier unavailable.');
   if(!await supplierPrincipalContractor(base44,account))return Response.json({eligible:false,average:null,projects:0,recent_projects:[]});
   const supplier={$or:[{account_id:account.id},...(account.company_number?[{supplier_company_number:account.company_number}]:[])]};
-  const grouped=await base44.entities.COMS.aggregate({query:{...supplier,commission_rate:{$gte:0,$lte:100}},groupBy:'project_ref',avg:'commission_rate',limit:1000});
-  if(grouped.truncated)throw new Error('Commission history is too large for a complete average.');
+  const fsf=await supplierCommissionFsf(base44,account);
+  const backup=await base44.entities.COMS.aggregate({query:{...supplier,project_ref:{$nin:fsf.map(row=>row.project_ref)},commission_rate:{$gte:0,$lte:100}},groupBy:'project_ref',avg:'commission_rate',limit:1000});
+  if(backup.truncated)throw new Error('Commission history is too large for a complete average.');
+  const grouped={rows:[...fsf,...backup.rows.map(row=>({...row,source:'coms'}))]};
   const refs=grouped.rows.map(r=>r.project_ref).filter(Boolean);
   if(!refs.length)return Response.json({eligible:true,average:null,projects:0,excluded:grouped.rows.length,recent_projects:[]});
   const projects=await base44.entities.Project.aggregate({query:{project_number:{$in:refs}},groupBy:'project_number',max:['full_value','submitted_proposal_value','estimated_value'],limit:1000});
@@ -23,7 +26,7 @@ export default async function(req){
   for(const rate of grouped.rows){
    const p=projects.rows.find(p=>p.project_number===rate.project_ref);
    const value=p?.max_full_value??p?.max_submitted_proposal_value??p?.max_estimated_value;
-   if(p?.count===1&&Number.isFinite(rate.avg_commission_rate))included.set(rate.project_ref,{rate:rate.avg_commission_rate,cash_value:Number.isFinite(value)&&value>0?Math.round(value*rate.avg_commission_rate)/100:null});
+   if(p?.count===1&&Number.isFinite(rate.avg_commission_rate))included.set(rate.project_ref,{rate:rate.avg_commission_rate,source:rate.source,cash_value:Number.isFinite(value)&&value>0?Math.round(value*rate.avg_commission_rate)/100:null});
    if(!p||p.count!==1||!Number.isFinite(value)||value<=0||!Number.isFinite(rate.avg_commission_rate)){excluded++;continue;}
    numerator+=rate.avg_commission_rate*value;denominator+=value;count++;
   }
