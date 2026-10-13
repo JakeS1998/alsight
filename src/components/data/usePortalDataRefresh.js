@@ -12,7 +12,6 @@ export default function usePortalDataRefresh(userId, pathname) {
       if (document.visibilityState !== 'visible') return;
       cache.invalidateQueries({ predicate: query => sharedKeys.has(query.queryKey[0]), refetchType: 'active' });
     };
-    refresh();
     const timer = window.setInterval(refresh, 65000);
     window.addEventListener('focus', refresh);
     return () => {
