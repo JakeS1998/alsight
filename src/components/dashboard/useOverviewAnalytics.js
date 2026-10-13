@@ -6,7 +6,7 @@ export default function useOverviewAnalytics(dashboard, since) {
   const valueVersion=dashboard.portfolio.pipeline.map(p=>p.updated_date || '').sort().at(-1) || '';
   const contractProjectIds = dashboard.projects.map(p=>p.id).sort();
   const selectionKey = JSON.stringify([dashboard.scopeKey, ids,contractProjectIds,valueVersion]);
-  const enabled = !dashboard.projectsLoading && !dashboard.error && !!dashboard.user && dashboard.internal;
+  const enabled = !dashboard.loading && !dashboard.projectsLoading && !dashboard.error && !!dashboard.user && dashboard.internal;
   const summary = useQuery({ ...organisationQueryPolicy, queryKey: ['overview-analytics', selectionKey], enabled, staleTime: 60000, refetchOnMount: true, queryFn: async () => {
     const { data } = await base44.functions.invoke('getPortfolioOverview', { projectIds: ids,contractProjectIds,valueVersion });
     if (data.error) throw new Error(data.error);
