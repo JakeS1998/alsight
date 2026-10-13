@@ -1,0 +1,79 @@
+{
+  "name": "DirectMessageThread",
+  "type": "object",
+  "properties": {
+    "thread_key": {
+      "type": "string"
+    },
+    "members": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "maxItems": 2
+    },
+    "people": {
+      "type": "array",
+      "maxItems": 2,
+      "items": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "name"
+        ]
+      }
+    },
+    "last_message": {
+      "type": "string",
+      "maxLength": 4000
+    },
+    "last_sent_at": {
+      "type": "string",
+      "format": "date-time"
+    }
+  },
+  "required": [
+    "thread_key",
+    "members",
+    "people",
+    "last_message",
+    "last_sent_at"
+  ],
+  "rls": {
+    "read": {
+      "$or": [
+        {
+          "data.members": "{{user.id}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    },
+    "create": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "update": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "delete": {
+      "user_condition": {
+        "role": "admin"
+      }
+    }
+  }
+}

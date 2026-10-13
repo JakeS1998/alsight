@@ -1,0 +1,10 @@
+import React from 'react';
+import {Button} from '@/components/ui/button';
+export default function MessageInbox({user,query,onSelect,onNew}) {
+ const pages=query.data?.pages||[],unread=pages[0]?.unread||[];
+ return <div className="min-h-0 flex-1 overflow-y-auto p-3"><Button className="mb-3 w-full" variant="secondary" onClick={onNew}>New message</Button>
+ {query.isPending&&<p className="text-sm text-muted-foreground">Loading conversations…</p>}{query.error&&<p role="alert" className="text-sm text-destructive">{query.error.message}<Button variant="ghost" size="sm" onClick={()=>query.refetch()}>Retry</Button></p>}
+ {pages.flatMap(p=>p.items).map(thread=>{const peer=thread.people.find(p=>p.id!==user.id),count=unread.find(r=>r.sender_id===peer?.id)?.count||0;if(!peer)return null;return <button key={thread.id} onClick={()=>onSelect(peer)} className="mb-1 flex w-full items-center gap-3 rounded-lg p-3 text-left hover:bg-muted"><span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-secondary text-xs font-semibold">{peer.name.split(' ').map(n=>n[0]).slice(0,2).join('')}</span><span className="min-w-0 flex-1"><span className="block truncate text-sm font-semibold">{peer.name}</span><span className="block truncate text-xs text-muted-foreground">{thread.last_message}</span></span>{count>0&&<span className="rounded-full bg-primary px-2 py-0.5 text-xs font-semibold text-primary-foreground" aria-label={`${count} unread messages`}>{count}</span>}</button>;})}
+ {query.data&&!pages[0]?.items.length&&<p className="py-6 text-center text-sm text-muted-foreground">No conversations yet.</p>}
+ {query.hasNextPage&&<Button size="sm" variant="ghost" className="w-full" disabled={query.isFetchingNextPage} onClick={()=>query.fetchNextPage()}>{query.isFetchingNextPage?'Loading…':'More conversations'}</Button>}</div>;
+}

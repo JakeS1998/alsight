@@ -3,6 +3,8 @@ import { Outlet, useLocation } from 'react-router-dom';
 import PortalHeader from '@/components/PortalHeader';
 import PortalFooter from '@/components/PortalFooter';
 import PageFeedbackWidget from '@/components/feedback/PageFeedbackWidget';
+import DirectMessagesWidget from '@/components/messaging/DirectMessagesWidget';
+import { internalMessagingRoles } from '@/components/messaging/messageClient';
 import { useAuth } from '@/lib/AuthContext';
 import AliceWidget from '@/components/alice/AliceWidget';
 import aliceAccessKey from '@/components/alice/aliceAccessKey';
@@ -27,6 +29,7 @@ export default function PortalLayout() {
     <main className="portal-main w-full flex-1"><Outlet /></main>
     <PortalFooter />
     {user?.id && <PageFeedbackWidget key={`${user.id}:${pathname}`} user={user} route={pathname} />}
+    {user?.id && internalMessagingRoles.includes(user.role) && <DirectMessagesWidget key={user.id} user={user} />}
     {user?.id && user.role !== 'framework_stakeholder' && <AliceWidget key={aliceAccessKey(user)} />}
   </div>;
 }
