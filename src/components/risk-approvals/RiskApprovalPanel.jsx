@@ -18,6 +18,6 @@ export default function RiskApprovalPanel({ project }) {
     {editable && <RiskApprovalIssueForm project={project} count={review.data.count} onIssued={refresh} packets={packets} />}
     {editable && <RiskApprovalHistory projectId={project.id} />}
     {!!legacy?.length && <details className="text-xs text-muted-foreground"><summary className="cursor-pointer">Historical staff-recorded confirmations (not verified acceptance)</summary><ul className="mt-2 space-y-1">{legacy.map(row => <li key={row.id}>{row.stakeholder.toUpperCase()} · {row.approved ? row.approver_name || 'Name not recorded' : 'Not confirmed'} · {row.recorded_at ? new Date(row.recorded_at).toLocaleString('en-GB') : 'Date not recorded'}</li>)}</ul></details>}
-    <p className="text-xs text-muted-foreground">{review.progress.detail}. This records explicit acceptance; it is not a qualified electronic signature.</p>
+    <p className="text-xs text-muted-foreground">{review.progress.detail} This records explicit acceptance; it is not a qualified electronic signature.</p>
   </section>;
 }
