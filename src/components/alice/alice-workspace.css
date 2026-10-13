@@ -15,21 +15,21 @@
 .alice-chat .alice-head button:hover,.alice-chat .alice-head button:focus-visible{color:#F59929;background:rgba(255,255,255,.1)}
 .alice-chat .alice-head button:active{color:#ffbf70}
 .alice-chat .alice-close{font-size:17px!important;line-height:1!important}
-.alice-chat > a{min-height:30px;box-sizing:border-box;border:0;border-bottom:1px solid #dce7ef;background:#f5f9fc;color:#102642;display:flex;align-items:center;justify-content:center;gap:7px;padding:0;font:600 10px system-ui;cursor:pointer;transition:background .16s,color .16s}
+.alice-chat > a{height:30px;min-height:30px;flex:0 0 30px;flex-direction:row;box-sizing:border-box;border:0;border-bottom:1px solid #dce7ef;background:#f5f9fc;color:#102642;display:flex;align-items:center;justify-content:center;gap:7px;padding:0;font:600 10px system-ui;cursor:pointer;transition:background .16s,color .16s}
 .alice-chat > a:hover,.alice-chat > a:focus-visible{background:#EAF4FB;color:#173f67}
 .alice-chat > a:active{color:#F59929}
 .alice-chat > a svg{width:14px;height:14px}
-.alice-chat > .items-center{box-sizing:border-box;flex:1;min-height:0;padding:9px 13px 8px;display:flex;flex-direction:column;align-items:center;justify-content:flex-start;text-align:center}
-.alice-chat > .items-center > svg{width:23px;height:23px;color:#F59929;margin:0 0 4px;flex-shrink:0}
-.alice-chat > .items-center h2{font-size:15px;line-height:1.15;margin:0;font-weight:730;letter-spacing:-.02em;font-family:inherit}
-.alice-chat > .items-center p{font-size:10px;line-height:1.3;color:#5b6d7d;margin:4px 0 7px;max-width:275px}
+.alice-chat > div.items-center{box-sizing:border-box;flex:1;min-height:0;padding:9px 13px 8px;display:flex;flex-direction:column;align-items:center;justify-content:flex-start;text-align:center}
+.alice-chat > div.items-center > svg{width:23px;height:23px;color:#F59929;margin:0 0 4px;flex-shrink:0}
+.alice-chat > div.items-center h2{font-size:15px;line-height:1.15;margin:0;font-weight:730;letter-spacing:-.02em;font-family:inherit}
+.alice-chat > div.items-center p{font-size:10px;line-height:1.3;color:#5b6d7d;margin:4px 0 7px;max-width:275px}
 .alice-chat .alice-taskbar{width:100%;box-sizing:border-box;padding:4px 7px;border:1px solid #d5e6f1;border-radius:8px;background:#EAF4FB;color:#183959;text-align:left;font:700 10px system-ui;cursor:pointer;transition:background .16s,color .16s}
 .alice-chat .alice-taskbar:hover,.alice-chat .alice-taskbar:focus-visible{background:#dcecf7}
 .alice-chat .alice-taskbar:active{color:#b75e00}
-.alice-chat > .items-center > .grid{width:100%;display:grid;gap:4px;margin-top:5px}
-.alice-chat > .items-center .grid button,.alice-chat > .alice-taskbar + .grid button{box-sizing:border-box;width:100%;min-height:30px;padding:5px 8px;border:1px solid #d5e6f1;border-radius:8px;background:#EAF4FB;color:#102642;text-align:left;font:550 9px/1.2 system-ui;cursor:pointer;transition:background .16s,border-color .16s,box-shadow .16s}
-.alice-chat > .items-center .grid button:hover,.alice-chat > .items-center .grid button:focus-visible,.alice-chat > .alice-taskbar + .grid button:hover,.alice-chat > .alice-taskbar + .grid button:focus-visible{background:#deeff9;border-color:#9dbbd0;box-shadow:0 2px 6px rgba(16,38,66,.08)}
-.alice-chat > .items-center .grid button:active,.alice-chat > .alice-taskbar + .grid button:active{background:#d0e5f3}
+.alice-chat > div.items-center > .grid{width:100%;display:grid;gap:4px;margin-top:5px}
+.alice-chat > div.items-center .grid button,.alice-chat > .alice-taskbar + .grid button{box-sizing:border-box;width:100%;min-height:30px;padding:5px 8px;border:1px solid #d5e6f1;border-radius:8px;background:#EAF4FB;color:#102642;text-align:left;font:550 9px/1.2 system-ui;cursor:pointer;transition:background .16s,border-color .16s,box-shadow .16s}
+.alice-chat > div.items-center .grid button:hover,.alice-chat > div.items-center .grid button:focus-visible,.alice-chat > .alice-taskbar + .grid button:hover,.alice-chat > .alice-taskbar + .grid button:focus-visible{background:#deeff9;border-color:#9dbbd0;box-shadow:0 2px 6px rgba(16,38,66,.08)}
+.alice-chat > div.items-center .grid button:active,.alice-chat > .alice-taskbar + .grid button:active{background:#d0e5f3}
 .alice-chat .alice-composer{box-sizing:border-box;padding:8px 10px 7px;border-top:1px solid #d8e3ec;background:#fff;flex-shrink:0}
 .alice-chat .alice-composer form{display:flex;gap:6px;align-items:stretch}
 .alice-chat .alice-composer input{box-sizing:border-box;min-width:0;flex:1;border:1px solid #cbd9e4;border-radius:9px;background:#fbfdff;padding:8px 9px;color:#102642;font:10px system-ui;outline:none}
