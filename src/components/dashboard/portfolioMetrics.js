@@ -1,9 +1,9 @@
 import { findProjectForPO } from '@/components/projects/poLinking';
 
-export const isPipelineProject = (p) => p.status !== "inactive" && !["complete", "completed"].includes(String(p.approval_status || "").trim().toLowerCase()) && !(p.practical_completion_date && new Date(p.practical_completion_date) < new Date());
+export const isPipelineProject = (p) => p.status !== "inactive" && (p.live_project === true || (!["complete", "completed"].includes(String(p.approval_status || "").trim().toLowerCase()) && !(p.practical_completion_date && new Date(p.practical_completion_date) < new Date())));
 export function selectPipelineProjects(projects, deliveries = []) {
   const completed = new Set(deliveries.filter(d => d.pc_achieved && new Date(d.pc_achieved) <= new Date()).map(d => d.project_id));
-  return projects.filter(p => isPipelineProject(p) && !completed.has(p.id) && !completed.has(p.dataverse_id));
+  return projects.filter(p => isPipelineProject(p) && (p.live_project === true || (!completed.has(p.id) && !completed.has(p.dataverse_id))));
 }
 const sum = (list, field) => list.reduce((total, row) => total + (Number(row[field]) || 0), 0);
 
