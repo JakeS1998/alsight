@@ -4,7 +4,7 @@ import { readPortfolioStages } from '../../shared/portfolioStageSummary.ts';
 import { portfolioFinancialFigures, portfolioStatusRollups } from '../../shared/portfolioKeyFigures.ts';
 import { portfolioBusinessContext } from '../../shared/portfolioBusinessContext.ts';
 import {projectValueAggregate} from '../../shared/projectValueAggregate.ts';
-import {portfolioExecutedContractValue} from '../../shared/portfolioExecutedContractValue.ts';
+import {portfolioExecutedContractValue,getCallOffFinancialYear} from '../../shared/portfolioExecutedContractValue.ts';
 export default async function(req) {
   try {
     const base44 = createClientFromRequest(req);
@@ -46,7 +46,8 @@ export default async function(req) {
       return results;
     })();
     if(actions.truncated) throw new Error('Portfolio flag figures exceeded their reporting limit.');
-    const keyFigures=await cachedRead('key-figures:v3-executed-documents',async()=>({...await portfolioFinancialFigures(base44.entities,related,actions.rows,now),contractValue:await portfolioExecutedContractValue(base44.entities,contractQuery)}));
+    const financialYear=getCallOffFinancialYear(now);
+    const keyFigures=await cachedRead(`key-figures:v4-call-off:${financialYear.start}`,async()=>({...await portfolioFinancialFigures(base44.entities,related,actions.rows,now),contractValue:await portfolioExecutedContractValue(base44.entities,contractQuery,now),callOffFinancialYear:financialYear.label}));
     const businessContext=await portfolioBusinessContext(base44,user,now);
     return Response.json({ stages, projects: projectRollups.projects, regions: projectRollups.regions, opportunities: opportunities.rows, delivery: delivery.rows, actions: portfolioStatusRollups(actions.rows), decisions: decisions.rows, risks: risks.rows, recent: recent.items, milestones: milestones.items, coverage, keyFigures, businessContext, refreshedAt: now });
   } catch (error) { console.error('Portfolio summary failed', error, JSON.stringify(error)); return Response.json({ error: error.message }, { status: /rate limit|too many requests/i.test(error.message) ? 429 : 500 }); }
