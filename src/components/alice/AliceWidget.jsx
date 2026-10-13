@@ -1,6 +1,7 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { base44 } from '@/api/base44Client';
-import { Bot, MessageCircle, Send, X } from 'lucide-react';
+import { MessageCircle, Send, X } from 'lucide-react';
+import AliceAvatar from '@/components/alice/AliceAvatar';
 import AliceMessages from '@/components/alice/AliceMessages';
 import AliceWelcome from '@/components/alice/AliceWelcome';
 import AliceGuidedChat from '@/components/alice/AliceGuidedChat';
@@ -126,7 +127,7 @@ export default function AliceWidget() {
   };
   return <div data-alice-widget className="fixed bottom-4 right-4 z-50 sm:bottom-6 sm:right-6">
     {open && <section role="dialog" aria-label="Chat with ALICE" className={`alice-chat mb-3 ${guide?.type === 'valuation' && guide.step > 0 ? 'alice-chat-expanded' : ''}`}>
-      <header className="alice-head"><span className="alice-bot" aria-hidden="true"><Bot strokeWidth={1.8} /></span><div className="alice-identity"><strong>ALICE</strong><p>Alliance Leisure Intelligence &amp; Construction Expert</p></div>{(conversation || messages.length > 0 || guide) && <button type="button" onClick={endChat} disabled={restoring || guide?.saving} className="disabled:opacity-50">End chat</button>}<button type="button" aria-label="Close ALICE" onClick={() => setOpen(false)} className="alice-close">×</button></header>
+      <header className="alice-head"><AliceAvatar /><div className="alice-identity"><strong>ALICE</strong><p>Alliance Leisure Intelligence &amp; Construction Expert</p></div>{(conversation || messages.length > 0 || guide) && <button type="button" onClick={endChat} disabled={restoring || guide?.saving} className="disabled:opacity-50">End chat</button>}<button type="button" aria-label="Close ALICE" onClick={() => setOpen(false)} className="alice-close">×</button></header>
       <AliceWhatsAppButton />
       {frameworkContext ? <FrameworkAliceChat/> : guide ? <AliceGuidedChat guide={guide} onNext={next} onBack={back} onConfirm={confirm} onCancel={cancel} /> : <>
         {!messages.length && !busy ? <AliceWelcome role={user?.role} disabled={restoring} onStart={start} /> : <>
