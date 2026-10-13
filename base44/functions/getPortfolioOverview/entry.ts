@@ -49,5 +49,5 @@ export default async function(req) {
     const keyFigures=await cachedRead('key-figures:v2-executed',async()=>({...await portfolioFinancialFigures(base44.entities,related,actions.rows,now),contractValue:await portfolioExecutedContractValue(base44.entities,contractQuery)}));
     const businessContext=await portfolioBusinessContext(base44,user,now);
     return Response.json({ stages, projects: projectRollups.projects, regions: projectRollups.regions, opportunities: opportunities.rows, delivery: delivery.rows, actions: portfolioStatusRollups(actions.rows), decisions: decisions.rows, risks: risks.rows, recent: recent.items, milestones: milestones.items, coverage, keyFigures, businessContext, refreshedAt: now });
-  } catch (error) { return Response.json({ error: error.message }, { status: /rate limit|too many requests/i.test(error.message) ? 429 : 500 }); }
+  } catch (error) { console.error('Portfolio summary failed', error, JSON.stringify(error)); return Response.json({ error: error.message }, { status: /rate limit|too many requests/i.test(error.message) ? 429 : 500 }); }
 }
