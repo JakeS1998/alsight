@@ -336,6 +336,24 @@
       "type": "string",
       "format": "date"
     },
+    "pso_workbook_fields": {
+      "type": "array",
+      "maxItems": 8,
+      "description": "PSO fields populated from the workbook, read-only in Pathway. Workbook imports must record each field they populate here.",
+      "items": {
+        "type": "string",
+        "enum": [
+          "pso_pq_approved_by",
+          "pso_pq_date",
+          "pso_aa_approved_by",
+          "pso_aa_date",
+          "pso_aa_variations_approved_by",
+          "pso_aa_variations_date",
+          "pso_dma_approved_by",
+          "pso_dma_date"
+        ]
+      }
+    },
     "lessons_learned": {
       "type": "string"
     },

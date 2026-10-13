@@ -1,8 +1,7 @@
 import React, { useMemo } from "react";
-import { FormSection, FormField, formInputClass } from "@/components/forms/PowerForm";
-import { Button } from "@/components/ui/button";
-import SearchableSelect from '@/components/forms/SearchableSelect';
-import { CheckCircle2, AlertTriangle, XCircle, Loader2 } from "lucide-react";
+import { FormSection } from "@/components/forms/PowerForm";
+import PSOSignoffGateways from '@/components/delivery/PSOSignoffGateways';
+import { CheckCircle2, AlertTriangle, XCircle } from "lucide-react";
 import ChecklistHover from '@/components/delivery/ChecklistHover';
 import { readinessChecklistDetails } from '@/components/delivery/checklistDetails';
 import contractorAppointment from '@/components/delivery/contractorAppointment';
@@ -11,12 +10,7 @@ import agreementNames from '@/components/projects/agreementNames';
 import { preConstructionAppointments } from '@/components/delivery/preConstructionAppointments';
 import PDbrApplicability from '@/components/delivery/PDbrApplicability';
 
-const GATEWAYS = [
-  { key: "pq", label: "Project Questionnaire (PQ)" },
-  { key: "aa", label: "Access Agreement (AA)" },
-  { key: "aa_variations", label: "AA Variations" },
-  { key: "dma", label: "DMA" },
-];
+
 
 export function PreConstructionReadiness({ project, legalDocs, dmas, jcts, warranties, feeProposals, delivery, deliveryTeam = [], suppliers = [], accountMap = {}, setField, onSave, saving, pdBrReview }) {
   const pdBrDecision = pdBrReview?.decision;
@@ -71,47 +65,7 @@ export function PreConstructionReadiness({ project, legalDocs, dmas, jcts, warra
 
         {pdBrReview && <PDbrApplicability review={pdBrReview} />}
 
-        {/* PSO sign-off gateways */}
-        <div className="rounded-xl border border-slate-200 bg-white p-4">
-          <div className="mb-3 flex items-center justify-between">
-            <div>
-              <h4 className="text-sm font-semibold text-slate-900">PSO Sign-off Gateways</h4>
-              <p className="text-xs text-slate-500">Record PSO approval at each ready-to-proceed gateway</p>
-            </div>
-            <Button type="button" size="sm" onClick={onSave} disabled={saving} className="bg-primary hover:bg-primary/90">
-              {saving && <Loader2 className="mr-1.5 h-4 w-4 animate-spin" />} Save PSO
-            </Button>
-          </div>
-          <div className="grid gap-3 sm:grid-cols-2">
-            {GATEWAYS.map((g) => {
-              const received = !!delivery[`pso_${g.key}_date`];
-              return (
-                <div key={g.key} className="rounded-lg border border-slate-200 p-3">
-                  <div className="mb-2 flex items-center justify-between">
-                    <p className="text-sm font-semibold text-slate-800">{g.key === 'aa' ? `${agreementNames(project.project_number).access} (${agreementNames(project.project_number).accessShort})` : g.key === 'dma' ? agreementNames(project.project_number).developmentShort : g.key === 'aa_variations' ? `${agreementNames(project.project_number).accessShort} Variations` : g.label}</p>
-                    {received ? (
-                      <span className="inline-flex items-center gap-1 rounded-full border border-emerald-200 bg-emerald-50 px-2 py-0.5 text-[10px] font-medium text-emerald-700"><CheckCircle2 className="h-3 w-3" /> PSO received</span>
-                    ) : (
-                      <span className="inline-flex items-center gap-1 rounded-full border border-amber-200 bg-amber-50 px-2 py-0.5 text-[10px] font-medium text-amber-700"><AlertTriangle className="h-3 w-3" /> PSO outstanding</span>
-                    )}
-                  </div>
-                  <div className="grid grid-cols-2 gap-2">
-                    <FormField label="Approved by">
-                      <SearchableSelect value={delivery[`pso_${g.key}_approved_by`] || ""} onChange={(e) => setField(`pso_${g.key}_approved_by`, e.target.value)} className={formInputClass}>
-                        <option value="">Select approver</option>
-                        <option value="Sarah Watts">Sarah Watts</option>
-                        <option value="Paul Cluett">Paul Cluett</option>
-                      </SearchableSelect>
-                    </FormField>
-                    <FormField label="Date">
-                      <input type="date" value={delivery[`pso_${g.key}_date`] ? String(delivery[`pso_${g.key}_date`]).slice(0, 10) : ""} onChange={(e) => setField(`pso_${g.key}_date`, e.target.value)} className={formInputClass} />
-                    </FormField>
-                  </div>
-                </div>
-              );
-            })}
-          </div>
-        </div>
+        <PSOSignoffGateways project={project} delivery={delivery} setField={setField} onSave={onSave} saving={saving} />
       </div>
     </FormSection>
   );

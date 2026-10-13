@@ -110,6 +110,10 @@ export function ProjectDeliveryTab({ project, legalDocs, dmas, jcts, warranties,
       payload.lad_rate = delivery.lad_rate === '' || delivery.lad_rate == null ? null : Number(delivery.lad_rate);
       payload.lad_rate_period = delivery.lad_rate_period || 'week';
       ['pct_programme_override', 'forecast_pc_override', 'lad_exposure_override'].forEach(key => { payload[key] = !!delivery[key]; });
+      // Workbook-owned PSO values are not written by manual delivery saves.
+      const persistedDelivery = deliveryId ? await base44.entities.ProjectDelivery.get(deliveryId) : null;
+      (persistedDelivery?.pso_workbook_fields || []).forEach(key => delete payload[key]);
+      delete payload.pso_workbook_fields;
       // Handover updates are saved separately; do not overwrite them from this form.
       Object.keys(payload).filter(key => key.startsWith('handover_')).forEach(key => delete payload[key]);
       // coerce numeric fields
