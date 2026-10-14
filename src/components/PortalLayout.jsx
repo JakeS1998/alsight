@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import React, { Suspense, useEffect } from 'react';
 import { Outlet, useLocation } from 'react-router-dom';
 import PortalHeader from '@/components/PortalHeader';
 import PortalFooter from '@/components/PortalFooter';
@@ -26,7 +26,7 @@ export default function PortalLayout() {
   }, [pathname, user?.id]);
   return <div className="portal-shell flex min-h-screen flex-col bg-secondary">
     <PortalHeader />
-    <main className="portal-main w-full flex-1"><Outlet /></main>
+    <main className="portal-main w-full flex-1"><Suspense fallback={<div className="flex min-h-[40vh] items-center justify-center text-sm text-muted-foreground" role="status">Loading page…</div>}><Outlet /></Suspense></main>
     <PortalFooter />
     {user?.id && <PageFeedbackWidget key={user.id} user={user} route={pathname} />}
     {user?.id && internalMessagingRoles.includes(user.role) && <DirectMessagesWidget key={user.id} user={user} />}

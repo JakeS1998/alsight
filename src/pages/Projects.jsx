@@ -2,6 +2,7 @@ import React, { useEffect, useState, useMemo } from "react";
 import projectFullValue from '@/components/projects/projectFullValue';
 import { Link } from "react-router-dom";
 import { useAuth } from "@/lib/AuthContext";
+import { useQueryClient } from '@tanstack/react-query';
 import { base44 } from "@/api/base44Client";
 import { listAll, filterAll } from "@/components/data/loadAll";
 import listVisiblePortalUsers from '@/components/data/portalUserDirectory';
@@ -36,6 +37,7 @@ const SORT_OPTIONS = [
 
 export default function Projects() {
   const { user } = useAuth();
+  const cache = useQueryClient();
   const role = user?.role || "client";
   const canRequest = ["admin", "director", "bdm"].includes(role);
 
@@ -74,8 +76,12 @@ export default function Projects() {
         setProjects((response.data.projects || []).filter((p) => p.status !== 'inactive'));
         return;
       }
-      const [p, a, u, staffContacts] = await Promise.all([
+      const [p, directory] = await Promise.all([
         role === 'supplier' ? base44.functions.invoke('supplierProjectAccess', { action: 'projects' }).then(res => res.data.projects || []) : [],
+        cache.fetchQuery({
+          queryKey: ['projects-directory', user?.id, role, user?.account_id, user?.region, user?.delegate_of],
+          staleTime: 300000,
+          queryFn: () => Promise.all([
         listAll(base44.entities.Account, "-name").catch(() => []),
         listVisiblePortalUsers().catch(() => []),
         (async () => {
@@ -86,7 +92,10 @@ export default function Projects() {
           ]);
           return [...bdmC, ...bsmC, ...pmC];
         })(),
+          ]),
+        }),
       ]);
+      const [a, u, staffContacts] = directory;
       setProjects(p);
       setAccounts(a);
       setUsers(u);
@@ -271,7 +280,7 @@ export default function Projects() {
         accounts={accounts}
         users={users}
         user={user}
-        onCreated={() => { load(); setCursor(null); setPreviousCursors([]); setRefreshKey(k => k + 1); }}
+        onCreated={() => { cache.invalidateQueries({ queryKey: ['projects-directory', user?.id] }); load(); setCursor(null); setPreviousCursors([]); setRefreshKey(k => k + 1); }}
       />
     </div>
   );

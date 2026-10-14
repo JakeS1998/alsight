@@ -10,7 +10,7 @@ export default function usePortalDataRefresh(userId, pathname) {
     if (!userId || !views.includes(pathname)) return;
     const refresh = () => {
       if (document.visibilityState !== 'visible') return;
-      cache.invalidateQueries({ predicate: query => sharedKeys.has(query.queryKey[0]), refetchType: 'active' });
+      cache.refetchQueries({ predicate: query => sharedKeys.has(query.queryKey[0]), type: 'active', stale: true });
     };
     const timer = window.setInterval(refresh, 65000);
     window.addEventListener('focus', refresh);
