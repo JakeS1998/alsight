@@ -3,9 +3,11 @@ import {formatCurrency} from '@/lib/portal';
 export default function FrameworkCommercialFigures({data}) {
  if(data.totalCallOffValue===undefined)return null;
  return <div className="mt-6 space-y-5 border-t border-border pt-6 lg:mt-3 lg:space-y-3 lg:pt-3">
+  <div><p className="text-xs text-muted-foreground sm:text-sm">Total Pipeline Value</p><p className="mt-2 text-3xl font-bold tracking-tight tabular-nums lg:text-2xl">{formatCurrency(data.totalPipelineValue ?? 0)}</p><p className="mt-2 text-xs text-muted-foreground">Framework projects without a signed DMA/DPA, excluding completed projects.</p></div>
   <div className="grid gap-5 sm:grid-cols-2">
    <div><p className="text-xs text-muted-foreground sm:text-sm">Total Call-Off Value</p><p className="mt-2 break-words text-3xl font-bold leading-tight tracking-tight tabular-nums lg:text-2xl">{formatCurrency(data.totalCallOffValue)}</p><p className="mt-2 text-xs text-muted-foreground">{data.callOffFinancialYear} · DMA/DPA executed 1 April–31 March. Same across-Alliance total as Alliance360, using submitted proposals or estimates.</p></div>
    <div><p className="text-xs text-muted-foreground sm:text-sm">Total UKLF Fees</p><p className="mt-2 break-words text-3xl font-bold leading-tight tracking-tight text-primary tabular-nums lg:text-2xl">{formatCurrency(data.totalUKLFFees)}</p><p className="mt-2 text-xs text-muted-foreground">DMA/DPA projects executed in the same financial year, using their framework fee bands; UKLF fees and contingency excluded from the fee base.</p>{data.uncalculatedFeeCount>0 && <p className="mt-2 text-xs text-destructive">{data.uncalculatedFeeCount} signed project(s) excluded from fee totals because their fee rules are unavailable.</p>}</div>
   </div>
+ <div className="border-t border-border pt-3"><table className="w-full text-left text-sm"><thead><tr className="text-xs text-muted-foreground"><th className="pb-2 font-medium">Framework</th><th className="pb-2 text-right font-medium">Call-Off Value</th><th className="pb-2 text-right font-medium">UKLF Fees</th></tr></thead><tbody>{(data.frameworkBreakdown || []).map(row=><tr key={row.framework} className="border-t border-border"><th className="py-3 font-semibold">{row.framework}</th><td className="py-3 text-right font-semibold tabular-nums">{formatCurrency(row.callOffValue)}</td><td className="py-3 text-right font-semibold text-primary tabular-nums">{formatCurrency(row.uklfFees)}</td></tr>)}</tbody></table></div>
  </div>;
-}
+ }

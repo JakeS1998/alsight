@@ -12,6 +12,12 @@ export async function frameworkCommercialSummary(db,source,scope,callOffDb=db) {
   group.historicalValue+=row.sum_calloff_value || 0;groups.set(key,group);
  }
  const eligible=new Set(context.callOff.projectIds);
+ const frameworkBreakdown=['FW3','FW4'].map(framework=>({framework,callOffValue:0,uklfFees:0}));
+ for(const row of context.callOffValues){
+  const group=groups.get(row.id),version=frameworkCommercialVersion(row.project_number,group?.reference);
+  const bucket=frameworkBreakdown.find(item=>item.framework===version);
+  if(bucket)bucket.callOffValue+=row.sum_estimated_value || 0;
+ }
   const summary={totalCallOffValue:context.callOff.value,callOffFinancialYear:context.callOff.financialYear.label,totalUKLFFees:0,totalPipelineValue:0,fw3PipelineValue:0,fw4PipelineValue:0,proposalValueCount:0,estimatedValueCount:0,historicalValueCount:0,uncalculatedFeeCount:0};
  for(const group of groups.values()) {
   const project=group.project,aliases=project ? [project.id,project.dataverse_id].filter(Boolean) : [];
@@ -36,8 +42,12 @@ export async function frameworkCommercialSummary(db,source,scope,callOffDb=db) {
   if(!eligible.has(project?.id))continue;
    summary[`${values.source}ValueCount`]+=1;
   if(!settings.bands.length){summary.uncalculatedFeeCount+=1;continue;}
-  summary.totalUKLFFees+=frameworkFeeAmount(settings.bands,values.feeBase,settings.calculation);
+  const fee=frameworkFeeAmount(settings.bands,values.feeBase,settings.calculation);
+  summary.totalUKLFFees+=fee;
+  const bucket=frameworkBreakdown.find(item=>item.framework===version);
+  if(bucket)bucket.uklfFees+=fee;
  }
  for(const key of ['totalCallOffValue','totalUKLFFees','totalPipelineValue','fw3PipelineValue','fw4PipelineValue'])summary[key]=Math.round(summary[key]*100)/100;
+ summary.frameworkBreakdown=frameworkBreakdown.map(row=>({...row,callOffValue:Math.round(row.callOffValue*100)/100,uklfFees:Math.round(row.uklfFees*100)/100}));
  return summary;
 }

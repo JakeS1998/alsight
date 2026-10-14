@@ -1,4 +1,5 @@
 import {frameworkProjectNumber} from './frameworkCommercialValues.ts';
+import {projectValueAggregate} from './projectValueAggregate.ts';
 import {portfolioCallOffSummary,callOffProjectQuery} from './portfolioExecutedContractValue.ts';
 export async function frameworkCommercialContext(db,source,scope,callOffDb=db) {
  const callOff=await portfolioCallOffSummary(callOffDb,callOffProjectQuery);
@@ -32,5 +33,7 @@ export async function frameworkCommercialContext(db,source,scope,callOffDb=db) {
   }while(cursor);
  }
  const settings=await db.FrameworkFeeSettings.filter({key:{$in:['uklf-fee-bands','uklf-fee-bands-fw4','uklf-fee-bands-single_task','uklf-fee-bands-equipment_only','uklf-fee-bands-fw4-single_task','uklf-fee-bands-fw4-equipment_only']}},{limit:50});
- return {rows:grouped.rows,projects:[...projects.values()],proposals,documents,signedProjects,callOff,settings:settings.items};
+ const callOffValues=callOff.projectIds.length ? await projectValueAggregate(callOffDb,{query:{...callOffProjectQuery,id:{$in:callOff.projectIds}},groupBy:['id','project_number'],sum:'estimated_value',limit:1000}) : {rows:[]};
+ if(callOffValues.truncated)throw new Error('Framework call-off breakdown exceeded its reporting limit.');
+ return {rows:grouped.rows,projects:[...projects.values()],proposals,documents,signedProjects,callOff,callOffValues:callOffValues.rows,settings:settings.items};
 }
