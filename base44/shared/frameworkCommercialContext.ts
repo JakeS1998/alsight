@@ -1,5 +1,7 @@
 import {frameworkProjectNumber} from './frameworkCommercialValues.ts';
+import {portfolioCallOffSummary,callOffProjectQuery} from './portfolioExecutedContractValue.ts';
 export async function frameworkCommercialContext(db,source,scope) {
+ const callOff=await portfolioCallOffSummary(db,callOffProjectQuery);
  const grouped=await source.aggregate({query:scope,groupBy:['project_id','project_number','framework_ref'],sum:'calloff_value',limit:1000});
  if(grouped.truncated)throw new Error('Framework commercial summary exceeded its reporting limit.');
  const refs=[...new Set(grouped.rows.map(row=>row.project_id).filter(Boolean))];
@@ -30,5 +32,5 @@ export async function frameworkCommercialContext(db,source,scope) {
   }while(cursor);
  }
  const settings=await db.FrameworkFeeSettings.filter({key:{$in:['uklf-fee-bands','uklf-fee-bands-fw4','uklf-fee-bands-single_task','uklf-fee-bands-equipment_only','uklf-fee-bands-fw4-single_task','uklf-fee-bands-fw4-equipment_only']}},{limit:50});
- return {rows:grouped.rows,projects:[...projects.values()],proposals,documents,signedProjects,settings:settings.items};
+ return {rows:grouped.rows,projects:[...projects.values()],proposals,documents,signedProjects,callOff,settings:settings.items};
 }

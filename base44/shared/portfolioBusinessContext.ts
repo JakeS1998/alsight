@@ -2,7 +2,7 @@ import {scopedReadCache} from './scopedReadCache.ts';
 import {portfolioFinancialFigures} from './portfolioKeyFigures.ts';
 import {projectValueAggregate} from './projectValueAggregate.ts';
 import {liveProjectSummary} from './liveProjectSummary.ts';
-import {portfolioExecutedContractValue,getCallOffFinancialYear} from './portfolioExecutedContractValue.ts';
+import {portfolioExecutedContractValue,getCallOffFinancialYear,callOffProjectQuery} from './portfolioExecutedContractValue.ts';
 const INTERNAL_ROLES=['admin','director','regional_director','bsm','finance','bdm'];
 export async function portfolioBusinessContext(base44,user,now) {
   if(!INTERNAL_ROLES.includes(user.role))return null;
@@ -18,7 +18,7 @@ export async function portfolioBusinessContext(base44,user,now) {
     if(actions.truncated)throw new Error('Business-wide flag figures exceeded their reporting limit.');
     const financial=await portfolioFinancialFigures(entities,related,actions.rows,now);
     const headline=await liveProjectSummary(entities);
-    const contractValue=await portfolioExecutedContractValue(entities,{status:{$ne:'inactive'},dataverse_id:{$exists:true,$nin:[null,'']}},now);
+    const contractValue=await portfolioExecutedContractValue(entities,callOffProjectQuery,now);
     return {...financial,...headline,contractValue,live:headline.projects};
   });
 }
