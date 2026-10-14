@@ -8,13 +8,17 @@ export async function frameworkCommercialContext(db,source,scope) {
  const native=refs.filter(ref=>/^[a-f0-9]{24}$/i.test(ref)),legacy=refs.filter(ref=>!/^[a-f0-9]{24}$/i.test(ref));
  for(const [field,values] of [['id',native],['dataverse_id',legacy],['project_number',numbers]]) {
   if(!values.length)continue;
-  const result=await db.Project.aggregate({query:{[field]:{$in:values},procurement_route:{$ne:false}},groupBy:['id','dataverse_id','project_number'],sum:'estimated_value',limit:1000});
+  const result=await db.Project.aggregate({query:{[field]:{$in:values},procurement_route:{$ne:false}},groupBy:['id','dataverse_id','project_number'],sum:'estimated_value',max:'practical_completion_date',limit:1000});
   if(result.truncated)throw new Error('Framework project estimate lookup exceeded its reporting limit.');
   for(const project of result.rows)projects.set(project.id,project);
  }
  const aliases=[...projects.values()].flatMap(project=>[project.id,project.dataverse_id].filter(Boolean));
- const proposals=new Map(),documents=new Map();
+ const proposals=new Map(),documents=new Map(),signedProjects=new Set();
  if(aliases.length) {
+  // FW3 DMA and FW4 DPA are both stored in DMA; execution is the eligibility gate.
+  const signed=await db.DMA.aggregate({query:{project_id:{$in:aliases},executed:{$regex:'^\\s*yes\\s*$',$options:'i'}},groupBy:'project_id',limit:1000});
+  if(signed.truncated)throw new Error('Signed Framework agreement lookup exceeded its reporting limit.');
+  for(const row of signed.rows)signedProjects.add(row.project_id);
   const docs=await db.LegalDocument.aggregate({query:{project_id:{$in:aliases},document_type:{$in:['access_agreement','equipment_only_agreement','single_task_agreement']}},groupBy:['project_id','document_type'],limit:1000});
   if(docs.truncated)throw new Error('Framework agreement lookup exceeded its reporting limit.');
   for(const row of docs.rows){const types=documents.get(row.project_id) || new Set();types.add(row.document_type);documents.set(row.project_id,types);}
@@ -26,5 +30,5 @@ export async function frameworkCommercialContext(db,source,scope) {
   }while(cursor);
  }
  const settings=await db.FrameworkFeeSettings.filter({key:{$in:['uklf-fee-bands','uklf-fee-bands-fw4','uklf-fee-bands-single_task','uklf-fee-bands-equipment_only','uklf-fee-bands-fw4-single_task','uklf-fee-bands-fw4-equipment_only']}},{limit:50});
- return {rows:grouped.rows,projects:[...projects.values()],proposals,documents,settings:settings.items};
+ return {rows:grouped.rows,projects:[...projects.values()],proposals,documents,signedProjects,settings:settings.items};
 }

@@ -11,7 +11,7 @@ export async function frameworkCommercialSummary(db,source,scope) {
   const group=groups.get(key) || {project,reference:row.framework_ref,number:row.project_number,historicalValue:0};
   group.historicalValue+=row.sum_calloff_value || 0;groups.set(key,group);
  }
- const summary={totalCallOffValue:0,totalUKLFFees:0,proposalValueCount:0,estimatedValueCount:0,historicalValueCount:0,uncalculatedFeeCount:0};
+ const summary={totalCallOffValue:0,totalUKLFFees:0,totalPipelineValue:0,fw3PipelineValue:0,fw4PipelineValue:0,proposalValueCount:0,estimatedValueCount:0,historicalValueCount:0,uncalculatedFeeCount:0};
  for(const group of groups.values()) {
   const project=group.project,aliases=project ? [project.id,project.dataverse_id].filter(Boolean) : [];
   const types=new Set(aliases.flatMap(alias=>[...(context.documents.get(alias) || [])]));
@@ -22,11 +22,20 @@ export async function frameworkCommercialSummary(db,source,scope) {
   const estimate=Math.max(0,Number(project?.sum_estimated_value) || 0);
   const values=frameworkProposalValues(proposal,settings) || (project ? {value:estimate,feeBase:estimate,source:'estimated'} : {value:group.historicalValue,feeBase:group.historicalValue,source:'historical'});
   if(values.value<=0)continue;
+  const signed=aliases.some(alias=>context.signedProjects.has(alias));
+  if(!signed) {
+   // Pipeline is remaining framework work, not signed call-offs or completed projects.
+   if(project && !project.max_practical_completion_date) {
+    summary.totalPipelineValue+=values.value;
+    if(version==='FW3')summary.fw3PipelineValue+=values.value;
+    if(version==='FW4')summary.fw4PipelineValue+=values.value;
+   }
+   continue;
+  }
   summary.totalCallOffValue+=values.value;summary[`${values.source}ValueCount`]+=1;
   if(!settings.bands.length){summary.uncalculatedFeeCount+=1;continue;}
   summary.totalUKLFFees+=frameworkFeeAmount(settings.bands,values.feeBase,settings.calculation);
  }
- summary.totalCallOffValue=Math.round(summary.totalCallOffValue*100)/100;
- summary.totalUKLFFees=Math.round(summary.totalUKLFFees*100)/100;
+ for(const key of ['totalCallOffValue','totalUKLFFees','totalPipelineValue','fw3PipelineValue','fw4PipelineValue'])summary[key]=Math.round(summary[key]*100)/100;
  return summary;
 }

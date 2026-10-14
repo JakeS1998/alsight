@@ -30,9 +30,9 @@ export async function frameworkWorkspace(base44,user,body) {
  }
  if(body.workspaceAction==='summary') {
   const days=[7,30,90].includes(body.days) ? body.days : 30;
-  return Response.json(await scopedReadCache(`${viewerKey}:summary:cumulative-fees:${days}:${JSON.stringify(scope)}`,async()=>{
+  return Response.json(await scopedReadCache(`${viewerKey}:summary:signed-fees-pipeline:${days}:${JSON.stringify(scope)}`,async()=>{
    const summary=await frameworkWorkspaceSummary(source,scope,internal,days);
-   const commercial=await scopedReadCache(`${viewerKey}:commercial:cumulative-fees:${JSON.stringify(scope)}`,()=>frameworkCommercialSummary(internal ? base44.entities : base44.asServiceRole.entities,source,scope));
+   const commercial=await scopedReadCache(`${viewerKey}:commercial:signed-fees-pipeline:${JSON.stringify(scope)}`,()=>frameworkCommercialSummary(internal ? base44.entities : base44.asServiceRole.entities,source,scope));
    return {...summary,...commercial};
   }));
  }
