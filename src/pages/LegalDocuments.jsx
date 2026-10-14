@@ -10,6 +10,7 @@ import { FileText, ExternalLink, Filter } from "lucide-react";
 import DMARegister from '@/components/documents/DMARegister';
 import RecordUpdatedAt from '@/components/RecordUpdatedAt';
 import DocumentDates from '@/components/documents/DocumentDates';
+import LoiExpiryDetails from '@/components/documents/LoiExpiryDetails';
 import DataverseRecordEdit from '@/components/dataverse/DataverseRecordEdit';
 import DMAFieldValue from '@/components/documents/DMAFieldValue';
 
@@ -98,6 +99,7 @@ export default function LegalDocuments() {
                   <div className="flex justify-between"><dt>Execution</dt><dd className="text-slate-700"><DMAFieldValue value={d.date_of_execution} date /></dd></div>
                 </dl>
                 <DocumentDates doc={d} hideFinancials={user?.role === 'supplier'} />
+                <div className="mt-2"><LoiExpiryDetails doc={d} /></div>
                 <RecordUpdatedAt record={d} className="mt-3" />
                 <div className="mt-3"><DataverseRecordEdit table="documents" record={d} onUpdated={updated => setDocs(current => current.map(doc => doc.id === updated.id ? updated : doc))} /></div>
                 {user?.role !== 'supplier' && !d.link_to_file && <p className="mt-3 text-xs text-destructive">File link: Missing</p>}
