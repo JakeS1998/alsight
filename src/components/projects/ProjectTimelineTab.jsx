@@ -52,6 +52,7 @@ function buildEvents(project, legalDocs, dmas, jcts, warranties, pos, valuations
     add(d.approval_date, `${id} approved`, "legal", d.approval_status);
     add(d.sent_to_client, `${id} sent to client`, "legal");
     add(d.date_of_execution, `${id} executed`, "legal");
+    add(d.loi_expiry_date, `${id} LOI expires`, "legal");
   });
 
   dmas.forEach((d) => {

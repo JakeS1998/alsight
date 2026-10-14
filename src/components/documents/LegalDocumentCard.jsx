@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import agreementNames from '@/components/projects/agreementNames';
 import RecordUpdatedAt from '@/components/RecordUpdatedAt';
+import LoiExpiryDetails from '@/components/documents/LoiExpiryDetails';
 import DataverseRecordEdit from '@/components/dataverse/DataverseRecordEdit';
 import useEditableRecord from '@/components/dataverse/useEditableRecord';
 import InlineDataverseField from '@/components/dataverse/InlineDataverseField';
@@ -54,6 +55,7 @@ export function LegalDocumentCard({ doc: sourceDoc, projectName, projectNumber, 
               <DetailRow label="Date of Execution" value={formatDate(doc.date_of_execution)} />
               <DetailRow label="Signing Target" value={formatDate(doc.signing_target_date)} />
               <DetailRow label="Sent to Client" value={formatDate(doc.sent_to_client)} />
+              <LoiExpiryDetails doc={doc} />
             </DetailColumn>
             <DetailColumn title="Drafting & Approval">
               <DetailRow label="Drafted Date" value={formatDate(doc.drafted_date)} />

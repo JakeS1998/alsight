@@ -113,6 +113,16 @@
     "dataverse_id": {
       "type": "string",
       "description": "Original Dataverse bss_project1id GUID"
+    },
+    "loi_expiry_date": {
+      "type": "string",
+      "format": "date-time",
+      "description": "Explicit expiry date extracted from the executed LOI or extension"
+    },
+    "loi_expiry_scan": {
+      "type": "object",
+      "additionalProperties": true,
+      "description": "Last expiry scan status, source, evidence and review reason"
     }
   },
   "required": [

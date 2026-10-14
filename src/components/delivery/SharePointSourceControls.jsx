@@ -16,7 +16,7 @@ export default function SharePointSourceControls({project,onImported}) {
   }catch(err){setError(err.response?.data?.error||err.message);}finally{setBusy('');}
  }
  return <div className="mb-3 space-y-2 rounded-lg border border-border bg-muted p-3 text-xs">
-  <div className="flex flex-wrap items-center gap-2"><Button type="button" size="sm" variant="outline" disabled={!!busy||!project.link_to_pso} onClick={()=>run('psoImport')}>{busy==='psoImport'&&<Loader2 className="animate-spin"/>}Import PSO from SharePoint</Button><Button type="button" size="sm" variant="outline" disabled={!!busy} onClick={()=>run('loiSources')}>{busy==='loiSources'&&<Loader2 className="animate-spin"/>}Check LOI sources</Button></div>
+  <div className="flex flex-wrap items-center gap-2"><Button type="button" size="sm" variant="outline" disabled={!!busy||!project.link_to_pso} onClick={()=>run('psoImport')}>{busy==='psoImport'&&<Loader2 className="animate-spin"/>}Update PSO from SharePoint</Button><Button type="button" size="sm" variant="outline" disabled={!!busy} onClick={()=>run('loiSources')}>{busy==='loiSources'&&<Loader2 className="animate-spin"/>}Check LOI sources</Button></div>
   <p className="text-muted-foreground">PQ, AA and variations use named approval sections. DMA uses the top final sign-off. LOI folders prefer the best-matching Word filename.</p>
   {error&&<p role="alert" className="text-destructive">{error}</p>}
   {pso&&<div role="status"><p>{pso.importedFields.length} PSO fields imported from {pso.file}; populated fields are read-only.</p>{pso.warnings.map((warning,i)=><p key={i} className="text-risk-elevated">{warning}</p>)}</div>}

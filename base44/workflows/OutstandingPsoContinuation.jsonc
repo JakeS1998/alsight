@@ -1,0 +1,53 @@
+{
+  "name": "Outstanding PSO batch continuation",
+  "description": "Consumes a single-use batch ticket, checks up to nine projects and queues the next cursor until every eligible project has been visited.",
+  "trigger": {
+    "config": {
+      "trigger_type": "entity",
+      "entity_name": "PsoSourceSyncState",
+      "events": [
+        "create",
+        "update"
+      ]
+    },
+    "condition": "${ .trigger.data.status == \"running\" and (.trigger.data.dispatch_token // \"\") != \"\" and .trigger.data.dispatch_token != (.trigger.old_data.dispatch_token // \"\") }"
+  },
+  "definition": {
+    "document": {
+      "dsl": "1.0.0",
+      "name": "outstanding_pso_continuation",
+      "version": "1.0",
+      "namespace": "base44"
+    },
+    "do": [
+      {
+        "pause": {
+          "wait": "PT5S",
+          "then": "check_batch",
+          "x-base44": {
+            "title": "Pause between PSO batches",
+            "description": "Keep SharePoint requests paced"
+          }
+        }
+      },
+      {
+        "check_batch": {
+          "call": "invoke_backend_function",
+          "with": {
+            "function_name": "manageProjectSharePointSources",
+            "args": {
+              "action": "psoContinue",
+              "stateId": "${ .trigger.entity_id }",
+              "ticket": "${ .trigger.data.dispatch_token }"
+            }
+          },
+          "then": "end",
+          "x-base44": {
+            "title": "Update outstanding PSOs",
+            "description": "Save approval fields and flag source issues"
+          }
+        }
+      }
+    ]
+  }
+}

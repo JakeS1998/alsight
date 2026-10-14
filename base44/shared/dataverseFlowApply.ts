@@ -1,4 +1,5 @@
 import { propagateFlowProjectAccess } from './dataverseProjectReferences.ts';
+import {isLoiDocument} from './loiDocumentType.ts';
 import {syncDocumentApprovals} from './documentApprovalSync.ts';
 import {refreshInsuranceAccountAccess} from './supplierInsuranceReferences.ts';
 import {projectValueSyncUpdates} from './projectValueSyncUpdates.ts';
@@ -13,7 +14,20 @@ export async function applyFlowUpdates(base44, table, spec, updates, appliedRevi
     }
   } else if (updates.length) {
     const values=table==='projects' ? await projectValueSyncUpdates(base44,updates) : updates;
-    await base44.entities[spec.entity].upsert(values.map(({ id, ...value }) => value), { key: 'dataverse_id' });
+    if(table==='documents') {
+      // Execution transitions must use single writes so the LOI workflow fires.
+      const page=await base44.entities.LegalDocument.filter({dataverse_id:{$in:values.map(row=>row.dataverse_id)}},{limit:100,fields:['dataverse_id','document_type','executed','comments']});
+      if(page.has_more)throw new Error('Document transition check exceeds the sync batch limit.');
+      const existing=new Map(page.items.map(row=>[row.dataverse_id,row])),bulk=[];
+      for(const {id,...value} of values) {
+        const previous=existing.get(value.dataverse_id),document={...previous,...value};
+        if(value.executed==='yes' && previous?.executed!=='yes' && isLoiDocument(document)) {
+          if(previous)await base44.entities.LegalDocument.update(previous.id,value);
+          else await base44.entities.LegalDocument.create(value);
+        }else bulk.push(value);
+      }
+      if(bulk.length)await base44.entities[spec.entity].upsert(bulk,{key:'dataverse_id'});
+    }else await base44.entities[spec.entity].upsert(values.map(({ id, ...value }) => value), { key: 'dataverse_id' });
   }
   if (table === 'projects' && updates.length) {
     await propagateFlowProjectAccess(base44, updates);

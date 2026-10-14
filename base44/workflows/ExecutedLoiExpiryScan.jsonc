@@ -1,0 +1,42 @@
+{
+  "name": "Scan LOI expiry when executed",
+  "description": "When an LOI or LOI extension changes to Executed Yes, reads its saved SharePoint source and saves a confirmed explicit expiry date or a review reason. Includes execution transitions imported from Dataverse.",
+  "trigger": {
+    "config": {
+      "trigger_type": "entity",
+      "entity_name": "LegalDocument",
+      "events": [
+        "create",
+        "update"
+      ]
+    },
+    "condition": "${ .trigger.data.executed == \"yes\" and .trigger.old_data.executed != \"yes\" and ((.trigger.data.document_type // \"\") | test(\"^(loi|loi[ _-]+extension|letter of intent([ _-]+extension)?|other)$\"; \"i\")) }"
+  },
+  "definition": {
+    "document": {
+      "dsl": "1.0.0",
+      "name": "executed_loi_expiry_scan",
+      "version": "1.0",
+      "namespace": "base44"
+    },
+    "do": [
+      {
+        "scan_expiry": {
+          "call": "invoke_backend_function",
+          "with": {
+            "function_name": "manageProjectSharePointSources",
+            "args": {
+              "action": "loiExpiryScan",
+              "documentId": "${ .trigger.entity_id }"
+            }
+          },
+          "then": "end",
+          "x-base44": {
+            "title": "Read LOI expiry from SharePoint",
+            "description": "Save explicit date or flag for review"
+          }
+        }
+      }
+    ]
+  }
+}

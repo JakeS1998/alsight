@@ -1,0 +1,47 @@
+{
+  "definition": {
+    "document": {
+      "dsl": "1.0.0",
+      "name": "outstanding_pso_six_hourly",
+      "version": "1.0",
+      "namespace": "base44"
+    },
+    "do": [
+      {
+        "start_checks": {
+          "call": "invoke_backend_function",
+          "with": {
+            "function_name": "manageProjectSharePointSources",
+            "args": {
+              "action": "psoStart"
+            }
+          },
+          "then": "end",
+          "x-base44": {
+            "title": "Start outstanding PSO checks",
+            "description": "Queue all projects in paced batches"
+          }
+        }
+      }
+    ]
+  },
+  "name": "Outstanding PSO checks every six hours",
+  "trigger": {
+    "condition": null,
+    "config": {
+      "trigger_type": "scheduled",
+      "events": [],
+      "schedule_mode": "recurring",
+      "cron_expression": "0 */6 * * *",
+      "one_time_date": null,
+      "timezone": "Europe/London",
+      "interval_value": null,
+      "interval_unit": null,
+      "interval_anchor": null,
+      "ends_type": "never",
+      "ends_on_date": null,
+      "ends_after_count": null
+    }
+  },
+  "description": "Starts a paginated SharePoint update of outstanding PSOs for active live projects every six hours. Fully received PSOs are skipped."
+}
