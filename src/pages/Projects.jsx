@@ -172,7 +172,7 @@ export default function Projects() {
     });
   }, [projects, search, bdmFilter, bsmFilter, regionFilter, statusFilter, sortBy, accountMap, serverPaging,extraFilters,user]);
 
-  const hasFilters = search || bdmFilter || bsmFilter || regionFilter || statusFilter || Object.values(extraFilters).some(Boolean);
+  const hasFilters = search || [bdmFilter,bsmFilter,regionFilter,statusFilter,...Object.values(extraFilters)].some(value=>Array.isArray(value) ? value.length>0 : !!value);
   const clearFilters = () => {
     setSearch(""); setBdmFilter(""); setBsmFilter(""); setRegionFilter(""); setStatusFilter("");setExtraFilters({scope:'',pm:'',client:'',ase:''});
   };
@@ -195,10 +195,10 @@ export default function Projects() {
               />
             </div>
             <FilterSelect label="Sort" value={sortBy} onChange={setSortBy} options={role === 'supplier' ? SORT_OPTIONS.filter(o => !o.value.startsWith('value_')) : SORT_OPTIONS} allLabel="Sort" />
-            <FilterSelect label="BDMs" value={bdmFilter} onChange={setBdmFilter} options={bdmOptions} />
-            <FilterSelect label="BSMs" value={bsmFilter} onChange={setBsmFilter} options={bsmOptions} />
-            <FilterSelect label="Regions" value={regionFilter} onChange={setRegionFilter} options={regionOptions} />
-            <FilterSelect label="Live / On Hold" value={statusFilter} onChange={setStatusFilter} options={[
+            <FilterSelect multiple={serverPaging} label="BDMs" value={bdmFilter} onChange={setBdmFilter} options={bdmOptions} />
+            <FilterSelect multiple={serverPaging} label="BSMs" value={bsmFilter} onChange={setBsmFilter} options={bsmOptions} />
+            <FilterSelect multiple={serverPaging} label="Regions" value={regionFilter} onChange={setRegionFilter} options={regionOptions} />
+            <FilterSelect multiple={serverPaging} label="Live / On Hold" value={statusFilter} onChange={setStatusFilter} options={[
               { value: "live", label: "Live" },
               { value: "on_hold", label: "On Hold" },
             ]} />
@@ -207,8 +207,8 @@ export default function Projects() {
                 <X className="h-3 w-3" /> Clear
               </button>
             )}
-            <ProjectWorkspaceFilters value={extraFilters} onChange={setExtraFilters} options={projectPage.options} projects={projects} serverPaging={serverPaging} staffMap={staffMap} accountMap={accountMap}/>
-            {aseRoles.includes(role) && <ASERatingFilter kind="project" value={extraFilters.ase} onChange={ase=>setExtraFilters(old=>({...old,ase}))}/>}
+            <ProjectWorkspaceFilters multiple={serverPaging} value={extraFilters} onChange={setExtraFilters} options={projectPage.options} projects={projects} serverPaging={serverPaging} staffMap={staffMap} accountMap={accountMap}/>
+            {aseRoles.includes(role) && <ASERatingFilter multiple={serverPaging} kind="project" value={extraFilters.ase} onChange={ase=>setExtraFilters(old=>({...old,ase}))}/>}
             {!meeting && <ProjectViewControls view={view} onViewChange={setView} density={density} onDensityChange={setDensity} />}
           </div>
           <p className="text-xs text-muted-foreground">{serverPaging ? projectPage.counts ? `${projectPage.counts.matching} matching of ${projectPage.counts.total} projects` : 'Loading project totals…' : `${filtered.length} of ${projects.length} projects`}</p>

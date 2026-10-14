@@ -3,9 +3,11 @@ import { Popover, PopoverTrigger, PopoverContent } from "@/components/ui/popover
 import { Command, CommandInput, CommandList, CommandEmpty, CommandGroup, CommandItem } from "@/components/ui/command";
 import { Check, ChevronsUpDown } from "lucide-react";
 import { cn } from "@/lib/utils";
+import MultiFilterSelect from '@/components/MultiFilterSelect';
 
-export function FilterSelect({ label, value, onChange, options, allLabel = "All" }) {
+export function FilterSelect({ label, value, onChange, options, allLabel = "All", multiple = false }) {
   const [open, setOpen] = useState(false);
+  if (multiple) return <MultiFilterSelect label={label} value={value} onChange={onChange} options={options} allLabel={allLabel}/>;
   const selected = options.find((o) => o.value === value);
   const display = selected ? selected.label : (label ? `All ${label}` : allLabel);
 

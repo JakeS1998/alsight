@@ -5,6 +5,6 @@ const options = {
  opportunity: [{value:'attention',label:'Needs attention'},{value:'complete',label:'Recorded context complete'}],
  lost: [{value:'lost',label:'Closed · Lost'}],
 };
-export default function ASERatingFilter({kind,value,onChange}) {
- return <FilterSelect label="All Seeing Eye rating" value={value || ''} onChange={onChange} options={options[kind] || []}/>;
+export default function ASERatingFilter({kind,value,onChange,multiple=false}) {
+ return <FilterSelect multiple={multiple} label="All Seeing Eye rating" value={value || ''} onChange={onChange} options={options[kind] || []}/>;
 }
