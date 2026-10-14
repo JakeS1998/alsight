@@ -5,6 +5,7 @@ import SearchableSelect from '@/components/forms/SearchableSelect';
 import { CheckCircle2, AlertTriangle, Loader2, LockKeyhole } from 'lucide-react';
 import agreementNames from '@/components/projects/agreementNames';
 import SharePointSourceControls from '@/components/delivery/SharePointSourceControls';
+import PsoApprovalSource from '@/components/delivery/PsoApprovalSource';
 
 export default function PSOSignoffGateways({ project, delivery, setField, onSave, saving, onImported }) {
  const names = agreementNames(project.project_number);
@@ -30,7 +31,8 @@ export default function PSOSignoffGateways({ project, delivery, setField, onSave
      <FormField label="Approved by"><SearchableSelect value={delivery[approverField] || ''} disabled={approverLocked} title={approverLocked ? 'Imported from PSO workbook; read-only' : undefined} onChange={e => setField(approverField, e.target.value)} className={`${formInputClass} disabled:cursor-not-allowed disabled:bg-muted disabled:text-muted-foreground`}><option value="">Select approver</option><option value="Sarah Watts">Sarah Watts</option><option value="Paul Cluett">Paul Cluett</option>{delivery[approverField] && !['Sarah Watts','Paul Cluett'].includes(delivery[approverField]) && <option value={delivery[approverField]}>{delivery[approverField]}</option>}</SearchableSelect></FormField>
      <FormField label="Date"><input type="date" value={delivery[dateField] ? String(delivery[dateField]).slice(0,10) : ''} disabled={dateLocked} title={dateLocked ? 'Imported from PSO workbook; read-only' : undefined} onChange={e => setField(dateField, e.target.value)} className={`${formInputClass} disabled:cursor-not-allowed disabled:bg-muted disabled:text-muted-foreground`} /></FormField>
     </div>
-   </div>;
-  })}</div>
+    <PsoApprovalSource delivery={delivery} approverField={approverField} dateField={dateField} />
+    </div>;
+    })}</div>
  </div>;
 }
