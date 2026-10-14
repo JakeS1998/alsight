@@ -25,14 +25,7 @@
     </mj-column></mj-section>
     <mj-section padding="0 24px 12px"><mj-column>
       <mj-text font-size="17px" font-weight="700" padding="0 0 12px">Outstanding approvals</mj-text>
-      <mj-table font-size="13px" line-height="1.5" color="#102642" cellpadding="0" cellspacing="0" padding="0" table-layout="fixed">
-        <tr style="background-color:#eaf4fb;text-align:left;">
-          <th width="40%" style="padding:10px;border:1px solid #e5e7eb;">Document</th>
-          <th width="32%" style="padding:10px;border:1px solid #e5e7eb;">Project / client</th>
-          <th width="28%" style="padding:10px;border:1px solid #e5e7eb;">Requested</th>
-        </tr>
-        {{approval_rows}}
-      </mj-table>
+      <mj-text font-size="13px" line-height="1.5" padding="0">{{approval_table}}</mj-text>
     </mj-column></mj-section>
     <mj-section padding="18px 24px 24px"><mj-column>
       <mj-button href="https://alsight.base44.app/approvals">Open Approval Centre</mj-button>

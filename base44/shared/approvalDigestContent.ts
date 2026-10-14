@@ -44,5 +44,7 @@ export async function approvalDigestContent(base44, recipient) {
     }
     cursor = page.has_more ? page.next_cursor : null;
   } while (cursor);
-  return { count:total, variables:{report_date:new Intl.DateTimeFormat('en-GB',{timeZone:'Europe/London',weekday:'long',day:'numeric',month:'long',year:'numeric'}).format(new Date()),greeting:recipient.full_name !== missingFullName ? `Hello, ${escapeApprovalEmail(recipient.full_name)}.` : 'Hello.',approval_count:total,approval_rows:approvalRows,approval_list:approvalList.trim()} };
+  // Keep the complete table in one variable: MJML's table parser drops bare row placeholders before substitution.
+  const approvalTable = `<table role="table" width="100%" cellpadding="0" cellspacing="0" style="width:100%;border-collapse:collapse;table-layout:fixed;font-family:Arial Narrow,Arial,sans-serif;font-size:13px;line-height:1.5;color:#102642;"><thead><tr style="background-color:#eaf4fb;text-align:left;"><th width="40%" scope="col" style="padding:10px;border:1px solid #e5e7eb;">Document</th><th width="32%" scope="col" style="padding:10px;border:1px solid #e5e7eb;">Project / client</th><th width="28%" scope="col" style="padding:10px;border:1px solid #e5e7eb;">Requested</th></tr></thead><tbody>${approvalRows}</tbody></table>`;
+  return { count:total, variables:{approval_table:approvalTable,report_date:new Intl.DateTimeFormat('en-GB',{timeZone:'Europe/London',weekday:'long',day:'numeric',month:'long',year:'numeric'}).format(new Date()),greeting:recipient.full_name !== missingFullName ? `Hello, ${escapeApprovalEmail(recipient.full_name)}.` : 'Hello.',approval_count:total,approval_rows:approvalRows,approval_list:approvalList.trim()} };
 }
