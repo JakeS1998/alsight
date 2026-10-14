@@ -12,7 +12,7 @@ import PDbrApplicability from '@/components/delivery/PDbrApplicability';
 
 
 
-export function PreConstructionReadiness({ project, legalDocs, dmas, jcts, warranties, feeProposals, delivery, deliveryTeam = [], suppliers = [], accountMap = {}, setField, onSave, saving, pdBrReview }) {
+export function PreConstructionReadiness({ project, legalDocs, dmas, jcts, warranties, feeProposals, delivery, deliveryTeam = [], suppliers = [], accountMap = {}, setField, onSave, saving, pdBrReview, onImported }) {
   const pdBrDecision = pdBrReview?.decision;
   const items = useMemo(() => {
     const aa = legalDocs.find((d) => d.document_type === "access_agreement");
@@ -65,7 +65,7 @@ export function PreConstructionReadiness({ project, legalDocs, dmas, jcts, warra
 
         {pdBrReview && <PDbrApplicability review={pdBrReview} />}
 
-        <PSOSignoffGateways project={project} delivery={delivery} setField={setField} onSave={onSave} saving={saving} />
+        <PSOSignoffGateways project={project} delivery={delivery} setField={setField} onSave={onSave} saving={saving} onImported={onImported} />
       </div>
     </FormSection>
   );
