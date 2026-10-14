@@ -1,18 +1,20 @@
 export const workspaceFields=['framework_ref','project_id','project_number','site','client','pq_date','pq_status','aa_sent','aa_signed','calloff_date','completed_on_time','completed_to_budget','zero_riddor','riddor_incidents','apprenticeships','created_date','updated_date'];
-export const recordedOutcome={$or:['completed_on_time','completed_to_budget','zero_riddor'].map(field=>({[field]:{$in:['Y','N']}}))};
+export const recordedOutcome={$and:['completed_on_time','completed_to_budget','zero_riddor'].map(field=>({[field]:{$in:['Y','N']}}))};
 export const outcomeReview={$or:[{completed_on_time:'N'},{completed_to_budget:'N'},{zero_riddor:'N'},{riddor_incidents:{$gt:0}}]};
 export const missing=field=>({$or:[{[field]:{$exists:false}},{[field]:{$in:['',null]}}]});
-export const outcomeMissing={$nor:[recordedOutcome]};
-// A later recorded milestone also counts towards every earlier journey stage.
-export const journeyStageQueries={
- pq_date:{$or:[{pq_date:{$gt:''}},{aa_signed:{$gt:''}},{calloff_date:{$gt:''}},recordedOutcome]},
- aa_signed:{$or:[{aa_signed:{$gt:''}},{calloff_date:{$gt:''}},recordedOutcome]},
- calloff_date:{$or:[{calloff_date:{$gt:''}},recordedOutcome]},
-};
-export function workspaceQuery(scope,body) {
+// Only a fully assessed, practically completed outcome advances earlier stages.
+export function journeyStageQueries(outcome) {
+ return {
+  pq_date:{$or:[{pq_date:{$gt:''}},{aa_signed:{$gt:''}},{calloff_date:{$gt:''}},outcome]},
+  aa_signed:{$or:[{aa_signed:{$gt:''}},{calloff_date:{$gt:''}},outcome]},
+  calloff_date:{$or:[{calloff_date:{$gt:''}},outcome]},
+ };
+}
+export function workspaceQuery(scope,body,recordedOutcome) {
+ const outcomeMissing={$nor:[recordedOutcome]},stages=journeyStageQueries(recordedOutcome);
  const f=body.filters || {},parts=[scope],term=String(body.term || '').trim().slice(0,80).replace(/[.*+?^${}()|[\]\\]/g,'\\$&');
  if(term)parts.push({$or:['project_number','framework_ref','site','client'].map(field=>({[field]:{$regex:term.replace(/^PROJ0*/i,''),$options:'i'}}))});
- if(['pq_date','aa_signed','calloff_date'].includes(f.stage))parts.push(journeyStageQueries[f.stage]);
+ if(['pq_date','aa_signed','calloff_date'].includes(f.stage))parts.push(stages[f.stage]);
  if(f.stage==='outcome')parts.push(recordedOutcome);
  if(f.linked==='linked')parts.push({project_id:{$gt:''}});if(f.linked==='unlinked')parts.push(missing('project_id'));
  if(f.client)parts.push({client:String(f.client).slice(0,200)});

@@ -1,8 +1,9 @@
-import {recordedOutcome,outcomeMissing,journeyStageQueries} from './frameworkWorkspaceRules.ts';
+import {journeyStageQueries} from './frameworkWorkspaceRules.ts';
 import {frameworkOutcomeSummary} from './frameworkOutcomeSummary.ts';
-export async function frameworkWorkspaceSummary(source,scope,internal,days=30) {
+export async function frameworkWorkspaceSummary(source,scope,internal,days=30,recordedOutcome) {
+ const outcomeMissing={$nor:[recordedOutcome]},stages=journeyStageQueries(recordedOutcome);
  const q=extra=>({$and:[scope,extra]}),start=new Date(Date.now()-days*86400000).toISOString(),date=start.slice(0,10),today=new Date().toISOString().slice(0,10);
- const queries={linked:q({project_id:{$gt:''}}),questionnaire:q(journeyStageQueries.pq_date),agreement:q(journeyStageQueries.aa_signed),calloff:q(journeyStageQueries.calloff_date),outstanding:q({$and:[{calloff_date:{$gt:''}},outcomeMissing]}),added:q({pq_date:{$gte:date,$lte:today}}),signed:q({aa_signed:{$gte:date,$lte:today}}),calledOff:q({calloff_date:{$gte:date,$lte:today}}),outcomeUpdated:q({$and:[recordedOutcome,{updated_date:{$gte:start}},{created_date:{$lt:start}}]})};
+ const queries={outcomes:q(recordedOutcome),linked:q({project_id:{$gt:''}}),questionnaire:q(stages.pq_date),agreement:q(stages.aa_signed),calloff:q(stages.calloff_date),outstanding:q({$and:[{calloff_date:{$gt:''}},outcomeMissing]}),added:q({pq_date:{$gte:date,$lte:today}}),signed:q({aa_signed:{$gte:date,$lte:today}}),calledOff:q({calloff_date:{$gte:date,$lte:today}}),outcomeUpdated:q({$and:[recordedOutcome,{updated_date:{$gte:start}},{created_date:{$lt:start}}]})};
  // One grouped calculation replaces the separate outcome and commercial reads.
  const summary=await frameworkOutcomeSummary(source,scope,false);
  const entries=Object.entries(queries);

@@ -1,3 +1,4 @@
+import {completeFrameworkOutcomes,practicalCompletionAchieved} from './frameworkDeliveryOutcome.ts';
 export async function frameworkDocumentMilestones(db,projects) {
  const ids=[...new Set(projects.flatMap(project=>[project.id,project.dataverse_id].filter(Boolean)))];
  const states=new Map();
@@ -24,6 +25,6 @@ export function withFrameworkDocumentMilestones(row,project,states) {
   questionnaire:!!(project?.pq_approval_date || row.pq_date),
   agreement:signed('agreement') ?? !!(project?.aa_executed_date || row.aa_signed),
   calloff:signed('calloff') ?? !!row.calloff_date,
-  outcome:!!project?.practical_completion_date || [row.completed_on_time,row.completed_to_budget,row.zero_riddor].some(value=>['Y','N'].includes(value)),
+  outcome:practicalCompletionAchieved(project?.practical_completion_date) && completeFrameworkOutcomes(row),
  }};
 }

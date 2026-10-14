@@ -4,6 +4,7 @@ import {frameworkWorkspaceSummary} from './frameworkWorkspaceSummary.ts';
 import {frameworkCommercialSummary} from './frameworkCommercialSummary.ts';
 import {frameworkDocumentMilestones,withFrameworkDocumentMilestones} from './frameworkDocumentMilestones.ts';
 import {scopedReadCache,invalidateScopedRead} from './scopedReadCache.ts';
+import {frameworkDeliveryOutcome} from './frameworkDeliveryOutcome.ts';
 export async function frameworkWorkspace(base44,user,body) {
  const internal=user.role!=='framework_stakeholder',source=internal ? base44.entities.FrameworkProjectReport : base44.asServiceRole.entities.FrameworkProjectReport;
  const viewerKey=`framework:${user.id}:${user.role}`;
@@ -30,8 +31,9 @@ export async function frameworkWorkspace(base44,user,body) {
  }
  if(body.workspaceAction==='summary') {
   const days=[7,30,90].includes(body.days) ? body.days : 30;
-  return Response.json(await scopedReadCache(`${viewerKey}:summary:financial-year-framework-breakdown:${days}:${JSON.stringify(scope)}`,async()=>{
-   const summary=await frameworkWorkspaceSummary(source,scope,internal,days);
+  return Response.json(await scopedReadCache(`${viewerKey}:summary:complete-delivery-outcomes-v2:${days}:${JSON.stringify(scope)}`,async()=>{
+   const outcome=await scopedReadCache(`${viewerKey}:complete-delivery-outcomes-v2`,()=>frameworkDeliveryOutcome(base44.asServiceRole.entities));
+   const summary=await frameworkWorkspaceSummary(source,scope,internal,days,outcome.query);
    const commercial=await scopedReadCache(`${viewerKey}:commercial:financial-year-framework-breakdown:${JSON.stringify(scope)}`,()=>frameworkCommercialSummary(internal ? base44.entities : base44.asServiceRole.entities,source,scope,base44.asServiceRole.entities));
    return {...summary,...commercial};
   }));
@@ -40,7 +42,8 @@ export async function frameworkWorkspace(base44,user,body) {
   const term=String(body.term || '').slice(0,80).replace(/[.*+?^${}()|[\]\\]/g,'\\$&');
   return Response.json(await source.filter({$and:[scope,...(term ? [{client:{$regex:term,$options:'i'}}] : [])]},{distinct:'client',sort:'client',limit:50,...(body.cursor ? {cursor:body.cursor} : {})}));
  }
- const query=workspaceQuery(scope,body);
+ const outcome=await scopedReadCache(`${viewerKey}:complete-delivery-outcomes-v2`,()=>frameworkDeliveryOutcome(base44.asServiceRole.entities));
+ const query=workspaceQuery(scope,body,outcome.query);
  const page=await source.filter(body.workspaceAction==='detail' ? {...scope,id:String(body.reportId || '')} : query,{sort:'-framework_ref',limit:body.workspaceAction==='detail' ? 1 : body.limit===10 ? 10 : 50,fields:workspaceFields,...(body.cursor ? {cursor:body.cursor} : {})});
  const ids=page.items.map(r=>r.project_id).filter(id=>typeof id==='string' && /^[a-f0-9]{24}$/i.test(id));
  const legacy=page.items.map(r=>r.project_id).filter(id=>typeof id==='string' && id && !/^[a-f0-9]{24}$/i.test(id));
@@ -48,7 +51,7 @@ export async function frameworkWorkspace(base44,user,body) {
  if(ids.length){const p=await base44.entities.Project.filter({id:{$in:ids}},{limit:50,fields:['project_number','latitude','longitude','dataverse_id','pq_approval_date','aa_executed_date','practical_completion_date']});projects.push(...p.items);}
  if(legacy.length){const p=await base44.entities.Project.filter({dataverse_id:{$in:legacy}},{limit:50,fields:['project_number','latitude','longitude','dataverse_id','pq_approval_date','aa_executed_date','practical_completion_date']});projects.push(...p.items);}
  const milestones=await frameworkDocumentMilestones(base44.entities,projects);
-  const rows=page.items.map(r=>{const project=projects.find(p=>p.id===r.project_id || p.dataverse_id===r.project_id);return withFrameworkDocumentMilestones(safeWorkspaceRow(r,project),project,milestones);});
+  const rows=page.items.map(r=>{const project=projects.find(p=>p.id===r.project_id || p.dataverse_id===r.project_id);const row=withFrameworkDocumentMilestones(safeWorkspaceRow(r,project),project,milestones);return {...row,milestones:{...row.milestones,outcome:outcome.matches(r)}};});
  if(body.workspaceAction==='detail')return Response.json({report:rows[0] || null});
  return Response.json({rows,next_cursor:page.next_cursor,has_more:page.has_more,count:await source.count(query)});
 }
