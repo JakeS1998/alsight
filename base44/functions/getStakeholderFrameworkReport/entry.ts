@@ -58,7 +58,9 @@ export default async function(req: Request): Promise<Response> {
     const body = await req.json();
     if(body.workspaceAction) {
       if(!['summary','clients','list','detail','link'].includes(body.workspaceAction))return Response.json({error:'Invalid Framework operation.'},{status:400});
-      return await frameworkWorkspace(base44,user,body);
+      const response=await frameworkWorkspace(base44,user,body);
+      response.headers.set('Cache-Control','no-store');
+      return response;
     }
     const source = base44.asServiceRole.entities.FrameworkProjectReport;
     if (body?.reportId || body?.projectId) {

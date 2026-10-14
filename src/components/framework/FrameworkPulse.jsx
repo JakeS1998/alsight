@@ -1,6 +1,6 @@
 import React from 'react';
 import {Layers,Link2,BarChart3} from 'lucide-react';
-import {formatCurrency} from '@/lib/portal';
+import FrameworkCommercialFigures from '@/components/framework/FrameworkCommercialFigures';
 import FrameworkPulseGraphic from '@/components/framework/FrameworkPulseGraphic';
 export default function FrameworkPulse({data}) {
  const items=[['Framework Projects',data.total,Layers],['Linked to ALSight',data.linked,Link2],['Outcomes Recorded',data.outcomes,BarChart3]];
@@ -16,9 +16,6 @@ export default function FrameworkPulse({data}) {
     <p className="mt-3 text-xs leading-relaxed text-muted-foreground sm:text-sm">{label}</p>
    </div>)}
   </div>
-  {data.totalCallOffValue!==undefined && <div className="mt-6 grid gap-5 border-t border-border pt-6 sm:grid-cols-2">
-   <div><p className="text-xs text-muted-foreground sm:text-sm">Total Call-Off Value</p><p className="mt-2 break-words text-3xl font-bold leading-tight tracking-tight tabular-nums 2xl:text-4xl">{formatCurrency(data.totalCallOffValue)}</p><p className="mt-2 text-xs text-muted-foreground">Fee proposals, then overview estimates; historical values where neither is available.</p></div>
-   {data.totalUKLFFees!==undefined && <div><p className="text-xs text-muted-foreground sm:text-sm">Total UKLF Fees</p><p className="mt-2 break-words text-3xl font-bold leading-tight tracking-tight text-primary tabular-nums 2xl:text-4xl">{formatCurrency(data.totalUKLFFees)}</p><p className="mt-2 text-xs text-muted-foreground">Calculated per project using the relevant framework fee bands, excluding UKLF fees and contingency from the fee base.</p>{data.uncalculatedFeeCount>0 && <p className="mt-2 text-xs text-destructive">{data.uncalculatedFeeCount} project(s) excluded from fee totals because their framework or agreement fee rules are unavailable.</p>}</div>}
-  </div>}
+  <FrameworkCommercialFigures data={data}/>
  </section>;
 }
