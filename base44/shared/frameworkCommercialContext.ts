@@ -1,7 +1,7 @@
 import {frameworkProjectNumber} from './frameworkCommercialValues.ts';
 import {portfolioCallOffSummary,callOffProjectQuery} from './portfolioExecutedContractValue.ts';
-export async function frameworkCommercialContext(db,source,scope) {
- const callOff=await portfolioCallOffSummary(db,callOffProjectQuery);
+export async function frameworkCommercialContext(db,source,scope,callOffDb=db) {
+ const callOff=await portfolioCallOffSummary(callOffDb,callOffProjectQuery);
  const grouped=await source.aggregate({query:scope,groupBy:['project_id','project_number','framework_ref'],sum:'calloff_value',limit:1000});
  if(grouped.truncated)throw new Error('Framework commercial summary exceeded its reporting limit.');
  const refs=[...new Set(grouped.rows.map(row=>row.project_id).filter(Boolean))];

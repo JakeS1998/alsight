@@ -32,7 +32,7 @@ export async function frameworkWorkspace(base44,user,body) {
   const days=[7,30,90].includes(body.days) ? body.days : 30;
   return Response.json(await scopedReadCache(`${viewerKey}:summary:financial-year-shared-calloff:${days}:${JSON.stringify(scope)}`,async()=>{
    const summary=await frameworkWorkspaceSummary(source,scope,internal,days);
-   const commercial=await scopedReadCache(`${viewerKey}:commercial:financial-year-shared-calloff:${JSON.stringify(scope)}`,()=>frameworkCommercialSummary(internal ? base44.entities : base44.asServiceRole.entities,source,scope));
+   const commercial=await scopedReadCache(`${viewerKey}:commercial:financial-year-shared-calloff:${JSON.stringify(scope)}`,()=>frameworkCommercialSummary(internal ? base44.entities : base44.asServiceRole.entities,source,scope,base44.asServiceRole.entities));
    return {...summary,...commercial};
   }));
  }

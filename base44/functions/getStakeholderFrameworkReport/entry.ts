@@ -59,7 +59,7 @@ export default async function(req: Request): Promise<Response> {
     if(body.workspaceAction) {
       if(!['summary','clients','list','detail','link'].includes(body.workspaceAction))return Response.json({error:'Invalid Framework operation.'},{status:400});
       const response=await frameworkWorkspace(base44,user,body);
-      // Commercial totals share Alliance360's financial-year calculation.
+      // Call-off totals share Alliance360's across-Alliance financial-year calculation.
       response.headers.set('Cache-Control','no-store');
       return response;
     }

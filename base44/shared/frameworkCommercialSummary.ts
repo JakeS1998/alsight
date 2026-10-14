@@ -1,8 +1,8 @@
 import {frameworkFeeSettings,frameworkFeeAmount} from './frameworkFees.ts';
 import {frameworkCommercialContext} from './frameworkCommercialContext.ts';
 import {frameworkProjectNumber,frameworkCommercialVersion,frameworkProposalValues} from './frameworkCommercialValues.ts';
-export async function frameworkCommercialSummary(db,source,scope) {
- const context=await frameworkCommercialContext(db,source,scope),byAlias=new Map(),byNumber=new Map();
+export async function frameworkCommercialSummary(db,source,scope,callOffDb=db) {
+ const context=await frameworkCommercialContext(db,source,scope,callOffDb),byAlias=new Map(),byNumber=new Map();
  for(const project of context.projects){byAlias.set(project.id,project);if(project.dataverse_id)byAlias.set(project.dataverse_id,project);byNumber.set(frameworkProjectNumber(project.project_number),project);}
  const groups=new Map();
  for(const row of context.rows) {
