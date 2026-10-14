@@ -11,7 +11,8 @@ export default async function(req) {
     stage = 'person lookup';
     const contact = await client.entities.Contact.get(contactId);
     stage = 'portal identity lookup';
-    const users = contact.email ? await client.entities.User.filter({email:contact.email.trim().toLowerCase()},'-created_date',1) : [];
+    // Cross-user identity reads require service scope, after the administrator check above.
+    const users = contact.email ? await client.asServiceRole.entities.User.filter({email:contact.email.trim().toLowerCase()},'-created_date',1) : [];
     const identity = users[0];
     stage = 'pending invitation lookup';
     const pendingPage = await client.entities.PendingPortalAccess.filter({contact_id:contact.id},{limit:1});
