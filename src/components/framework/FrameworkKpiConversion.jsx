@@ -1,0 +1,8 @@
+import React from 'react';
+import {TIME_LABELS,COST_LABELS} from '@/components/framework/frameworkKpiFields';
+export default function FrameworkKpiConversion({periods}) {
+ const period=periods.find(item=>item.key==='annual') || periods[0];
+ const conversions=[['PQ → EA',period.pqToEa,period.pq],['EA → DPA / DMA',period.eaToDpa,period.ea]];
+ const outcomes=[['Completed-project sample',period.completed],['RIDDOR incidents',period.safetyRecords ? `${period.incidents} (${period.safetyRecords} project records)` : 'Not recorded'],['Within budget',period.cost.within_budget],['On time (up to 6 days late)',period.time.on_time],...Object.entries(TIME_LABELS).filter(([key])=>key!=='on_time').map(([key,label])=>[label,period.time[key]]),...Object.entries(COST_LABELS).filter(([key])=>key!=='within_budget').map(([key,label])=>[label,period.cost[key]])];
+ return <aside className="kpi-side"><h3>Conversion</h3><div className="kpi-rings">{conversions.map(([label,n,d])=>{const percentage=d ? Math.round(n/d*100) : null;return <div key={label} className="kpi-ringitem"><div className="kpi-ring" style={{'--pct':`${percentage ?? 0}%`}} title={d ? `${n}/${d}` : 'Not yet assessed'}><b>{percentage==null ? '—' : `${percentage}%`}</b></div>{label}{percentage==null && <div>Not yet assessed</div>}</div>;})}</div><div className="kpi-outcomes">{outcomes.map(([label,value])=><div key={label} className="kpi-outcome">{label}<strong className={value==='Not recorded' ? 'kpi-muted' : undefined}>{value}</strong></div>)}</div><div className="kpi-note">Headline social value totals include all scoped Framework project records, including projects in delivery. Targets and actuals are separate; missing data is not zero.</div></aside>;
+}
