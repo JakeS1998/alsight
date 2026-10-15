@@ -1,0 +1,7 @@
+import React from 'react';
+export default function QuestionnaireProgress({sections,answers,active,onSelect}) {
+ const required=sections.flatMap(section=>section.fields).filter(field=>field.required),done=required.filter(field=>typeof answers[field.id]==='string'&&answers[field.id].trim()).length;
+ const percent=required.length?Math.round(done/required.length*100):0;
+ return <aside className="space-y-4"><div><div className="mb-2 flex justify-between text-sm"><span>Required fields</span><strong>{percent}%</strong></div><div role="progressbar" aria-label="Questionnaire completion" aria-valuenow={percent} aria-valuemin={0} aria-valuemax={100} className="h-2 overflow-hidden rounded-full bg-muted"><div className="h-full bg-primary" style={{width:`${percent}%`}}/></div><p className="mt-2 text-xs text-muted-foreground">{done} of {required.length} completed</p></div>
+ <nav aria-label="Questionnaire sections" className="flex gap-2 overflow-x-auto lg:flex-col">{sections.map((section,index)=>{const fields=section.fields.filter(field=>field.required),complete=fields.length>0&&fields.every(field=>String(answers[field.id]||'').trim());return <button type="button" key={section.id} onClick={()=>onSelect(index)} aria-current={index===active?'step':undefined} className={`shrink-0 rounded-md border p-3 text-left text-sm ${index===active?'border-primary bg-primary/10 font-semibold':'border-border bg-card'}`}>{index+1}. {section.title}<span className="ml-2 text-xs text-muted-foreground">{complete?'Complete':fields.length?'':'Optional'}</span></button>;})}</nav></aside>;
+}

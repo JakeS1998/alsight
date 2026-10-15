@@ -1,0 +1,77 @@
+{
+  "name": "ProjectQuestionnaire",
+  "type": "object",
+  "properties": {
+    "project_id": {
+      "type": "string"
+    },
+    "template_version": {
+      "type": "string"
+    },
+    "answers": {
+      "type": "object",
+      "additionalProperties": true
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "draft",
+        "submitted"
+      ],
+      "default": "draft"
+    },
+    "revision": {
+      "type": "integer",
+      "minimum": 1
+    },
+    "save_token": {
+      "type": "string"
+    },
+    "saved_by": {
+      "type": "string"
+    },
+    "saved_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "submitted_by": {
+      "type": "string"
+    },
+    "submitted_at": {
+      "type": [
+        "string",
+        "null"
+      ],
+      "format": "date-time"
+    }
+  },
+  "required": [
+    "project_id",
+    "template_version",
+    "answers",
+    "status",
+    "revision"
+  ],
+  "rls": {
+    "read": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "create": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "update": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "delete": {
+      "user_condition": {
+        "role": "admin"
+      }
+    }
+  }
+}

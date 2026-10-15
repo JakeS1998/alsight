@@ -5,6 +5,7 @@ import { useAuth } from "@/lib/AuthContext";
 import { INTERNAL_ROLES } from '@/lib/portal';
 import ProjectValuationsTab from "@/components/valuations/ProjectValuationsTab";
 import UKLFProjectTab from '@/components/framework/UKLFProjectTab';
+import ProjectQuestionnaire from '@/components/questionnaire/ProjectQuestionnaire';
 
 import { listAll } from "@/components/data/loadAll";
 import useProjectDocuments from '@/components/projects/useProjectDocuments';
@@ -58,7 +59,7 @@ export default function ProjectDetail({ embedded = false, embeddedProjectId, sup
   useEffect(() => {
     if (project?.procurement_route === false && activeTab === 'uklf') setActiveTab('general');
   }, [project?.procurement_route, activeTab]);
-  useEffect(() => { if (embedded) return; const tab = new URLSearchParams(location.search).get('tab'); setActiveTab(isExternalPM ? (['valuations','timeline','drafting','warranties','delivery'].includes(tab) ? tab : 'general') : isSupplier ? (['general','timeline','drafting','warranties','purchase-orders'].includes(tab) ? tab : tab === 'valuations' && canSeeValuations ? 'valuations' : 'general') : (tab === 'valuations' && !canSeeValuations) ? 'general' : ['general','timeline','drafting','warranties','finance','delivery','valuations','uklf'].includes(tab) ? tab : 'general'); }, [location.search, isExternalPM, isSupplier, canSeeValuations, projectId]);
+  useEffect(() => { if (embedded) return; const tab = new URLSearchParams(location.search).get('tab'); setActiveTab(isExternalPM ? (['valuations','timeline','drafting','warranties','delivery'].includes(tab) ? tab : 'general') : isSupplier ? (['general','timeline','drafting','warranties','purchase-orders'].includes(tab) ? tab : tab === 'valuations' && canSeeValuations ? 'valuations' : 'general') : (tab === 'valuations' && !canSeeValuations) ? 'general' : ['general','timeline','drafting','warranties','finance','delivery','valuations','uklf','questionnaire'].includes(tab) ? tab : 'general'); }, [location.search, isExternalPM, isSupplier, canSeeValuations, projectId]);
   const documents = useProjectDocuments(project, user);
   const { legalDocs, dmas, jcts, warranties } = documents;
   const [supplierOrders, setSupplierOrders] = useState([]);
@@ -145,6 +146,7 @@ export default function ProjectDetail({ embedded = false, embeddedProjectId, sup
         </TabsContent>}
         {canSeeValuations && <TabsContent value="valuations" className="ws-content mt-6"><ProjectValuationsTab project={project} /></TabsContent>}
         {INTERNAL_ROLES.includes(user?.role) && project.procurement_route !== false && <TabsContent value="uklf" className="ws-content mt-6"><UKLFProjectTab projectId={project.id} startEditing={editUKLFKpis} onEditDone={() => setEditUKLFKpis(false)} /></TabsContent>}
+        {INTERNAL_ROLES.includes(user?.role) && <TabsContent value="questionnaire" className="ws-content mt-6"><ProjectQuestionnaire key={project.id} project={project}/></TabsContent>}
         {extraContent}
       </main>
     </Tabs>
