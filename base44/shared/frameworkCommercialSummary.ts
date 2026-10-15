@@ -1,7 +1,8 @@
 import {frameworkFeeSettings,frameworkFeeAmount} from './frameworkFees.ts';
 import {frameworkCommercialContext} from './frameworkCommercialContext.ts';
 import {frameworkProjectNumber,frameworkCommercialVersion,frameworkProposalValues} from './frameworkCommercialValues.ts';
-export async function frameworkCommercialSummary(db,source,scope,callOffDb=db) {
+import {frameworkJourneyValues} from './frameworkJourneyValues.ts';
+export async function frameworkCommercialSummary(db,source,scope,callOffDb=db,journeyOutcome=null) {
  const context=await frameworkCommercialContext(db,source,scope,callOffDb),byAlias=new Map(),byNumber=new Map();
  for(const project of context.projects){byAlias.set(project.id,project);if(project.dataverse_id)byAlias.set(project.dataverse_id,project);byNumber.set(frameworkProjectNumber(project.project_number),project);}
  const groups=new Map();
@@ -28,6 +29,7 @@ export async function frameworkCommercialSummary(db,source,scope,callOffDb=db) {
   const proposal=aliases.map(alias=>context.proposals.get(alias)).filter(Boolean).sort((a,b)=>Number(b.revision_number)-Number(a.revision_number))[0];
   const estimate=Math.max(0,Number(project?.sum_estimated_value) || 0);
   const values=frameworkProposalValues(proposal,settings) || (project ? {value:estimate,feeBase:estimate,source:'estimated'} : {value:group.historicalValue,feeBase:group.historicalValue,source:'historical'});
+  group.projectValue=values.value;
   if(values.value<=0)continue;
   const signed=aliases.some(alias=>context.signedProjects.has(alias));
   if(!signed) {
@@ -49,5 +51,6 @@ export async function frameworkCommercialSummary(db,source,scope,callOffDb=db) {
  }
  for(const key of ['totalCallOffValue','totalUKLFFees','totalPipelineValue','fw3PipelineValue','fw4PipelineValue'])summary[key]=Math.round(summary[key]*100)/100;
  summary.frameworkBreakdown=frameworkBreakdown.map(row=>({...row,callOffValue:Math.round(row.callOffValue*100)/100,uklfFees:Math.round(row.uklfFees*100)/100}));
+ if(journeyOutcome)summary.journeyValues=await frameworkJourneyValues(source,scope,journeyOutcome,groups,byAlias,byNumber,context.signedProjects);
  return summary;
-}
+ }

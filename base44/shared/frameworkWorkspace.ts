@@ -31,10 +31,10 @@ export async function frameworkWorkspace(base44,user,body) {
  }
  if(body.workspaceAction==='summary') {
   const days=[7,30,90].includes(body.days) ? body.days : 30;
-  return Response.json(await scopedReadCache(`${viewerKey}:summary:complete-delivery-outcomes-v2:${days}:${JSON.stringify(scope)}`,async()=>{
+  return Response.json(await scopedReadCache(`${viewerKey}:summary:journey-project-values-v1:${days}:${JSON.stringify(scope)}`,async()=>{
    const outcome=await scopedReadCache(`${viewerKey}:complete-delivery-outcomes-v2`,()=>frameworkDeliveryOutcome(base44.asServiceRole.entities));
    const summary=await frameworkWorkspaceSummary(source,scope,internal,days,outcome.query);
-   const commercial=await scopedReadCache(`${viewerKey}:commercial:financial-year-framework-breakdown:${JSON.stringify(scope)}`,()=>frameworkCommercialSummary(internal ? base44.entities : base44.asServiceRole.entities,source,scope,base44.asServiceRole.entities));
+   const commercial=await scopedReadCache(`${viewerKey}:commercial:journey-project-values-v1:${JSON.stringify(scope)}`,()=>frameworkCommercialSummary(internal ? base44.entities : base44.asServiceRole.entities,source,scope,base44.asServiceRole.entities,outcome.query));
    return {...summary,...commercial};
   }));
  }
