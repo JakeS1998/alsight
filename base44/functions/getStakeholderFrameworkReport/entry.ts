@@ -48,7 +48,7 @@ export default async function(req: Request): Promise<Response> {
       return Response.json(result);
     }
     if(body.workspaceAction) {
-      if(!['summary','clients','list','detail','link'].includes(body.workspaceAction))return Response.json({error:'Invalid Framework operation.'},{status:400});
+      if(!['summary','clients','list','map','detail','link'].includes(body.workspaceAction))return Response.json({error:'Invalid Framework operation.'},{status:400});
       const response=await frameworkWorkspace(base44,user,body);
       // Call-off totals and FW breakdown share Alliance360's financial-year calculation.
       response.headers.set('Cache-Control','no-store');

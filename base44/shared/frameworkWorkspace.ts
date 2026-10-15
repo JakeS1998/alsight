@@ -48,8 +48,9 @@ export async function frameworkWorkspace(base44,user,body) {
  const ids=page.items.map(r=>r.project_id).filter(id=>typeof id==='string' && /^[a-f0-9]{24}$/i.test(id));
  const legacy=page.items.map(r=>r.project_id).filter(id=>typeof id==='string' && id && !/^[a-f0-9]{24}$/i.test(id));
  const projects=[];
- if(ids.length){const p=await base44.entities.Project.filter({id:{$in:ids}},{limit:50,fields:['project_number','latitude','longitude','dataverse_id','pq_approval_date','aa_executed_date','practical_completion_date']});projects.push(...p.items);}
- if(legacy.length){const p=await base44.entities.Project.filter({dataverse_id:{$in:legacy}},{limit:50,fields:['project_number','latitude','longitude','dataverse_id','pq_approval_date','aa_executed_date','practical_completion_date']});projects.push(...p.items);}
+ if(ids.length){const p=await base44.entities.Project.filter({id:{$in:ids}},{limit:50,fields:['project_number','latitude','longitude','site_postcode','dataverse_id','pq_approval_date','aa_executed_date','practical_completion_date']});projects.push(...p.items);}
+ if(legacy.length){const p=await base44.entities.Project.filter({dataverse_id:{$in:legacy}},{limit:50,fields:['project_number','latitude','longitude','site_postcode','dataverse_id','pq_approval_date','aa_executed_date','practical_completion_date']});projects.push(...p.items);}
+ if(body.workspaceAction==='map')return Response.json({rows:page.items.map(record=>{const project=projects.find(p=>p.id===record.project_id || p.dataverse_id===record.project_id);return {id:record.id,framework_ref:record.framework_ref,site:record.site,client:record.client,project_number:record.project_number,project_id:project?.id || null,latitude:project?.latitude ?? null,longitude:project?.longitude ?? null,site_postcode:project?.site_postcode || ''};}),next_cursor:page.next_cursor,has_more:page.has_more});
  const milestones=await frameworkDocumentMilestones(base44.entities,projects);
   const rows=page.items.map(r=>{const project=projects.find(p=>p.id===r.project_id || p.dataverse_id===r.project_id);const row=withFrameworkDocumentMilestones(safeWorkspaceRow(r,project),project,milestones);return {...row,milestones:{...row.milestones,outcome:outcome.matches(r)}};});
  if(body.workspaceAction==='detail')return Response.json({report:rows[0] || null});
