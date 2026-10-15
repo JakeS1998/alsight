@@ -1,0 +1,66 @@
+{
+  "name": "PQApprovalChallenge",
+  "type": "object",
+  "properties": {
+    "round_id": {
+      "type": "string"
+    },
+    "user_id": {
+      "type": "string"
+    },
+    "step_index": {
+      "type": "integer"
+    },
+    "code_hash": {
+      "type": "string"
+    },
+    "sent_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "expires_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "attempts": {
+      "type": "integer",
+      "default": 0
+    },
+    "used": {
+      "type": "boolean",
+      "default": false
+    }
+  },
+  "required": [
+    "round_id",
+    "user_id",
+    "step_index",
+    "code_hash",
+    "sent_at",
+    "expires_at",
+    "attempts",
+    "used"
+  ],
+  "rls": {
+    "read": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "create": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "update": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "delete": {
+      "user_condition": {
+        "role": "admin"
+      }
+    }
+  }
+}

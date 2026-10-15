@@ -43,6 +43,9 @@
         "null"
       ],
       "format": "date-time"
+    },
+    "approval_round_id": {
+      "type": "string"
     }
   },
   "required": [

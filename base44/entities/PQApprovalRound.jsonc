@@ -1,0 +1,144 @@
+{
+  "name": "PQApprovalRound",
+  "type": "object",
+  "properties": {
+    "project_id": {
+      "type": "string"
+    },
+    "questionnaire_id": {
+      "type": "string"
+    },
+    "questionnaire_revision": {
+      "type": "integer"
+    },
+    "project_name": {
+      "type": "string"
+    },
+    "project_number": {
+      "type": "string"
+    },
+    "reference": {
+      "type": "string"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "active",
+        "approved",
+        "rejected",
+        "withdrawn"
+      ]
+    },
+    "current_index": {
+      "type": "integer",
+      "minimum": 0
+    },
+    "issued_by_id": {
+      "type": "string"
+    },
+    "issued_by_name": {
+      "type": "string"
+    },
+    "issued_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "snapshot_uri": {
+      "type": "string"
+    },
+    "snapshot_hash": {
+      "type": "string"
+    },
+    "steps": {
+      "type": "array",
+      "maxItems": 10,
+      "items": {
+        "type": "object",
+        "properties": {
+          "user_id": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          },
+          "email": {
+            "type": "string"
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "waiting",
+              "approved",
+              "rejected"
+            ]
+          },
+          "decided_at": {
+            "type": "string"
+          },
+          "comment": {
+            "type": "string",
+            "maxLength": 1000
+          },
+          "verification_method": {
+            "type": "string"
+          }
+        }
+      }
+    },
+    "completed_at": {
+      "type": "string"
+    },
+    "withdrawn_by": {
+      "type": "string"
+    },
+    "withdrawn_at": {
+      "type": "string"
+    },
+    "withdrawal_reason": {
+      "type": "string",
+      "maxLength": 1000
+    },
+    "notification_status": {
+      "type": "string",
+      "enum": [
+        "sent",
+        "failed"
+      ]
+    }
+  },
+  "required": [
+    "project_id",
+    "questionnaire_id",
+    "questionnaire_revision",
+    "reference",
+    "status",
+    "current_index",
+    "steps",
+    "snapshot_uri",
+    "snapshot_hash",
+    "issued_by_id",
+    "issued_at"
+  ],
+  "rls": {
+    "read": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "create": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "update": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "delete": {
+      "user_condition": {
+        "role": "admin"
+      }
+    }
+  }
+}
