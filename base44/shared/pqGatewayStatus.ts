@@ -1,5 +1,8 @@
 import {missingQuestionnaireFields} from './projectQuestionnaireTemplate.ts';
 export async function pqGatewayStatus(db,subject,current,contextHash=subject.context_hash){
+ // Only an existing, caller-authorised Project can use this exemption. Intake
+ // subjects never inherit it, even when their client has a Dataverse identity.
+ if(subject.subject_type==='project'&&subject.dataverse_id)return {ready:true,status:'not_required',projectId:subject.id,reason:'This project already exists in Dataverse. The digital PQ creation requirement is bypassed; no PQ approval is implied.'};
  if(subject.created_project_id)return {ready:true,projectId:subject.created_project_id,reason:'The project has already been created.'};
  if(!current)return {ready:false,status:'missing',reason:'Complete the PQ and obtain all sequential approvals before creating the project.'};
  if(current.status!=='submitted')return {ready:false,status:'draft',reason:'The PQ is a draft. Complete, submit and approve it before creating the project.'};

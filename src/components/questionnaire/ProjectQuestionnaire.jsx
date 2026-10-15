@@ -20,6 +20,7 @@ export default function ProjectQuestionnaire({project,subject}) {
  return <section className="ws-card ws-panel space-y-6" aria-label="Digital project questionnaire">
  <header className="space-y-2"><div className="flex flex-wrap items-center justify-between gap-3"><h3 className="ws-sectiontitle">UK Leisure Framework Project Questionnaire</h3><span className="rounded-full bg-secondary px-3 py-1 text-xs font-semibold">{submitted?'Submitted':'Draft'}</span></div>
  <p className="text-sm text-muted-foreground">{project.project_number} · {project.name}. Template based on {data.sourceProject}; this form contains this project’s own answers.</p>
+ {!subject&&project.dataverse_id&&<p role="status" className="rounded-md border border-border bg-muted p-3 text-sm">PQ creation requirement bypassed: this project already exists in Dataverse. The digital questionnaire is optional for this existing project; this exemption does not record a PQ approval.</p>}
  <p className="text-xs text-muted-foreground">Fields marked * are required for submission. Drafts can be saved incomplete. Checklists may be left blank where not applicable.</p>
  {data.sourceUrl&&<a className="inline-block text-sm font-medium text-foreground underline underline-offset-4" href={data.sourceUrl} target="_blank" rel="noreferrer">Open this project’s existing PQ document</a>}
  {!data.canEdit&&<p className="text-sm text-muted-foreground">Read-only access.</p>}</header>
