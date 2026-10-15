@@ -1,0 +1,41 @@
+{
+  "name": "Live Framework KPIs from project updates",
+  "description": "Refresh linked UKLF timing and budget outcomes when source programme or completion details change.",
+  "trigger": {
+    "config": {
+      "trigger_type": "entity",
+      "entity_name": "Project",
+      "events": [
+        "update"
+      ]
+    },
+    "condition": "${ .trigger.data.procurement_route == true and any((.trigger.changed_fields // [])[]; IN(\"practical_completion_date\",\"riba5_system_date\",\"construction_term_weeks\",\"aa_executed_date\",\"riba1_system_date\",\"riba2_system_date\",\"riba3_system_date\",\"riba4_system_date\",\"riba1_end\",\"riba2_end\",\"riba3_end\",\"riba4_end\",\"riba1_term_weeks\",\"riba2_term_weeks\",\"riba3_term_weeks\",\"riba4_term_weeks\",\"procurement_route\")) }"
+  },
+  "definition": {
+    "document": {
+      "dsl": "1.0.0",
+      "name": "framework_project_live_kpis",
+      "version": "1.0",
+      "namespace": "base44"
+    },
+    "do": [
+      {
+        "refresh_live_kpis": {
+          "call": "invoke_backend_function",
+          "with": {
+            "function_name": "manageUKLFRecords",
+            "args": {
+              "action": "syncLive",
+              "projectId": "${ .trigger.entity_id }"
+            }
+          },
+          "then": "end",
+          "x-base44": {
+            "title": "Refresh live Framework KPIs",
+            "description": "Use current programme and completion data"
+          }
+        }
+      }
+    ]
+  }
+}

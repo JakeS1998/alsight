@@ -1,5 +1,4 @@
 import {frameworkLiveKpiValues} from './frameworkLiveKpiValues.ts';
-const projectFields=['name','project_number','dataverse_id','procurement_route','status','live_project','practical_completion_date','aa_executed_date','construction_term_weeks',...[1,2,3,4,5].map(n=>`riba${n}_system_date`),...[1,2,3,4].flatMap(n=>[`riba${n}_end`,`riba${n}_term_weeks`])];
 export async function syncFrameworkLiveKpis(db,projects) {
  const eligible=projects.filter(project=>project?.procurement_route===true && project.status!=='inactive');if(!eligible.length)return {updated:0,skipped:0};
  const ids=eligible.map(p=>p.id),aliases=eligible.flatMap(p=>[p.id,p.dataverse_id]).filter(Boolean);
@@ -13,7 +12,4 @@ export async function syncFrameworkLiveKpis(db,projects) {
 export async function syncFrameworkLiveKpiProject(db,projectId) {
  if(typeof projectId!=='string' || !/^[a-f0-9]{24}$/i.test(projectId))throw new Error('Valid project required.');
  const project=await db.Project.get(projectId);return syncFrameworkLiveKpis(db,project ? [project] : []);
-}
-export async function frameworkLiveKpiProjects(db,cursor) {
- return db.Project.filter({procurement_route:true,status:{$ne:'inactive'}},{sort:'id',limit:25,fields:projectFields,...(cursor ? {cursor} : {})});
 }

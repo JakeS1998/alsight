@@ -1,0 +1,43 @@
+{
+  "name": "Live Framework KPIs from delivery updates",
+  "description": "Refresh linked UKLF timing and budget outcomes when contract sums, completion baselines or achieved PC change. Never treat interim valuations as final costs.",
+  "trigger": {
+    "config": {
+      "trigger_type": "entity",
+      "entity_name": "ProjectDelivery",
+      "events": [
+        "create",
+        "update",
+        "delete"
+      ]
+    },
+    "condition": "${ .trigger.event_type != \"update\" or any((.trigger.changed_fields // [])[]; IN(\"contract_sum\",\"original_pc\",\"lad_completion_date\",\"pc_achieved\")) }"
+  },
+  "definition": {
+    "document": {
+      "dsl": "1.0.0",
+      "name": "framework_delivery_live_kpis",
+      "version": "1.0",
+      "namespace": "base44"
+    },
+    "do": [
+      {
+        "refresh_live_kpis": {
+          "call": "invoke_backend_function",
+          "with": {
+            "function_name": "manageUKLFRecords",
+            "args": {
+              "action": "syncLive",
+              "projectId": "${ .trigger.data.project_id // .trigger.old_data.project_id }"
+            }
+          },
+          "then": "end",
+          "x-base44": {
+            "title": "Refresh live Framework KPIs",
+            "description": "Update contract and delivery outcomes"
+          }
+        }
+      }
+    ]
+  }
+}
