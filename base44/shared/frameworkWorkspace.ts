@@ -5,6 +5,7 @@ import {frameworkCommercialSummary} from './frameworkCommercialSummary.ts';
 import {frameworkDocumentMilestones,withFrameworkDocumentMilestones} from './frameworkDocumentMilestones.ts';
 import {scopedReadCache,invalidateScopedRead} from './scopedReadCache.ts';
 import {frameworkDeliveryOutcome} from './frameworkDeliveryOutcome.ts';
+import {withFrameworkPrincipalContractors} from './frameworkPrincipalContractors.ts';
 export async function frameworkWorkspace(base44,user,body) {
  const internal=user.role!=='framework_stakeholder',source=internal ? base44.entities.FrameworkProjectReport : base44.asServiceRole.entities.FrameworkProjectReport;
  const viewerKey=`framework:${user.id}:${user.role}`;
@@ -18,7 +19,8 @@ export async function frameworkWorkspace(base44,user,body) {
   if(record.project_id && /^[a-f0-9]{24}$/i.test(record.project_id))project=await base44.entities.Project.get(record.project_id).catch(()=>null);
   else if(record.project_id){const page=await base44.entities.Project.filter({dataverse_id:record.project_id},{limit:1,fields:['latitude','longitude','dataverse_id','pq_approval_date','aa_executed_date','practical_completion_date']});project=page.items[0];}
      const milestones=await frameworkDocumentMilestones(base44.entities,project ? [project] : []);
-     return Response.json({report:withFrameworkDocumentMilestones(safeWorkspaceRow(record,project),project,milestones)});
+     const [report]=await withFrameworkPrincipalContractors(base44.asServiceRole.entities,[withFrameworkDocumentMilestones(safeWorkspaceRow(record,project),project,milestones)].map(row=>({...row,project_id:record.project_id||row.project_id})));
+     return Response.json({report:{...report,project_id:project?.id||null}});
  }
  if(body.workspaceAction==='link') {
   if(user.role!=='admin')return Response.json({error:'Only authorised Framework administrators can link records.'},{status:403});
@@ -54,5 +56,6 @@ export async function frameworkWorkspace(base44,user,body) {
  const milestones=await frameworkDocumentMilestones(base44.entities,projects);
   const rows=page.items.map(r=>{const project=projects.find(p=>p.id===r.project_id || p.dataverse_id===r.project_id);const row=withFrameworkDocumentMilestones(safeWorkspaceRow(r,project),project,milestones);return {...row,milestones:{...row.milestones,outcome:outcome.matches(r)}};});
  if(body.workspaceAction==='detail')return Response.json({report:rows[0] || null});
- return Response.json({rows,next_cursor:page.next_cursor,has_more:page.has_more,count:await source.count(query)});
+ const enriched=await withFrameworkPrincipalContractors(base44.asServiceRole.entities,rows.map((row,index)=>({...row,project_id:page.items[index].project_id||row.project_id})));
+ return Response.json({rows:enriched.map((row,index)=>({...row,project_id:rows[index].project_id})),next_cursor:page.next_cursor,has_more:page.has_more,count:await source.count(query)});
 }

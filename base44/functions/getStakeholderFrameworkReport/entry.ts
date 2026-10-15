@@ -7,6 +7,7 @@ import {dataRequestError} from '../../shared/dataRequestError.ts';
 import {kpiReadFields,frameworkKpiCompletion} from '../../shared/frameworkKpiRules.ts';
 import {frameworkKpiSummary} from '../../shared/frameworkKpiSummary.ts';
 import {projectCompletionDates} from '../../shared/projectCompletionDates.ts';
+import {withFrameworkPrincipalContractors} from '../../shared/frameworkPrincipalContractors.ts';
 
 const INTERNAL = ['admin', 'director', 'regional_director', 'bsm', 'finance', 'bdm'];
 const STAGES = ['pq_date', 'aa_signed', 'calloff_date', 'completed_on_time'];
@@ -79,7 +80,8 @@ export default async function(req: Request): Promise<Response> {
       const project = report ? await reportProject({asServiceRole:{entities:base44.entities}}, report, body.projectId) : null;
       if (project?.procurement_route === false) return Response.json({ report: null, directProject: true });
       const defaults = internal && report ? await suggestedKpis(base44, project) : {};
-      return Response.json({report:report ? safeRow(report,internal) : null,kpiCompletion:frameworkKpiCompletion(report),...(internal && report ? {defaults} : {})});
+      const enriched=report?await withFrameworkPrincipalContractors(base44.asServiceRole.entities,[{...safeRow(report,internal),project_id:report.project_id||project?.id||null}]):[];
+      return Response.json({report:enriched[0]||null,kpiCompletion:frameworkKpiCompletion(report),...(internal && report ? {defaults} : {})});
     }
     const page = Number(body?.page ?? 0);
     if (!Number.isInteger(page) || page < 0 || page > 10000) return Response.json({ error: 'Invalid page' }, { status: 400 });
@@ -100,7 +102,7 @@ export default async function(req: Request): Promise<Response> {
     const rows = records.map(r => ({ ...safeRow(r, internal),
       project_id: r.project_id || byNumber.get(`PROJ${r.framework_ref}`.toUpperCase()) || byNumber.get(r.project_number?.toUpperCase()) || null,
     }));
-    return Response.json({ rows, count, ...summary });
+    return Response.json({ rows:await withFrameworkPrincipalContractors(base44.asServiceRole.entities,rows), count, ...summary });
   } catch (error) {
     console.error('Framework report unavailable', error);
     return dataRequestError(error, 'Unable to load framework report');

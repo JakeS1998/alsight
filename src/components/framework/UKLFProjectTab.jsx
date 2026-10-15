@@ -36,7 +36,7 @@ export default function UKLFProjectTab({ projectId, reportId, startEditing = fal
   if (directProject) return <p className="rounded-xl border border-slate-200 bg-white p-6 text-sm text-slate-500">Direct projects are not included in UKLF reporting.</p>;
   if (!report) return <p className="rounded-xl border border-slate-200 bg-white p-6 text-sm text-slate-500">No UKLF record is linked to this project yet.</p>;
   const fields = [
-    ['Project questionnaire', report.pq_status], ['Questionnaire date', formatDate(report.pq_date)],
+    ['Principal contractor', report.principal_contractor], ['Project questionnaire', report.pq_status], ['Questionnaire date', formatDate(report.pq_date)],
     ['Agreement sent', formatDate(report.aa_sent)], ['Agreement signed', formatDate(report.aa_signed)],
     ['Call-off date', formatDate(report.calloff_date)], ['Completed on time', report.completed_on_time || (internal && defaults.completed_on_time)],
     ['Completed to budget', report.completed_to_budget || (internal && defaults.completed_to_budget)], ['RIDDOR incidents', report.riddor_incidents],

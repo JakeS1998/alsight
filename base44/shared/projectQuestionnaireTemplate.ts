@@ -5,7 +5,7 @@ const facilities=prefix=>[...counts(prefix),text(`${prefix}_other`,'Other (pleas
 const contact=prefix=>[['position','Position/Title:'],['name','Name:'],['address','Address:'],['phone','Telephone/Mobile No:'],['email','Email:']].map(([id,label])=>text(`${prefix}_${id}`,label,true,id==='email'?'email':'text'));
 export const questionnaireVersion='uklf-aberdare-693-v1';
 export const questionnaireSections=[
- {id:'enquiry',title:'Enquiry details',fields:[text('pq_number','PQ3 No:',true,'text'),text('client','Enquiry Client:',true,'text'),text('site','Site:',true,'text'),text('date','Date:',true,'date'),checks('enquiry_type','Type of Enquiry (Please tick were appropriate)',['Works Contract','Equipment Services','Marketing Support','JCT 2016','Sport England/Wales','JCT Minor Works','Other'])]},
+ {id:'enquiry',title:'Enquiry details',fields:[text('pq_number','PQx No. (project number):',false,'text'),text('client','Enquiry Client:',true,'text'),text('site','Site:',true,'text'),text('date','Date:',true,'date'),checks('enquiry_type','Type of Enquiry (Please tick were appropriate)',['Works Contract','Equipment Services','Marketing Support','JCT 2016','Sport England/Wales','JCT Minor Works','Other'])]},
  {id:'background',title:'Background Information',guidance:'Comments/Response. Enter N/A where a question does not apply.',fields:[text('q1','1. Brief description of the project'),text('q2','2. Key outcomes required')]},
  {id:'facilities',title:'Existing and proposed facilities',fields:[
  text('q3','3. If an existing facility, what is the current facility Mix'),checks('existing_internal','Internal (Please tick were appropriate)',['Sports hall','Squash Courts','Swimming Pool','Gym','Studio','Spin Studio','F&B','Vending','Other Internal','Other External']),...facilities('existing'),
@@ -20,4 +20,4 @@ export const questionnaireSections=[
 ];
 export const questionnaireFields=questionnaireSections.flatMap(section=>section.fields).filter(field=>field.type!=='heading');
 export function missingQuestionnaireFields(answers){return questionnaireFields.filter(field=>field.required && (typeof answers[field.id]!=='string' || !answers[field.id].trim())).map(field=>field.id);}
-export function questionnaireDefaults(project){return {pq_number:project.project_number||'',client:project.client_name||'',site:project.name||'',date:new Date().toISOString().slice(0,10)};}
+export function questionnaireDefaults(project){return {pq_number:'',client:project.client_name||'',site:project.name||'',date:new Date().toISOString().slice(0,10)};}
