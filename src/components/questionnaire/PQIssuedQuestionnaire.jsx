@@ -1,0 +1,5 @@
+import React from 'react';
+import QuestionnaireField from '@/components/questionnaire/QuestionnaireField';
+export default function PQIssuedQuestionnaire({snapshot}) {
+ return <section className="space-y-3" aria-label="Issued questionnaire answers"><h2 className="text-lg font-semibold">Issued questionnaire</h2><p className="text-sm text-muted-foreground">This read-only snapshot is the version covered by this approval issue.</p>{snapshot.sections.map((section,index)=><details key={section.id} open={index===0} className="rounded-panel border border-border bg-card p-5"><summary className="cursor-pointer font-semibold">{index+1}. {section.title}</summary>{section.guidance&&<p className="mt-3 text-sm text-muted-foreground">{section.guidance}</p>}<fieldset disabled className="mt-5 space-y-5">{section.fields.map(field=><QuestionnaireField key={field.id} field={field} value={snapshot.answers[field.id]} disabled onChange={()=>{}}/>)}</fieldset></details>)}</section>;
+}

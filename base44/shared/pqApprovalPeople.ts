@@ -1,9 +1,9 @@
 import {fail,pqRoles} from './pqApprovalCommon.ts';
 import {withPortalUserNames} from './portalUserNames.ts';
+import {portalUserSearch} from './portalUserSearch.ts';
 export async function pqApprovalPeople(db,search){
  if(typeof search!=='string'||search.trim().length<2||search.length>80)fail('Enter at least two characters to find an approver.');
- const pattern={$regex:search.trim().replace(/[.*+?^${}()|[\]\\]/g,'\\$&'),$options:'i'};
- const users=await db.User.filter({role:{$in:pqRoles},$or:[{full_name:pattern},{email:pattern}]},'full_name',20);
+ const users=await db.User.filter({role:{$in:pqRoles},...await portalUserSearch(db,search)},'full_name',20);
  return (await withPortalUserNames(db,users)).filter(person=>person.email).map(person=>({id:person.id,name:person.full_name||person.email,email:person.email}));
 }
 export async function resolvePQApprovers(db,steps){

@@ -54,6 +54,7 @@ const DataverseCallback = lazy(() => import('@/pages/DataverseCallback'));
 const DataverseWorkspace = lazy(() => import('@/pages/DataverseWorkspace'));
 const Calendar = lazy(() => import('@/pages/Calendar'));
 const RiskApprovalReview = lazy(() => import('@/pages/RiskApprovalReview'));
+const PQApprovalReview = lazy(() => import('@/pages/PQApprovalReview'));
 const Help = lazy(() => import('@/pages/Help'));
 const Pulse = lazy(() => import('@/pages/Pulse'));
 const Lookout = lazy(() => import('@/pages/Lookout'));
@@ -96,6 +97,7 @@ const AuthenticatedApp = () => {
       <Route path="/terms-of-service" element={<TermsOfService />} />
       <Route element={<ProtectedRoute unauthenticatedElement={<Navigate to={`/login?returnTo=${encodeURIComponent(location.pathname + location.search)}`} replace />} />}>
         <Route path="/risk-approvals/:packetId" element={<RiskApprovalReview />} />
+        <Route path="/pq-approvals/:roundId" element={<PQApprovalReview />} />
         <Route path="/dataverse-callback" element={<DataverseCallback />} />
         <Route path="/powerbi-callback" element={<PowerBICallback />} />
         <Route path="/onboarding" element={<Onboarding />} />
