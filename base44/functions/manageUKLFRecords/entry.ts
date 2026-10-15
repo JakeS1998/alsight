@@ -2,16 +2,23 @@ import {createClientFromRequest} from 'npm:@base44/sdk@0.8.52';
 import {withUKLFRecordLease} from '../../shared/uklfRecordLease.ts';
 import {createMissingUKLFRecords} from '../../shared/uklfRecordCreation.ts';
 import {uklfProjectFields} from '../../shared/uklfRecordValues.ts';
+import {frameworkLiveKpiProjects,syncFrameworkLiveKpiProject,syncFrameworkLiveKpis} from '../../shared/frameworkLiveKpiSync.ts';
 export default async function(req: Request): Promise<Response> {
  try {
   const base44=createClientFromRequest(req),user=await base44.auth.me();
   if(!user || user.role!=='admin')return Response.json({error:'Administrator access required.'},{status:403});
   const input=await req.json(),db=base44.entities;
-  if(!['status','backfill','ensure'].includes(input.action))return Response.json({error:'Invalid UKLF operation.'},{status:400});
+  if(!['status','backfill','ensure','syncLive','syncLiveAll'].includes(input.action))return Response.json({error:'Invalid UKLF operation.'},{status:400});
   if(input.action==='status'){const page=await db.UKLFRecordSyncState.filter({key:'primary'},{limit:1});return Response.json({state:page.items[0] || {status:'idle',processed:0,created:0,reused:0,conflicts:[]},eligible:await db.Project.count({procurement_route:true})});}
-  if(input.action==='ensure' && (typeof input.projectId!=='string' || !/^[a-f0-9]{24}$/i.test(input.projectId)))return Response.json({error:'Valid project required.'},{status:400});
+  if(['ensure','syncLive'].includes(input.action) && (typeof input.projectId!=='string' || !/^[a-f0-9]{24}$/i.test(input.projectId)))return Response.json({error:'Valid project required.'},{status:400});
+  if(input.action==='syncLive')return Response.json(await syncFrameworkLiveKpiProject(base44.asServiceRole.entities,input.projectId));
+  if(input.action==='syncLiveAll'){
+   if(input.cursor!==undefined && (typeof input.cursor!=='string' || input.cursor.length>2000))return Response.json({error:'Invalid live KPI cursor.'},{status:400});
+   const page=await frameworkLiveKpiProjects(base44.asServiceRole.entities,input.cursor);
+   return Response.json({...await syncFrameworkLiveKpis(base44.asServiceRole.entities,page.items),has_more:page.has_more,next_cursor:page.next_cursor});
+  }
   const result=await withUKLFRecordLease(base44,async(state,assertLease)=>{
-   if(input.action==='ensure'){const project=await db.Project.get(input.projectId);return await createMissingUKLFRecords(base44,project ? [project] : [],assertLease);}
+   if(input.action==='ensure'){const project=await db.Project.get(input.projectId);const ensured=await createMissingUKLFRecords(base44,project ? [project] : [],assertLease);const live=await syncFrameworkLiveKpiProject(base44.asServiceRole.entities,input.projectId);return {...ensured,live};}
    const restart=state.status==='completed';
    const page=await db.Project.filter({procurement_route:true},{sort:'id',limit:50,fields:uklfProjectFields,...(!restart && state.cursor ? {cursor:state.cursor} : {})});
    const output=await createMissingUKLFRecords(base44,page.items,assertLease);

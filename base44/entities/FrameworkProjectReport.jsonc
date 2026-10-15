@@ -289,6 +289,11 @@
     },
     "kpis_reviewed_by": {
       "type": "string"
+    },
+    "live_kpi_state": {
+      "type": "object",
+      "additionalProperties": true,
+      "description": "Recorded fallback values and last applied live project KPI inputs and outcomes; allows corrections and source removals without losing recorded evidence."
     }
   },
   "required": [
