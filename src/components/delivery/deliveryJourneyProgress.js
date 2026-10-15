@@ -17,8 +17,8 @@ export const JOURNEY_STAGES = [
   { id: 10, label: 'Handover', short: 'Handover' },
 ];
 const percent = checks => Math.round(checks.filter(Boolean).length / checks.length * 100);
-export default function deliveryJourneyProgress({ project, delivery = {}, feeProposals, legalDocs, dmas, jcts, warranties, registers, suppliers = [], accountMap = {}, pdBrDecision }) {
-  const completed = deliveryStageCompletion(project, delivery);
+export default function deliveryJourneyProgress({ project, delivery = {}, feeProposals, legalDocs, dmas, jcts, warranties, registers, suppliers = [], accountMap = {}, pdBrDecision, uklfComplete = false }) {
+  const completed = deliveryStageCompletion(project, delivery, uklfComplete);
   const aa = legalDocs.find(d => d.document_type === 'access_agreement');
   const appointment = contractorAppointment({ deliveryTeam: savedDeliveryTeam(delivery), suppliers, accountMap, legalDocs });
   const pcsa = appointment.document;
@@ -33,7 +33,7 @@ export default function deliveryJourneyProgress({ project, delivery = {}, feePro
     4: [...requiredAppointments(pdBrDecision).map(([type, label]) => { const doc = legalDocs.find(d => d.document_type === type); return check(`${label} appointment executed or PO issued`, ['yes', 'po'].includes(doc?.executed), doc?.document_id); }), check('Contractor appointment executed / PO issued, or JCT executed', ['yes', 'po'].includes(pcsa?.executed) || jcts.some(j => j.executed === 'yes'))],
     5: programmeMilestones(project, feeProposals, jcts, delivery).map(m => check(m.label, m.done ?? !!m.date, m.details?.join(' '))),
     9: [check('Practical completion achieved', completed.construction)],
-    10: [check('Practical completion achieved', completed.construction), check('Final account closed', delivery.final_account_status === 'closed'), ...[['om_manuals', 'O&M manuals'], ['hs_file', 'Health & safety file'], ['warranties_status', 'Warranties'], ['training', 'Training'], ['asset_info', 'Asset information'], ['client_handover', 'Client handover']].map(([key, label]) => check(`${label} complete`, delivery[key] === 'complete'))],
+    10: [...(project.procurement_route===false ? [] : [check('All UKLF KPIs recorded',uklfComplete,'Complete the UKLF KPIs below or on the UKLF tab; missing values prevent stage 10 completion.')]),check('Practical completion achieved', completed.construction), check('Final account closed', delivery.final_account_status === 'closed'), ...[['om_manuals', 'O&M manuals'], ['hs_file', 'Health & safety file'], ['warranties_status', 'Warranties'], ['training', 'Training'], ['asset_info', 'Asset information'], ['client_handover', 'Client handover']].map(([key, label]) => check(`${label} complete`, delivery[key] === 'complete'))],
   };
   const checks = {
     1: completed['opportunity & scoping'] ? 100 : percent(breakdown[1].map(item => item.done)),

@@ -5,19 +5,11 @@ const day = value => {
   return /^\d{4}-\d{2}-\d{2}$/.test(text) && Number.isFinite(Date.parse(text)) ? text : '';
 };
 
-// Preserve the UKLF rule: a delay of two calendar months or more is not on time.
+// UKLF completion measure: up to six calendar days late is on time.
 export function completionOutcome(project) {
-  const expectedDates = projectCompletionDates(project);
-  const pairs = [1, 2, 3, 4, 5].map(n => [
-    day(expectedDates[`riba${n}_system_date`]),
-    day(n === 5 ? project.practical_completion_date : project[`riba${n}_end`]),
-  ]).filter(([expected, actual]) => expected && actual);
-  if (!pairs.length) return '';
-  return pairs.some(([expected, actual]) => {
-    const [year, month, date] = expected.split('-').map(Number);
-    const lastDay = new Date(Date.UTC(year, month + 2, 0)).getUTCDate();
-    return Date.parse(actual) >= Date.UTC(year, month + 1, Math.min(date, lastDay));
-  }) ? 'N' : 'Y';
+  const expected=day(projectCompletionDates(project).riba5_system_date),actual=day(project.practical_completion_date);
+  if(!expected || !actual)return '';
+  return (Date.parse(actual)-Date.parse(expected))/86400000<=6 ? 'Y' : 'N';
 }
 
 export async function reportProject(base44, report, suppliedProjectId) {

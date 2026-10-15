@@ -39,13 +39,26 @@
       "type": "string"
     },
     "calloff_value": {
-      "type": "number"
+      "type": [
+        "number",
+        "null"
+      ],
+      "minimum": 0
     },
     "access_fee": {
-      "type": "number"
+      "type": [
+        "number",
+        "null"
+      ],
+      "minimum": 0,
+      "description": "Project UKLF fee excluding VAT"
     },
     "completion_value": {
-      "type": "number"
+      "type": [
+        "number",
+        "null"
+      ],
+      "minimum": 0
     },
     "completed_on_time": {
       "type": "string"
@@ -57,14 +70,225 @@
       "type": "string"
     },
     "riddor_incidents": {
-      "type": "integer",
+      "type": [
+        "integer",
+        "null"
+      ],
       "minimum": 0
     },
     "local_spend": {
-      "type": "number"
+      "type": [
+        "number",
+        "null"
+      ],
+      "minimum": 0
     },
     "apprenticeships": {
-      "type": "number"
+      "type": [
+        "integer",
+        "null"
+      ],
+      "minimum": 0
+    },
+    "management_information_on_time": {
+      "type": "string",
+      "enum": [
+        "",
+        "Y",
+        "N"
+      ]
+    },
+    "supplier_insurance_confirmed": {
+      "type": "string",
+      "enum": [
+        "",
+        "Y",
+        "N"
+      ]
+    },
+    "supplier_questionnaire_current": {
+      "type": "string",
+      "enum": [
+        "",
+        "Y",
+        "N"
+      ]
+    },
+    "schedule14_insurance_confirmed": {
+      "type": "string",
+      "enum": [
+        "",
+        "Y",
+        "N"
+      ]
+    },
+    "high_level_review_date": {
+      "type": "string"
+    },
+    "high_level_evidence": {
+      "type": "string",
+      "maxLength": 4000
+    },
+    "contractual_completion_date": {
+      "type": "string"
+    },
+    "actual_completion_date": {
+      "type": "string"
+    },
+    "completion_delay_days": {
+      "type": [
+        "integer",
+        "null"
+      ]
+    },
+    "time_category": {
+      "type": "string",
+      "enum": [
+        "",
+        "on_time",
+        "late_7_28",
+        "late_over_28"
+      ]
+    },
+    "contract_sum": {
+      "type": [
+        "number",
+        "null"
+      ],
+      "minimum": 0
+    },
+    "budget_variance_pct": {
+      "type": [
+        "number",
+        "null"
+      ]
+    },
+    "cost_category": {
+      "type": "string",
+      "enum": [
+        "",
+        "within_budget",
+        "over_within_10",
+        "over_10"
+      ]
+    },
+    "riddor_reporting_year": {
+      "type": [
+        "integer",
+        "null"
+      ],
+      "minimum": 1900,
+      "maximum": 2200
+    },
+    "local_spend_target": {
+      "type": [
+        "number",
+        "null"
+      ],
+      "minimum": 0
+    },
+    "local_spend_postcodes": {
+      "type": "string",
+      "maxLength": 1000
+    },
+    "welsh_spend": {
+      "type": [
+        "number",
+        "null"
+      ],
+      "minimum": 0
+    },
+    "welsh_spend_target": {
+      "type": [
+        "number",
+        "null"
+      ],
+      "minimum": 0
+    },
+    "welsh_spend_postcodes": {
+      "type": "string",
+      "maxLength": 1000
+    },
+    "school_visits": {
+      "type": [
+        "integer",
+        "null"
+      ],
+      "minimum": 0
+    },
+    "school_visits_target": {
+      "type": [
+        "integer",
+        "null"
+      ],
+      "minimum": 0
+    },
+    "apprenticeships_target": {
+      "type": [
+        "integer",
+        "null"
+      ],
+      "minimum": 0
+    },
+    "consultation_events": {
+      "type": [
+        "integer",
+        "null"
+      ],
+      "minimum": 0
+    },
+    "consultation_events_target": {
+      "type": [
+        "integer",
+        "null"
+      ],
+      "minimum": 0
+    },
+    "jobs_created": {
+      "type": [
+        "integer",
+        "null"
+      ],
+      "minimum": 0
+    },
+    "jobs_created_target": {
+      "type": [
+        "integer",
+        "null"
+      ],
+      "minimum": 0
+    },
+    "population_impact": {
+      "type": [
+        "integer",
+        "null"
+      ],
+      "minimum": 0,
+      "description": "ALICE sourced count of residents within a 10 mile radius; never borough-wide substitutes"
+    },
+    "population_source_url": {
+      "type": "string",
+      "maxLength": 1000
+    },
+    "population_source_year": {
+      "type": "string",
+      "maxLength": 30
+    },
+    "population_source_note": {
+      "type": "string",
+      "maxLength": 1000
+    },
+    "population_checked_at": {
+      "type": "string"
+    },
+    "kpis_complete": {
+      "type": "boolean"
+    },
+    "kpis_reviewed_at": {
+      "type": "string"
+    },
+    "kpis_reviewed_by": {
+      "type": "string"
     }
   },
   "required": [

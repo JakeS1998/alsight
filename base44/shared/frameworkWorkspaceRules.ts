@@ -1,4 +1,5 @@
-export const workspaceFields=['framework_ref','project_id','project_number','site','client','pq_date','pq_status','aa_sent','aa_signed','calloff_date','completed_on_time','completed_to_budget','zero_riddor','riddor_incidents','apprenticeships','created_date','updated_date'];
+import {kpiReadFields} from './frameworkKpiRules.ts';
+export const workspaceFields=['framework_ref','project_id','project_number','site','client','pq_date','pq_status','aa_sent','aa_signed','calloff_date','completed_on_time','completed_to_budget','zero_riddor','riddor_incidents','apprenticeships','created_date','updated_date',...kpiReadFields];
 export const recordedOutcome={$and:['completed_on_time','completed_to_budget','zero_riddor'].map(field=>({[field]:{$in:['Y','N']}}))};
 export const outcomeReview={$or:[{completed_on_time:'N'},{completed_to_budget:'N'},{zero_riddor:'N'},{riddor_incidents:{$gt:0}}]};
 export const missing=field=>({$or:[{[field]:{$exists:false}},{[field]:{$in:['',null]}}]});

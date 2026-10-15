@@ -18,6 +18,7 @@ import frameworkAgreementRoute from '@/components/delivery/frameworkAgreementRou
 import SingleTaskDelivery from '@/components/delivery/SingleTaskDelivery';
 import usePDbrApplicability from '@/components/delivery/usePDbrApplicability';
 import { savedConstructionValues } from '@/components/delivery/constructionAutomation';
+import FrameworkPathwayKpis from '@/components/framework/FrameworkPathwayKpis';
 
 const DELIVERY_DEFAULT = {
   funding_route: "", scope_summary: "", client_objectives: "", initial_constraints: "",
@@ -153,6 +154,7 @@ export function ProjectDeliveryTab({ project, legalDocs, dmas, jcts, warranties,
       <ProjectRiskRegister project={project} delivery={delivery} accountMap={accountMap} />
       <DeliveryConstruction project={project} delivery={delivery} setField={setField} onSave={saveDelivery} saving={savingDelivery} />
       <DeliveryCloseout delivery={delivery} setField={setField} onSave={saveDelivery} saving={savingDelivery}>
+        <FrameworkPathwayKpis project={project}/>
         <ProjectHandoverPack embedded project={project} savingDelivery={savingDelivery} onStarted={loadDelivery} />
       </DeliveryCloseout>
     </DeliveryJourney>

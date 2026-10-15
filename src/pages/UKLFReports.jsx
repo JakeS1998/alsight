@@ -7,7 +7,7 @@ import FrameworkPulse from '@/components/framework/FrameworkPulse';
 import FrameworkAttention from '@/components/framework/FrameworkAttention';
 import FrameworkRecentActivity from '@/components/framework/FrameworkRecentActivity';
 import FrameworkJourney from '@/components/framework/FrameworkJourney';
-import FrameworkOutcomes from '@/components/framework/FrameworkOutcomes';
+import FrameworkKpiSummary from '@/components/framework/FrameworkKpiSummary';
 import FrameworkWorkspaceExplorer from '@/components/framework/FrameworkWorkspaceExplorer';
 import FrameworkWorkspaceHeader from '@/components/framework/FrameworkWorkspaceHeader';
 import organisationQueryPolicy from '@/components/data/organisationQueryPolicy';
@@ -19,5 +19,5 @@ export default function UKLFReports() {
  const data=query.data || {};
  const attentionFilter=next=>{setSearch('');setTerm('');setFilters(next);requestAnimationFrame(()=>document.getElementById('framework-projects')?.scrollIntoView({behavior:'smooth',block:'start'}));};
  if(!allowed)return <p className="p-6 text-muted-foreground">Framework reporting is available to UKLF stakeholders and the internal team.</p>;
- return <div className="space-y-5"><FrameworkWorkspaceHeader/>{query.error && <p role="alert" className="rounded-panel border border-border bg-card p-4 text-sm text-destructive">Framework summary unavailable: {query.error.response?.data?.error || query.error.message}. <button className="underline" onClick={()=>query.refetch()}>Try again</button></p>}{query.isPending && <p role="status" className="text-sm text-muted-foreground">Loading Framework context…</p>}<div className="grid items-stretch gap-4 lg:grid-cols-2"><FrameworkPulse data={data}/><div className="grid content-start gap-4"><FrameworkAttention data={data} onFilter={attentionFilter}/><FrameworkRecentActivity data={data} days={days} onDays={setDays}/></div></div><div className="grid gap-4 xl:grid-cols-[1.3fr_1fr]"><FrameworkJourney data={data} stage={filters.stage} onFilter={attentionFilter}/><FrameworkOutcomes data={data}/></div><FrameworkWorkspaceExplorer filters={filters} onFilter={setFilters} search={search} onSearch={setSearch} term={term} user={user}/></div>;
+ return <div className="space-y-5"><FrameworkWorkspaceHeader/>{query.error && <p role="alert" className="rounded-panel border border-border bg-card p-4 text-sm text-destructive">Framework summary unavailable: {query.error.response?.data?.error || query.error.message}. <button className="underline" onClick={()=>query.refetch()}>Try again</button></p>}{query.isPending && <p role="status" className="text-sm text-muted-foreground">Loading Framework context…</p>}<div className="grid items-stretch gap-4 lg:grid-cols-2"><FrameworkPulse data={data}/><div className="grid content-start gap-4"><FrameworkAttention data={data} onFilter={attentionFilter}/><FrameworkRecentActivity data={data} days={days} onDays={setDays}/></div></div><FrameworkJourney data={data} stage={filters.stage} onFilter={attentionFilter}/><FrameworkKpiSummary/><FrameworkWorkspaceExplorer filters={filters} onFilter={setFilters} search={search} onSearch={setSearch} term={term} user={user}/></div>;
 }

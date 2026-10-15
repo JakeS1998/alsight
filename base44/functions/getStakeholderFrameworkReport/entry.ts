@@ -4,6 +4,9 @@ import { uklfPortfolioSummary } from '../../shared/uklfPortfolioSummary.ts';
 import { uklfReportScope } from '../../shared/uklfReportScope.ts';
 import {frameworkWorkspace} from '../../shared/frameworkWorkspace.ts';
 import {dataRequestError} from '../../shared/dataRequestError.ts';
+import {kpiReadFields,frameworkKpiCompletion} from '../../shared/frameworkKpiRules.ts';
+import {frameworkKpiSummary} from '../../shared/frameworkKpiSummary.ts';
+import {projectCompletionDates} from '../../shared/projectCompletionDates.ts';
 
 const INTERNAL = ['admin', 'director', 'regional_director', 'bsm', 'finance', 'bdm'];
 const STAGES = ['pq_date', 'aa_signed', 'calloff_date', 'completed_on_time'];
@@ -12,29 +15,9 @@ const normalize = value => ` ${String(value || '').toLowerCase().replace(/&/g, '
 const legacyName = project => normalize((project.name || '').replace(/\s*\([^)]*\)\s*$/, '').replace(/\s+(refurbishment|refurb)\s*$/i, '')).trim();
 async function suggestedKpis(base44, project) {
   if (!project) return {};
-  const completed_on_time = completionOutcome(project);
-  let completed_to_budget = '';
-  if (Number.isFinite(project.estimated_value) && project.estimated_value > 0 && project.project_number) {
-    const orders = base44.asServiceRole.entities.PurchaseOrder;
-    const legacy = /^PROJ\s*0*(\d+)$/i.exec(project.project_number);
-    let query = { project_ref: project.project_number, status: { $ne: 'inactive' }, total_net_value: { $gt: 0 } };
-    if (legacy && Number(legacy[1]) < 600) {
-      const name = legacyName(project);
-      const candidates = [];
-      {
-        for (let skip = 0; ; skip += 500) {
-          const page = await orders.filter({ $or: [{ legal_project_id: project.id }, ...(name.length >= 8 ? [{ notes: { $regex: name.split(' ')[0], $options: 'i' } }] : [])] }, '-created_date', 500, skip);
-          candidates.push(...page.filter(po => po.status !== 'inactive' && Number(po.total_net_value) > 0 && (po.legal_project_id ? po.legal_project_id === project.id : normalize((po.notes || '').split(/\bDetail\s*:/i).pop()).includes(` ${name} `))));
-          if (page.length < 500) break;
-        }
-      }
-      query = { id: { $in: candidates.map(po => po.id) } };
-    }
-    const result = await orders.aggregate({ query, sum: 'total_net_value' });
-    const totals = result.rows?.[0];
-    if (totals?.count > 0 && Number.isFinite(totals.sum_total_net_value)) completed_to_budget = totals.sum_total_net_value < project.estimated_value ? 'Y' : 'N';
-  }
-  return { completed_on_time, completed_to_budget };
+  const page=await base44.entities.ProjectDelivery.filter({project_id:project.id},{limit:1,fields:['contract_sum','original_pc','lad_completion_date','pc_achieved']});
+  const delivery=page.items[0] || {};
+  return {contractual_completion_date:delivery.lad_completion_date || delivery.original_pc || projectCompletionDates(project).riba5_system_date || '',actual_completion_date:delivery.pc_achieved || project.practical_completion_date || '',contract_sum:delivery.contract_sum ?? null,pq_date:project.pq_approval_date || '',aa_signed:project.aa_executed_date || ''};
 }
 const safeRow = (r, internal) => ({
   id: r.id, project_id: r.project_id || null, project_number: r.project_number || null,
@@ -44,6 +27,7 @@ const safeRow = (r, internal) => ({
   completed_to_budget: r.completed_to_budget, zero_riddor: r.zero_riddor,
   riddor_incidents: r.riddor_incidents ?? null,
   apprenticeships: r.apprenticeships, created_date:r.created_date, updated_date:r.updated_date,
+  ...Object.fromEntries(kpiReadFields.map(key=>[key,r[key] ?? null])),
   ...(internal ? {indicative_value:r.indicative_value,aa_value:r.aa_value,calloff_value:r.calloff_value,completion_value:r.completion_value,access_fee:r.access_fee,local_spend:r.local_spend} : {}),
 
 });
@@ -56,6 +40,13 @@ export default async function(req: Request): Promise<Response> {
     const internal = INTERNAL.includes(user.role);
     if (!internal && user.role !== 'framework_stakeholder') return Response.json({ error: 'Forbidden' }, { status: 403 });
     const body = await req.json();
+    if(body.workspaceAction==='kpiSummary') {
+      const year=Number(body.year || new Date().getFullYear());
+      if(!Number.isInteger(year) || year<2026 || year>new Date().getFullYear())return Response.json({error:'Invalid reporting year'},{status:400});
+      const scope=await uklfReportScope(base44.asServiceRole.entities);
+      const result=await frameworkKpiSummary(internal ? base44.entities.FrameworkProjectReport : base44.asServiceRole.entities.FrameworkProjectReport,scope,year);
+      return Response.json(result);
+    }
     if(body.workspaceAction) {
       if(!['summary','clients','list','detail','link'].includes(body.workspaceAction))return Response.json({error:'Invalid Framework operation.'},{status:400});
       const response=await frameworkWorkspace(base44,user,body);
@@ -88,9 +79,7 @@ export default async function(req: Request): Promise<Response> {
       const project = report ? await reportProject({asServiceRole:{entities:base44.entities}}, report, body.projectId) : null;
       if (project?.procurement_route === false) return Response.json({ report: null, directProject: true });
       const defaults = internal && report ? await suggestedKpis(base44, project) : {};
-      const completion = project ? completionOutcome(project) : '';
-      return Response.json({ report: report ? { ...safeRow(report, internal), ...(completion ? { completed_on_time: completion } : {}) } : null,
-        ...(internal && report ? { defaults: { ...defaults, completed_on_time: completion } } : {}) });
+      return Response.json({report:report ? safeRow(report,internal) : null,kpiCompletion:frameworkKpiCompletion(report),...(internal && report ? {defaults} : {})});
     }
     const page = Number(body?.page ?? 0);
     if (!Number.isInteger(page) || page < 0 || page > 10000) return Response.json({ error: 'Invalid page' }, { status: 400 });
