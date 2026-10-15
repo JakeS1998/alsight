@@ -2,6 +2,7 @@ import {authorisedPQRound,canManagePQ,fail,pqCurrentRecipient,publicPQRound,read
 import {pqRecipientAction} from './pqApprovalDecision.ts';
 import {pqApprovalPeople} from './pqApprovalPeople.ts';
 import {startPQApproval} from './pqApprovalStart.ts';
+import {pqSubjectQuery} from './pqSubject.ts';
 export const pqRoundActions=['review','send_code','decide'];
 export const pqProjectActions=['approval_state','recipients','start_approval','withdraw_approval'];
 export async function pqRoundAction(base44,user,input){
@@ -10,13 +11,13 @@ export async function pqRoundAction(base44,user,input){
   const questionnaire=await db.ProjectQuestionnaire.get(initial.questionnaire_id),linked=questionnaire?.approval_round_id===initial.id&&questionnaire.status==='submitted';
   return {round:publicPQRound(initial),snapshot:await readPQSnapshot(base44,initial),snapshotHash:initial.snapshot_hash,canDecide:linked&&pqCurrentRecipient(initial,user)};
  }
- return await withPQWriteLock(db,initial.project_id,async()=>pqRecipientAction(base44,user,await authorisedPQRound(base44,user,input.roundId),input));
+ return await withPQWriteLock(db,initial.scope_key||initial.project_id,async()=>pqRecipientAction(base44,user,await authorisedPQRound(base44,user,input.roundId),input));
 }
 export async function pqProjectAction(base44,user,project,current,input){
- const db=base44.asServiceRole.entities,canManage=canManagePQ(user);
+ const db=base44.asServiceRole.entities,canManage=canManagePQ(user)&&!project.created_project_id;
  if(input.action==='approval_state'){
   if(input.cursor&&(typeof input.cursor!=='string'||input.cursor.length>8000))fail('Invalid approval history page.');
-  const [round,page]=await Promise.all([current?.approval_round_id?db.PQApprovalRound.get(current.approval_round_id):null,db.PQApprovalRound.filter({project_id:project.id},{sort:'-issued_at',limit:10,...(input.cursor?{cursor:input.cursor}:{})})]);
+  const [round,page]=await Promise.all([current?.approval_round_id?db.PQApprovalRound.get(current.approval_round_id):null,db.PQApprovalRound.filter(pqSubjectQuery(project),{sort:'-issued_at',limit:10,...(input.cursor?{cursor:input.cursor}:{})})]);
   return {round:publicPQRound(round),history:page.items.map(publicPQRound),next_cursor:page.next_cursor,has_more:page.has_more,canManage,canStart:canManage&&current?.status==='submitted'&&(!round||(round.status!=='active'&&current.revision>round.questionnaire_revision+1))};
  }
  if(!canManage)fail('You cannot manage questionnaire approvals.',403);

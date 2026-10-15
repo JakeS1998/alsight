@@ -16,6 +16,11 @@ import useProjectBrief from '@/components/projects/useProjectBrief';
 import useBDMRequestDefaults from '@/components/projects/useBDMRequestDefaults';
 import RequestTimescales, { RIBA_TERMS } from '@/components/projects/RequestTimescales';
 import RequestReviewHints from '@/components/projects/RequestReviewHints';
+import useRequestPQ from '@/components/projects/useRequestPQ';
+import requestFormValues from '@/components/projects/requestFormValues';
+import SavedProjectRequests from '@/components/projects/SavedProjectRequests';
+import RequestQuestionnaire from '@/components/projects/RequestQuestionnaire';
+import PQGatewayNotice from '@/components/questionnaire/PQGatewayNotice';
 
 const EMPTY = {
   name: "", description: "",
@@ -27,7 +32,7 @@ const EMPTY = {
   link_to_legals: "", link_to_project_questionnaire: "", link_to_pso: "", link_to_pcs: "",
 };
 
-export function RequestDialog({ open, onOpenChange, accounts, users, user, onCreated }) {
+export function RequestDialog({ open, onOpenChange, accounts, users, user, onCreated, resumeRequestId }) {
   const [form, setForm] = useState(EMPTY);
   const [submitting, setSubmitting] = useState(false);
   const requestId = useRef(crypto.randomUUID());
@@ -38,6 +43,7 @@ export function RequestDialog({ open, onOpenChange, accounts, users, user, onCre
   const [mode, setMode] = useState('alice');
   const [choicesReady, setChoicesReady] = useState(false);
   const [submitError, setSubmitError] = useState('');
+  const pq=useRequestPQ({form,setForm,setMode,requestId,empty:EMPTY,open,resumeId:resumeRequestId});
   const bdmDefaults = useBDMRequestDefaults({ setForm, setDirectorOptions });
   const brief = useProjectBrief({ form, setForm, onDirectorOption: bdmDefaults.addDirector, onComplete: () => setMode('review'), choices: {
     client_account_id: clientAccounts.map(account => ({ value: account.dataverse_id, label: account.name })),
@@ -73,33 +79,15 @@ export function RequestDialog({ open, onOpenChange, accounts, users, user, onCre
   const submit = async (e) => {
     e.preventDefault();
     if (!form.name.trim()) return;
+    if(!pq.draft||!pq.ready){setSubmitError('Complete the PQ and obtain all approvals before submitting this project request.');return;}
     setSubmitting(true);
     setSubmitError('');
     try {
       const briefFileUri = await brief.archive(user);
-      await createProjectRequest({
-        ...(briefFileUri ? { request_brief_file_uri: briefFileUri } : {}),
-        name: form.name.trim(),
-        description: form.description.trim(),
-        project_number: "",
-        client_account_id: form.client_account_id || null,
-        estimated_value: form.estimated_value ? Number(form.estimated_value) : null,
-        procurement_route: form.procurement_route,
-        site_postcode: form.site_postcode.trim() || null,
-        construction_term_weeks: form.construction_term_weeks !== '' ? Number(form.construction_term_weeks) : null,
-        ...Object.fromEntries(RIBA_TERMS.map(field => [field.key, form[field.key] !== '' ? Number(form[field.key]) : null])),
-        bdm_aad_id: form.bdm_aad_id || null,
-        director_aad_id: form.director_aad_id || null,
-        department_id: form.department_id || null,
-        link_to_legals: form.link_to_legals.trim() || null,
-        link_to_project_questionnaire: form.link_to_project_questionnaire.trim() || null,
-        link_to_pso: form.link_to_pso.trim() || null,
-        link_to_pcs: form.link_to_pcs.trim() || null,
-        live_project: true,
-        status: "active",
-      }, requestId.current);
+      await createProjectRequest({...requestFormValues(form),...(briefFileUri?{request_brief_file_uri:briefFileUri}:{})},requestId.current,{requestDraftId:pq.draft.id});
       requestId.current = crypto.randomUUID();
       setForm(EMPTY);
+      pq.reset();
       brief.reset();
       onOpenChange(false);
       onCreated();
@@ -111,13 +99,16 @@ export function RequestDialog({ open, onOpenChange, accounts, users, user, onCre
   };
 
   return (
-    <Dialog open={open} onOpenChange={value => { if (!submitting) onOpenChange(value); }}>
+    <Dialog open={open} onOpenChange={value => { if (!submitting&&!pq.busy) onOpenChange(value); }}>
       <DialogContent className="flex max-h-[calc(100dvh-2rem)] w-[calc(100%-2rem)] flex-col overflow-hidden sm:max-w-2xl">
         <DialogHeader className="shrink-0 pr-6">
-          <DialogTitle>{mode === 'review' ? 'Review your project request' : 'Request a new project'}</DialogTitle>
-          <DialogDescription>{mode === 'review' ? 'ALICE has filled in your draft. Check and change any details below, then confirm to submit your request. Nothing has been submitted yet.' : 'Create the project in Dataverse and submit it through the normal approval process. Your own Dataverse account must be connected.'}</DialogDescription>
+          <DialogTitle>{mode==='pq'?'Project request · PQ':mode === 'review' ? 'Review your project request' : 'Request a new project'}</DialogTitle>
+          <DialogDescription>{mode === 'review' ? 'ALICE has filled in your draft. Check and change any details below, then confirm to submit your request. Nothing has been submitted yet.' : 'Complete and approve the PQ before creating the project in Dataverse. The normal project approval process still applies, and your own Dataverse account must be connected.'}</DialogDescription>
         </DialogHeader>
-        {mode === 'alice' ? <ProjectBriefChat brief={brief} ready={choicesReady} onManual={() => setMode('manual')} onReview={() => setMode('review')} /> : <form onSubmit={submit} className="flex min-h-0 flex-col gap-4 overflow-hidden">
+        {pq.error&&<p role="alert" className="text-sm text-destructive">{pq.error}</p>}
+        {pq.busy&&<p role="status" className="text-sm">Saving or loading your project request…</p>}
+        {mode!=='pq'&&<SavedProjectRequests onSelect={pq.resume} refreshKey={pq.draft?.id}/>}
+        {mode==='pq'&&pq.draft?<RequestQuestionnaire draft={pq.draft} onBack={()=>setMode('manual')}/>:mode === 'alice' ? <ProjectBriefChat brief={brief} ready={choicesReady} onManual={() => setMode('manual')} onReview={() => setMode('review')} /> : <form onSubmit={submit} className="flex min-h-0 flex-col gap-4 overflow-hidden">
           <button type="button" onClick={() => setMode('alice')} className="shrink-0 text-left text-sm font-medium text-foreground underline underline-offset-4">Back to ALICE</button>
           {submitError && <p role="alert" className="text-sm text-destructive">{submitError}</p>}
           <div className="min-h-0 space-y-4 overflow-y-auto overscroll-contain px-1">
@@ -154,6 +145,7 @@ export function RequestDialog({ open, onOpenChange, accounts, users, user, onCre
             </FormGrid>
           </FormSection>
 
+          <FormSection title="Project Questionnaire gateway" description="The PQ must be approved before this request can create a project."><PQGatewayNotice subject={pq.draft?{requestDraftId:pq.draft.id}:null} values={requestFormValues(form)} onReady={pq.setReady} onOpen={pq.prepare}/></FormSection>
           <RequestTimescales form={form} setForm={setForm} />
 
           <FormSection title="Team & Region" description="Select the BDM to populate Director and region automatically">
@@ -210,7 +202,7 @@ export function RequestDialog({ open, onOpenChange, accounts, users, user, onCre
           {brief.messages.length > 1 && <RequestReviewHints form={form} confirmed={brief.confirmed} />}
           <DialogFooter className="shrink-0 border-t border-border pt-4">
             <Button type="button" variant="outline" onClick={() => onOpenChange(false)} disabled={submitting}>Cancel</Button>
-            <Button type="submit" disabled={submitting || bdmDefaults.loading} className="bg-primary hover:bg-primary/90">
+            <Button type="submit" disabled={submitting || pq.busy || !pq.ready || bdmDefaults.loading} className="bg-primary hover:bg-primary/90">
               {submitting ? <Loader2 className="mr-1.5 h-4 w-4 animate-spin" /> : null} {mode === 'review' ? 'Confirm and submit request' : 'Submit request'}
             </Button>
           </DialogFooter>

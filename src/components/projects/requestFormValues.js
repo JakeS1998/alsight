@@ -1,0 +1,5 @@
+const numberFields=['estimated_value','construction_term_weeks','riba1_term_weeks','riba2_term_weeks','riba3_term_weeks','riba4_term_weeks'];
+const idFields=['client_account_id','bdm_aad_id','director_aad_id','department_id'];
+const textFields=['name','description','site_postcode','link_to_legals','link_to_project_questionnaire','link_to_pso','link_to_pcs'];
+export default function requestFormValues(form){return {...Object.fromEntries(textFields.map(key=>[key,String(form[key]||'').trim()||null])),...Object.fromEntries(idFields.map(key=>[key,form[key]||null])),...Object.fromEntries(numberFields.map(key=>[key,form[key]!==''&&form[key]!=null?Number(form[key]):null])),procurement_route:form.procurement_route,live_project:true,status:'active'};}
+export function restoreRequestForm(empty,draft){return {...empty,...Object.fromEntries(Object.keys(empty).map(key=>[key,draft.values[key]??empty[key]]))};}

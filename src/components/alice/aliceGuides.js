@@ -2,7 +2,6 @@ import { base44 } from '@/api/base44Client';
 import { createCRMOpportunity } from '@/components/crm/crm';
 import projectTaskGuides from '@/components/alice/aliceProjectTaskGuides';
 import saveAliceProjectTask from '@/components/alice/saveAliceProjectTask';
-import createProjectRequest from '@/components/projects/createProjectRequest';
 
 export const GUIDES = {
   ...projectTaskGuides,
@@ -41,8 +40,8 @@ export async function saveGuide(type, answers, user) {
   }
   if (type === 'project') {
     answers.projectRequestId ||= crypto.randomUUID();
-    const record = await createProjectRequest({ name: answers.name, description: answers.description || '', client_account_id: answers.client_account_id?.dataverse_id || answers.client_account_id?.id || null, estimated_value: answers.estimated_value ? Number(answers.estimated_value) : null, site_postcode: answers.site_postcode || null, bdm_aad_id: user.id }, answers.projectRequestId);
-    return { message: `Project “${record.name}” created in Dataverse and submitted for approval.`, path: `/projects/${record.id}`, link: 'Open project' };
+    const {data}=await base44.functions.invoke('manageProjectQuestionnaire',{action:'prepare_request',requestKey:answers.projectRequestId,values:{name:answers.name,description:answers.description||'',client_account_id:answers.client_account_id?.dataverse_id||answers.client_account_id?.id||null,estimated_value:answers.estimated_value?Number(answers.estimated_value):null,site_postcode:answers.site_postcode||null,bdm_aad_id:user.id}});
+    return {message:`Project request “${data.draft.name}” saved. Complete its PQ and approvals before creating the project.`,path:`/projects?request=${data.draft.id}`,link:'Complete project request and PQ'};
   }
   if (type === 'risk') {
     const project = answers.project_id;

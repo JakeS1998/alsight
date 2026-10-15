@@ -1,0 +1,5 @@
+import React from 'react';
+export default function PQProposedProject({values}) {
+ if(!values)return null;
+ return <section className="rounded-panel border border-border bg-card p-5"><h3 className="font-semibold">Proposed project covered by this approval</h3><dl className="mt-3 grid gap-3 text-sm sm:grid-cols-2">{[['Project',values.name],['Client',values.client_name||values.client_account_id],['Postcode',values.site_postcode],['Estimated value',values.estimated_value!=null?new Intl.NumberFormat('en-GB',{style:'currency',currency:'GBP',maximumFractionDigits:0}).format(values.estimated_value):'Not recorded'],['Scope',values.description]].map(([label,value])=><div key={label}><dt className="text-muted-foreground">{label}</dt><dd className="whitespace-pre-wrap break-words">{value||'Not recorded'}</dd></div>)}</dl></section>;
+}

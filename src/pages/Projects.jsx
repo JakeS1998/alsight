@@ -1,6 +1,6 @@
 import React, { useEffect, useState, useMemo } from "react";
 import projectFullValue from '@/components/projects/projectFullValue';
-import { Link } from "react-router-dom";
+import { Link, useSearchParams } from "react-router-dom";
 import { useAuth } from "@/lib/AuthContext";
 import { useQueryClient } from '@tanstack/react-query';
 import { base44 } from "@/api/base44Client";
@@ -47,6 +47,9 @@ export default function Projects() {
   const [contacts, setContacts] = useState([]);
   const [metadataLoading, setLoading] = useState(true);
   const [requestOpen, setRequestOpen] = useState(false);
+  const [requestParams,setRequestParams]=useSearchParams();
+  const resumeRequestId=requestParams.get('request');
+  useEffect(()=>{if(resumeRequestId&&canRequest)setRequestOpen(true);},[resumeRequestId,canRequest]);
   const { view, setView, density, setDensity } = useProjectView();
 
   const [search, setSearch] = useState("");
@@ -276,7 +279,8 @@ export default function Projects() {
       {view !== 'map' && view !== 'workspace' && serverPaging && (previousCursors.length > 0 || projectPage.next) && <div className="flex justify-between gap-3"><Button variant="outline" disabled={!previousCursors.length || loading} onClick={() => { setCursor(previousCursors[previousCursors.length - 1]); setPreviousCursors(values => values.slice(0, -1)); }}>Previous page</Button><Button variant="outline" disabled={!projectPage.next || loading} onClick={() => { setPreviousCursors(values => [...values, cursor]); setCursor(projectPage.next); }}>Next page</Button></div>}
       <RequestDialog
         open={requestOpen}
-        onOpenChange={setRequestOpen}
+        onOpenChange={value=>{setRequestOpen(value);if(!value&&resumeRequestId)setRequestParams(current=>{const next=new URLSearchParams(current);next.delete('request');return next;},{replace:true});}}
+        resumeRequestId={resumeRequestId}
         accounts={accounts}
         users={users}
         user={user}

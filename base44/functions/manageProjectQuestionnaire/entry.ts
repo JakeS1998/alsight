@@ -2,6 +2,10 @@ import {createClientFromRequest} from 'npm:@base44/sdk@0.8.52';
 import {questionnaireVersion,questionnaireSections,questionnaireFields,missingQuestionnaireFields,questionnaireDefaults} from '../../shared/projectQuestionnaireTemplate.ts';
 import {pqRoles,withPQWriteLock} from '../../shared/pqApprovalCommon.ts';
 import {pqRoundActions,pqProjectActions,pqRoundAction,pqProjectAction} from '../../shared/pqApprovalActions.ts';
+import {resolvePQSubject,pqSubjectQuery,pqSubjectLinks,pqMaterialHash} from '../../shared/pqSubject.ts';
+import {pqRequestDraftAction} from '../../shared/pqRequestDrafts.ts';
+import {pqGatewayStatus} from '../../shared/pqGatewayStatus.ts';
+import {projectRequestValues} from '../../shared/projectCreateValues.ts';
 export default async function(req: Request): Promise<Response> {
  try {
   const base44=createClientFromRequest(req),user=await base44.auth.me();
@@ -9,14 +13,17 @@ export default async function(req: Request): Promise<Response> {
   if(!pqRoles.includes(user.role))return Response.json({error:'Internal project access required.'},{status:403});
   const body=await req.json();
   if(pqRoundActions.includes(body.action))return Response.json(await pqRoundAction(base44,user,body));
-  if(!['load','save','submit','reopen',...pqProjectActions].includes(body.action)||typeof body.projectId!=='string'||!/^[a-f0-9]{24}$/i.test(body.projectId))return Response.json({error:'Choose a valid project and questionnaire action.'},{status:400});
-  const project=await base44.entities.Project.get(body.projectId);
-  if(!project||project.status==='inactive')return Response.json({error:'Project unavailable.'},{status:404});
-  const canEdit=['admin','director','bdm','bsm'].includes(user.role);
+  if(['prepare_request','list_requests','load_request'].includes(body.action))return Response.json(await pqRequestDraftAction(base44,user,body));
+  if(!['load','save','submit','reopen','gate',...pqProjectActions].includes(body.action))return Response.json({error:'Choose a valid questionnaire action.'},{status:400});
+  const project=await resolvePQSubject(base44,user,body);
+  const canEdit=['admin','director','bdm','bsm'].includes(user.role)&&!project.created_project_id;
   // Project is read with the caller's own permissions before accessing protected answers.
-  const source=base44.asServiceRole.entities.ProjectQuestionnaire;
+  const source=base44.asServiceRole.entities.ProjectQuestionnaire,query=pqSubjectQuery(project);
+  const peek=(await source.filter(query,{limit:1,fields:['scope_key']})).items[0];
+  project.scope_key=peek?.scope_key||project.scope_key;
   const operation=async()=>{
-  const {items}=await source.filter({project_id:project.id},{limit:1,sort:'-created_date'}),current=items[0]||null;
+  const {items}=await source.filter(query,{limit:1,sort:'-created_date'}),current=items[0]||null;
+  if(body.action==='gate')return Response.json(await pqGatewayStatus(base44.asServiceRole.entities,project,current,body.values?await pqMaterialHash(projectRequestValues(body.values)):project.context_hash));
   if(pqProjectActions.includes(body.action))return Response.json(await pqProjectAction(base44,user,project,current,body));
   const approval=current?.approval_round_id?await base44.asServiceRole.entities.PQApprovalRound.get(current.approval_round_id):null;
   if(body.action==='load')return Response.json({record:current,approvalStatus:approval?.status||null,sections:questionnaireSections,defaults:questionnaireDefaults(project),canEdit,templateVersion:questionnaireVersion,sourceProject:'Aberdare Lido · PROJ693',sourceUrl:project.link_to_project_questionnaire||null});
@@ -42,9 +49,9 @@ export default async function(req: Request): Promise<Response> {
   if(body.action==='submit'&&missing.length)return Response.json({error:'Complete the required fields before submitting.',missing},{status:400});
   const now=new Date().toISOString(),save_token=crypto.randomUUID();
   const payload={answers,template_version:questionnaireVersion,status:body.action==='submit'?'submitted':'draft',revision:(current?.revision||0)+1,save_token,saved_by:user.full_name||user.email,saved_at:now,...(body.action==='submit'?{submitted_at:now,submitted_by:user.full_name||user.email}:{})};
-  if(current){await source.updateMany({project_id:project.id,revision:current.revision},{$set:payload});const {items:updated}=await source.filter({project_id:project.id},{limit:1});if(updated[0]?.save_token!==save_token)return Response.json({error:'Another person saved changes. Reload before continuing.'},{status:409});return Response.json({record:updated[0]});}
-  return Response.json({record:await source.create({...payload,project_id:project.id})});
+  if(current){await source.updateMany({...query,revision:current.revision},{$set:payload});const {items:updated}=await source.filter(query,{limit:1});if(updated[0]?.save_token!==save_token)return Response.json({error:'Another person saved changes. Reload before continuing.'},{status:409});return Response.json({record:updated[0]});}
+  return Response.json({record:await source.create({...payload,...pqSubjectLinks(project)})});
   };
-  return ['load','approval_state','recipients'].includes(body.action)?await operation():await withPQWriteLock(base44.asServiceRole.entities,project.id,operation);
+  return ['load','approval_state','recipients','gate'].includes(body.action)?await operation():await withPQWriteLock(base44.asServiceRole.entities,project.scope_key,operation);
  }catch(error){return Response.json({error:error.message},{status:error.status||500});}
 }

@@ -1,8 +1,9 @@
 import {fail,hash} from './riskApprovalData.ts';
+import {resolvePQSubject} from './pqSubject.ts';
 export {fail,hash};
 export const pqRoles=['admin','director','regional_director','bsm','finance','bdm'];
 export const canManagePQ=user=>['admin','director','bdm','bsm'].includes(user.role);
-export const publicPQRound=round=>round?Object.fromEntries(['id','project_id','questionnaire_id','questionnaire_revision','project_name','project_number','reference','status','current_index','issued_by_id','issued_by_name','issued_at','steps','completed_at','withdrawn_by','withdrawn_at','withdrawal_reason','notification_status'].map(key=>[key,round[key]])):null;
+export const publicPQRound=round=>round?Object.fromEntries(['id','project_id','opportunity_id','request_draft_id','questionnaire_id','questionnaire_revision','project_name','project_number','reference','status','current_index','issued_by_id','issued_by_name','issued_at','steps','completed_at','withdrawn_by','withdrawn_at','withdrawal_reason','notification_status'].map(key=>[key,round[key]])):null;
 export const pqCurrentRecipient=(round,user)=>round?.status==='active'&&round.steps[round.current_index]?.user_id===user.id&&round.steps[round.current_index]?.email.toLowerCase()===user.email?.toLowerCase();
 export async function withPQWriteLock(db,projectId,operation){
  const {records}=await db.PQWriteLock.upsert([{project_id:projectId}],{key:'project_id'}),lock=records[0],token=crypto.randomUUID(),now=new Date().toISOString();
@@ -16,7 +17,7 @@ export async function authorisedPQRound(base44,user,id){
  if(!round)fail('Approval issue not found.',404);
  if(!pqRoles.includes(user.role))fail('Internal approval access required.',403);
  if(user.role!=='admin'&&round.issued_by_id!==user.id&&!round.steps.some(step=>step.user_id===user.id&&step.email.toLowerCase()===user.email?.toLowerCase())){
-  const project=await base44.entities.Project.get(round.project_id);if(!project)fail('You do not have access to this approval.',403);
+  await resolvePQSubject(base44,user,round.project_id?{projectId:round.project_id}:round.opportunity_id?{opportunityId:round.opportunity_id}:{requestDraftId:round.request_draft_id});
  }
  return round;
 }

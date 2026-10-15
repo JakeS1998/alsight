@@ -14,7 +14,7 @@ export async function convertOpportunity(item, account) {
     ...((item.confirmed_project_value ?? item.budget) != null ? { estimated_value: item.confirmed_project_value ?? item.budget } : {}),
     ...(item.site_postcode ? { site_postcode: item.site_postcode } : {}),
     live_project: true, status: 'active',
-  }, `opportunity-${item.id}`);
+  }, `opportunity-${item.id}`, {opportunityId:item.id});
   // Store the link before the other writes so retrying a partial conversion cannot create another project.
   if (!item.project_id) await base44.entities.Opportunity.update(item.id, { project_id: project.id });
   const scope = { ...Object.fromEntries(SCOPING_KEYS.map(key => [key, item[key] ?? ''])), scope_summary: item.scope_summary || item.project_details || '', probability: chance(item), site_visit_completed: !!item.site_visit_completed, contract_start: item.expected_project_start || undefined, delivery_team: JSON.stringify(item.design_team || []) };

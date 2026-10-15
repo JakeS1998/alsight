@@ -5,6 +5,15 @@
     "project_id": {
       "type": "string"
     },
+    "opportunity_id": {
+      "type": "string"
+    },
+    "request_draft_id": {
+      "type": "string"
+    },
+    "scope_key": {
+      "type": "string"
+    },
     "template_version": {
       "type": "string"
     },
@@ -49,7 +58,6 @@
     }
   },
   "required": [
-    "project_id",
     "template_version",
     "answers",
     "status",

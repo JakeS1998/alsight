@@ -1,0 +1,53 @@
+{
+  "name": "ProjectRequestDraft",
+  "type": "object",
+  "properties": {
+    "owner_id": {
+      "type": "string"
+    },
+    "request_key": {
+      "type": "string"
+    },
+    "name": {
+      "type": "string"
+    },
+    "client_name": {
+      "type": "string"
+    },
+    "values": {
+      "type": "object",
+      "additionalProperties": true
+    },
+    "project_id": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "owner_id",
+    "request_key",
+    "name",
+    "values"
+  ],
+  "rls": {
+    "read": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "create": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "update": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "delete": {
+      "user_condition": {
+        "role": "admin"
+      }
+    }
+  }
+}

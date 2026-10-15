@@ -5,8 +5,8 @@ import QuestionnaireProgress from '@/components/questionnaire/QuestionnaireProgr
 import QuestionnaireActions from '@/components/questionnaire/QuestionnaireActions';
 import useProjectQuestionnaire from '@/components/questionnaire/useProjectQuestionnaire';
 import PQApprovalPanel from '@/components/questionnaire/PQApprovalPanel';
-export default function ProjectQuestionnaire({project}) {
- const state=useProjectQuestionnaire(project.id),[active,setActive]=useState(0);
+export default function ProjectQuestionnaire({project,subject}) {
+ const state=useProjectQuestionnaire(project.id,subject),[active,setActive]=useState(0);
  const {data,answers,busy,error,loading,dirty,missing}=state;
  if(loading)return <div role="status" className="ws-card ws-panel">Loading project questionnaire…</div>;
  if(!data)return <div className="ws-card ws-panel"><p role="alert" className="text-destructive">{error||'Questionnaire unavailable.'}</p><Button type="button" onClick={state.load}>Try again</Button></div>;
@@ -28,5 +28,5 @@ export default function ProjectQuestionnaire({project}) {
  <div className="min-w-0 space-y-5"><div><p className="text-xs text-muted-foreground">Section {active+1} of {data.sections.length}</p><h4 className="mt-1 text-lg font-semibold">{section.title}</h4>{section.guidance&&<p className="mt-2 text-sm text-muted-foreground">{section.guidance}</p>}</div>
  <fieldset disabled={busy||readOnly} className="min-w-0 space-y-6">{section.fields.map(field=><QuestionnaireField key={field.id} field={field} value={answers[field.id]} onChange={value=>state.change(field.id,value)} disabled={busy||readOnly} invalid={missing.includes(field.id)}/>)}</fieldset>
  <QuestionnaireActions active={active} total={data.sections.length} onPrevious={()=>select(active-1)} onNext={()=>select(active+1)} onSave={()=>state.save('save')} onSubmit={submit} onReopen={()=>state.save('reopen')} onReload={state.load} busy={busy} canEdit={data.canEdit} approvalActive={data.approvalStatus==='active'} submitted={submitted} dirty={dirty} record={data.record}/>
- </div></div><PQApprovalPanel project={project} record={data.record} onChanged={state.load}/></section>;
+ </div></div><PQApprovalPanel project={project} subject={subject} record={data.record} onChanged={state.load}/></section>;
 }

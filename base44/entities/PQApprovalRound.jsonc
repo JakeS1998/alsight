@@ -5,6 +5,18 @@
     "project_id": {
       "type": "string"
     },
+    "opportunity_id": {
+      "type": "string"
+    },
+    "request_draft_id": {
+      "type": "string"
+    },
+    "scope_key": {
+      "type": "string"
+    },
+    "context_hash": {
+      "type": "string"
+    },
     "questionnaire_id": {
       "type": "string"
     },
@@ -107,7 +119,6 @@
     }
   },
   "required": [
-    "project_id",
     "questionnaire_id",
     "questionnaire_revision",
     "reference",
