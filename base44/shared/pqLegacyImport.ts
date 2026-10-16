@@ -6,7 +6,7 @@ export async function pqLegacyImport(base44,project,current,retry=false){
  if(project.subject_type!=='project'||!url||current?.approval_round_id)return current;
  const previous=current?.source_import;
  if(previous?.link===url&&previous.parser_version===2&&(!retry||previous.status==='imported'))return current;
- if(previous?.attempted_at&&Date.now()-Date.parse(previous.attempted_at)<60000){const error=new Error('Wait one minute after the last import attempt before retrying.');error.status=429;throw error;}
+ if(previous?.link===url&&previous?.attempted_at&&Date.now()-Date.parse(previous.attempted_at)<60000){const error=new Error('Wait one minute after the last import attempt before retrying.');error.status=429;throw error;}
  const now=new Date().toISOString(),db=base44.asServiceRole.entities;
  let source_import,answers=current?.source_import?.status==='imported'&&current.saved_by==='SharePoint PQ import'?{}:current?.answers||{};
  try{

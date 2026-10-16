@@ -95,7 +95,7 @@ export function ProjectGeneralTab({ project, accountMap, onProjectUpdated, singl
     { label: "Project Questionnaire", url: project.link_to_project_questionnaire },
     { label: "PSO", url: project.link_to_pso },
     { label: "PCS", url: project.link_to_pcs },
-  ].filter(l => l.url);
+  ].filter(l => l.url || (l.label === 'Project Questionnaire' && mappedFields.includes('link_to_project_questionnaire')));
 
   return (
     <div className="ws-general">
@@ -150,10 +150,10 @@ export function ProjectGeneralTab({ project, accountMap, onProjectUpdated, singl
             <h3 className="ws-sectiontitle mb-4">SharePoint Links</h3>
             <div className="space-y-2">
               {links.map((l) => (
-                <InlineDataverseField key={l.label} label={l.label}><a href={l.url} target="_blank" rel="noreferrer"
+                <InlineDataverseField key={l.label} label={l.label}>{l.url ? <a href={l.url} target="_blank" rel="noreferrer"
                   className="flex items-center gap-2 text-sm text-blue-600 hover:underline">
                   <ExternalLink className="h-4 w-4" /> {l.label}
-                </a></InlineDataverseField>
+                </a> : <span className="text-sm text-muted-foreground">Project Questionnaire · Not linked</span>}</InlineDataverseField>
               ))}
             </div>
           </div>

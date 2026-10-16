@@ -6,8 +6,9 @@ import QuestionnaireActions from '@/components/questionnaire/QuestionnaireAction
 import useProjectQuestionnaire from '@/components/questionnaire/useProjectQuestionnaire';
 import PQApprovalPanel from '@/components/questionnaire/PQApprovalPanel';
 import PQExistingSource from '@/components/questionnaire/PQExistingSource';
-export default function ProjectQuestionnaire({project,subject}) {
- const state=useProjectQuestionnaire(project.id,subject),[active,setActive]=useState(0);
+import PQDocumentLink from '@/components/questionnaire/PQDocumentLink';
+export default function ProjectQuestionnaire({project,subject,onProjectUpdated}) {
+ const state=useProjectQuestionnaire(project.id,subject,project.link_to_project_questionnaire),[active,setActive]=useState(0);
  const {data,answers,busy,error,loading,dirty,missing}=state;
  if(loading)return <div role="status" className="ws-card ws-panel">Loading project questionnaire and checking its linked source…</div>;
  if(!data)return <div className="ws-card ws-panel"><p role="alert" className="text-destructive">{error||'Questionnaire unavailable.'}</p><Button type="button" onClick={state.load}>Try again</Button></div>;
@@ -23,7 +24,8 @@ export default function ProjectQuestionnaire({project,subject}) {
  <p className="text-sm text-muted-foreground">{project.project_number} · {project.name}. Template based on {data.sourceProject}; this form contains this project’s own answers.</p>
  <PQExistingSource data={data} loading={loading} onRetry={()=>state.load(true)}/>
  {!data.locked&&<p className="text-xs text-muted-foreground">Fields marked * are required for submission. Drafts can be saved incomplete. Checklists may be left blank where not applicable.</p>}
- {data.sourceUrl&&<a className="inline-block text-sm font-medium text-foreground underline underline-offset-4" href={data.sourceUrl} target="_blank" rel="noreferrer">Open this project’s existing PQ document</a>}
+ {!subject&&<PQDocumentLink project={project} onUpdated={onProjectUpdated}/>}
+ {subject&&data.sourceUrl&&<a className="inline-block text-sm font-medium text-foreground underline underline-offset-4" href={data.sourceUrl} target="_blank" rel="noreferrer">Open this project’s existing PQ document</a>}
  {!data.canEdit&&<p className="text-sm text-muted-foreground">Read-only access.</p>}</header>
  {error&&<p role="alert" className="rounded-md border border-destructive/30 bg-destructive/5 p-3 text-sm text-destructive">{error}</p>}
  <div className="grid gap-6 lg:grid-cols-[17rem_minmax(0,1fr)]"><QuestionnaireProgress sections={data.sections} answers={answers} active={active} onSelect={select}/>

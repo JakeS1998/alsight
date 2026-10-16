@@ -152,7 +152,7 @@ export default function ProjectDetail({ embedded = false, embeddedProjectId, sup
         </TabsContent>}
         {canSeeValuations && <TabsContent value="valuations" className="ws-content mt-6"><ProjectValuationsTab project={project} /></TabsContent>}
         {INTERNAL_ROLES.includes(user?.role) && project.procurement_route !== false && <TabsContent value="uklf" className="ws-content mt-6"><UKLFProjectTab projectId={project.id} startEditing={editUKLFKpis} onEditDone={() => setEditUKLFKpis(false)} /></TabsContent>}
-        {INTERNAL_ROLES.includes(user?.role) && <TabsContent value="questionnaire" className="ws-content mt-6"><ProjectQuestionnaire key={project.id} project={project}/></TabsContent>}
+        {INTERNAL_ROLES.includes(user?.role) && <TabsContent value="questionnaire" className="ws-content mt-6"><ProjectQuestionnaire key={project.id} project={project} onProjectUpdated={updated=>setProject(current=>({...current,...updated}))}/></TabsContent>}
         {extraContent}
       </main>
     </Tabs>

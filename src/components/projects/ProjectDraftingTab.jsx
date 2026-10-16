@@ -8,10 +8,10 @@ import RibaReportLink from '@/components/projects/RibaReportLink';
 import agreementNames from '@/components/projects/agreementNames';
 import frameworkAgreementRoute from '@/components/delivery/frameworkAgreementRoute';
 import ProjectEmptyState from '@/components/projects/ProjectEmptyState';
+import PQDocumentLink from '@/components/questionnaire/PQDocumentLink';
 import DocumentStageMarker from '@/components/documents/DocumentStageMarker';
 import {
   FileSearch, FileCheck, UserCheck, Gavel, FilePlus,
-  ExternalLink, AlertCircle,
 } from "lucide-react";
 
 // Lifecycle stages in the requested project order:
@@ -59,33 +59,7 @@ function docStatus(docs) {
   return "pending";
 }
 
-function PqCard({ project, psoOutstanding }) {
-  if (!project.link_to_project_questionnaire) return null;
-  return (
-    <a
-      href={project.link_to_project_questionnaire}
-      target="_blank"
-      rel="noreferrer"
-      className="flex items-center justify-between gap-3 rounded-xl border border-slate-200 bg-white p-4 transition-colors hover:bg-slate-50"
-    >
-      <div className="flex items-center gap-3 min-w-0">
-        <FileSearch className="h-4 w-4 text-primary shrink-0" />
-        <div className="min-w-0">
-          <div className="flex items-center gap-2">
-            <p className="text-sm font-semibold text-slate-900">Project Questionnaire</p>
-            {psoOutstanding && (
-              <span className="inline-flex items-center gap-1 rounded-full border border-amber-200 bg-amber-50 px-2 py-0.5 text-[10px] font-medium text-amber-700">
-                <AlertCircle className="h-3 w-3" /> PSO outstanding
-              </span>
-            )}
-          </div>
-          <p className="text-xs text-slate-500">Open document in SharePoint</p>
-        </div>
-      </div>
-      <ExternalLink className="h-4 w-4 text-slate-400 shrink-0" />
-    </a>
-  );
-}
+
 
 export function ProjectDraftingTab({ project, legalDocs, dmas, jcts, accountMap, pmView = false, onProjectUpdated }) {
   const loiDocs = legalDocs.filter(isLetterOfIntent);
@@ -125,7 +99,7 @@ export function ProjectDraftingTab({ project, legalDocs, dmas, jcts, accountMap,
   const totalDocs = legalDocs.length + dmas.length + jcts.length + (pmView ? 0 : project.link_to_project_questionnaire ? 1 : 0);
 
   if (totalDocs === 0) {
-    return <section className="space-y-4"><ProjectEmptyState icon={FileSearch} title="No project documents available yet." description="Ask the project's BSM to confirm the questionnaire and document programme; internal documents continue to use SharePoint links." to={`/projects/${project.id}?tab=general`} action="View project team" /><h3 className="text-sm font-semibold text-foreground">RIBA 4 report</h3><RibaReportLink project={project} onProjectUpdated={onProjectUpdated} /></section>;
+    return <section className="space-y-4">{!pmView && <PQDocumentLink project={project} onUpdated={onProjectUpdated} />}<ProjectEmptyState icon={FileSearch} title="No project documents available yet." description="Ask the project's BSM to confirm the questionnaire and document programme; internal documents continue to use SharePoint links." to={`/projects/${project.id}?tab=general`} action="View project team" /><h3 className="text-sm font-semibold text-foreground">RIBA 4 report</h3><RibaReportLink project={project} onProjectUpdated={onProjectUpdated} /></section>;
   }
 
   return (
@@ -165,13 +139,7 @@ export function ProjectDraftingTab({ project, legalDocs, dmas, jcts, accountMap,
               </div>
 
               {stage.kind === 'report' ? <RibaReportLink project={project} onProjectUpdated={onProjectUpdated} /> : stage.kind === "pq" ? (
-                project.link_to_project_questionnaire ? (
-                  <PqCard project={project} psoOutstanding={!psoStatus.pq} />
-                ) : (
-                  <div className="rounded-xl border border-dashed border-slate-200 bg-slate-50/50 px-4 py-3">
-                    <p className="text-xs text-muted-foreground">No project questionnaire linked yet. Ask the project's BSM to add the SharePoint reference.</p>
-                  </div>
-                )
+                <PQDocumentLink project={project} psoOutstanding={!!project.link_to_project_questionnaire && !psoStatus.pq} onUpdated={onProjectUpdated} />
               ) : docs.length === 0 ? (
                 <div className="rounded-xl border border-dashed border-slate-200 bg-slate-50/50 px-4 py-3">
                   <p className="text-xs text-muted-foreground">No documents at this stage. Ask the project's BSM to confirm the next document milestone.</p>
