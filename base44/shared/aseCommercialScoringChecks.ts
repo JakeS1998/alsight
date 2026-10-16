@@ -3,7 +3,7 @@ import {commercialRule,commercialEvidence,withCommercialModel} from './aseCommer
 import {filedTurnoverPeriod} from './aseFiledTurnover.ts';
 export function checkCommercialScoringRules() {
   const at='2026-10-05T12:00:00Z',account={id:'commercial-rule-check',name:'Rule check'},now=new Date(at);
-  const data={status:'available',percentage:60,annualised_value:600000,included_count:1,excluded_count:0,estimated:false,turnover:{status:'available',value:1000000,currency:'GBP',period_start:'2025-01-01',period_end:'2025-12-31',annual_verified:true}};
+  const data={status:'available',percentage:60,total_contract_value:600000,included_count:1,excluded_count:0,estimated:false,turnover:{status:'available',value:1000000,currency:'GBP',period_start:'2025-01-01',period_end:'2025-12-31',annual_verified:true}};
   const row=commercialEvidence(account,data,at),estimated=commercialEvidence(account,{...data,estimated:true},at);
   const base=defaultModels.company.filter(r=>r.key!==commercialRule.key).map((r,i)=>({id:r.key,component:r.key,value:String([30,6,1.5,18,'5','5'][i]),period_months:12,currency:'GBP',confidence:'High',reporting_period:'2025-12-31',source_date:'2026-10-01',retrieval_date:at}));
   const scored=calculate(defaultModels,'company',[...base,row],now),provisional=calculate(defaultModels,'company',[...base,estimated],now),missing=calculate(defaultModels,'company',base,now);
