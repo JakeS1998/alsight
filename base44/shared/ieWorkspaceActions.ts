@@ -1,4 +1,3 @@
-import {secrets} from 'base44:runtime';
 import {ieRecord,ieEditable,ieError,ieText} from './ieAccess.ts';
 import {workKinds,ieWorkValues,ieFinanceValues,ieWorkspaceEvent} from './ieWorkspaceValues.ts';
 import {ieServiceValue} from './ieServiceValue.ts';
@@ -27,11 +26,12 @@ export async function ieWorkspaceAction(base44,user,input){
   await entity.delete(previous.id);await ieWorkspaceEvent(db,user,item,`Removed ${action==='workDelete'?'work item':'document reference'}: ${previous.title}`);return {ok:true};
  }
  if(action==='documentSave'){
-  const values=input.values||{},title=ieText(values.title,200),category=ieText(values.category,30),file_uri=ieText(values.file_uri,1000),file_name=ieText(values.file_name,250);
+  const values=input.values||{},title=ieText(values.title,200),category=ieText(values.category,30),sharepoint_url=ieText(values.sharepoint_url,4000);
   if(!title||!['research','consultation','creative','finance','other'].includes(category))ieError('Enter a document title and category.');
-  if(!file_uri.startsWith(`mp/private/${secrets.get('BASE44_APP_ID')}/`)||!file_name||!Number.isInteger(values.file_size)||values.file_size<1||values.file_size>20971520)ieError('Upload a file privately to this app, up to 20 MB.');
-  if(!/\.(pdf|docx?|xlsx?|pptx?|csv|txt|png|jpe?g|webp)$/i.test(file_name))ieError('Use a PDF, Office document, CSV, text file or supported image.');
-  const saved=await db.IEDocument.create({engagement_id:item.id,title,category,file_uri,file_name,file_size:values.file_size,uploaded_by:user.id,uploaded_by_name:user.full_name||user.email});
+  if(!URL.canParse(sharepoint_url))ieError('Enter a valid HTTPS SharePoint link.');
+  const url=new URL(sharepoint_url);
+  if(url.protocol!=='https:'||!url.hostname.endsWith('.sharepoint.com')||url.username||url.password||url.port)ieError('Enter a valid HTTPS SharePoint link.');
+  const saved=await db.IEDocument.create({engagement_id:item.id,title,category,sharepoint_url,uploaded_by:user.id,uploaded_by_name:user.full_name||user.email});
   await ieWorkspaceEvent(db,user,item,`Added document: ${title}`);return {item:saved};
  }
  if(action==='financeSave'){

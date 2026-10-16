@@ -19,6 +19,10 @@
         "other"
       ]
     },
+    "sharepoint_url": {
+      "type": "string",
+      "maxLength": 4000
+    },
     "file_uri": {
       "type": "string",
       "maxLength": 1000
@@ -42,10 +46,7 @@
   "required": [
     "engagement_id",
     "title",
-    "category",
-    "file_uri",
-    "file_name",
-    "file_size"
+    "category"
   ],
   "rls": {
     "read": {
