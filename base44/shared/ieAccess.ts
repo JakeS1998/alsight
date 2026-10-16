@@ -5,7 +5,10 @@ export const ieIdentity=user=>[user.id,user.staff_aad_id,user.data?.staff_aad_id
 export function ieScope(user){
  if(['admin','sam_director','director','finance'].includes(user.role))return {};
  if(user.role==='sam')return {access_user_ids:user.id};
- if(user.role==='regional_director')return {region_id:user.region||user.data?.region||'__unassigned__'};
+ if(user.role==='regional_director'){
+  const region=user.region||user.data?.region;
+  return region?{$or:[{region_id:region},{project_id:{$in:user.ieRegionalProjectIds||[]}}]}:{id:{$in:[]}};
+ }
  if(user.role==='bsm')return {bsm_identity:{$in:ieIdentity(user)}};
  ieError('I&E access is not available for this role.',403);
 }

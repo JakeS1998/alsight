@@ -8,7 +8,7 @@ export default async function(req: Request): Promise<Response> {
   try {
     const base44 = createClientFromRequest(req);
     const user = await base44.auth.me();
-    if (!user) return Response.json({ error: 'Sign in required' }, { status: 401 });
+    if (!user || !await base44.auth.isAuthenticated()) return Response.json({ error: 'Sign in required' }, { status: 401 });
     const payload = await req.json();
     if (payload.action === 'request_defaults') {
       if (!['admin', 'director', 'bdm'].includes(user.role)) return Response.json({ error: 'Project request access required' }, { status: 403 });
@@ -41,11 +41,27 @@ export default async function(req: Request): Promise<Response> {
           if (name && unresolved.includes(person.aad_id) && !names[person.aad_id]) names[person.aad_id] = name;
         }
       }
-      return Response.json({ names });
+      const emails=users.map(person=>person.email).filter(Boolean);
+      const records=await base44.entities.Contact.filter({$or:[{aad_id:{$in:ids}},{dataverse_id:{$in:ids}},...emails.map(email=>({email:{$regex:`^${email.replace(/[.*+?^${}()|[\]\\]/g,'\\$&')}$`,$options:'i'}}))]},{limit:30,fields:['aad_id','dataverse_id','email']});
+      const links={};
+      for(const id of ids){
+        const person=users.find(row=>[row.id,row.staff_aad_id,row.data?.staff_aad_id].includes(id));
+        const matches=records.items.filter(row=>row.aad_id===id||row.dataverse_id===id||(person?.email&&row.email?.toLowerCase()===person.email.toLowerCase()));
+        if(matches.length===1)links[id]=`/people/${matches[0].id}`;
+      }
+      return Response.json({ names, links });
     }
     if (!project.bdm_aad_id) return Response.json({ managerName: '' });
     const line = await resolveStaffReportingLine(base44.asServiceRole.entities, project.bdm_aad_id);
-    return Response.json({ managerName: line?.manager_name || '' });
+    let managerContactId;
+    if(line?.manager_email||line?.manager_aad_id){
+      const rules=[];
+      if(line.manager_email)rules.push({email:{$regex:`^${line.manager_email.replace(/[.*+?^${}()|[\]\\]/g,'\\$&')}$`,$options:'i'}});
+      if(line.manager_aad_id)rules.push({aad_id:line.manager_aad_id},{dataverse_id:line.manager_aad_id});
+      const contacts=await base44.entities.Contact.filter({$or:rules},{limit:2,fields:['full_name']});
+      if(contacts.items.length===1)managerContactId=contacts.items[0].id;
+    }
+    return Response.json({ managerName: line?.manager_name || '',managerContactId });
   } catch (error) {
     console.error('Unable to resolve BDM manager', error);
     const rateLimited = Number(error?.response?.status || error?.status) === 429 || /rate limit|too many requests/i.test(error?.message || '');

@@ -14,7 +14,7 @@ import ProjectWorkspaceDates from '@/components/projects/ProjectWorkspaceDates';
 import ProjectCapacitySection from '@/components/projects/ProjectCapacitySection';
 import ProjectBriefHistory from '@/components/projects/ProjectBriefHistory';
 import useProjectTeamAssignments from '@/components/projects/useProjectTeamAssignments';
-import SupplierCommission from '@/components/accounts/SupplierCommission.jsx';
+import ProjectDirectorySuppliers from '@/components/projects/ProjectDirectorySuppliers';
 import agreementNames from '@/components/projects/agreementNames';
 import { formatDate, formatCurrency, regionName, INTERNAL_ROLES } from "@/lib/portal";
 import { ExternalLink } from "lucide-react";
@@ -109,12 +109,12 @@ export function ProjectGeneralTab({ project, accountMap, onProjectUpdated, singl
           { label: 'Project postcode', value: project.site_postcode || '—' },
         ]}
         assignments={[
-          ['BDM', people.staffName(project.bdm_aad_id)],
-          ['BSM', people.staffName(project.bsm_aad_id)],
-          ['Director', people.directorName],
-          ['Project Manager', people.contactName(project.project_manager_id) || teamAssignments.names['Project Manager']],
-          ['Client Representative', people.contactName(project.client_rep_id)],
-          ...teamAssignments.assignments.map(([label, name]) => [label, <div key={label}>{name}{teamAssignments.accountsByRole[label]?.map(account => <SupplierCommission key={account.id} account={account} compact />)}</div>]),
+          ['BDM', people.staffName(project.bdm_aad_id), people.staffTo(project.bdm_aad_id)],
+          ['BSM', people.staffName(project.bsm_aad_id), people.staffTo(project.bsm_aad_id)],
+          ['Director', people.directorName, people.directorTo],
+          ['Project Manager', people.contactName(project.project_manager_id) || <ProjectDirectorySuppliers accounts={teamAssignments.accountsByRole['Project Manager']} name={teamAssignments.names['Project Manager']}/>, people.contactTo(project.project_manager_id)],
+          ['Client Representative', people.contactName(project.client_rep_id), people.contactTo(project.client_rep_id)],
+          ...teamAssignments.assignments.map(([label, name]) => [label, <ProjectDirectorySuppliers key={label} accounts={teamAssignments.accountsByRole[label]} name={name}/>]),
         ]}
         details={[
           { title: 'Commercial', fields: [

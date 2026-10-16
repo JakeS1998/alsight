@@ -14,8 +14,8 @@ export default function ProjectWorkspaceFields({ summary, assignments, details }
     </section>
     <div className="ws-grid2">
       <section className="ws-card ws-panel">
-        <div className="ws-panelhead"><h3 className="ws-sectiontitle">Team Assignments</h3></div>
-        <div className="ws-teamgrid">{assignments.map(([label, value]) => <div className="ws-teamitem" key={label}><div className="ws-label">{label}</div><div className="ws-value"><InlineDataverseField label={label}>{value || '—'}</InlineDataverseField></div></div>)}</div>
+        <div className="ws-panelhead"><h3 className="ws-sectiontitle">Project Directory</h3></div>
+        <div className="ws-teamgrid">{assignments.map(([label, value, to]) => <div className="ws-teamitem" key={label}><div className="ws-label">{label}</div><div className="ws-value"><InlineDataverseField label={label}>{to ? <Link to={to} className="underline underline-offset-2 hover:text-primary">{value}</Link> : value || '—'}</InlineDataverseField></div></div>)}</div>
       </section>
       <section className="ws-card ws-panel">
         <div className="ws-panelhead"><h3 className="ws-sectiontitle">Additional Details</h3></div>

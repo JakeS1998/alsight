@@ -8,12 +8,14 @@ import {ieHeaderImage} from '../../shared/ieHeaderImage.ts';
 import {ieHeadlineAction} from '../../shared/ieHeadlineActions.ts';
 import {ieCommercialFinance} from '../../shared/ieCommercialFinance.ts';
 import {ieBackfillFinance} from '../../shared/ieFinanceWorkbook.ts';
+import {ieRegionalProjects} from '../../shared/ieRegionalProjects.ts';
 export default async function(req){
  try{
-  const base44=createClientFromRequest(req),user=await base44.auth.me();
+  const base44=createClientFromRequest(req);let user=await base44.auth.me();
   if(!user||!await base44.auth.isAuthenticated())return Response.json({error:'Sign in to access I&E.'},{status:401});
   if(!ieRoles.includes(user.role))return Response.json({error:'I&E access is not available for this role.'},{status:403});
   const input=await req.json();if(!input||typeof input!=='object'||Array.isArray(input))ieError('Invalid request.');
+  user=await ieRegionalProjects(base44,user);
   const db=base44.asServiceRole.entities,action=input.action;
   if(action==='commercialFinance')return Response.json(await ieCommercialFinance(base44,user));
   if(action==='backfillFinance')return Response.json(await ieBackfillFinance(base44,user,input));

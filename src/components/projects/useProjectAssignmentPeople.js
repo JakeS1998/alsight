@@ -13,7 +13,7 @@ export default function useProjectAssignmentPeople(project) {
     queryFn: async () => {
       const { data } = await base44.functions.invoke('getProjectBDMManager', { action: 'staff_names', projectId: project.id });
       if (data.error) throw new Error(data.error);
-      return data.names;
+      return data;
     },
   });
   const contactIds = [project.project_manager_id, project.client_rep_id].filter(Boolean);
@@ -29,10 +29,10 @@ export default function useProjectAssignmentPeople(project) {
     queryFn: async () => {
       const { data } = await base44.functions.invoke('getProjectBDMManager', { projectId: project.id });
       if (data.error) throw new Error(data.error);
-      return data.managerName || '';
+      return data;
     },
   });
-  const staffMap = { ...staff.data };
+  const staffMap = { ...staff.data?.names };
   [user?.id, user?.staff_aad_id, user?.data?.staff_aad_id].filter(Boolean).forEach(id => { if (user?.full_name) staffMap[id] = user.full_name; });
   const contactMap = {};
   (contacts.data || []).forEach(person => [person.id, person.dataverse_id].filter(Boolean).forEach(id => { contactMap[id] = person.full_name || [person.first_name, person.last_name].filter(Boolean).join(' '); }));
@@ -40,6 +40,9 @@ export default function useProjectAssignmentPeople(project) {
   return {
     staffName: id => projectStaffName(id, staffMap) || (id ? fallback(staff) : 'Not assigned'),
     contactName: id => contactMap[id] || (id ? fallback(contacts) : null),
-    directorName: director.data || (project.bdm_aad_id ? fallback(director) : 'Not assigned'),
+    staffTo: id => staff.data?.links?.[id],
+    contactTo: id => { const person=(contacts.data||[]).find(row=>row.id===id||row.dataverse_id===id);return person?`/people/${person.id}`:undefined; },
+    directorName: director.data?.managerName || (project.bdm_aad_id ? fallback(director) : 'Not assigned'),
+    directorTo: director.data?.managerContactId ? `/people/${director.data.managerContactId}` : undefined,
   };
 }
