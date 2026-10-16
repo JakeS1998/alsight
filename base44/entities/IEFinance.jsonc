@@ -10,21 +10,106 @@
         "number",
         "null"
       ],
-      "minimum": 0
+      "minimum": 0,
+      "maximum": 1000000000000
     },
     "invoiced": {
       "type": [
         "number",
         "null"
       ],
-      "minimum": 0
+      "minimum": 0,
+      "maximum": 1000000000000,
+      "description": "Manually recorded I&E invoiced payment, not a mapped invoice ledger."
     },
     "added_value": {
       "type": [
         "number",
         "null"
       ],
-      "minimum": 0
+      "minimum": 0,
+      "maximum": 1000000000000
+    },
+    "als_fees": {
+      "type": [
+        "number",
+        "null"
+      ],
+      "minimum": 0,
+      "maximum": 1000000000000
+    },
+    "leisure_database_costs": {
+      "type": [
+        "number",
+        "null"
+      ],
+      "minimum": 0,
+      "maximum": 1000000000000
+    },
+    "active_insight_costs": {
+      "type": [
+        "number",
+        "null"
+      ],
+      "minimum": 0,
+      "maximum": 1000000000000
+    },
+    "meme_costs": {
+      "type": [
+        "number",
+        "null"
+      ],
+      "minimum": 0,
+      "maximum": 1000000000000
+    },
+    "meme_value": {
+      "type": [
+        "number",
+        "null"
+      ],
+      "minimum": 0,
+      "maximum": 1000000000000
+    },
+    "sam_time_cost": {
+      "type": [
+        "number",
+        "null"
+      ],
+      "minimum": 0,
+      "maximum": 1000000000000,
+      "description": "Recorded GBP cost at the workbook's \u00a340 per hour basis, not hours."
+    },
+    "sam_value": {
+      "type": [
+        "number",
+        "null"
+      ],
+      "minimum": 0,
+      "maximum": 1000000000000,
+      "description": "Recorded GBP value at the workbook's \u00a360 per hour basis, not hours."
+    },
+    "ppc": {
+      "type": [
+        "number",
+        "null"
+      ],
+      "minimum": 0,
+      "maximum": 1000000000000
+    },
+    "als_costs": {
+      "type": [
+        "number",
+        "null"
+      ],
+      "minimum": 0,
+      "maximum": 1000000000000
+    },
+    "source": {
+      "type": "string",
+      "enum": [
+        "workbook",
+        "manual"
+      ]
     },
     "payment_type": {
       "type": "string",
