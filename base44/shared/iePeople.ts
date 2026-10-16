@@ -1,7 +1,7 @@
 import {ieError} from './ieAccess.ts';
 const titles='^\\s*((business\\s+development\\s+manager|bdm)\\s*(and|&|\\+|/)\\s*)?(strategic\\s+account\\s+manager|sam|head\\s+of\\s+(insights?|engagement|enggement|engagment)(\\s*(and|&)\\s*(insights?|engagement))?)\\s*$';
 export async function iePeople(db){
- const contacts=await db.Contact.filter({status:{$ne:'inactive'},job_title:{$regex:titles,$options:'i'}},{sort:'full_name',limit:200,fields:['full_name','email','aad_id','portal_role','job_title']});
+ const contacts=await db.Contact.filter({status:{$ne:'inactive'},$or:[{job_title:{$regex:titles,$options:'i'}},{dataverse_id:'6474e683-673a-f111-88b4-7ced8d390a61'}]},{sort:'full_name',limit:200,fields:['full_name','email','aad_id','portal_role','job_title']});
  if(contacts.has_more)ieError('The SAM directory needs another page.');
  const emails=contacts.items.map(c=>c.email?.trim().toLowerCase()).filter(Boolean);
  const users=await db.User.filter({$or:[{email:{$in:emails}},{role:{$in:['sam','sam_director']}}]},'full_name',500);
