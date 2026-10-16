@@ -23,10 +23,14 @@ export async function pqSourceDocument(base44,project){
  const reader=response.body.getReader(),chunks=[];let size=0;
  while(true){const {done,value}=await reader.read();if(done)break;size+=value.length;if(size>10*1024*1024){await reader.cancel();throw new Error('The PQ document exceeds 10 MB.');}chunks.push(value);}
  const bytes=new Uint8Array(size);let offset=0;for(const chunk of chunks){bytes.set(chunk,offset);offset+=chunk.length;}
- const pdf=!/\.docx$/i.test(item.name),extracted=pdf?await extractText(bytes,{mergePages:true}):null;
+ const pdf=!/\.docx$/i.test(item.name),extracted=pdf?await extractText(bytes.slice(),{mergePages:true}):null;
  const text=pdf?extracted.text:(await mammoth.extractRawText({arrayBuffer:bytes.buffer})).value;
  if(text.length>60000)throw new Error('The PQ document exceeds the 60,000 character import limit.');
- const visualUrl=/\.pdf$/i.test(item.name)?metadata['@microsoft.graph.downloadUrl']:null;
+ let visualUrl=null;
+ if(pdf){
+  const {file_uri}=await base44.asServiceRole.integrations.Core.UploadPrivateFile({file:new File([bytes],item.name.replace(/\.doc$/i,'.pdf'),{type:'application/pdf'})});
+  ({signed_url:visualUrl}=await base44.asServiceRole.integrations.Core.CreateFileSignedUrl({file_uri,expires_in:600}));
+ }
  if(pdf&&(!Number.isInteger(extracted.totalPages)||extracted.totalPages<1||extracted.totalPages>40))throw new Error('The PQ PDF must contain between 1 and 40 pages.');
  if(!visualUrl&&!text.trim())throw new Error('The PQ needs readable text or a PDF copy for visual import.');
  const result=await pqDocumentAnswers(base44,text,visualUrl,extracted?.totalPages||0);
