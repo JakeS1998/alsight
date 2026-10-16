@@ -1,5 +1,19 @@
 import React from 'react';
-import {Link} from 'react-router-dom';
+import {CircleAlert, Pencil} from 'lucide-react';
+import {Button} from '@/components/ui/button';
 import IEPanel from '@/components/ie/IEPanel';
-import {formatDate,regionName} from '@/lib/portal';
-export default function IEOverview({data}){const {item,links}=data;return <div className="grid items-start gap-5 xl:grid-cols-3"><div className="space-y-5 xl:col-span-2"><IEPanel title="Engagement summary"><p className="whitespace-pre-wrap text-sm leading-relaxed">{item.description||'No background or scope recorded.'}</p><h3 className="mt-6 text-sm font-semibold">Expected outcome</h3><p className="mt-2 whitespace-pre-wrap text-sm text-muted-foreground">{item.expected_outcome||'Not recorded.'}</p></IEPanel><IEPanel title="Important notes & risks"><p className="whitespace-pre-wrap text-sm">{item.notes_risks||'No important notes or risks recorded.'}</p>{item.awaiting_action&&<div className="mt-4 rounded-lg border border-primary/30 bg-primary/10 p-3"><strong className="text-sm">Awaiting action</strong><p className="mt-1 text-sm">{item.action_note}</p></div>}</IEPanel></div><div className="space-y-5"><IEPanel title="Key information"><dl className="space-y-3 text-sm">{[['Owner',item.owner_name],['Service',item.category_name],['Support type',item.support_type_name],['Region',regionName(item.region_id)],['Priority',item.priority],['Start',formatDate(item.start_date)],['Target completion',formatDate(item.target_date)],['Actual completion',formatDate(item.completion_date)],['Sites',(item.sites||[]).join(', ')]].map(([label,value])=><div key={label}><dt className="text-xs text-muted-foreground">{label}</dt><dd className="mt-1 break-words font-medium">{value||'Not recorded'}</dd></div>)}</dl></IEPanel><IEPanel title="Related records"><dl className="space-y-3 text-sm">{[['Client',item.client_name,links.client?`/accounts/${item.client_id}`:null],['Project',item.project_name,item.project_id&&links.project?`/projects/${item.project_id}`:null],['Opportunity',item.opportunity_name,item.opportunity_id&&links.opportunity?`/opportunities/${item.opportunity_id}`:null]].map(([label,name,to])=><div key={label}><dt className="text-xs text-muted-foreground">{label}</dt><dd className="mt-1">{to?<Link to={to} className="font-medium underline underline-offset-4">{name}</Link>:name||'Not linked'}</dd></div>)}</dl></IEPanel><IEPanel title="Additional team">{item.team?.length?item.team.map(person=><p key={person.id} className="py-1 text-sm">{person.name}</p>):<p className="text-sm text-muted-foreground">No additional team members.</p>}</IEPanel></div></div>;}
+import IEEngagementSummary from '@/components/ie/IEEngagementSummary';
+import IEEngagementInformation from '@/components/ie/IEEngagementInformation';
+import IEEngagementRecords from '@/components/ie/IEEngagementRecords';
+import IEEngagementTeam from '@/components/ie/IEEngagementTeam';
+import IEEngagementDates from '@/components/ie/IEEngagementDates';
+
+export default function IEOverview({data,onEdit}){
+ const {item,links}=data;
+ return <div className="space-y-5">
+  {item.awaiting_action&&<section className="flex flex-wrap items-center gap-3 rounded-panel border border-primary/30 bg-primary/10 px-5 py-4" aria-label="Awaiting action"><CircleAlert className="h-5 w-5 shrink-0 text-primary"/><div className="min-w-0 flex-1 basis-64"><h2 className="text-sm font-bold">Awaiting action</h2><p className="mt-1 whitespace-pre-wrap text-xs leading-6 text-muted-foreground">{item.action_note||'This engagement needs attention.'}</p></div>{data.canEdit&&<Button size="sm" variant="outline" onClick={onEdit}><Pencil/>Review details</Button>}</section>}
+  <div className="grid items-stretch gap-5 xl:grid-cols-3"><div className="min-w-0 xl:col-span-2"><IEEngagementSummary item={item}/></div><IEEngagementInformation item={item}/></div>
+  <div className="grid items-stretch gap-5 xl:grid-cols-3"><IEEngagementRecords item={item} links={links}/><IEEngagementTeam item={item}/><IEEngagementDates item={item}/></div>
+  <IEPanel title="Important notes & risks"><p className="whitespace-pre-wrap break-words text-sm leading-7 text-muted-foreground">{item.notes_risks||'No important notes or risks recorded.'}</p></IEPanel>
+ </div>;
+}
