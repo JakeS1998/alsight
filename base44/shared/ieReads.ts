@@ -28,7 +28,7 @@ export async function ieSummary(base44,user){
 }
 export async function ieOptions(base44,user){
  const db=base44.asServiceRole.entities,query=ieScope(user),fields=['client_id','owner_id','region_id'];
- const values=await Promise.all(fields.map(field=>db.IEEngagement.filter(query,{distinct:field,limit:500})));
+ const values=await Promise.all(fields.map(field=>db.IEEngagement.filter({$and:[query,{[field]:{$exists:true,$nin:[null,'']}}]},{distinct:field,limit:500})));
  const [clients,people]=await Promise.all([
   values[0].items.length?db.Account.filter({id:{$in:values[0].items}},{limit:500,fields:['name']}):{items:[]},
   iePeople(db)
