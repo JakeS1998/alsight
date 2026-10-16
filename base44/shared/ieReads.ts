@@ -1,5 +1,6 @@
 import {ieScope,ieText,ieEscape,ieAttention,ieToday} from './ieAccess.ts';
 import {ieDashboardBreakdown} from './ieDashboardBreakdown.ts';
+import {iePeople} from './iePeople.ts';
 export function ieQuery(user,filters={}){
  const parts=[ieScope(user)],search=ieText(filters.search,100);
  for(const field of ['status','client_id','owner_id','category_id','support_type_id','region_id','project_id'])if(filters[field])parts.push({[field]:ieText(filters[field],100)});
@@ -30,7 +31,7 @@ export async function ieOptions(base44,user){
  const values=await Promise.all(fields.map(field=>db.IEEngagement.filter(query,{distinct:field,limit:500})));
  const [clients,people]=await Promise.all([
   values[0].items.length?db.Account.filter({id:{$in:values[0].items}},{limit:500,fields:['name']}):{items:[]},
-  db.User.filter({role:{$in:['sam','sam_director']}},'full_name',200)
- ]);
- return {clients:clients.items,people:people.map(p=>({id:p.id,name:p.full_name||p.email})),regions:values[2].items.filter(Boolean)};
+  iePeople(db)
+  ]);
+  return {clients:clients.items,people:people.map(p=>({id:p.id,name:p.name})),regions:values[2].items.filter(Boolean)};
 }

@@ -1,6 +1,7 @@
 import { createClientFromRequest } from 'npm:@base44/sdk@0.8.52';
 import { withPortalUserNames } from '../../shared/portalUserNames.ts';
 import {portalNameAliases} from '../../shared/portalNameAliases.ts';
+import {ieLinkContactEngagements} from '../../shared/iePeople.ts';
 
 const ROLES = ['admin', 'director', 'regional_director', 'bsm', 'finance', 'bdm', 'sam', 'sam_director', 'client', 'supplier', 'project_manager', 'framework_stakeholder'];
 
@@ -43,6 +44,7 @@ export default async function(req: Request): Promise<Response> {
     });
     if (contact?.email?.trim().toLowerCase() === email) {
       await base44.asServiceRole.entities.Contact.update(contact.id, { aad_id: user.id, portal_role: assignment.portal_role });
+      if (['sam','sam_director'].includes(assignment.portal_role)) await ieLinkContactEngagements(base44.asServiceRole.entities,contact.id,user.id);
     }
     await base44.asServiceRole.entities.PendingPortalAccess.delete(assignment.id);
     return Response.json({ applied: true, displayName,nameAliases });

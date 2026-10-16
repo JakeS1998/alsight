@@ -1,10 +1,10 @@
 import {ieError,ieText,ieEscape,ieRoles,ieIdentity} from './ieAccess.ts';
+import {iePeople} from './iePeople.ts';
 export async function ieLookup(base44,user,input){
  const db=base44.asServiceRole.entities,kind=input.kind,search=ieText(input.search,100),cursor=ieText(input.cursor,4000),opts={limit:30,sort:'name',...(cursor?{cursor}:{})};
  const match=field=>search?{[field]:{$regex:ieEscape(search),$options:'i'}}:{};
  if(kind==='people'){
-  const users=await db.User.filter({role:{$in:['sam','sam_director']}},'full_name',200);
-  return {items:users.map(u=>({id:u.id,name:u.full_name||u.email,role:u.role})),has_more:false};
+  return {items:await iePeople(db),has_more:false};
  }
  if(kind==='client')return db.Account.filter({account_type:'client',status:{$ne:'inactive'},...match('name')},{...opts,fields:['name']});
  if(!['project','opportunity'].includes(kind))ieError('Unknown relationship type.');
