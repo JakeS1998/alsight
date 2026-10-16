@@ -1,6 +1,7 @@
 import React from 'react';
 const inputClass='mt-2 w-full rounded-md border border-input bg-background p-3 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring';
 export default function QuestionnaireField({field,value,onChange,disabled,invalid}) {
+ if(field.id==='access_signature')return null;
  if(field.type==='heading')return <h4 className="border-b border-border pb-2 pt-4 font-semibold">{field.label}</h4>;
  const id=`pq-${field.id}`;
  if(field.type==='checklist')return <fieldset className="space-y-3"><legend className="text-sm font-medium">{field.label}</legend><div className="grid gap-3 sm:grid-cols-2">{field.options.map(option=><label key={option} className="flex items-center gap-2 text-sm"><input type="checkbox" disabled={disabled} checked={(value||[]).includes(option)} onChange={event=>onChange(event.target.checked?[...(value||[]),option]:(value||[]).filter(item=>item!==option))} />{option}</label>)}</div></fieldset>;
