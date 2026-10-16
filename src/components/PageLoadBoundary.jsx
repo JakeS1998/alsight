@@ -1,15 +1,18 @@
 import React from 'react';
+import AccessDenied from '@/pages/AccessDenied';
+import isAccessDenied from '@/lib/isAccessDenied';
 
 export default class PageLoadBoundary extends React.Component {
   state = { failed: false, retry: 0 };
 
-  static getDerivedStateFromError() { return { failed: true }; }
+  static getDerivedStateFromError(error) { return { failed: true, error }; }
 
   componentDidUpdate(previous) {
     if (previous.route !== this.props.route && this.state.failed) this.setState({ failed: false, retry: 0 });
   }
 
   render() {
+    if (this.state.failed && isAccessDenied(this.state.error)) return <AccessDenied />;
     if (this.state.failed) return <div role="alert" className="mx-auto max-w-lg px-5 py-20 text-center">
       <h2 className="text-lg font-semibold text-foreground">This page couldn't load</h2>
       <p className="mt-2 text-sm text-muted-foreground">Reload the page to download the latest version and try again.</p>

@@ -1,8 +1,9 @@
 import React from 'react';
-import { Navigate, Outlet } from 'react-router-dom';
+import { Outlet } from 'react-router-dom';
+import AccessDenied from '@/pages/AccessDenied';
 import { useAuth } from '@/lib/AuthContext';
 
 export default function StakeholderRoute() {
   const { user } = useAuth();
-  return user?.role === 'framework_stakeholder' ? <Navigate to="/framework-reports" replace /> : <Outlet />;
+  return user?.role === 'framework_stakeholder' ? <AccessDenied /> : <Outlet />;
 }

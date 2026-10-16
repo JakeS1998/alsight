@@ -5,6 +5,7 @@ import { listAll } from "@/components/data/loadAll";
 import { ROLE_LABELS, INTERNAL_ROLES, canDelegateTo, REGION_MAP, regionName } from "@/lib/portal";
 import { Button } from "@/components/ui/button";
 import SearchableSelect from '@/components/forms/SearchableSelect';
+import AccessDenied from '@/pages/AccessDenied';
 import { UserCog, Search, X, Loader2, ArrowLeftRight } from "lucide-react";
 
 export default function Delegation() {
@@ -83,9 +84,7 @@ export default function Delegation() {
 
   if (!INTERNAL_ROLES.includes(role)) {
     return (
-      <div className="rounded-2xl border border-dashed border-slate-300 bg-white py-16 text-center">
-        <p className="text-sm text-slate-500">Delegation is available to internal staff only.</p>
-      </div>
+      <AccessDenied />
     );
   }
 

@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
-import { Link, Navigate } from 'react-router-dom';
+import { Link } from 'react-router-dom';
+import AccessDenied from '@/pages/AccessDenied';
 import { useAuth } from '@/lib/AuthContext';
 import { Button } from '@/components/ui/button';
 import DataverseConnectionCard from '@/components/dataverse/DataverseConnectionCard';
@@ -10,7 +11,7 @@ export default function DataverseWorkspace() {
   const { run, busy, error } = useFlowOperation(), [data, setData] = useState(null), [table, setTable] = useState('projects'), [recordId, setRecordId] = useState('');
   const { user } = useAuth(), allowed = ['admin', 'director', 'regional_director', 'bsm', 'bdm', 'finance'].includes(user?.role);
   useEffect(() => { if (allowed) run('status').then(result => { if (result) setData(result); }); }, [allowed]);
-  if (!allowed) return <Navigate to="/account-settings" replace />;
+  if (!allowed) return <AccessDenied />;
   const options = data?.tables || Object.fromEntries(Object.entries(data?.specs || {}).map(([key]) => [key, { label: data.specs[key].label, enabled: data.config?.tables?.[key]?.mappings?.some(m => m.write), canWrite: data.specs[key].writeRoles.includes(user?.role) }]));
   return <div className="space-y-5"><header><h1 className="font-heading text-2xl font-semibold">Dataverse write-back</h1><p className="text-sm text-muted-foreground">Review and update mapped ALSight records using your own Microsoft account.</p></header><DataverseConnectionCard />
     <div className="flex flex-wrap gap-2">{Object.entries(options).filter(([, option]) => option.canWrite).map(([key, option]) => <Button key={key} variant={table === key ? 'default' : 'outline'} onClick={() => { setTable(key); setRecordId(''); }}>{option.label || key}</Button>)}<Button variant="outline" asChild><Link to="/account-settings">Account settings</Link></Button></div>

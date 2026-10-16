@@ -18,6 +18,7 @@ const FinanceAdmin = lazy(() => import('@/pages/FinanceAdmin.jsx'));
 const PowerBICallback = lazy(() => import('@/pages/PowerBICallback.jsx'));
 const People = lazy(() => import('@/pages/People'));
 import PageLoadBoundary from '@/components/PageLoadBoundary';
+import AccessDenied from '@/pages/AccessDenied';
 import StakeholderRoute from '@/components/StakeholderRoute';
 import OnboardingGate from '@/components/onboarding/OnboardingGate';
 const Onboarding = lazy(() => import('@/pages/Onboarding'));
@@ -105,6 +106,7 @@ const AuthenticatedApp = () => {
       <Route element={<ProtectedRoute unauthenticatedElement={<Navigate to="/login" replace />} />}>
         <Route element={<OnboardingGate />}>
         <Route element={<PortalLayout />}>
+          <Route path="/access-denied" element={<AccessDenied />} />
           <Route path="/framework-reports" element={<FrameworkReports />} />
           <Route path="/framework-reports/:reportId" element={<FrameworkProjectDetail />} />
           <Route path="/projects/:projectId" element={useStakeholderView ? <FrameworkProjectDetail /> : <ProjectDetail />} />

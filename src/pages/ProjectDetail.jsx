@@ -3,6 +3,8 @@ import { useParams, Link, useLocation } from "react-router-dom";
 import { base44 } from "@/api/base44Client";
 import { useAuth } from "@/lib/AuthContext";
 import { INTERNAL_ROLES } from '@/lib/portal';
+import AccessDenied from '@/pages/AccessDenied';
+import isAccessDenied from '@/lib/isAccessDenied';
 import ProjectValuationsTab from "@/components/valuations/ProjectValuationsTab";
 import UKLFProjectTab from '@/components/framework/UKLFProjectTab';
 import ProjectQuestionnaire from '@/components/questionnaire/ProjectQuestionnaire';
@@ -50,6 +52,7 @@ export default function ProjectDetail({ embedded = false, embeddedProjectId, sup
   const isSupplier = user?.role === 'supplier';
   const supplierAccountId = user?.account_id || user?.data?.account_id;
   const [project, setProject] = useState(null);
+  const [accessDenied, setAccessDenied] = useState(false);
   useProjectReportingRefresh(project?.id,setProject);
   useAutomaticPurposeResearch(project,updated=>setProject(current=>current?.id===updated.id?{...current,...updated}:current));
   const canSeeValuations = isExternalPM || INTERNAL_ROLES.includes(user?.role) || (isSupplier && !!project?.can_submit_valuation);
@@ -68,8 +71,10 @@ export default function ProjectDetail({ embedded = false, embeddedProjectId, sup
 
   useEffect(() => {
     (async () => {
+      setAccessDenied(false);
+      const unavailable = error => { if (isAccessDenied(error)) setAccessDenied(true); return null; };
       try {
-        const proj = isExternalPM ? (await base44.functions.invoke('manageValuation', { action: 'project', projectId }).catch(() => ({ data: { project: null } }))).data.project : isSupplier ? (await Promise.all([base44.functions.invoke('supplierProjectAccess', { action: 'project', projectId }).then(res => res.data.project).catch(() => null), base44.functions.invoke('manageValuation', { action: 'project', projectId }).then(res => res.data.project).catch(() => null)]).then(([linked, manager]) => (linked || manager) ? { ...(linked || manager), can_submit_valuation: !!manager } : null)) : await base44.entities.Project.get(projectId).catch(() => null);
+        const proj = isExternalPM ? (await base44.functions.invoke('manageValuation', { action: 'project', projectId }).catch(error => { unavailable(error); return { data: { project: null } }; })).data.project : isSupplier ? (await Promise.all([base44.functions.invoke('supplierProjectAccess', { action: 'project', projectId }).then(res => res.data.project).catch(unavailable), base44.functions.invoke('manageValuation', { action: 'project', projectId }).then(res => res.data.project).catch(unavailable)]).then(([linked, manager]) => (linked || manager) ? { ...(linked || manager), can_submit_valuation: !!manager } : null)) : await base44.entities.Project.get(projectId).catch(unavailable);
         if (!proj || proj.status === 'inactive') { setProject(null); return; }
         setProject(proj);
         const [accounts, orders] = await Promise.all([
@@ -95,6 +100,7 @@ export default function ProjectDetail({ embedded = false, embeddedProjectId, sup
     );
   }
 
+  if (!project && accessDenied) return <AccessDenied />;
   if (!project) {
     return (
       <div className="rounded-2xl border border-dashed border-slate-300 bg-white py-16 text-center">

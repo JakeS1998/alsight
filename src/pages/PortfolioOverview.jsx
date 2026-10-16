@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { Navigate } from 'react-router-dom';
+import AccessDenied from '@/pages/AccessDenied';
 import useDashboardData from '@/components/dashboard/useDashboardData';
 import useOverviewAnalytics from '@/components/dashboard/useOverviewAnalytics';
 import DashboardSkeleton from '@/components/dashboard/DashboardSkeleton';
@@ -25,7 +25,7 @@ export default function PortfolioOverview() {
   const [since, setSince] = useState(() => null);
   useEffect(() => { if (!dashboard.user?.id) return; const key = `als-portfolio-last-checked:${dashboard.user.id}`; setSince(localStorage.getItem(key)); return () => localStorage.setItem(key,new Date().toISOString()); }, [dashboard.user?.id]);
   const analytics = useOverviewAnalytics(dashboard,since);
-  if (dashboard.user && !dashboard.internal) return <Navigate to="/" replace />;
+  if (dashboard.user && !dashboard.internal) return <AccessDenied />;
   const data = analytics.data;
   const error = dashboard.error || analytics.error?.message;
   const opportunities = data ? {count:data.opportunities.reduce((n,r)=>n+r.count,0),value:data.opportunities.reduce((n,r)=>n+(r.sum_budget || 0),0)} : null;

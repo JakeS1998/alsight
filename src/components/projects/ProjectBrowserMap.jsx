@@ -2,13 +2,14 @@ import React from 'react';
 import { MapContainer, TileLayer } from 'react-leaflet';
 import 'leaflet/dist/leaflet.css';
 import ProjectMapBounds from '@/components/projects/ProjectMapBounds';
+import ProjectUKMapBounds from '@/components/projects/workspace/ProjectUKMapBounds';
 import ProjectWorkspacePin from '@/components/projects/workspace/ProjectWorkspacePin';
 import ProjectMapFocus from '@/components/projects/workspace/ProjectMapFocus';
 export default function ProjectBrowserMap({ projects, showValues, selectedId, onSelect }) {
   return <div className="relative isolate z-0 overflow-hidden rounded-xl border border-border">
     <MapContainer zoomAnimation={false} center={[54.5, -2]} zoom={6} className="h-[450px] w-full sm:h-[600px]" scrollWheelZoom={false}>
       <TileLayer url="https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png?key=cb1_3xkp_1_d4c84e7c5c7a1eee6ccca93b" attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; CARTO' />
-      <ProjectMapBounds projects={projects} />
+      {onSelect ? <ProjectUKMapBounds /> : <ProjectMapBounds projects={projects} />}
       {onSelect && <ProjectMapFocus project={projects.find(p=>p.id===selectedId)}/>}
       {projects.map(project => <ProjectWorkspacePin key={project.id} project={project} selected={project.id===selectedId} onSelect={onSelect} showValues={showValues}/>)}
     </MapContainer>
