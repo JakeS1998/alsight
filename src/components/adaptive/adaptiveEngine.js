@@ -21,7 +21,7 @@ export function rankActions(items,role,focus) {
 }
 export function widgetOrder(config,context,focus) {
  const order=[...new Set([...(config.order||[]),...context.widgets])].filter(id=>context.widgets.includes(id)&&!(config.hidden||[]).includes(id));
- const preferred={'My projects':'projects',Commercial:'commercial',Documents:'documents','My activity':'activity'}[focus];
+ const preferred=config.order?.length?null:{'My projects':'projects',Commercial:'commercial',Documents:'documents','My activity':'activity'}[focus];
  return order.sort((a,b)=>Number((config.pinned||[]).includes(b))-Number((config.pinned||[]).includes(a))+((config.pinned||[]).includes(a)===(config.pinned||[]).includes(b)?Number(b===preferred)-Number(a===preferred):0));
 }
 export function evidenceContext(actions,projects) {
