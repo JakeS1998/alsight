@@ -1,0 +1,6 @@
+import React, { useState } from 'react';
+export default function WorkdaySettings({time,prefs}) {
+ const [start,setStart]=useState(time.workdayStart),[end,setEnd]=useState(time.workdayEnd),[error,setError]=useState('');
+ function save(e){e.preventDefault();if(!start||!end||end<=start){setError('Choose a daytime planning window with the finish after the start.');return;}prefs.save({workday:{start,end}});setError('');}
+ return <details className="at-workday-settings"><summary>Planning hours {time.workdayStart}–{time.workdayEnd} · {time.timezone}</summary><p className="at-small">These are planning hours, not a confirmed work schedule. Initially 09:00–17:00; saved only on this browser. Calendar gaps are not a guarantee of availability.</p><form onSubmit={save}><label>Start <input type="time" required value={start} onChange={e=>setStart(e.target.value)}/></label><label>Finish <input type="time" required value={end} onChange={e=>setEnd(e.target.value)}/></label><button className="at-btn" type="submit">Save hours</button></form>{error&&<p role="alert" className="at-error">{error}</p>}{prefs.error&&<p role="alert" className="at-error">{prefs.error}</p>}</details>;
+}

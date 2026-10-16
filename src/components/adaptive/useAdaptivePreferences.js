@@ -1,5 +1,5 @@
 import { useState } from 'react';
-const empty={order:[],hidden:[],pinned:[],dismissed:[],focus:'My priorities',lastVisit:null};
+const empty={order:[],hidden:[],pinned:[],dismissed:[],focus:'My priorities',lastVisit:null,workday:{start:'09:00',end:'17:00'},completions:null};
 export default function useAdaptivePreferences(userId) {
  const key=`alsight-adaptive-v1:${userId}`;
  const [error,setError]=useState('');
