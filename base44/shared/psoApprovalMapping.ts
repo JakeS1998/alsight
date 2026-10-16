@@ -1,3 +1,4 @@
+import psoApprovalSections from './psoApprovalSections.ts';
 const months=['january','february','march','april','may','june','july','august','september','october','november','december'];
 export function psoDate(value) {
  const text=String(value||'').replace(/^(?:date\s*:?\s*)/i,'').trim();
@@ -8,10 +9,8 @@ export function psoDate(value) {
  return month && date.getUTCFullYear()===year && date.getUTCMonth()===month-1 && date.getUTCDate()===day ? date.toISOString().slice(0,10) : null;
 }
 export function mapPsoApprovals(rows) {
- const updates={},warnings=[];
- const sectionRules=[['pq',/^PQ\s+APPROVED\s*:/i],['aa',/^AA\s+(?:RIBA\s*\[?\s*(?:[0-7]|x)\s*\]?(?:\s*(?:[-–/&]|and|to)\s*\[?\s*[0-7]\s*\]?)?\s+)?APPROVED\s*:/i],['aa_variations',/^AA\s+VARIATIONS?\s+APPROVED/i]];
- for(const [key,pattern] of sectionRules) {
-  const matching=rows.filter(row=>row.some(cell=>pattern.test(String(cell).trim())));
+ const updates={},classification=psoApprovalSections(rows),warnings=[...classification.warnings];
+ for(const [key,matching] of classification.sections) {
   if(matching.length!==1){warnings.push(`${key.toUpperCase()}: ${matching.length?'multiple':'no'} named approval sections found.`);continue;}
   const row=matching[0],approverIndex=row.findIndex(cell=>/^APPROVED\s+BY\s*:/i.test(String(cell).trim()));
   if(approverIndex<0){warnings.push(`${key.toUpperCase()}: named approver label not found.`);continue;}
