@@ -1,5 +1,6 @@
 import {ieError,ieText,ieToday} from './ieAccess.ts';
 import {iePeople,iePersonMap,ieAccessUsers} from './iePeople.ts';
+import {ieServiceValue} from './ieServiceValue.ts';
 const statuses=['scoping','planned','live','on_hold','completed','cancelled'];
 export async function ieValues(base44,user,input,previous){
  const db=base44.asServiceRole.entities,values=input.values||{},out={};
@@ -30,5 +31,6 @@ export async function ieValues(base44,user,input,previous){
  if(out.project_id){const project=await db.Project.get(out.project_id);if(!accountIds.includes(project.client_account_id)&&!accountIds.includes(project.account_id))ieError('The project must belong to the selected client.');out.project_name=project.name;out.bsm_identity=project.bsm_aad_id||'';out.region_id=project.department_id||out.region_id;}
  if(out.opportunity_id){const opportunity=await base44.entities.Opportunity.get(out.opportunity_id);if(!opportunity||!accountIds.includes(opportunity.account_id))ieError('The opportunity must be accessible and belong to the client.');out.opportunity_name=opportunity.title;}
  for(const [field,name,kind] of [['category_id','category_name','category'],['support_type_id','support_type_name','support']]){out[name]='';if(out[field]){const item=await db.IEClassification.get(out[field]);if(item.kind!==kind||item.active===false&&out[field]!==previous?.[field])ieError('Choose an active service classification.');if(kind==='support'&&item.parent_id&&item.parent_id!==out.category_id)ieError('Choose a support type from the selected category.');out[name]=item.name;}}
+ Object.assign(out,ieServiceValue({...previous,...out}));
  return out;
-}
+ }

@@ -1,6 +1,7 @@
 import {secrets} from 'base44:runtime';
 import {ieRecord,ieEditable,ieError,ieText} from './ieAccess.ts';
 import {workKinds,ieWorkValues,ieFinanceValues,ieWorkspaceEvent} from './ieWorkspaceValues.ts';
+import {ieServiceValue} from './ieServiceValue.ts';
 export const ieWorkspaceOperations=['workList','workSave','workDelete','documents','documentSave','documentDelete','finance','financeSave'];
 export async function ieWorkspaceAction(base44,user,input){
  const item=await ieRecord(base44,user,input.engagement_id),db=base44.asServiceRole.entities,action=input.action;
@@ -36,6 +37,7 @@ export async function ieWorkspaceAction(base44,user,input){
  if(action==='financeSave'){
   const values=ieFinanceValues(input.values||{});
   await db.IEFinance.upsert([{...values,engagement_id:item.id,saved_by_name:user.full_name||user.email}],{key:'engagement_id'});
+  await db.IEEngagement.update(item.id,ieServiceValue(item,values));
   await ieWorkspaceEvent(db,user,item,'Updated engagement finance totals and notes.');return {ok:true};
  }
  ieError('Unknown workspace operation.');

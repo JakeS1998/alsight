@@ -19,6 +19,7 @@ import '@/components/dashboard/dashboard-reference.css';
 import WorkspacePageHeader from '@/components/layout/WorkspacePageHeader';
 import PortfolioImpact from '@/components/alliance/PortfolioImpact';
 import PortfolioCapacity from '@/components/dashboard/PortfolioCapacity';
+import OverviewIEHeadlines from '@/components/dashboard/OverviewIEHeadlines';
 export default function PortfolioOverview() {
   const [filters, setFilters] = useState({});
   const dashboard = useDashboardData(filters);
@@ -35,6 +36,7 @@ export default function PortfolioOverview() {
     {error ? <div role="alert" className="dashboard-panel text-sm text-destructive">{error}<button onClick={dashboard.refresh} className="ml-3 underline">Try again</button></div> : dashboard.loading || !data ? <DashboardSkeleton internal /> : <>
       <PortfolioImpact projectIds={dashboard.projects.map(p=>p.id)} />
       <OverviewKpis metrics={metrics} businessContext={data.businessContext} onRisk={() => document.getElementById('overview-attention')?.scrollIntoView({behavior:'smooth',block:'center'})} />
+      <OverviewIEHeadlines refreshKey={dashboard.scopeKey}/>
       <div className="overview-journey-row"><PipelineTimeline projects={dashboard.portfolio.pipeline} accountMap={dashboard.accountMap} stageSummary={data.stages} opportunitySummary={opportunities} /><OverviewHealth metrics={metrics} /></div>
       <PortfolioCapacity dashboard={dashboard} />
       <div className="overview-middle"><OverviewRegions rows={data.regions} /><OverviewCommercial rows={data.opportunities} poNet={metrics.poNet} /><OverviewReadiness data={data} metrics={metrics} fees={dashboard.portfolio.fees} /></div>

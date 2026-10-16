@@ -143,6 +143,24 @@
     "origin": {
       "type": "string",
       "default": "alsight"
+    },
+    "service_value": {
+      "type": [
+        "number",
+        "null"
+      ],
+      "minimum": 0,
+      "maximum": 1000000000000,
+      "description": "Reporting total for I&E service value in GBP, never the underlying construction project value. Recorded engagement finance takes precedence over the imported workbook Value field."
+    },
+    "service_value_source": {
+      "type": "string",
+      "enum": [
+        "",
+        "workbook",
+        "finance"
+      ],
+      "description": "Source of the reporting service value; blank means no numeric value recorded."
     }
   },
   "required": [
