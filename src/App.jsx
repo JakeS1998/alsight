@@ -58,6 +58,7 @@ const RiskApprovalReview = lazy(() => import('@/pages/RiskApprovalReview'));
 const PQApprovalReview = lazy(() => import('@/pages/PQApprovalReview'));
 const Help = lazy(() => import('@/pages/Help'));
 const Pulse = lazy(() => import('@/pages/Pulse'));
+const InsightsEngagement = lazy(() => import('@/pages/InsightsEngagement'));
 const Lookout = lazy(() => import('@/pages/Lookout'));
 const LookoutAdmin = lazy(() => import('@/pages/LookoutAdmin'));
 const ApprovalCentre = lazy(() => import('@/pages/ApprovalCentre.jsx'));
@@ -120,6 +121,7 @@ const AuthenticatedApp = () => {
           <Route path="/portfolio-overview" element={<PortfolioOverview />} />
           <Route element={<FinanceRoute />}><Route path="/finance" element={<FinanceDashboard />} /></Route>
           <Route path="/pulse" element={<Pulse />} />
+          <Route path="/insights-engagement" element={<InsightsEngagement />} />
           <Route path="/lookout/:issueId" element={<Lookout />} />
           <Route path="/projects" element={<Projects />} />
           <Route path="/documents" element={<LegalDocuments />} />

@@ -8,6 +8,7 @@ import NotificationCenter from '@/components/NotificationCenter';
 import UserMenu from '@/components/UserMenu';
 import PortalSearch from '@/components/search/PortalSearch';
 import UKLFIcon from '@/components/framework/UKLFIcon';
+import InsightsEngagementIcon from '@/components/InsightsEngagementIcon';
 import RelationshipNavigation from '@/components/relationships/RelationshipNavigation';
 import useApprovalAccess from '@/components/approvals/useApprovalAccess';
 import useApprovalSummary from '@/components/approvals/useApprovalSummary';
@@ -24,6 +25,7 @@ const NAV_ITEMS = [
   { label: 'Commercial', path: '/finance', icon: ChartNoAxesCombined, roles: ['admin', 'finance', 'director', 'regional_director', 'bdm', 'bsm'] },
   { label: 'Approvals', path: '/approvals', icon: ClipboardCheck, roles: ALL_ROLES.concat(['framework_stakeholder']) },
   { label: 'Framework', path: '/framework-reports', icon: UKLFIcon, roles: INTERNAL_ROLES.concat(['framework_stakeholder']) },
+  { label: 'I & E', path: '/insights-engagement', icon: InsightsEngagementIcon, roles: INTERNAL_ROLES },
   { label: 'Insider', path: '/pulse', icon: MessagesSquare, roles: INTERNAL_ROLES },
   { label: 'My Account', path: '/account', icon: UserCircle, roles: ['client'] },
   { label: 'Contacts', path: '/contacts', icon: Users, roles: ['admin'] },
