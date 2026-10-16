@@ -1,0 +1,5 @@
+import React from 'react';
+import { ArrowUpRight } from 'lucide-react';
+export default function OutlookEmailRow({message}) {
+ return <li className="border-t border-border py-3"><div className="flex items-start justify-between gap-3"><h3 className="text-sm font-semibold break-words">{/^https:\/\//i.test(message.href||'')?<a href={message.href} target="_blank" rel="noopener noreferrer" className="hover:underline">{message.subject} <ArrowUpRight className="inline h-3 w-3"/></a>:message.subject}</h3><time className="shrink-0 text-xs text-muted-foreground" dateTime={message.receivedAt}>{new Date(message.receivedAt).toLocaleTimeString('en-GB',{hour:'2-digit',minute:'2-digit'})}</time></div><p className="mt-1 text-xs text-muted-foreground">{message.sender}{message.importance==='high'?' · Marked high importance by sender':''}</p><p className="mt-2 text-sm leading-relaxed break-words">{message.preview||'No message preview is available.'}</p></li>;
+}

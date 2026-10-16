@@ -1,4 +1,6 @@
 import { createClientFromRequest } from 'npm:@base44/sdk@0.8.52';
+import { outlookUnreadEmails } from '../../shared/outlookUnreadEmails.ts';
+import { outlookMeetingBrief } from '../../shared/outlookMeetingBrief.ts';
 
 const connectorId = '6ac767410e11df12db6e136f';
 const fields = 'id,subject,start,end,isAllDay,location,bodyPreview,attendees,isOrganizer,webLink,type,isOnlineMeeting,onlineMeeting,onlineMeetingProvider';
@@ -9,8 +11,8 @@ export default async function(req) {
     if (!user) return Response.json({ error: 'Sign in to access your calendar.' }, { status: 401 });
     if (req.method !== 'POST') return Response.json({ error: 'Method not allowed.' }, { status: 405 });
     const input = await req.json();
-    if (!['status', 'list', 'get', 'create', 'update', 'delete'].includes(input.action)) return Response.json({ error: 'Invalid calendar operation.' }, { status: 400 });
-    const timeZone = input.timeZone || 'UTC';
+    if (!['status', 'list', 'get', 'create', 'update', 'delete', 'unreadEmails', 'meetingBrief'].includes(input.action)) return Response.json({ error: 'Invalid calendar operation.' }, { status: 400 });
+    const timeZone = input.action === 'meetingBrief' ? 'UTC' : input.timeZone || 'UTC';
     try { if (typeof timeZone !== 'string' || timeZone.length > 100) throw new Error(); new Intl.DateTimeFormat('en', { timeZone }); }
     catch { return Response.json({ error: 'Invalid calendar timezone.' }, { status: 400 }); }
     let connection;
@@ -24,11 +26,13 @@ export default async function(req) {
         ...(body ? { body: JSON.stringify(body) } : {})
       });
       if (!response.ok) {
-        const error = new Error(response.status === 401 ? 'Your Outlook connection needs to be renewed.' : response.status === 403 ? 'Microsoft denied calendar access. Check your calendar permissions with IT.' : response.status === 429 ? 'Outlook is busy. Please try again shortly.' : 'Outlook could not complete this calendar operation.');
+        const error = new Error(response.status === 401 ? 'Your Outlook connection needs to be renewed.' : response.status === 403 ? input.action === 'unreadEmails' ? 'Microsoft denied email access. Renew your Outlook connection and ask IT to approve Mail.Read permission.' : 'Microsoft denied calendar access. Check your calendar permissions with IT.' : response.status === 429 ? 'Outlook is busy. Please try again shortly.' : 'Outlook could not complete this calendar operation.');
         error.status = response.status; throw error;
       }
       const text = await response.text(); return text ? JSON.parse(text) : null;
     };
+    if (input.action === 'unreadEmails') return await outlookUnreadEmails(base44, graph, input);
+    if (input.action === 'meetingBrief') return await outlookMeetingBrief(base44, graph, input);
     if (input.action === 'status') {
       const calendar = await graph('/me/calendar?$select=name,canEdit');
       return Response.json({ connected: true, calendar: { name: calendar.name, canEdit: calendar.canEdit } });

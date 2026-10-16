@@ -1,0 +1,9 @@
+import React, { useState } from 'react';
+import { Link } from 'react-router-dom';
+import { Activity } from 'lucide-react';
+import IETodayFeedList from '@/components/adaptive/IETodayFeedList';
+const tabs=[['updates','Engagement updates'],['actions','Deadlines and actions'],['finance','Finance changes']];
+export default function IETodayFeed({user,time}) {
+ const [feed,setFeed]=useState('updates');
+ return <section className="at-panel min-w-0 lg:col-span-2" aria-labelledby="adaptive-ie-title"><header className="at-section-head"><div><span className="at-eyebrow">INSIGHTS & ENGAGEMENT</span><h2 id="adaptive-ie-title">Your I&E feeds</h2></div><Activity size={22}/></header><p className="at-section-note">Your existing I&E access applies. Updates and finance activity cover the past seven days; deadlines include overdue work and the next seven days.</p><div className="mt-4 flex flex-wrap gap-2" role="group" aria-label="I&E feed categories">{tabs.map(([key,label])=><button key={key} type="button" className={feed===key?'at-btn at-btn-primary':'at-btn'} aria-pressed={feed===key} onClick={()=>setFeed(key)}>{label}</button>)}</div>{feed==='finance'&&<p className="at-small mt-4">Recorded finance-save activity only, not an invoice ledger or a before-and-after comparison of amounts.</p>}<div className={feed==='actions'?'grid gap-6 md:grid-cols-2':''}><IETodayFeedList key={feed} user={user} feed={feed} day={time.day} title={feed==='updates'?'Recent engagement activity':feed==='finance'?'Recent finance updates':'Engagements needing attention'}/>{feed==='actions'&&<IETodayFeedList user={user} feed="work" day={time.day} title="Dated research, consultation and creative work"/>}</div><Link className="at-text-link mt-4" to="/insights-engagement">Open I&E workspace</Link></section>;
+}

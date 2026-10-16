@@ -9,6 +9,7 @@ import {ieHeadlineAction} from '../../shared/ieHeadlineActions.ts';
 import {ieCommercialFinance} from '../../shared/ieCommercialFinance.ts';
 import {ieBackfillFinance} from '../../shared/ieFinanceWorkbook.ts';
 import {ieRegionalProjects} from '../../shared/ieRegionalProjects.ts';
+import {ieTodayFeed} from '../../shared/ieTodayFeed.ts';
 export default async function(req){
  try{
   const base44=createClientFromRequest(req);let user=await base44.auth.me();
@@ -17,6 +18,7 @@ export default async function(req){
   const input=await req.json();if(!input||typeof input!=='object'||Array.isArray(input))ieError('Invalid request.');
   user=await ieRegionalProjects(base44,user);
   const db=base44.asServiceRole.entities,action=input.action;
+  if(action==='todayFeed')return Response.json(await ieTodayFeed(base44,user,input));
   if(action==='commercialFinance')return Response.json(await ieCommercialFinance(base44,user));
   if(action==='backfillFinance')return Response.json(await ieBackfillFinance(base44,user,input));
   if(['headlines','backfillServiceValues'].includes(action))return Response.json(await ieHeadlineAction(base44,user,input));

@@ -1,0 +1,4 @@
+import React from 'react';
+export default function BriefingResult({briefing,meeting=false}) {
+ return <div className="mt-4 space-y-3 rounded-lg border border-border bg-muted p-4 text-sm leading-relaxed"><h3 className="font-semibold">{meeting?'Meeting brief':'Email summary'}</h3><p className="whitespace-pre-line">{briefing.summary}</p>{meeting&&briefing.preparation&&<div><h4 className="font-semibold">Preparation and questions</h4><p className="whitespace-pre-line">{briefing.preparation}</p></div>}{briefing.suggestedActions&&<div><h4 className="font-semibold">Suggested actions only</h4><p className="whitespace-pre-line">{briefing.suggestedActions}</p></div>}<p className="text-xs text-muted-foreground">AI-generated. Check the source before acting. No tasks are created and no emails are sent.</p></div>;
+}
