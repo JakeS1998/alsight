@@ -2,18 +2,26 @@
 .project-workspace.ie-engagement-workspace .ws-main { gap: 20px; }
 .project-workspace.ie-engagement-workspace .ws-sticky-header { gap: 16px; }
 .project-workspace.ie-engagement-workspace .ie-record-header { box-shadow: var(--surface-shadow); }
-.project-workspace.ie-engagement-workspace .ws-project-tabs[role="tablist"] { gap: 12px; padding: 0 12px; border: 1px solid hsl(var(--border)); border-radius: var(--panel-radius); background: hsl(var(--card)); }
-.project-workspace.ie-engagement-workspace .ws-navitem { position: relative; min-height: 52px; border: 0; border-radius: 0; background: transparent; color: hsl(var(--muted-foreground)); box-shadow: none; font-size: 13px; }
-.project-workspace.ie-engagement-workspace .ws-navitem[data-state="active"] { background: transparent; color: hsl(var(--foreground)); box-shadow: none; }
-.project-workspace.ie-engagement-workspace .ws-navitem[data-state="active"]::after { position: absolute; right: 16px; bottom: 0; left: 16px; height: 3px; border-radius: 3px 3px 0 0; background: hsl(var(--primary)); content: ''; }
+.project-workspace.ie-engagement-workspace .ws-project-tabs[role="tablist"] { gap: 6px; padding: 6px; border: 1px solid hsl(var(--sidebar-border)); border-radius: var(--panel-radius); background: hsl(var(--als-navy)); }
+.project-workspace.ie-engagement-workspace .ws-project-tabs[role="tablist"] > .ws-navitem[role="tab"] { min-height: 44px; border: 0; border-radius: var(--radius); background: transparent; color: hsl(var(--sidebar-foreground) / .85); box-shadow: none; font-size: 13px; }
+.project-workspace.ie-engagement-workspace .ws-project-tabs[role="tablist"] > .ws-navitem[role="tab"][data-state="active"] { background: hsl(var(--primary)); color: hsl(var(--primary-foreground)); box-shadow: none; }
 .project-workspace.ie-engagement-workspace .ws-navitem svg { width: 15px; height: 15px; }
+.project-workspace.ie-engagement-workspace .ws-hero { animation: none; }
+.project-workspace.ie-engagement-workspace .ws-herotext { min-width: 0; }
+.project-workspace.ie-engagement-workspace .ie-hero-record-details { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 18px 24px; }
+.project-workspace.ie-engagement-workspace .ie-hero-image-note { position: absolute; right: 18px; bottom: 14px; display: flex; align-items: center; gap: 8px; max-width: 38%; color: hsl(var(--sidebar-foreground) / .85); font-size: 11px; }
+.project-workspace.ie-engagement-workspace .ie-hero-image-note:not(:empty) { padding: 6px 10px; border-radius: var(--radius); background: hsl(var(--als-navy) / .8); }
+.project-workspace.ie-engagement-workspace .ws-sticky-header[data-compact="true"] .ie-hero-image-note { display: none; }
 .project-workspace.ie-engagement-workspace .ws-content > div > section,
 .project-workspace.ie-engagement-workspace .ws-content > section { box-shadow: var(--surface-shadow); }
 @media (min-width: 1024px) {
  .project-workspace.ie-engagement-workspace .ws-sticky-header[data-compact="true"] { gap: 10px; }
- .project-workspace.ie-engagement-workspace .ws-sticky-header[data-compact="true"] .ie-record-header { padding-top: 12px; padding-bottom: 12px; }
+ .project-workspace.ie-engagement-workspace .ws-sticky-header[data-compact="true"] .ws-meta { margin-bottom: 0; }
 }
 @media (max-width: 767px) {
- .project-workspace.ie-engagement-workspace .ws-project-tabs[role="tablist"] { gap: 0; padding: 0 4px; }
+ .project-workspace.ie-engagement-workspace .ws-project-tabs[role="tablist"] { gap: 4px; padding: 6px; }
  .project-workspace.ie-engagement-workspace .ws-navitem { min-height: 46px; padding-right: 12px; padding-left: 12px; }
+ .project-workspace.ie-engagement-workspace .ie-hero-record-details { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px; }
+ .project-workspace.ie-engagement-workspace .ie-hero-image-note { position: relative; right: auto; bottom: auto; justify-self: start; max-width: calc(100% - 48px); margin: 0 24px 16px; }
+ .project-workspace.ie-engagement-workspace .ws-heroimg { opacity: .5; }
 }

@@ -4,6 +4,7 @@ import {ieLookup,ieLinkedProject} from '../../shared/ieLookups.ts';
 import {ieSummary,ieOptions,ieQuery} from '../../shared/ieReads.ts';
 import {ieValues} from '../../shared/ieValues.ts';
 import {ieWorkspaceOperations,ieWorkspaceAction} from '../../shared/ieWorkspaceActions.ts';
+import {ieHeaderImage} from '../../shared/ieHeaderImage.ts';
 export default async function(req){
  try{
   const base44=createClientFromRequest(req),user=await base44.auth.me();
@@ -11,6 +12,10 @@ export default async function(req){
   if(!ieRoles.includes(user.role))return Response.json({error:'I&E access is not available for this role.'},{status:403});
   const input=await req.json();if(!input||typeof input!=='object'||Array.isArray(input))ieError('Invalid request.');
   const db=base44.asServiceRole.entities,action=input.action;
+  if(action==='headerImage'){
+   const item=await ieRecord(base44,user,input.id),result=await ieHeaderImage(base44,item,input);
+   return Response.json(result.body,{status:result.status});
+  }
   if(ieWorkspaceOperations.includes(action))return Response.json(await ieWorkspaceAction(base44,user,input));
   if(action==='summary')return Response.json(await ieSummary(base44,user));
   if(action==='options')return Response.json(await ieOptions(base44,user));
