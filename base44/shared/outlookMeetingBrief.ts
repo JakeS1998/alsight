@@ -10,7 +10,8 @@ export async function outlookMeetingBrief(base44,graph,input){
   const page=await base44.entities.ProjectAction.filter({project_id:record.id,status:{$in:['open','in_progress']}},{limit:6,sort:'due_date',fields:['action','owner','due_date','status']});
   actions=page.items;moreActions=page.has_more;
  }
- const evidence={meeting:{subject:event.subject,start:event.start,end:event.end,location:event.location?.displayName,organizer:event.organizer?.emailAddress,attendees:(event.attendees||[]).slice(0,40).map(a=>({name:a.emailAddress?.name,address:a.emailAddress?.address,response:a.status?.response})),invitation:String(event.body?.content||'').slice(0,8000)},project,openProjectActions:actions,moreProjectActions:moreActions,meetingNotes:input.notes||'',limitations:'No transcript, recording, attachment, email thread or unselected project was read. Project matching is selected by the user, not inferred.'};
+ const ended=Date.parse(`${event.end?.dateTime?.replace(/Z$/,'')}Z`)<=Date.now();
+ const evidence={meetingHasEnded:ended,notesPurpose:ended?'User’s optional account of the meeting, not a verified transcript':'Preparation notes only, not evidence of any meeting outcome',meeting:{subject:event.subject,start:event.start,end:event.end,location:event.location?.displayName,organizer:event.organizer?.emailAddress,attendees:(event.attendees||[]).slice(0,40).map(a=>({name:a.emailAddress?.name,address:a.emailAddress?.address,response:a.status?.response})),invitation:String(event.body?.content||'').slice(0,8000)},project,openProjectActions:actions,moreProjectActions:moreActions,meetingNotes:input.notes||'',limitations:'No transcript, recording, attachment, email thread or unselected project was read. Project matching is selected by the user, not inferred.'};
  const briefing=await outlookBriefingText(base44,'meeting',evidence);
  return Response.json({briefing,project,moreActions,hasNotes:!!input.notes?.trim(),refreshedAt:new Date().toISOString()});
 }

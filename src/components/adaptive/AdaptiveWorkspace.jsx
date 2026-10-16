@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { useQueryClient } from '@tanstack/react-query';
 import { RefreshCw } from 'lucide-react';
 import useAdaptivePreferences from '@/components/adaptive/useAdaptivePreferences';
 import useAdaptiveToday from '@/components/adaptive/useAdaptiveToday';
@@ -24,12 +25,13 @@ import AdaptiveCommandBar from '@/components/adaptive/AdaptiveCommandBar';
 import AdaptiveFocusNav from '@/components/adaptive/AdaptiveFocusNav';
 import AdaptiveMetrics from '@/components/adaptive/AdaptiveMetrics';
 import AdaptiveRoleContext from '@/components/adaptive/AdaptiveRoleContext';
+import AdaptiveConnectedFeeds from '@/components/adaptive/AdaptiveConnectedFeeds';
 export default function AdaptiveWorkspace({user}) {
- const [commandFeedback,setCommandFeedback]=useState('');
+ const [commandFeedback,setCommandFeedback]=useState(''),client=useQueryClient();
  const {settings}=useWellbeing(),now=useAdaptiveClock(),prefs=useAdaptivePreferences(user.id),query=useAdaptiveToday(user,prefs,now),context=roleContext(user),focus=focuses.includes(prefs.config.focus)?prefs.config.focus:focuses[0],time=timeState(now,query.calendar,settings.hours);
  useWellbeingAnchor(!!query.data);
  const data=query.data,ranked=timeRank(rankActions(data?.actions||[],context,focus,time.day),time),actions=ranked.filter(a=>!prefs.config.dismissed.includes(a.key)),records=evidenceContext(actions,data?.projects||[]),intelligence=useAdaptiveIntelligence(records,time);
- return <div className="adaptive-today"><div className="at-container"><div className="at-experiment-bar justify-end"><button className="at-text-link" disabled={query.isFetching} onClick={()=>{query.refetch();query.calendar.refresh();}}><RefreshCw size={13} className={query.isFetching?'animate-spin':''}/> Refresh</button></div>
+ return <div className="adaptive-today"><div className="at-container"><div className="at-experiment-bar justify-end"><button className="at-text-link" disabled={query.isFetching} onClick={()=>{query.refetch();query.calendar.refresh();client.invalidateQueries({queryKey:['adaptive-outlook-mail',user.id]});client.invalidateQueries({queryKey:['adaptive-ie-feed',user.id]});}}><RefreshCw size={13} className={query.isFetching?'animate-spin':''}/> Refresh</button></div>
   <AdaptiveTodayHero>
    <DailyBriefing user={user} time={time}/>
    <AdaptiveCommandBar intelligence={intelligence} hasRecords={!!records.length} prefs={prefs} context={context} onFeedback={setCommandFeedback}/>
@@ -47,6 +49,7 @@ export default function AdaptiveWorkspace({user}) {
     <div className="at-project-zone"><PersonalWorkspace data={data} actions={actions} context={context} focus={focus} prefs={prefs}/></div>
    </div>
    <div className="at-supporting-grid"><div><TimeAwareBriefing time={time} calendar={query.calendar} data={data} prefs={prefs}/><AdaptiveRoleContext context={context} data={data} calendar={query.calendar} since={prefs.since}/></div><div><WrapUpChecklist time={time} prefs={prefs} actions={ranked} onComplete={query.complete}/><CarriedForwardPlan prefs={prefs}/></div></div>
+   <AdaptiveConnectedFeeds user={user} time={time} calendar={query.calendar} projects={data.projects}/>
    <footer className="at-experiment-footer"><span>ALSight · Your workspace</span><span>Project intelligence covers up to 30 recent accessible active projects; insurance uses their recorded supplier links. Counts cover available source categories, not unique projects. No sample data.</span><span>Updated {new Date(data.refreshedAt).toLocaleTimeString('en-GB',{hour:'2-digit',minute:'2-digit'})}</span></footer>
   </>}
  </div></div>;
