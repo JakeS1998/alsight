@@ -5,6 +5,7 @@ import {Button} from '@/components/ui/button';
 import PQApprovalRoute from '@/components/questionnaire/PQApprovalRoute';
 import PQApprovalTrail from '@/components/questionnaire/PQApprovalTrail';
 import pqContext from '@/components/questionnaire/pqContext';
+import PQHistoricalApproval from '@/components/questionnaire/PQHistoricalApproval';
 export default function PQApprovalPanel({project,subject,record,locked,recordedApproval,onChanged}) {
  const source=pqContext(project.id,subject);
  const [busy,setBusy]=useState(false),[error,setError]=useState(''),[reason,setReason]=useState(''),[historyOpen,setHistoryOpen]=useState(false);
@@ -13,6 +14,7 @@ export default function PQApprovalPanel({project,subject,record,locked,recordedA
  const data=query.data?.pages[0],round=data?.round,history=query.data?.pages.flatMap(page=>page.history)||[];
  const percent=round?.steps?.length?Math.round(round.steps.filter(step=>step.status==='approved').length/round.steps.length*100):0;
  return <section className="space-y-4 rounded-xl border border-border bg-muted/40 p-4" aria-label="PQ sequential approvals"><div className="flex flex-wrap justify-between gap-3"><div><h4 className="text-sm font-bold">Project questionnaire approval</h4><p className="mt-1 text-xs text-muted-foreground">Sequential invitations · Email verification before each decision · Approval applies to the issued version.</p></div>{round&&<span className="text-xs font-bold">{percent}% complete</span>}</div>
+ <PQHistoricalApproval record={record} recordedApproval={recordedApproval}/>
  {record&&<Button type="button" variant="outline" size="sm" disabled={busy||query.isFetching} onClick={()=>Promise.all([onChanged(),query.refetch()])}>Refresh approval status</Button>}
  {!record?<p className="text-sm text-muted-foreground">{locked?'No verified approval sequence recorded.':'Save and submit the questionnaire to set up its approval sequence.'}</p>:query.isPending?<p role="status">Loading approval sequence…</p>:query.error?<div role="alert"><p className="text-sm text-destructive">{query.error.response?.data?.error||query.error.message}</p><Button type="button" variant="outline" onClick={()=>query.refetch()}>Retry</Button></div>:<>
  {error&&<p role="alert" className="text-sm text-destructive">{error}</p>}
@@ -23,7 +25,7 @@ export default function PQApprovalPanel({project,subject,record,locked,recordedA
  {!!history.length&&<div className="space-y-3"><Button type="button" variant="ghost" size="sm" onClick={()=>setHistoryOpen(value=>!value)}>{historyOpen?'Hide':'Show'} issued-version history</Button>{historyOpen&&history.map(item=><PQApprovalTrail key={item.id} round={item}/>)}</div>}
  {historyOpen&&query.hasNextPage&&<Button type="button" variant="outline" disabled={query.isFetchingNextPage} onClick={()=>query.fetchNextPage()}>Load more approval history</Button>}
  </>}
- {recordedApproval&&<details className="text-xs text-muted-foreground"><summary className="cursor-pointer">Historical project-recorded approval (not email-verified acceptance)</summary><p className="mt-2">PQ approved · {new Date(recordedApproval.approvedAt).toLocaleDateString('en-GB')} · {recordedApproval.source}. This records the existing project approval, not a new verified decision.</p></details>}
+
  <p className="text-xs text-muted-foreground">Decisions record explicit approval, not a qualified electronic signature. An approved, current PQ is required before an opportunity or direct request can create a project.</p>
  </section>;
 }

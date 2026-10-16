@@ -8,6 +8,7 @@ import {pqGatewayStatus} from '../../shared/pqGatewayStatus.ts';
 import {projectRequestValues} from '../../shared/projectCreateValues.ts';
 import {pqProjectLocked,pqRecordedApproval} from '../../shared/pqProjectLock.ts';
 import {pqLegacyImport} from '../../shared/pqLegacyImport.ts';
+import {pqPdf} from '../../shared/pqPdf.ts';
 export default async function(req: Request): Promise<Response> {
  try {
   const base44=createClientFromRequest(req),user=await base44.auth.me();
@@ -16,7 +17,7 @@ export default async function(req: Request): Promise<Response> {
   const body=await req.json();
   if(pqRoundActions.includes(body.action))return Response.json(await pqRoundAction(base44,user,body));
   if(['prepare_request','list_requests','load_request'].includes(body.action))return Response.json(await pqRequestDraftAction(base44,user,body));
-  if(!['load','save','submit','reopen','gate',...pqProjectActions].includes(body.action))return Response.json({error:'Choose a valid questionnaire action.'},{status:400});
+  if(!['load','save','submit','reopen','gate','export_pdf',...pqProjectActions].includes(body.action))return Response.json({error:'Choose a valid questionnaire action.'},{status:400});
   const project=await resolvePQSubject(base44,user,body);
   let canEdit=['admin','director','bdm','bsm'].includes(user.role)&&!pqProjectLocked(project);
   // Project is read with the caller's own permissions before accessing protected answers.
@@ -30,6 +31,7 @@ export default async function(req: Request): Promise<Response> {
   if(body.action==='gate')return Response.json(await pqGatewayStatus(base44.asServiceRole.entities,project,current,body.values?await pqMaterialHash(projectRequestValues(body.values)):project.context_hash));
   if(pqProjectActions.includes(body.action))return Response.json(await pqProjectAction(base44,user,project,current,body));
   const approval=current?.approval_round_id?await base44.asServiceRole.entities.PQApprovalRound.get(current.approval_round_id):null;
+  if(body.action==='export_pdf')return Response.json(pqPdf(project,current,approval));
   if(body.action==='load')return Response.json({record:current,approvalStatus:pqRecordedApproval(project)?.status||approval?.status||null,recordedApproval:pqRecordedApproval(project),locked:pqProjectLocked(project),sections:questionnaireSections,defaults:project.subject_type==='project'?{...questionnaireDefaults(project),pq_number:project.project_number||'',date:''}:questionnaireDefaults(project),canEdit,templateVersion:questionnaireVersion,sourceProject:'Aberdare Lido · PROJ693',sourceUrl:project.link_to_project_questionnaire||null});
   if(approval?.status==='active')return Response.json({error:'Withdraw the active approval sequence before reopening or changing this questionnaire.'},{status:409});
   if(!canEdit)return Response.json({error:'You can view this questionnaire but cannot edit it.'},{status:403});
@@ -57,6 +59,6 @@ export default async function(req: Request): Promise<Response> {
   return Response.json({record:await source.create({...payload,...pqSubjectLinks(project)})});
   };
   const importsSource=body.action==='load'&&project.subject_type==='project'&&!!project.link_to_project_questionnaire;
-  return ['load','approval_state','recipients','gate'].includes(body.action)&&!importsSource?await operation():await withPQWriteLock(base44.asServiceRole.entities,project.scope_key,operation);
+  return ['load','approval_state','recipients','gate','export_pdf'].includes(body.action)&&!importsSource?await operation():await withPQWriteLock(base44.asServiceRole.entities,project.scope_key,operation);
  }catch(error){return Response.json({error:error.message},{status:error.status||500});}
 }
