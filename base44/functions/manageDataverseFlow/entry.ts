@@ -14,6 +14,7 @@ import { flowSelection, mappedFlowValues } from '../../shared/dataverseFlowValue
 import { listFlowReviews, decideFlowReview } from '../../shared/dataverseFlowReview.ts';
 import { flowReviewDetails, searchReviewTargets } from '../../shared/dataverseFlowReviewReads.ts';
 import { createDataverseProject } from '../../shared/createDataverseProject.ts';
+import { createDataverseContact } from '../../shared/createDataverseContact.ts';
 // Supplier commission tables are included in the shared read-only catalogue.
 export default async function(req) {
   try {
@@ -24,10 +25,11 @@ export default async function(req) {
     const raw = await req.text();
     if (raw.length > 40000) return Response.json({ error: 'Request too large.' }, { status: 400 });
     const input = JSON.parse(raw), adminActions = ['confirmJake', 'checkShared', 'discover', 'inspect', 'mapping', 'preview', 'sync', 'poll', 'relationships', 'cleanDMA', 'reviews', 'reviewDetails', 'reviewTargets', 'decideReview'];
-    if (!['status', 'load', 'save', 'createProject', ...adminActions].includes(input.action)) return Response.json({ error: 'Invalid operation.' }, { status: 400 });
+    if (!['status', 'load', 'save', 'createProject', 'createContact', ...adminActions].includes(input.action)) return Response.json({ error: 'Invalid operation.' }, { status: 400 });
     if (adminActions.includes(input.action) && user.role !== 'admin') return Response.json({ error: 'Administrator access required.' }, { status: 403 });
     let config = await flowConfig(base44);
     if (input.action === 'createProject') return Response.json(await createDataverseProject(base44,user,config,input));
+    if (input.action === 'createContact') return Response.json(await createDataverseContact(base44,user,config,input));
     if (input.action === 'status') {
       const pollState = user.role === 'admin' ? (await base44.entities.DataversePollState.filter({ key: 'primary' }, { limit: 1, fields: ['status', 'last_activity', 'last_completed_at', 'error'] })).items[0] || null : null;
       return Response.json({ writeFields: Object.fromEntries(Object.entries(flowSpecs).map(([key, spec]) => [key, spec.writeRoles.includes(user.role) ? generalFlowMappings(key, config?.tables?.[key]?.mappings || []).filter(m => m.write).map(m => m.local) : []])), configured: Boolean(config?.source_connection_id), ...(user.role === 'admin' ? { config, specs: flowSpecs, pollState } : { tables: Object.fromEntries(Object.entries(flowSpecs).map(([key, spec]) => [key, { label: spec.label, enabled: Boolean(generalFlowMappings(key, config?.tables?.[key]?.mappings || []).some(m => m.write)), canWrite: spec.writeRoles.includes(user.role) }])) }) });
