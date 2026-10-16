@@ -6,6 +6,7 @@ import useAdaptiveToday from '@/components/adaptive/useAdaptiveToday';
 import useAdaptiveIntelligence from '@/components/adaptive/useAdaptiveIntelligence';
 import { focuses, roleContext, rankActions, evidenceContext } from '@/components/adaptive/adaptiveEngine';
 import DailyBriefing from '@/components/adaptive/DailyBriefing';
+import AdaptiveTodayHero from '@/components/adaptive/AdaptiveTodayHero';
 import PriorityActions from '@/components/adaptive/PriorityActions';
 import WorkingDayTimeline from '@/components/adaptive/WorkingDayTimeline';
 import IntelligentRecommendations from '@/components/adaptive/IntelligentRecommendations';
@@ -20,6 +21,7 @@ export default function AdaptiveWorkspace({user}) {
  const now=useAdaptiveClock(),prefs=useAdaptivePreferences(user.id),query=useAdaptiveToday(user,prefs,now),context=roleContext(user),focus=focuses.includes(prefs.config.focus)?prefs.config.focus:focuses[0],time=timeState(now,query.calendar,prefs.config.workday);
  const data=query.data,ranked=timeRank(rankActions(data?.actions||[],context,focus,time.day),time),actions=ranked.filter(a=>!prefs.config.dismissed.includes(a.key)),records=evidenceContext(actions,data?.projects||[]),intelligence=useAdaptiveIntelligence(records,time);
  return <div className="adaptive-today"><div className="at-container"><div className="at-experiment-bar"><Link to="/today"><ArrowLeft size={13}/> Original Today</Link><span><span className="at-live-dot"/> ALSIGHT LABS <b>Experimental workspace</b></span><button className="at-text-link" disabled={query.isFetching} onClick={()=>{query.refetch();query.calendar.refresh();}}><RefreshCw size={13} className={query.isFetching?'animate-spin':''}/> Refresh</button></div>
+  <AdaptiveTodayHero/>
   <div className="at-page-title"><div><span className="at-eyebrow">THE ADAPTIVE WORKSPACE</span><h2>Today, thoughtfully organised.</h2></div><span className="at-small">Your role. Your context. Your next move.</span></div>
   <nav className="at-focus" aria-label="Workspace focus">{focuses.map(item=><button key={item} aria-pressed={focus===item} className={focus===item?'at-focus-active':''} onClick={()=>prefs.save({focus:item})}>{item}</button>)}</nav>
   {query.isPending&&<div className="at-loading" role="status"><span className="at-spinner"/><h2>Bringing your working day into focus.</h2><p>Reading your assigned work and accessible project records…</p></div>}
