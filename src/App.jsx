@@ -123,7 +123,8 @@ const AuthenticatedApp = () => {
           <Route path="/help" element={<Help />} />
           <Route path="/today-adaptive" element={<AdaptiveTodayPage />} />
           <Route element={<StakeholderRoute />}>
-          <Route path="/today" element={['sam','sam_director'].includes(user?.role) ? <Navigate to="/insights-engagement" replace /> : <Home />} />
+          <Route path="/today" element={['sam','sam_director'].includes(user?.role) ? <Navigate to="/insights-engagement" replace /> : <AdaptiveTodayPage />} />
+          <Route path="/today-legacy" element={['sam','sam_director'].includes(user?.role) ? <Navigate to="/insights-engagement" replace /> : <Home />} />
           <Route path="/portfolio-overview" element={<PortfolioOverview />} />
           <Route element={<FinanceRoute />}><Route path="/finance" element={<FinanceDashboard />} /></Route>
           <Route path="/pulse" element={<Pulse />} />

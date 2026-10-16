@@ -1,6 +1,6 @@
 import React from 'react';
-import { ArrowDown } from 'lucide-react';
-export default function DailyBriefing({user,data,actions,time}) {
- const first=user.full_name?.trim().split(' ')[0]||'there',lead=actions[0];
- return <section className="at-briefing" aria-labelledby="at-greeting"><div className="at-brief-copy"><div className="at-eyebrow">TODAY · YOUR WORKSPACE <span className="at-date">{time.date}</span></div><h1 id="at-greeting">{time.greeting}, <span>{first}.</span></h1><p className="at-hero-summary">{time.resting?'Make some room for yourself. Non-urgent work can wait until your next working day; your records and ALICE remain available.':<>{data.priorityTotal!==null?<>You have <strong>{data.priorityTotal} open attention {data.priorityTotal===1?'item':'items'}</strong> across available sources. </>:'A little clarity for the day ahead. '}{lead?lead.detail||lead.title:'Your workspace will surface work as assigned tasks and project signals become available.'}</>} {data.warnings.length>0&&'Some sources are unavailable; this is a partial briefing.'}</p><a className="at-hero-quick" href={time.checklistAvailable?'#adaptive-wrap-up':time.resting?'#adaptive-time-briefing':'#adaptive-priorities'}>{time.checklistAvailable?'Review my wrap-up checklist':time.resting?'A little breathing space':'Find my next action'}<ArrowDown size={12}/></a></div></section>;
+
+export default function DailyBriefing({user,time}) {
+ const first=user.full_name?.trim().split(' ')[0]||'there';
+ return <section className="at-briefing" aria-labelledby="at-greeting"><div className="at-brief-copy"><h1 id="at-greeting">{time.greeting}, <span>{first}.</span></h1></div></section>;
 }

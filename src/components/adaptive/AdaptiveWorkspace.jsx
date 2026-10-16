@@ -1,6 +1,5 @@
-import React from 'react';
-import { Link } from 'react-router-dom';
-import { RefreshCw, ArrowLeft } from 'lucide-react';
+import React, { useState } from 'react';
+import { RefreshCw } from 'lucide-react';
 import useAdaptivePreferences from '@/components/adaptive/useAdaptivePreferences';
 import useAdaptiveToday from '@/components/adaptive/useAdaptiveToday';
 import useAdaptiveIntelligence from '@/components/adaptive/useAdaptiveIntelligence';
@@ -26,14 +25,17 @@ import AdaptiveFocusNav from '@/components/adaptive/AdaptiveFocusNav';
 import AdaptiveMetrics from '@/components/adaptive/AdaptiveMetrics';
 import AdaptiveRoleContext from '@/components/adaptive/AdaptiveRoleContext';
 export default function AdaptiveWorkspace({user}) {
+ const [commandFeedback,setCommandFeedback]=useState('');
  const {settings}=useWellbeing(),now=useAdaptiveClock(),prefs=useAdaptivePreferences(user.id),query=useAdaptiveToday(user,prefs,now),context=roleContext(user),focus=focuses.includes(prefs.config.focus)?prefs.config.focus:focuses[0],time=timeState(now,query.calendar,settings.hours);
  useWellbeingAnchor(!!query.data);
  const data=query.data,ranked=timeRank(rankActions(data?.actions||[],context,focus,time.day),time),actions=ranked.filter(a=>!prefs.config.dismissed.includes(a.key)),records=evidenceContext(actions,data?.projects||[]),intelligence=useAdaptiveIntelligence(records,time);
- return <div className="adaptive-today"><div className="at-container"><div className="at-experiment-bar"><Link to="/today"><ArrowLeft size={13}/> Original Today</Link><span><span className="at-live-dot"/> ALSIGHT LABS <b>Experimental workspace</b></span><button className="at-text-link" disabled={query.isFetching} onClick={()=>{query.refetch();query.calendar.refresh();}}><RefreshCw size={13} className={query.isFetching?'animate-spin':''}/> Refresh</button></div>
+ return <div className="adaptive-today"><div className="at-container"><div className="at-experiment-bar justify-end"><button className="at-text-link" disabled={query.isFetching} onClick={()=>{query.refetch();query.calendar.refresh();}}><RefreshCw size={13} className={query.isFetching?'animate-spin':''}/> Refresh</button></div>
   <AdaptiveTodayHero>
-   {data?<DailyBriefing user={user} data={data} actions={actions} time={time}/>:<section className="at-briefing"><div className="at-brief-copy"><span className="at-eyebrow">TODAY · YOUR WORKSPACE</span><h1>Your day, connected.</h1><p className="at-hero-summary">Your role. Your context. Your next move.</p></div></section>}
-   <AdaptiveCommandBar intelligence={intelligence} hasRecords={!!records.length} prefs={prefs} context={context}/><AdaptiveFocusNav focus={focus} prefs={prefs}/>
+   <DailyBriefing user={user} time={time}/>
+   <AdaptiveCommandBar intelligence={intelligence} hasRecords={!!records.length} prefs={prefs} context={context} onFeedback={setCommandFeedback}/>
   </AdaptiveTodayHero>
+  <AdaptiveFocusNav focus={focus} prefs={prefs}/>
+  <p id="adaptive-command-help" className={commandFeedback?'at-small my-3':'sr-only'} role="status">{commandFeedback||'Ask about loaded records or use layout commands such as pin projects and hide documents.'}</p>
   {query.isPending&&<div className="at-loading" role="status"><span className="at-spinner"/><h2>Bringing your working day into focus.</h2><p>Reading your assigned work and accessible project records…</p></div>}
   {query.error&&<div role="alert" className="at-empty"><h2>Your workspace could not be loaded.</h2><p>{query.error.message}</p><button className="at-btn" onClick={()=>query.refetch()}>Try again</button></div>}
   {data&&<><AdaptiveMetrics data={data} calendar={query.calendar}/>
@@ -45,7 +47,7 @@ export default function AdaptiveWorkspace({user}) {
     <div className="at-project-zone"><PersonalWorkspace data={data} actions={actions} context={context} focus={focus} prefs={prefs}/></div>
    </div>
    <div className="at-supporting-grid"><div><TimeAwareBriefing time={time} calendar={query.calendar} data={data} prefs={prefs}/><AdaptiveRoleContext context={context} data={data} calendar={query.calendar} since={prefs.since}/></div><div><WrapUpChecklist time={time} prefs={prefs} actions={ranked} onComplete={query.complete}/><CarriedForwardPlan prefs={prefs}/></div></div>
-   <footer className="at-experiment-footer"><span>ALSight Labs · An isolated product experiment</span><span>Project intelligence covers up to 30 recent accessible active projects; insurance uses their recorded supplier links. Counts cover available source categories, not unique projects. No sample data.</span><span>Updated {new Date(data.refreshedAt).toLocaleTimeString('en-GB',{hour:'2-digit',minute:'2-digit'})}</span></footer>
+   <footer className="at-experiment-footer"><span>ALSight · Your workspace</span><span>Project intelligence covers up to 30 recent accessible active projects; insurance uses their recorded supplier links. Counts cover available source categories, not unique projects. No sample data.</span><span>Updated {new Date(data.refreshedAt).toLocaleTimeString('en-GB',{hour:'2-digit',minute:'2-digit'})}</span></footer>
   </>}
  </div></div>;
 }

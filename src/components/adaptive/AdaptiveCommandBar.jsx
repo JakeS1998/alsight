@@ -1,8 +1,8 @@
 import React, { useState } from 'react';
 import { ArrowRight, Sparkles } from 'lucide-react';
 import adaptiveLayoutCommand from '@/components/adaptive/adaptiveLayoutCommand';
-export default function AdaptiveCommandBar({intelligence,hasRecords,prefs,context}) {
- const [question,setQuestion]=useState(''),[feedback,setFeedback]=useState('');
+export default function AdaptiveCommandBar({intelligence,hasRecords,prefs,context,onFeedback}) {
+ const [question,setQuestion]=useState(''),setFeedback=onFeedback;
  function submit(e){
   e.preventDefault();if(!question.trim()||intelligence.busy)return;
   const command=adaptiveLayoutCommand(question.trim(),prefs.config,context);
@@ -10,5 +10,5 @@ export default function AdaptiveCommandBar({intelligence,hasRecords,prefs,contex
   if(!hasRecords){setFeedback('No source records are loaded yet. Layout commands remain available.');return;}
   setFeedback('');intelligence.request('ask',question.trim());document.getElementById('adaptive-intelligence')?.scrollIntoView({behavior:'auto',block:'start'});
  }
- return <><form className="at-command" onSubmit={submit}><Sparkles size={23} aria-hidden="true"/><label htmlFor="adaptive-command">Ask ALICE…</label><input id="adaptive-command" maxLength={600} value={question} onChange={e=>setQuestion(e.target.value)} placeholder="Ask about my day, or pin projects…" aria-label="Ask ALICE about loaded records or change your workspace layout" aria-describedby="adaptive-command-help"/><button type="submit" disabled={!question.trim()||intelligence.busy} aria-label="Ask ALICE">{intelligence.busy?<span className="at-spinner"/>:<ArrowRight size={20}/>}</button></form><p id="adaptive-command-help" className="mx-auto mt-2 max-w-[1000px] px-4 text-xs leading-relaxed" role="status">{feedback||'Try “pin projects”, “hide documents”, “move approvals to the top”, or “focus on commercial”. Layout commands do not use AI credits or change project records.'}</p></>;
+ return <form className="at-command" onSubmit={submit}><Sparkles size={23} aria-hidden="true"/><label htmlFor="adaptive-command">Ask ALICE…</label><input id="adaptive-command" maxLength={600} value={question} onChange={e=>setQuestion(e.target.value)} placeholder="Ask about my day, or pin projects…" aria-label="Ask ALICE about loaded records or change your workspace layout" aria-describedby="adaptive-command-help"/><button type="submit" disabled={!question.trim()||intelligence.busy} aria-label="Ask ALICE">{intelligence.busy?<span className="at-spinner"/>:<ArrowRight size={20}/>}</button></form>;
 }
