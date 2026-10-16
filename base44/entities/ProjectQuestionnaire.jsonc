@@ -21,6 +21,11 @@
       "type": "object",
       "additionalProperties": true
     },
+    "source_import": {
+      "type": "object",
+      "additionalProperties": true,
+      "description": "Linked SharePoint PQ import provenance, source evidence and any import error; legacy approval is read from the project PQ approval date."
+    },
     "status": {
       "type": "string",
       "enum": [

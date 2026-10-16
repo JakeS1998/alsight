@@ -5,10 +5,11 @@ import QuestionnaireProgress from '@/components/questionnaire/QuestionnaireProgr
 import QuestionnaireActions from '@/components/questionnaire/QuestionnaireActions';
 import useProjectQuestionnaire from '@/components/questionnaire/useProjectQuestionnaire';
 import PQApprovalPanel from '@/components/questionnaire/PQApprovalPanel';
+import PQExistingSource from '@/components/questionnaire/PQExistingSource';
 export default function ProjectQuestionnaire({project,subject}) {
  const state=useProjectQuestionnaire(project.id,subject),[active,setActive]=useState(0);
  const {data,answers,busy,error,loading,dirty,missing}=state;
- if(loading)return <div role="status" className="ws-card ws-panel">Loading project questionnaire…</div>;
+ if(loading)return <div role="status" className="ws-card ws-panel">Loading project questionnaire and checking its linked source…</div>;
  if(!data)return <div className="ws-card ws-panel"><p role="alert" className="text-destructive">{error||'Questionnaire unavailable.'}</p><Button type="button" onClick={state.load}>Try again</Button></div>;
  const section=data.sections[active],submitted=data.record?.status==='submitted',readOnly=!data.canEdit||submitted;
  const select=index=>{setActive(index);};
@@ -18,10 +19,10 @@ export default function ProjectQuestionnaire({project,subject}) {
   if(window.confirm('Submit this completed questionnaire? Submission records the form only and does not grant approval.'))await state.save('submit');
  };
  return <section className="ws-card ws-panel space-y-6" aria-label="Digital project questionnaire">
- <header className="space-y-2"><div className="flex flex-wrap items-center justify-between gap-3"><h3 className="ws-sectiontitle">UK Leisure Framework Project Questionnaire</h3><span className="rounded-full bg-secondary px-3 py-1 text-xs font-semibold">{submitted?'Submitted':'Draft'}</span></div>
+ <header className="space-y-2"><div className="flex flex-wrap items-center justify-between gap-3"><h3 className="ws-sectiontitle">UK Leisure Framework Project Questionnaire</h3><span className="rounded-full bg-secondary px-3 py-1 text-xs font-semibold">{data.recordedApproval?'Approved':submitted?'Submitted':data.record?.source_import?.status==='imported'?'Imported':'Draft'}</span></div>
  <p className="text-sm text-muted-foreground">{project.project_number} · {project.name}. Template based on {data.sourceProject}; this form contains this project’s own answers.</p>
- {!subject&&project.dataverse_id&&<p role="status" className="rounded-md border border-border bg-muted p-3 text-sm">PQ creation requirement bypassed: this project already exists in Dataverse. The digital questionnaire is optional for this existing project; this exemption does not record a PQ approval.</p>}
- <p className="text-xs text-muted-foreground">Fields marked * are required for submission. Drafts can be saved incomplete. Checklists may be left blank where not applicable.</p>
+ <PQExistingSource data={data} loading={loading} onRetry={()=>state.load(true)}/>
+ {!data.locked&&<p className="text-xs text-muted-foreground">Fields marked * are required for submission. Drafts can be saved incomplete. Checklists may be left blank where not applicable.</p>}
  {data.sourceUrl&&<a className="inline-block text-sm font-medium text-foreground underline underline-offset-4" href={data.sourceUrl} target="_blank" rel="noreferrer">Open this project’s existing PQ document</a>}
  {!data.canEdit&&<p className="text-sm text-muted-foreground">Read-only access.</p>}</header>
  {error&&<p role="alert" className="rounded-md border border-destructive/30 bg-destructive/5 p-3 text-sm text-destructive">{error}</p>}
@@ -29,5 +30,5 @@ export default function ProjectQuestionnaire({project,subject}) {
  <div className="min-w-0 space-y-5"><div><p className="text-xs text-muted-foreground">Section {active+1} of {data.sections.length}</p><h4 className="mt-1 text-lg font-semibold">{section.title}</h4>{section.guidance&&<p className="mt-2 text-sm text-muted-foreground">{section.guidance}</p>}</div>
  <fieldset disabled={busy||readOnly} className="min-w-0 space-y-6">{section.fields.map(field=><QuestionnaireField key={field.id} field={field} value={answers[field.id]} onChange={value=>state.change(field.id,value)} disabled={busy||readOnly} invalid={missing.includes(field.id)}/>)}</fieldset>
  <QuestionnaireActions active={active} total={data.sections.length} onPrevious={()=>select(active-1)} onNext={()=>select(active+1)} onSave={()=>state.save('save')} onSubmit={submit} onReopen={()=>state.save('reopen')} onReload={state.load} busy={busy} canEdit={data.canEdit} approvalActive={data.approvalStatus==='active'} submitted={submitted} dirty={dirty} record={data.record}/>
- </div></div><PQApprovalPanel project={project} subject={subject} record={data.record} onChanged={state.load}/></section>;
+ </div></div>{(!data.locked||data.record?.approval_round_id)&&<PQApprovalPanel project={project} subject={subject} record={data.record} locked={data.locked} onChanged={state.load}/>}</section>;
 }

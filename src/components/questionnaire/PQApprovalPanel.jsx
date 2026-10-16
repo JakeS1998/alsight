@@ -5,7 +5,7 @@ import {Button} from '@/components/ui/button';
 import PQApprovalRoute from '@/components/questionnaire/PQApprovalRoute';
 import PQApprovalTrail from '@/components/questionnaire/PQApprovalTrail';
 import pqContext from '@/components/questionnaire/pqContext';
-export default function PQApprovalPanel({project,subject,record,onChanged}) {
+export default function PQApprovalPanel({project,subject,record,locked,onChanged}) {
  const source=pqContext(project.id,subject);
  const [busy,setBusy]=useState(false),[error,setError]=useState(''),[reason,setReason]=useState('');
  const query=useInfiniteQuery({queryKey:['pq-approval-state',source,record?.revision],enabled:!!record,initialPageParam:null,retry:false,queryFn:async({pageParam})=>(await base44.functions.invoke('manageProjectQuestionnaire',{action:'approval_state',...source,...(pageParam?{cursor:pageParam}:{})})).data,getNextPageParam:page=>page.has_more?page.next_cursor:undefined});
@@ -17,7 +17,7 @@ export default function PQApprovalPanel({project,subject,record,onChanged}) {
  {round&&<PQApprovalTrail round={round}/>}
  {data?.canStart?<PQApprovalRoute projectId={project.id} subject={subject} busy={busy} onStart={steps=>run('start_approval',{steps})}/>:!round&&<p className="text-sm text-muted-foreground">{record?.status==='submitted'?'No approval sequence has been issued. A project editor can assign approvers.':'Submit the completed questionnaire before requesting approval.'}</p>}
  {round?.status==='active'&&data?.canManage&&<div className="space-y-2"><label className="block text-sm font-medium" htmlFor="pq-withdraw-reason">Reason for withdrawing</label><textarea id="pq-withdraw-reason" rows={2} maxLength={1000} value={reason} onChange={event=>setReason(event.target.value)} disabled={busy} className="w-full rounded-md border border-input bg-background p-3 text-sm"/><Button type="button" variant="outline" disabled={busy||!reason.trim()} onClick={()=>{if(window.confirm('Withdraw this approval sequence? Previous decisions will remain in its history.'))run('withdraw_approval',{roundId:round.id,comment:reason});}}>Withdraw approval sequence</Button></div>}
- {round&&round.status!=='active'&&!data?.canStart&&record.status==='submitted'&&<p className="text-sm text-muted-foreground">Reopen and resubmit the questionnaire to request a new approval sequence. Earlier decisions remain attached to their issued version.</p>}
+ {!locked&&round&&round.status!=='active'&&!data?.canStart&&record.status==='submitted'&&<p className="text-sm text-muted-foreground">Reopen and resubmit the questionnaire to request a new approval sequence. Earlier decisions remain attached to their issued version.</p>}
  {!!history.length&&<div className="space-y-2"><h5 className="text-sm font-semibold">Approval issue history</h5>{history.map(item=><details key={item.id} className="rounded-md border border-border p-3"><summary className="cursor-pointer text-sm">{item.reference} · {item.status} · {new Date(item.issued_at).toLocaleDateString('en-GB')}</summary><div className="mt-3"><PQApprovalTrail round={item}/></div></details>)}</div>}
  {query.hasNextPage&&<Button type="button" variant="outline" disabled={query.isFetchingNextPage} onClick={()=>query.fetchNextPage()}>Load more approval history</Button>}
  </>}</section>;
