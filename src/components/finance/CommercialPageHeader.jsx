@@ -14,5 +14,5 @@ export default function CommercialPageHeader({ status, user }) {
 
 
  </>;
- return <div className="mb-10 [&_h1]:text-sidebar-foreground"><WorkspacePageHeader title="Commercial" eyebrow="Alliance Leisure" description={description} image="https://media.base44.com/images/public/6ab62433a194f918c54c8249/40e479c05_generated_3ad03444.png" imageAlt="Project cost planning with architectural drawings, financial charts, a calculator and a leisure-centre model" actions={actions}/></div>;
+ return <div className="mb-10 [&_h1]:text-sidebar-foreground"><WorkspacePageHeader title="Commercial" eyebrow="Alliance Leisure" description={description} image="https://media.base44.com/images/public/6ab62433a194f918c54c8249/f74060573_image.png" imageAlt="Team collaborating around a laptop with financial charts in the office" actions={actions}/></div>;
 }
