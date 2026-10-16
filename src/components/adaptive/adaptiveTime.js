@@ -18,7 +18,7 @@ export function timeState(now,calendar,workday={}) {
  const workEnd=new Date(now);workEnd.setHours(Math.floor(end/60),end%60,0,0);
  const remaining=Math.max(0,Math.floor((workEnd-now)/60000)),allDay=events.some(e=>e.allDay&&!e.ended);
  const available=!working.resting&&!calendar.loading&&!calendar.error&&!calendar.more&&!current&&!allDay&&minute>=start&&minutesToNext!==null&&minutesToNext<=remaining?minutesToNext:null;
- const meeting=current||((minutesToNext!==null&&minutesToNext<=60)?next:null)||finished;
+ const meeting=current||next||finished;
  const tomorrowFirst=(calendar.nextWorkingRows||[]).find(e=>!e.allDay);
  return {...bounds,...working,now,phase,heading:headings[phase],timezone:Intl.DateTimeFormat().resolvedOptions().timeZone||'UTC',date:date.toLocaleDateString('en-GB',{weekday:'long',day:'numeric',month:'long'}),greeting:date.getHours()<12?'Good morning':date.getHours()<18?'Good afternoon':'Good evening',current,next,meeting,minutesToNext,meetingState:current?'underway':meeting===next?'upcoming':'finished',prominent:!!current||(minutesToNext!==null&&minutesToNext<=30),available,remaining,allDay,tomorrowFirst,workdayStart:working.hours.start,workdayEnd:working.hours.end};
 }

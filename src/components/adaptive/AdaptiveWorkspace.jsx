@@ -31,12 +31,12 @@ export default function AdaptiveWorkspace({user}) {
  const {settings}=useWellbeing(),now=useAdaptiveClock(),prefs=useAdaptivePreferences(user.id),query=useAdaptiveToday(user,prefs,now),context=roleContext(user),focus=focuses.includes(prefs.config.focus)?prefs.config.focus:focuses[0],time=timeState(now,query.calendar,settings.hours);
  useWellbeingAnchor(!!query.data);
  const data=query.data,ranked=timeRank(rankActions(data?.actions||[],context,focus,time.day),time),actions=ranked.filter(a=>!prefs.config.dismissed.includes(a.key)),records=evidenceContext(actions,data?.projects||[]),intelligence=useAdaptiveIntelligence(records,time);
- return <div className="adaptive-today"><div className="at-container"><div className="at-experiment-bar justify-end"><button className="at-text-link" disabled={query.isFetching} onClick={()=>{query.refetch();query.calendar.refresh();client.invalidateQueries({queryKey:['adaptive-outlook-mail',user.id]});client.invalidateQueries({queryKey:['adaptive-ie-feed',user.id]});}}><RefreshCw size={13} className={query.isFetching?'animate-spin':''}/> Refresh</button></div>
+ return <div className="adaptive-today"><div className="at-container"><div className="at-experiment-bar justify-end"><button className="at-text-link" disabled={query.isFetching} onClick={()=>{query.refetch();query.calendar.refresh();client.invalidateQueries({queryKey:['adaptive-outlook-mail',user.id]});client.invalidateQueries({queryKey:['adaptive-ie-feed',user.id]});client.invalidateQueries({queryKey:['adaptive-meeting-projects',user.id]});}}><RefreshCw size={13} className={query.isFetching?'animate-spin':''}/> Refresh</button></div>
   <AdaptiveTodayHero>
    <DailyBriefing user={user} time={time}/>
    <AdaptiveCommandBar intelligence={intelligence} hasRecords={!!records.length} prefs={prefs} context={context} onFeedback={setCommandFeedback}/>
   </AdaptiveTodayHero>
-  <AdaptiveFocusNav focus={focus} prefs={prefs}/>
+  <AdaptiveFocusNav focus={focus} prefs={prefs} context={context} ready={!!data}/>
   <p id="adaptive-command-help" className={commandFeedback?'at-small my-3':'sr-only'} role="status">{commandFeedback||'Ask about loaded records or use layout commands such as pin projects and hide documents.'}</p>
   {query.isPending&&<div className="at-loading" role="status"><span className="at-spinner"/><h2>Bringing your working day into focus.</h2><p>Reading your assigned work and accessible project records…</p></div>}
   {query.error&&<div role="alert" className="at-empty"><h2>Your workspace could not be loaded.</h2><p>{query.error.message}</p><button className="at-btn" onClick={()=>query.refetch()}>Try again</button></div>}
@@ -44,7 +44,7 @@ export default function AdaptiveWorkspace({user}) {
    {data.warnings.length>0&&<details className="at-source-warning"><summary>Some sources are unavailable ({data.warnings.length}). This briefing is partial.</summary>{data.warnings.map(w=><p key={w}>{w}</p>)}</details>}
    <div className="at-main-grid">
     <div className="at-main-column"><PriorityActions actions={actions} prefs={prefs} onComplete={query.complete} moreTasks={data.moreTasks} resting={time.resting}/></div>
-    <div className="at-side-column">{time.prominent&&<NextMeeting time={time}/>}<WorkingDayTimeline calendar={query.calendar} actions={actions} time={time}/>{!time.prominent&&<NextMeeting time={time}/>}</div>
+    <div className="at-side-column">{time.prominent&&<NextMeeting time={time} userId={user.id}/>}<WorkingDayTimeline calendar={query.calendar} actions={actions} time={time}/>{!time.prominent&&<NextMeeting time={time} userId={user.id}/>}</div>
     <aside className="at-alice-column" aria-label="ALICE Intelligence"><IntelligentRecommendations actions={actions} intelligence={intelligence} prefs={prefs} time={time}/><ALSightIntelligencePanel intelligence={intelligence} hasRecords={!!records.length} time={time}/></aside>
     <div className="at-project-zone"><PersonalWorkspace data={data} actions={actions} context={context} focus={focus} prefs={prefs}/></div>
    </div>

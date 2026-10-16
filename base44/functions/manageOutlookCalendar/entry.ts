@@ -1,6 +1,7 @@
 import { createClientFromRequest } from 'npm:@base44/sdk@0.8.52';
 import { outlookUnreadEmails } from '../../shared/outlookUnreadEmails.ts';
 import { outlookMeetingBrief } from '../../shared/outlookMeetingBrief.ts';
+import { meetingProjectContext } from '../../shared/meetingProjectContext.ts';
 
 const connectorId = '6ac767410e11df12db6e136f';
 const fields = 'id,subject,start,end,isAllDay,location,bodyPreview,attendees,isOrganizer,webLink,type,isOnlineMeeting,onlineMeeting,onlineMeetingProvider';
@@ -11,10 +12,11 @@ export default async function(req) {
     if (!user) return Response.json({ error: 'Sign in to access your calendar.' }, { status: 401 });
     if (req.method !== 'POST') return Response.json({ error: 'Method not allowed.' }, { status: 405 });
     const input = await req.json();
-    if (!['status', 'list', 'get', 'create', 'update', 'delete', 'unreadEmails', 'meetingBrief'].includes(input.action)) return Response.json({ error: 'Invalid calendar operation.' }, { status: 400 });
+    if (!['status', 'list', 'get', 'create', 'update', 'delete', 'unreadEmails', 'meetingBrief', 'meetingProjects'].includes(input.action)) return Response.json({ error: 'Invalid calendar operation.' }, { status: 400 });
     const timeZone = input.action === 'meetingBrief' ? 'UTC' : input.timeZone || 'UTC';
     try { if (typeof timeZone !== 'string' || timeZone.length > 100) throw new Error(); new Intl.DateTimeFormat('en', { timeZone }); }
     catch { return Response.json({ error: 'Invalid calendar timezone.' }, { status: 400 }); }
+    if (input.action === 'meetingProjects') return Response.json(await meetingProjectContext(base44, input, user));
     let connection;
     try { connection = await base44.asServiceRole.connectors.getCurrentAppUserConnection(connectorId); }
     catch { return Response.json({ error: 'Connect your own Outlook account in Account Settings.', code: 'OUTLOOK_NOT_CONNECTED' }, { status: 409 }); }
@@ -32,7 +34,7 @@ export default async function(req) {
       const text = await response.text(); return text ? JSON.parse(text) : null;
     };
     if (input.action === 'unreadEmails') return await outlookUnreadEmails(base44, graph, input);
-    if (input.action === 'meetingBrief') return await outlookMeetingBrief(base44, graph, input);
+    if (input.action === 'meetingBrief') return await outlookMeetingBrief(base44, graph, input, user);
     if (input.action === 'status') {
       const calendar = await graph('/me/calendar?$select=name,canEdit');
       return Response.json({ connected: true, calendar: { name: calendar.name, canEdit: calendar.canEdit } });
@@ -80,6 +82,6 @@ export default async function(req) {
     const saved = await graph(input.action === 'create' ? '/me/events' : eventPath, input.action === 'create' ? 'POST' : 'PATCH', body);
     return Response.json({ event: saved });
   } catch (error) {
-    return Response.json({ error: error.message || 'Unable to access Outlook.', ...(error.status === 401 ? { code: 'OUTLOOK_NOT_CONNECTED' } : {}) }, { status: error.status === 401 ? 409 : error.status === 403 ? 403 : 500 });
+    return Response.json({ error: error.message || 'Unable to access Outlook.', ...(error.status === 401 ? { code: 'OUTLOOK_NOT_CONNECTED' } : {}) }, { status: error.status === 401 ? 409 : error.status === 403 ? 403 : error.status === 400 ? 400 : 500 });
   }
 }
