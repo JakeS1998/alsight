@@ -1,0 +1,61 @@
+.ie-dashboard {
+  background: transparent;
+  border-radius: 0;
+}
+.ie-dashboard .ie-hero {
+  min-height: 240px;
+  background: hsl(var(--als-navy));
+  color: hsl(var(--sidebar-foreground));
+  box-shadow: var(--surface-shadow);
+}
+.ie-dashboard .ie-hero-copy { padding: 36px; }
+.ie-dashboard .ie-hero-copy h1 { color: hsl(var(--sidebar-foreground)); }
+.ie-dashboard .ie-eyebrow { color: hsl(var(--sidebar-foreground) / .65); }
+.ie-dashboard .ie-hero-description { color: hsl(var(--sidebar-foreground) / .85); }
+.ie-dashboard .ie-hero-fade {
+  background: linear-gradient(90deg, hsl(var(--als-navy)) 0%, hsl(var(--als-navy) / .88) 25%, hsl(var(--als-navy) / .35) 70%, hsl(var(--als-navy) / .45) 100%);
+}
+.ie-dashboard .ie-hero-icon {
+  background: hsl(var(--als-navy-light));
+  border-color: hsl(var(--sidebar-foreground) / .15);
+}
+.ie-dashboard .ie-metric,
+.ie-dashboard .ie-dashboard-panel {
+  border-color: hsl(var(--border));
+  border-radius: var(--panel-radius);
+  box-shadow: var(--surface-shadow);
+}
+.ie-dashboard .ie-panel-heading {
+  min-height: 70px;
+  padding: 18px 22px;
+  margin-bottom: 16px;
+  background: hsl(var(--als-navy));
+  color: hsl(var(--sidebar-foreground));
+  border-bottom: 1px solid hsl(var(--sidebar-border));
+}
+.ie-dashboard .ie-panel-heading h2 { color: hsl(var(--sidebar-foreground)); }
+.ie-dashboard .ie-panel-heading p { color: hsl(var(--sidebar-foreground) / .75); }
+.ie-dashboard .ie-panel-heading .ie-period-label {
+  color: hsl(var(--sidebar-foreground) / .85);
+  border-color: hsl(var(--sidebar-foreground) / .25);
+}
+.ie-dashboard .ie-engagement-cards { padding: 6px 20px 20px; gap: 16px; }
+.ie-dashboard .ie-engagement-card {
+  background: hsl(var(--card));
+  border-color: hsl(var(--border));
+  border-radius: var(--radius);
+  padding: 20px;
+}
+.ie-dashboard .ie-engagement-card:hover { border-color: hsl(var(--primary)); }
+.ie-dashboard .ie-engagement-card h3 { font-size: 14px; }
+.ie-dashboard .ie-engagement-card > p,
+.ie-dashboard .ie-card-footer { font-size: 12px; }
+.ie-dashboard .ie-card-service,
+.ie-dashboard .ie-card-footer small { font-size: 11px; }
+@media (max-width: 767px) {
+  .ie-dashboard .ie-hero { min-height: 200px; }
+  .ie-dashboard .ie-hero-copy { padding: 24px 20px; }
+  .ie-dashboard .ie-hero-art { opacity: .35; }
+  .ie-dashboard .ie-panel-heading { padding: 16px; }
+  .ie-dashboard .ie-engagement-cards { padding: 0 14px 16px; }
+}

@@ -12,6 +12,7 @@ import IEDashboardAside from '@/components/ie/IEDashboardAside';
 import IEEngagementForm from '@/components/ie/IEEngagementForm';
 import IEClassificationEditor from '@/components/ie/IEClassificationEditor';
 import '@/components/ie/ie-dashboard.css';
+import '@/components/ie/ie-dashboard-cards.css';
 export default function IEWorkspace(){
  const {user}=useAuth(),[creating,setCreating]=useState(false),[settings,setSettings]=useState(false);
  const summary=useQuery({queryKey:['ie-summary',user.id,user.role],queryFn:()=>ieCall('summary'),retry:false});

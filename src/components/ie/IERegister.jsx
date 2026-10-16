@@ -10,7 +10,7 @@ import IEPagination from '@/components/ie/IEPagination';
 import IEQueryState from '@/components/ie/IEQueryState';
 export default function IERegister({classifications=[],actions,children}){
  const {user}=useAuth(),[filters,setFilters]=useState({}),[applied,setApplied]=useState({});
- const [view,setView]=useState('list'),[expanded,setExpanded]=useState(false),[paging,setPaging]=useState({index:0,cursors:['']});
+ const [view,setView]=useState('cards'),[expanded,setExpanded]=useState(false),[paging,setPaging]=useState({index:0,cursors:['']});
  const size=expanded?30:8,cursor=paging.cursors[paging.index]||'';
  useEffect(()=>{const timer=setTimeout(()=>{setApplied(filters);setPaging({index:0,cursors:['']});},250);return()=>clearTimeout(timer);},[filters]);
  const options=useQuery({queryKey:['ie-options',user.id],queryFn:()=>ieCall('options'),staleTime:60000,retry:false});
