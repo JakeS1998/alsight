@@ -9,7 +9,7 @@ export function psoDate(value) {
 }
 export function mapPsoApprovals(rows) {
  const updates={},warnings=[];
- const sectionRules=[['pq',/^PQ\s+APPROVED\s*:/i],['aa',/^AA\s+(?:RIBA\s*[1-7](?:\s*[-–]\s*[1-7])?\s+)?APPROVED\s*:/i],['aa_variations',/^AA\s+VARIATIONS?\s+APPROVED/i]];
+ const sectionRules=[['pq',/^PQ\s+APPROVED\s*:/i],['aa',/^AA\s+(?:RIBA\s*\[?\s*(?:[0-7]|x)\s*\]?(?:\s*(?:[-–/&]|and|to)\s*\[?\s*[0-7]\s*\]?)?\s+)?APPROVED\s*:/i],['aa_variations',/^AA\s+VARIATIONS?\s+APPROVED/i]];
  for(const [key,pattern] of sectionRules) {
   const matching=rows.filter(row=>row.some(cell=>pattern.test(String(cell).trim())));
   if(matching.length!==1){warnings.push(`${key.toUpperCase()}: ${matching.length?'multiple':'no'} named approval sections found.`);continue;}

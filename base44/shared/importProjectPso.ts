@@ -11,14 +11,14 @@ export async function importProjectPso(db,reads,project,preview=false) {
  else await db.ProjectDelivery.create({...payload,project_id:project.id,client_account_id:project.client_account_id||null,bdm_aad_id:project.bdm_aad_id||null});
  return {...result,importedFields};
 }
-export async function checkOutstandingPso(db,reads,cursor) {
- const page=await db.Project.filter({status:'active',live_project:true,link_to_pso:{$exists:true,$nin:[null,'']}},{sort:'id',limit:9,fields:['name','dataverse_id','link_to_pso','client_account_id','bdm_aad_id'],...(cursor?{cursor}:{})});
+export async function checkOutstandingPso(db,reads,cursor,allProjects=false) {
+ const page=await db.Project.filter({...(allProjects?{}:{status:'active',live_project:true}),link_to_pso:{$exists:true,$nin:[null,'']}},{sort:'id',limit:9,fields:['name','dataverse_id','link_to_pso','client_account_id','bdm_aad_id'],...(cursor?{cursor}:{})});
  const results=[];
  for(let i=0;i<page.items.length;i+=3) {
   const outcomes=await Promise.all(page.items.slice(i,i+3).map(async project=>{
    try {
     const {items}=await db.ProjectDelivery.filter({project_id:project.id},{sort:'-created_date',limit:1,fields:psoDateFields});
-    if(items[0] && psoDateFields.every(field=>!!items[0][field]))return {project:project.name,status:'complete_skipped'};
+    if(!allProjects && items[0] && psoDateFields.every(field=>!!items[0][field]))return {project:project.name,status:'complete_skipped'};
     const result=await importProjectPso(db,reads,project);
     return {project:project.name,status:'checked',importedFields:result.importedFields,warnings:result.warnings};
    }catch(error){console.warn('PSO check failed',project.id,error.message);return {project:project.name,status:'error',error:error.message};}

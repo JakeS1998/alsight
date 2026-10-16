@@ -10,7 +10,7 @@ export default async function(req) {
   if(!user)return Response.json({error:'Unauthorized'},{status:401});
   if(user.role!=='admin')return Response.json({error:'Administrator access required.'},{status:403});
   const input=await req.json();
-  if(input.action==='psoStart')return Response.json(await startPsoScheduledSync(base44.entities));
+  if(input.action==='psoStart')return Response.json(await startPsoScheduledSync(base44.entities,input.allProjects===true));
   if(input.action==='psoContinue') {
    if(typeof input.stateId!=='string' || !/^[a-f0-9]{24}$/i.test(input.stateId) || typeof input.ticket!=='string' || input.ticket.length>80)return Response.json({error:'Valid PSO batch ticket required.'},{status:400});
    return Response.json(await continuePsoScheduledSync(base44.entities,await projectSharePointReads(base44),input.stateId,input.ticket));

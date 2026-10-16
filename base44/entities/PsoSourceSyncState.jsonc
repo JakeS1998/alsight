@@ -16,6 +16,10 @@
         "error"
       ]
     },
+    "all_projects": {
+      "type": "boolean",
+      "default": false
+    },
     "cursor": {
       "type": "string"
     },
