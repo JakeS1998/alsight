@@ -182,7 +182,7 @@ export default function Projects() {
 
   return (
     <div className="space-y-6">
-      <WorkspacePageHeader title="Projects" eyebrow="Delivery 360" description="A connected view of Alliance projects from scope to handover." image="https://media.base44.com/images/public/6ab62433a194f918c54c8249/e05515026_image.png" imageAlt="Project team in high-visibility jackets reviewing construction drawings on site" actions={<><Button variant={meeting ? 'default' : 'outline'} aria-pressed={meeting} onClick={()=>{setMeeting(v=>!v);setView('workspace');}}>{meeting ? 'Exit Meeting Mode' : 'Meeting Mode'}</Button>{canRequest && <Button onClick={() => setRequestOpen(true)} className="bg-primary hover:bg-primary/90"><Plus className="mr-1.5 h-4 w-4" /> Request Project</Button>}</>} />
+      <WorkspacePageHeader title="Projects" eyebrow="Delivery 360" description="A connected view of Alliance projects from scope to handover." image="https://media.base44.com/images/public/6ab62433a194f918c54c8249/e621088c8_image.png" imageAlt="Project team in high-visibility jackets reviewing construction drawings on site" actions={<><Button variant={meeting ? 'default' : 'outline'} aria-pressed={meeting} onClick={()=>{setMeeting(v=>!v);setView('workspace');}}>{meeting ? 'Exit Meeting Mode' : 'Meeting Mode'}</Button>{canRequest && <Button onClick={() => setRequestOpen(true)} className="bg-primary hover:bg-primary/90"><Plus className="mr-1.5 h-4 w-4" /> Request Project</Button>}</>} />
 
       {(serverPaging || (!loading && projects.length > 0)) && (
         <div className="space-y-3">
