@@ -1,0 +1,6 @@
+import React from 'react';
+import {Link} from 'react-router-dom';
+import {StatusBadge} from '@/components/StatusBadge';
+import {IE_STATUSES} from '@/components/ie/ieClient';
+import {formatDate} from '@/lib/portal';
+export default function IEWorkList({items=[],empty='No engagements to show.',activity=false}){return <div className="space-y-3">{items.map(item=><Link key={item.id} to={`/insights-engagement/${item.id}`} className="block rounded-lg border border-border p-3 hover:border-primary"><div className="flex flex-wrap items-center justify-between gap-2"><strong className="text-sm">{item.name}</strong><StatusBadge status={item.status} map={IE_STATUSES}/></div><p className="mt-1 text-xs text-muted-foreground">{item.client_name} · {activity?`Updated ${formatDate(item.updated_date)}`:`Target ${formatDate(item.target_date)}`}</p>{item.awaiting_action&&item.action_note&&<p className="mt-2 text-xs text-foreground">{item.action_note}</p>}</Link>)}{!items.length&&<p className="py-3 text-sm text-muted-foreground">{empty}</p>}</div>;}

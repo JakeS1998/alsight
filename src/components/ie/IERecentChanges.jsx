@@ -1,0 +1,3 @@
+import React from 'react';
+import IEPanel from '@/components/ie/IEPanel';
+export default function IERecentChanges({events=[]}){return <IEPanel title="Recent record changes" description="Recorded creation, ownership, lifecycle and detail updates."><ol className="space-y-4">{events.map(event=><li key={event.id} className="border-l-2 border-primary/40 pl-4"><p className="text-sm font-semibold">{event.summary}</p><p className="mt-1 text-xs text-muted-foreground">{event.actor_name} · {new Date(event.occurred_at).toLocaleString('en-GB',{timeZone:'Europe/London'})}</p>{event.changes?.reason&&<p className="mt-1 text-sm">{event.changes.reason}</p>}</li>)}</ol>{!events.length&&<p className="text-sm text-muted-foreground">No record changes recorded.</p>}</IEPanel>;}

@@ -21,6 +21,8 @@ const ROLES = [
   { value: "bsm", label: "BSM" },
   { value: "finance", label: "Finance" },
   { value: "bdm", label: "BDM" },
+  { value: "sam", label: "SAM" },
+  { value: "sam_director", label: "SAM Director" },
   { value: "client", label: "Client" },
   { value: "supplier", label: "Supplier" },
   { value: "project_manager", label: "External Project Manager" },

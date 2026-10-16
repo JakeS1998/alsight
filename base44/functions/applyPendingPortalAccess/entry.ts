@@ -2,7 +2,7 @@ import { createClientFromRequest } from 'npm:@base44/sdk@0.8.52';
 import { withPortalUserNames } from '../../shared/portalUserNames.ts';
 import {portalNameAliases} from '../../shared/portalNameAliases.ts';
 
-const ROLES = ['admin', 'director', 'regional_director', 'bsm', 'finance', 'bdm', 'client', 'supplier', 'project_manager', 'framework_stakeholder'];
+const ROLES = ['admin', 'director', 'regional_director', 'bsm', 'finance', 'bdm', 'sam', 'sam_director', 'client', 'supplier', 'project_manager', 'framework_stakeholder'];
 
 export default async function(req: Request): Promise<Response> {
   try {

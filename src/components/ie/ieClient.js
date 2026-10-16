@@ -1,0 +1,5 @@
+import {base44} from '@/api/base44Client';
+export const IE_ROLES=['admin','sam','sam_director','director','regional_director','finance','bsm'];
+export const IE_EDIT_ROLES=['admin','sam','sam_director'];
+export const IE_STATUSES={scoping:{label:'Scoping',className:'bg-secondary text-secondary-foreground border-border'},planned:{label:'Planned',className:'bg-secondary text-secondary-foreground border-border'},live:{label:'Live',className:'bg-success/10 text-success border-success/20'},on_hold:{label:'On Hold',className:'bg-primary/10 text-foreground border-primary/30'},completed:{label:'Completed',className:'bg-success/10 text-success border-success/20'},cancelled:{label:'Cancelled',className:'bg-muted text-muted-foreground border-border'}};
+export async function ieCall(action,payload={}){try{const {data}=await base44.functions.invoke('manageIEEngagements',{action,...payload});if(data.error)throw new Error(data.error);return data;}catch(error){const failure=new Error(error.response?.data?.error||error.message||'Unable to load I&E.');failure.status=error.response?.status||error.status;throw failure;}}

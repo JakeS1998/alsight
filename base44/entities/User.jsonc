@@ -11,6 +11,8 @@
         "bsm",
         "finance",
         "bdm",
+        "sam",
+        "sam_director",
         "client",
         "supplier",
         "project_manager",

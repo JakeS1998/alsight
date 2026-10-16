@@ -1,0 +1,261 @@
+{
+  "name": "IEEngagement",
+  "type": "object",
+  "properties": {
+    "reference": {
+      "type": "string"
+    },
+    "name": {
+      "type": "string",
+      "maxLength": 250
+    },
+    "client_id": {
+      "type": "string"
+    },
+    "client_name": {
+      "type": "string"
+    },
+    "sites": {
+      "type": "array",
+      "maxItems": 30,
+      "items": {
+        "type": "string",
+        "maxLength": 250
+      }
+    },
+    "opportunity_id": {
+      "type": "string"
+    },
+    "opportunity_name": {
+      "type": "string"
+    },
+    "project_id": {
+      "type": "string"
+    },
+    "project_name": {
+      "type": "string"
+    },
+    "category_id": {
+      "type": "string"
+    },
+    "category_name": {
+      "type": "string"
+    },
+    "support_type_id": {
+      "type": "string"
+    },
+    "support_type_name": {
+      "type": "string"
+    },
+    "owner_id": {
+      "type": "string"
+    },
+    "owner_name": {
+      "type": "string"
+    },
+    "team_ids": {
+      "type": "array",
+      "maxItems": 30,
+      "items": {
+        "type": "string"
+      }
+    },
+    "team": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          }
+        }
+      }
+    },
+    "access_user_ids": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "bsm_identity": {
+      "type": "string"
+    },
+    "region_id": {
+      "type": "string"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "scoping",
+        "planned",
+        "live",
+        "on_hold",
+        "completed",
+        "cancelled"
+      ],
+      "default": "scoping"
+    },
+    "priority": {
+      "type": "string",
+      "enum": [
+        "normal",
+        "high",
+        "urgent"
+      ],
+      "default": "normal"
+    },
+    "start_date": {
+      "type": "string"
+    },
+    "target_date": {
+      "type": "string"
+    },
+    "completion_date": {
+      "type": "string"
+    },
+    "description": {
+      "type": "string",
+      "maxLength": 6000
+    },
+    "expected_outcome": {
+      "type": "string",
+      "maxLength": 4000
+    },
+    "notes_risks": {
+      "type": "string",
+      "maxLength": 4000
+    },
+    "awaiting_action": {
+      "type": "boolean",
+      "default": false
+    },
+    "action_note": {
+      "type": "string",
+      "maxLength": 1000
+    },
+    "revision": {
+      "type": "integer",
+      "default": 1
+    },
+    "origin": {
+      "type": "string",
+      "default": "alsight"
+    }
+  },
+  "required": [
+    "reference",
+    "name",
+    "client_id",
+    "owner_id",
+    "status",
+    "access_user_ids"
+  ],
+  "rls": {
+    "read": {
+      "$or": [
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        },
+        {
+          "user_condition": {
+            "role": "sam_director"
+          }
+        },
+        {
+          "user_condition": {
+            "role": "director"
+          }
+        },
+        {
+          "user_condition": {
+            "role": "finance"
+          }
+        },
+        {
+          "$and": [
+            {
+              "user_condition": {
+                "role": "sam"
+              }
+            },
+            {
+              "data.access_user_ids": "{{user.id}}"
+            }
+          ]
+        },
+        {
+          "$and": [
+            {
+              "user_condition": {
+                "role": "regional_director"
+              }
+            },
+            {
+              "data.region_id": {
+                "$exists": true,
+                "$nin": [
+                  null,
+                  ""
+                ]
+              }
+            },
+            {
+              "data.region_id": "{{user.data.region}}"
+            }
+          ]
+        },
+        {
+          "$and": [
+            {
+              "user_condition": {
+                "role": "bsm"
+              }
+            },
+            {
+              "data.bsm_identity": {
+                "$exists": true,
+                "$nin": [
+                  null,
+                  ""
+                ]
+              }
+            },
+            {
+              "$or": [
+                {
+                  "data.bsm_identity": "{{user.id}}"
+                },
+                {
+                  "data.bsm_identity": "{{user.data.staff_aad_id}}"
+                },
+                {
+                  "data.bsm_identity": "{{user.data.dataverse_systemuser_id}}"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    "create": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "update": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "delete": {
+      "user_condition": {
+        "role": "admin"
+      }
+    }
+  }
+}

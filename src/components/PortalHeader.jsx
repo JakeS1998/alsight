@@ -9,6 +9,7 @@ import UserMenu from '@/components/UserMenu';
 import PortalSearch from '@/components/search/PortalSearch';
 import UKLFIcon from '@/components/framework/UKLFIcon';
 import InsightsEngagementIcon from '@/components/InsightsEngagementIcon';
+import {IE_ROLES} from '@/components/ie/ieClient';
 import RelationshipNavigation from '@/components/relationships/RelationshipNavigation';
 import useApprovalAccess from '@/components/approvals/useApprovalAccess';
 import useApprovalSummary from '@/components/approvals/useApprovalSummary';
@@ -19,9 +20,9 @@ const NAV_ITEMS = [
   { label: 'Today', path: '/today', icon: House, roles: INTERNAL_ROLES.concat(['client', 'supplier']) },
   { label: 'Alliance360', path: '/portfolio-overview', icon: LayoutDashboard, roles: INTERNAL_ROLES },
   { label: 'Network', path: '/accounts', icon: Building2, roles: ALL_ROLES.filter(role => role !== 'supplier') },
-  { label: 'I & E', path: '/insights-engagement', icon: InsightsEngagementIcon, roles: INTERNAL_ROLES },
+  { label: 'I & E', path: '/insights-engagement', icon: InsightsEngagementIcon, roles: IE_ROLES },
   { label: 'Opportunities', path: '/crm/opportunities', icon: BriefcaseBusiness, roles: INTERNAL_ROLES },
-  { label: 'Projects', path: '/projects', icon: FolderKanban, roles: ALL_ROLES },
+  { label: 'Projects', path: '/projects', icon: FolderKanban, roles: ALL_ROLES.concat(['sam_director']) },
 
   { label: 'Commercial', path: '/finance', icon: ChartNoAxesCombined, roles: ['admin', 'finance', 'director', 'regional_director', 'bdm', 'bsm'] },
   { label: 'Approvals', path: '/approvals', icon: ClipboardCheck, roles: ALL_ROLES.concat(['framework_stakeholder']) },
@@ -51,7 +52,7 @@ export default function PortalHeader() {
   });
   return <header ref={headerRef} className="sticky top-0 z-40 bg-als-navy text-white shadow-sm">
     <div className="portal-topbar">
-      <Link to={role === 'framework_stakeholder' ? '/framework-reports' : '/today'} aria-label="ALSight home" onClick={() => setMenuOpen(false)} className="portal-logo"><Logo variant="header" className="portal-logo-image" /></Link>
+      <Link to={['sam','sam_director'].includes(role) ? '/insights-engagement' : role === 'framework_stakeholder' ? '/framework-reports' : '/today'} aria-label="ALSight home" onClick={() => setMenuOpen(false)} className="portal-logo"><Logo variant="header" className="portal-logo-image" /></Link>
       <nav aria-label="Main navigation" className="portal-navigation hidden min-w-0 items-center lg:flex">{nav()}</nav>
       <div className="portal-utilities">
         <PortalSearch />

@@ -1,0 +1,2 @@
+import React from 'react';
+export default function IEPanel({title,description,actions,children,className=''}){return <section className={`rounded-panel border border-border bg-card text-card-foreground ${className}`}><header className="flex flex-wrap items-center justify-between gap-3 border-b border-border px-5 py-4"><div><h2 className="font-heading text-base font-bold">{title}</h2>{description&&<p className="mt-1 text-xs text-muted-foreground">{description}</p>}</div>{actions}</header><div className="p-5">{children}</div></section>;}
