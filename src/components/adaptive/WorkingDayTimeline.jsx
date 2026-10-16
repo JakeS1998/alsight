@@ -6,7 +6,7 @@ export default function WorkingDayTimeline({calendar,actions,time}) {
  const [expanded,setExpanded]=useState(false),today=time.day;
  const due=actions.filter(a=>deadlineDay(a.due)===today).map(a=>({key:a.key,title:a.title,detail:'Task due today',time:'Due today',sort:`${today}T23:59`,to:a.to}));
  const rows=[...calendar.rows,...due].sort((a,b)=>a.sort.localeCompare(b.sort));
- return <section className="at-panel at-day"><header className="at-section-head"><div><span className="at-eyebrow">MAKE ROOM FOR WHAT MATTERS</span><h2>My working day</h2></div><CalendarDays size={21}/></header><p className="at-section-note">Meetings and dated work · {time.timezone}</p>
+ return <section className="at-panel at-day scroll-mt-24" id="adaptive-day"><header className="at-section-head"><div><span className="at-eyebrow">MAKE ROOM FOR WHAT MATTERS</span><h2>My working day</h2></div><Link className="at-text-link" to="/calendar">View calendar <ArrowUpRight size={12}/></Link></header><p className="at-section-note">Meetings and dated work · {time.timezone}</p>
   {calendar.loading&&<p role="status" className="at-small">Loading today’s calendar…</p>}
   {calendar.error&&<div className="at-calendar-note"><p>Calendar unavailable. Your dated tasks still appear here.</p><Link className="at-text-link" to="/calendar">Manage Outlook connection <ArrowUpRight size={13}/></Link></div>}
   {!calendar.loading&&!rows.length&&<div className="at-empty"><CalendarDays size={25}/><h3>A little breathing room.</h3><p>No meetings or dated tasks found for today.</p><Link className="at-text-link" to="/calendar">Open calendar</Link></div>}

@@ -1,0 +1,5 @@
+import React from 'react';
+import { Sparkles } from 'lucide-react';
+export default function AdaptiveRoleContext({context,data,calendar,since}) {
+ return <details className="at-role-context"><summary><Sparkles size={14}/> Your workspace context · {context.label}</summary><aside className="at-brief-aside"><h2>{context.label}</h2><p>{context.description}</p><dl><div><dt>Assigned tasks</dt><dd>{data.taskTotal??'Unavailable'}</dd></div><div><dt>Diary events today</dt><dd>{calendar.error?'Not connected / unavailable':calendar.loading?'Loading…':`${calendar.rows.length}${calendar.more?'+':''}`}</dd></div><div><dt>Projects updated since last visit</dt><dd>{!since?'First visit':data.changes??'Unavailable'}</dd></div></dl><span className="at-small">Live records · Existing access permissions</span></aside></details>;
+}
