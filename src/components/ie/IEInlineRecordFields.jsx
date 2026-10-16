@@ -1,0 +1,6 @@
+import React,{useState} from 'react';
+import IERelationshipPicker from '@/components/ie/IERelationshipPicker';
+export default function IEInlineRecordFields({value,set}){
+ const [labels,setLabels]=useState({client:value.client_name||'',project:value.project_name||'',opportunity:value.opportunity_name||''});
+ return <div className="space-y-4">{['client','project','opportunity'].map(kind=><div key={kind} className="space-y-1"><p className="text-xs font-semibold">{kind==='client'?'Client *':kind==='project'?'Project':'Opportunity'}</p><IERelationshipPicker kind={kind} value={value[`${kind}_id`]} label={labels[kind]} clientId={kind==='client'?undefined:value.client_id} disabled={kind!=='client'&&!value.client_id} onChange={record=>{if(kind==='client'){set({client_id:record?.id||'',project_id:'',opportunity_id:''});setLabels({client:record?.name||'',project:'',opportunity:''});}else{set(`${kind}_id`,record?.id||'');setLabels(old=>({...old,[kind]:record?.name||''}));}}}/></div>)}</div>;
+}

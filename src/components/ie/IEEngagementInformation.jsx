@@ -1,14 +1,14 @@
 import React from 'react';
-import IEPanel from '@/components/ie/IEPanel';
+import IEEditablePanel from '@/components/ie/IEEditablePanel';
 import {StatusBadge} from '@/components/StatusBadge';
 import {IE_STATUSES} from '@/components/ie/ieClient';
 import {regionName} from '@/components/ie/ieRegions';
 import {IE_SERVICES} from '@/components/ie/ieServices';
 
-export default function IEEngagementInformation({item}){
+export default function IEEngagementInformation({item,canEdit}){
  const fields=[['Engagement owner',item.owner_name||'Unassigned'],['Service',IE_SERVICES[item.service]],['Product',item.product_name],['Support type',item.support_type_name],['Region',regionName(item.region_id)],['Priority',item.priority?.replaceAll('_',' ')],['Sites',(item.sites||[]).join(', ')]];
- return <IEPanel title="Key information" className="h-full"><dl className="space-y-4 text-sm">
+ return <IEEditablePanel title="Key information" section="information" item={item} canEdit={canEdit} className="h-full"><dl className="space-y-4 text-sm">
   {fields.map(([label,value])=><div key={label} className="grid grid-cols-[minmax(0,1fr)_minmax(0,1.3fr)] gap-4"><dt className="text-xs text-muted-foreground">{label}</dt><dd className={`break-words text-xs font-semibold ${label==='Priority'?'capitalize':''}`}>{value||'Not recorded'}</dd></div>)}
   <div className="grid grid-cols-[minmax(0,1fr)_minmax(0,1.3fr)] items-center gap-4 border-t border-border pt-4"><dt className="text-xs text-muted-foreground">Status</dt><dd><StatusBadge status={item.status} map={IE_STATUSES}/></dd></div>
- </dl></IEPanel>;
+ </dl></IEEditablePanel>;
 }
