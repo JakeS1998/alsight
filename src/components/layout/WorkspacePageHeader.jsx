@@ -1,12 +1,12 @@
 import React from 'react';
 import { Image } from '@/components/ui/image';
 
-export default function WorkspacePageHeader({ title, description, eyebrow, image, imageAlt, actions }) {
+export default function WorkspacePageHeader({ title, description, eyebrow, image, imageAlt, actions, imageFocalPointY }) {
   const fade = 'linear-gradient(90deg, transparent 0%, rgb(0 0 0 / .4) 18%, rgb(0 0 0) 42%)';
   return <>
     <header className="relative isolate flex min-h-[240px] items-center overflow-hidden rounded-hero bg-als-navy text-sidebar-foreground">
       <div className="absolute inset-y-0 right-0 -z-20 w-[70%]" style={{ maskImage: fade, WebkitMaskImage: fade }}>
-        <Image src={image} alt={imageAlt} className="h-full w-full object-cover" loading="eager" />
+        <Image src={image} alt={imageAlt} className="h-full w-full object-cover" loading="eager" focalPointX={imageFocalPointY === undefined ? undefined : 0.5} focalPointY={imageFocalPointY} style={imageFocalPointY === undefined ? undefined : { objectPosition: `center ${imageFocalPointY * 100}%` }} />
       </div>
       <div className="absolute inset-0 -z-10" style={{ background: 'linear-gradient(90deg, hsl(var(--als-navy)) 20%, hsl(var(--als-navy) / .9) 42%, hsl(var(--als-navy) / .35) 72%, hsl(var(--als-navy) / .15) 100%)' }} />
       <div className="flex w-full flex-col gap-6 px-6 py-8 sm:flex-row sm:items-end sm:justify-between sm:px-10 sm:py-10">
