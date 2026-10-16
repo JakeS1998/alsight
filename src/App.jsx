@@ -59,6 +59,10 @@ const PQApprovalReview = lazy(() => import('@/pages/PQApprovalReview'));
 const Help = lazy(() => import('@/pages/Help'));
 const Pulse = lazy(() => import('@/pages/Pulse'));
 const InsightsEngagement = lazy(() => import('@/pages/InsightsEngagement'));
+const IEEngagementDetail = lazy(() => import('@/pages/IEEngagementDetail'));
+const SAMProjects = lazy(() => import('@/pages/SAMProjects'));
+const SAMProjectWorkspace = lazy(() => import('@/pages/SAMProjectWorkspace'));
+import IERoute from '@/components/ie/IERoute';
 const Lookout = lazy(() => import('@/pages/Lookout'));
 const LookoutAdmin = lazy(() => import('@/pages/LookoutAdmin'));
 const ApprovalCentre = lazy(() => import('@/pages/ApprovalCentre.jsx'));
@@ -110,20 +114,23 @@ const AuthenticatedApp = () => {
           <Route path="/access-denied" element={<AccessDenied />} />
           <Route path="/framework-reports" element={<FrameworkReports />} />
           <Route path="/framework-reports/:reportId" element={<FrameworkProjectDetail />} />
-          <Route path="/projects/:projectId" element={useStakeholderView ? <FrameworkProjectDetail /> : <ProjectDetail />} />
+          <Route path="/projects/:projectId" element={useStakeholderView ? <FrameworkProjectDetail /> : user?.role==='sam_director' ? <SAMProjectWorkspace /> : <ProjectDetail />} />
           <Route path="/account-settings" element={<AccountSettings />} />
           <Route path="/dataverse" element={<DataverseWorkspace />} />
           <Route path="/calendar" element={<Calendar />} />
           <Route path="/approvals" element={<ApprovalCentre />} />
           <Route path="/help" element={<Help />} />
           <Route element={<StakeholderRoute />}>
-          <Route path="/today" element={<Home />} />
+          <Route path="/today" element={['sam','sam_director'].includes(user?.role) ? <Navigate to="/insights-engagement" replace /> : <Home />} />
           <Route path="/portfolio-overview" element={<PortfolioOverview />} />
           <Route element={<FinanceRoute />}><Route path="/finance" element={<FinanceDashboard />} /></Route>
           <Route path="/pulse" element={<Pulse />} />
-          <Route path="/insights-engagement" element={<InsightsEngagement />} />
+          <Route element={<IERoute />}>
+            <Route path="/insights-engagement" element={<InsightsEngagement />} />
+            <Route path="/insights-engagement/:engagementId" element={<IEEngagementDetail />} />
+          </Route>
           <Route path="/lookout/:issueId" element={<Lookout />} />
-          <Route path="/projects" element={<Projects />} />
+          <Route path="/projects" element={user?.role==='sam_director' ? <SAMProjects /> : <Projects />} />
           <Route path="/documents" element={<LegalDocuments />} />
           <Route path="/warranties" element={<Warranties />} />
           <Route path="/account" element={<AccountProfile />} />

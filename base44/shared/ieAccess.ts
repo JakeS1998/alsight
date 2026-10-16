@@ -11,7 +11,7 @@ export function ieScope(user){
 }
 export async function ieRecord(base44,user,id){
  if(typeof id!=='string'||id.length>100)ieError('Choose an engagement.');
- const page=await base44.asServiceRole.entities.IEEngagement.filter({$and:[ieScope(user),{id}]},{limit:1});
+ const page=await base44.asServiceRole.entities.IEEngagement.filter({...ieScope(user),id},{limit:1});
  if(!page.items.length)ieError('Engagement unavailable or access denied.',403);
  return page.items[0];
 }

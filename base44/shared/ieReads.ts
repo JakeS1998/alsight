@@ -1,7 +1,7 @@
 import {ieScope,ieText,ieEscape,ieAttention,ieToday} from './ieAccess.ts';
 export function ieQuery(user,filters={}){
  const parts=[ieScope(user)],search=ieText(filters.search,100);
- for(const field of ['status','client_id','owner_id','category_id','support_type_id','region_id'])if(filters[field])parts.push({[field]:ieText(filters[field],100)});
+ for(const field of ['status','client_id','owner_id','category_id','support_type_id','region_id','project_id'])if(filters[field])parts.push({[field]:ieText(filters[field],100)});
  if(search)parts.push({$or:['reference','name','client_name'].map(field=>({[field]:{$regex:ieEscape(search),$options:'i'}}))});
  if(filters.mine)parts.push({access_user_ids:user.id});
  if(filters.context==='standalone')parts.push({project_id:'',opportunity_id:''});

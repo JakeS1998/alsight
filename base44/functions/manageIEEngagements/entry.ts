@@ -20,7 +20,7 @@ export default async function(req){
    const parent_id=ieText(input.parent_id,100);
    if(parent_id){const parent=await db.IEClassification.get(parent_id);if(parent.kind!=='category')ieError('Choose a category.');}
    const values={name,kind:input.kind,parent_id:input.kind==='support'?parent_id:'',active:input.active!==false};
-   if(input.id){const previous=await db.IEClassification.get(ieText(input.id,100));if(previous.kind!==input.kind||previous.parent_id!==values.parent_id)ieError('Keep the existing classification hierarchy; retire it and add another if needed.');return Response.json(await db.IEClassification.update(previous.id,values));}
+   if(input.id){const previous=await db.IEClassification.get(ieText(input.id,100));if(previous.kind!==input.kind||(previous.parent_id||'')!==values.parent_id)ieError('Keep the existing classification hierarchy; retire it and add another if needed.');return Response.json(await db.IEClassification.update(previous.id,values));}
    return Response.json(await db.IEClassification.create({...values,provisional:true}));
   }
   if(action==='list')return Response.json(await db.IEEngagement.filter(ieQuery(user,input.filters),{sort:'-updated_date',limit:30,...(input.cursor?{cursor:ieText(input.cursor,4000)}:{})}));
