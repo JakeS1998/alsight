@@ -3,10 +3,11 @@ import { projectCompletionDates } from '@/components/projects/projectCompletionD
 
 export const STAGES = ['RIBA 1', 'RIBA 2', 'RIBA 3', 'RIBA 4', 'RIBA 5–7'];
 
-export function projectStage(project) {
+export function projectStage(project, constructionProjectIds) {
   if (!isPipelineProject(project)) return null;
   const now = new Date();
-  if ((project.riba5_system_date && new Date(project.riba5_system_date) <= now) || (project.riba4_end && new Date(project.riba4_end) < now)) return 'RIBA 5–7';
+  const constructionAllowed = constructionProjectIds === undefined || constructionProjectIds.includes(project.id);
+  if (constructionAllowed && ((project.riba5_system_date && new Date(project.riba5_system_date) <= now) || (project.riba4_end && new Date(project.riba4_end) < now))) return 'RIBA 5–7';
   if (project.riba3_end && new Date(project.riba3_end) < now) return 'RIBA 4';
   if (project.riba2_end && new Date(project.riba2_end) < now) return 'RIBA 3';
   if (project.riba1_end && new Date(project.riba1_end) < now) return 'RIBA 2';

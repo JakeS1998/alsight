@@ -37,6 +37,6 @@ export default function PipelineTimeline({ projects, accountMap, stageSummary, o
         </button>
       </React.Fragment>)}
     </div>
-    {selected === 'crm' ? <PipelineOpportunityDetail /> : selected && <PipelineTimelineDetail selection={selected} projects={projects} accountMap={accountMap} />}
+    {selected === 'crm' ? <PipelineOpportunityDetail /> : selected && <PipelineTimelineDetail selection={selected} projects={projects} accountMap={accountMap} stageSummary={summary} />}
   </section>;
 }

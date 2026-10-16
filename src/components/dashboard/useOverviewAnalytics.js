@@ -7,7 +7,7 @@ export default function useOverviewAnalytics(dashboard, since) {
   const contractProjectIds = dashboard.projects.map(p=>p.id).sort();
   const today = new Date();
   const financialYear = today.getUTCFullYear() - (today.getUTCMonth() < 3 ? 1 : 0);
-  const selectionKey = JSON.stringify(['call-off-fy',financialYear,dashboard.scopeKey, ids,contractProjectIds,valueVersion]);
+  const selectionKey = JSON.stringify(['executed-journey-v1','call-off-fy',financialYear,dashboard.scopeKey, ids,contractProjectIds,valueVersion]);
   const enabled = !dashboard.loading && !dashboard.projectsLoading && !dashboard.error && !!dashboard.user && dashboard.internal;
   const summary = useQuery({ ...organisationQueryPolicy, queryKey: ['overview-analytics', selectionKey], enabled, staleTime: 60000, refetchOnMount: true, queryFn: async () => {
     const { data } = await base44.functions.invoke('getPortfolioOverview', { projectIds: ids,contractProjectIds,valueVersion });

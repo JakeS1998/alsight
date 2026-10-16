@@ -5,17 +5,20 @@ import { nextStageDate, projectStage, STAGES } from '@/components/dashboard/pipe
 import projectFullValue from '@/components/projects/projectFullValue';
 import useProjectValueSummary from '@/components/projects/useProjectValueSummary';
 
-export default function PipelineTimelineDetail({ selection, projects, accountMap }) {
-  const rows = selection === 'total' ? projects : projects.filter(p => projectStage(p) === selection);
-  const totals=useProjectValueSummary(rows,{enabled:selection==='total',stages:true});
+export default function PipelineTimelineDetail({ selection, projects, accountMap, stageSummary }) {
+  const constructionIds = stageSummary?.find(row => row.stage==='RIBA 5–7')?.project_ids;
+  const journeyStage = project => projectStage(project, constructionIds || []);
+  const rows = selection === 'total' ? projects : projects.filter(p => journeyStage(p) === selection);
+  const totals=useProjectValueSummary(rows,{enabled:selection==='total' && Array.isArray(constructionIds),stages:true});
+  if (!Array.isArray(constructionIds)) return <div id="pipeline-timeline-detail" role="status" className="border-t border-border px-5 py-5 text-sm">Checking journey stages and executed DMA/DPA agreements…</div>;
   const value=totals.data?.total;
   return <div className="border-t border-slate-200 px-5 py-5" id="pipeline-timeline-detail">
     <div className="flex flex-wrap items-center justify-between gap-2"><h3 className="font-semibold text-als-navy">{selection === 'total' ? 'Pipeline total' : selection} details</h3><Link to="/projects" className="text-sm font-medium text-als-navy underline-offset-2 hover:underline">View all projects →</Link></div>
-    {selection === 'total' && <div className="mt-3 flex flex-wrap gap-4 text-sm text-slate-600"><span>{rows.length} active projects</span><span>{totals.isPending ? 'Loading project values…' : totals.error ? 'Project values unavailable' : `${formatCurrency(value)} project value`}</span><span>{formatCurrency(totals.data?.average)} average</span><span>{rows.filter(p => p.live_project).length} live · {rows.filter(p => !p.live_project).length} on hold</span><span>{STAGES.map(stage => `${stage}: ${rows.filter(p => projectStage(p) === stage).length}`).join(' · ')}</span></div>}
+    {selection === 'total' && <div className="mt-3 flex flex-wrap gap-4 text-sm text-slate-600"><span>{rows.length} active projects</span><span>{totals.isPending ? 'Loading project values…' : totals.error ? 'Project values unavailable' : `${formatCurrency(value)} project value`}</span><span>{formatCurrency(totals.data?.average)} average</span><span>{rows.filter(p => p.live_project).length} live · {rows.filter(p => !p.live_project).length} on hold</span><span>{STAGES.map(stage => `${stage}: ${rows.filter(p => journeyStage(p) === stage).length}`).join(' · ')}</span></div>}
     {!rows.length ? <p className="mt-4 text-sm text-slate-500">No projects at this stage.</p> : <div className="mt-3 max-h-80 divide-y divide-slate-100 overflow-auto">
       {[...rows].sort((a, b) => String(b.created_date || '').localeCompare(String(a.created_date || ''))).map(p => <Link key={p.id} to={`/projects/${p.id}`} className="flex flex-wrap items-center justify-between gap-2 py-3 text-sm hover:bg-slate-50">
-        <div className="min-w-0"><p className="font-medium text-slate-900">{p.name} <span className="font-normal text-slate-500">{p.project_number}</span></p><p className="text-xs text-slate-500">{accountMap[p.client_account_id]?.name || p.client_name || 'Client not recorded'} · {regionName(p.department_id) || 'Region not recorded'} · {projectStage(p)} · {p.live_project ? 'Live' : 'On hold'}</p></div>
-        <div className="text-right"><p className="font-medium text-slate-800">{formatCurrency(projectFullValue(p))}</p><p className="text-xs text-slate-500">Next stage date: {formatDate(nextStageDate(p, projectStage(p)))}</p></div>
+        <div className="min-w-0"><p className="font-medium text-slate-900">{p.name} <span className="font-normal text-slate-500">{p.project_number}</span></p><p className="text-xs text-slate-500">{accountMap[p.client_account_id]?.name || p.client_name || 'Client not recorded'} · {regionName(p.department_id) || 'Region not recorded'} · {journeyStage(p)} · {p.live_project ? 'Live' : 'On hold'}</p></div>
+        <div className="text-right"><p className="font-medium text-slate-800">{formatCurrency(projectFullValue(p))}</p><p className="text-xs text-slate-500">Next stage date: {formatDate(nextStageDate(p, journeyStage(p)))}</p></div>
       </Link>)}
     </div>}
   </div>;

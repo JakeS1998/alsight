@@ -8,7 +8,7 @@ export default async function(req) {
   const input=await req.json();
   if(!Array.isArray(input.projectIds) || input.projectIds.length>2000 || input.projectIds.some(id=>typeof id!=='string' || !/^[a-f0-9]{24}$/i.test(id)) || (input.valueVersion!=null && (typeof input.valueVersion!=='string' || input.valueVersion.length>100)))return Response.json({error:'Invalid project selection'},{status:400});
   const scope=JSON.stringify([user.id,user.role,user.data,user.account_id,user.region,user.staff_aad_id,user.delegate_of,input.projectIds.slice().sort(),input.valueVersion,input.stages===true]);
-  const result=await scopedReadCache(`project-values:${scope}`,async()=>{
+  const result=await scopedReadCache(`project-values:executed-journey-v1:${scope}`,async()=>{
    const query={id:{$in:input.projectIds.length ? input.projectIds : ['000000000000000000000000']}},report=await base44.entities.Project.aggregate({query,groupBy:['department_id','live_project'],sum:'full_value',limit:1000});
    if(report.truncated)throw new Error('Project value summary exceeded its reporting limit.');
    const regions=new Map();let total=0,count=0,live=0;
