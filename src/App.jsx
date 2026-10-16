@@ -27,6 +27,7 @@ const Register = lazy(() => import('@/pages/Register'));
 const ForgotPassword = lazy(() => import('@/pages/ForgotPassword'));
 const ResetPassword = lazy(() => import('@/pages/ResetPassword'));
 const Home = lazy(() => import('@/pages/Home'));
+const AdaptiveTodayPage = lazy(() => import('@/pages/AdaptiveTodayPage'));
 const PortfolioOverview = lazy(() => import('@/pages/PortfolioOverview'));
 const Projects = lazy(() => import('@/pages/Projects'));
 const FrameworkReports = lazy(() => import('@/pages/UKLFReports'));
@@ -120,6 +121,7 @@ const AuthenticatedApp = () => {
           <Route path="/calendar" element={<Calendar />} />
           <Route path="/approvals" element={<ApprovalCentre />} />
           <Route path="/help" element={<Help />} />
+          <Route path="/today-adaptive" element={<AdaptiveTodayPage />} />
           <Route element={<StakeholderRoute />}>
           <Route path="/today" element={['sam','sam_director'].includes(user?.role) ? <Navigate to="/insights-engagement" replace /> : <Home />} />
           <Route path="/portfolio-overview" element={<PortfolioOverview />} />
