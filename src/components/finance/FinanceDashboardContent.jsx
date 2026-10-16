@@ -12,6 +12,7 @@ import FinanceDataverseTransactions from '@/components/finance/FinanceDataverseT
 import { financeCall } from '@/components/finance/financeClient';
 import FinanceForecast from '@/components/finance/FinanceForecast';
 import FinanceBalances from '@/components/finance/FinanceBalances';
+import CommercialIEFinance from '@/components/finance/CommercialIEFinance';
 import useCommercialScope from '@/components/finance/useCommercialScope';
 import loadReportingTotals from '@/components/finance/loadReportingTotals';
 export default function FinanceDashboardContent({snapshot,pipeline}){
@@ -26,6 +27,7 @@ export default function FinanceDashboardContent({snapshot,pipeline}){
  return <div>{summary.isPending&&<p role="status">Reading reporting totals…</p>}{summary.error&&<div role="alert" className="space-y-2"><p className="text-destructive">Reporting totals unavailable: {summary.error.message}</p><Button variant="outline" disabled={summary.isFetching} onClick={()=>summary.refetch()}>{summary.isFetching?'Reading totals…':'Try again'}</Button></div>}{summary.data&&<FinanceDataverseSummary data={summary.data} pipeline={pipeline}/>}
  <FinanceForecast snapshot={snapshot}/>
  <FinanceBalances snapshot={snapshot}/>
+ <CommercialIEFinance/>
  {summary.data&&<div className="finance-analysis-row finance-section items-stretch"><div className="flex min-w-0 flex-col gap-6"><FinanceDataverseSummary data={summary.data} section="ranking"/></div><CommercialInsightsPanel data={summary.data}/></div>}
  <div className="finance-directory-row finance-section"><section className="finance-card finance-delay-6"><h2>Project directory</h2><div className="finance-controls"><Input aria-label="Search finance projects" maxLength={120} placeholder="Search finance project name or original code…" className="max-w-md" value={text} onChange={e=>setText(e.target.value)}/><Button variant="outline" disabled={summary.isFetching||list.isFetching} onClick={refresh}>Refresh synced figures</Button></div>{list.isFetching&&<p role="status">Reading projects and checking name matches…</p>}{list.error&&<p role="alert" className="text-destructive">{list.error.message}</p>}{list.data&&<FinanceDataverseProjectRows rows={list.data.items} onSelect={setSelected}/>}<div className="mt-4 flex gap-2">{after&&<Button variant="outline" onClick={()=>setAfter(null)}>First projects</Button>}{list.data?.has_more&&<Button variant="outline" onClick={()=>setAfter(list.data.next)}>Next projects</Button>}</div></section><FinanceTransactionBrowser snapshot={snapshot}/></div>
  <Dialog open={Boolean(selected)} onOpenChange={open=>{if(!open)setSelected(null);}}><DialogContent className="max-h-[90vh] w-[95vw] max-w-6xl overflow-y-auto"><DialogHeader><DialogTitle>{selected?.Project||'Source-project transactions'}</DialogTitle><DialogDescription>Imported order transactions, supplier detail and reconciliation.</DialogDescription></DialogHeader>{selected&&<FinanceDataverseTransactions key={selected.source_key} row={selected}/>}</DialogContent></Dialog></div>;
