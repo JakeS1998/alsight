@@ -1,5 +1,9 @@
 import {withProjectNumberLease} from './projectNumberLease.ts';
 import {advanceSyncedProjectCounter} from './projectNumberSync.ts';
+export function syncedProjectDecisionStatus(value) {
+ const status=String(value || '').trim().toLowerCase();
+ return ['approve','approved'].includes(status) ? 'approved' : ['reject','rejected'].includes(status) ? 'rejected' : '';
+}
 export async function projectCounter(base44) {
  const page=await base44.asServiceRole.entities.ProjectNumberCounter.filter({key:'primary'},{limit:2});
  if(page.items.length!==1)throw new Error('The shared project-number counter needs administrator setup.');
@@ -29,8 +33,14 @@ export async function receiveProjectApproval(base44,projectId) {
   const result=await db.ProjectApproval.upsert([{project_id:project.id,project_name:project.name,snapshot,approver_emails:rule.enabled ? rule.named_emails : [],route_revision:rule.changed_at || '',status:'pending'}],{key:'project_id'});
   request=result.records[0];
  }
+ // Imported terminal decisions must close the inbox request, not be reset to pending.
+ const sourceStatus=syncedProjectDecisionStatus(project.approval_status);
+ if(project.dataverse_id && request.status==='pending' && !request.response && ['approved','rejected'].includes(sourceStatus)){
+  await advanceSyncedProjectCounter(base44,await assertLease(),project,assertLease);
+  request=await db.ProjectApproval.update(request.id,{status:sourceStatus,response:sourceStatus==='approved' ? 'Approve' : 'Reject',...(sourceStatus==='approved' && project.project_number ? {assigned_project_number:project.project_number} : {}),decided_by_name:'Dataverse (synced decision)',writeback_status:'confirmed',integration_error:''});
+ }
  const status=request.status==='approved' ? 'Approved' : request.status==='rejected' ? 'Rejected' : 'Approval Pending';
- const values={approval_status:status,...(request.status==='approved' ? {project_number:request.assigned_project_number} : {})};
+ const values={approval_status:status,...(request.status==='approved' && request.assigned_project_number ? {project_number:request.assigned_project_number} : {})};
  if(project.approval_status!==status || (values.project_number && project.project_number!==values.project_number))await db.Project.update(project.id,values);
  return {requestId:request.id,status:request.status};
  });

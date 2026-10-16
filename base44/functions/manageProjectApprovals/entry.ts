@@ -3,6 +3,7 @@ import {receiveProjectApproval,projectRoute} from '../../shared/projectApprovalI
 import {decideProjectApproval} from '../../shared/projectApprovalDecision.ts';
 import {projectNumberAdmin} from '../../shared/projectNumberAdmin.ts';
 import {liveApproverRoles} from '../../shared/approvalRoutingConfig.ts';
+import {reconcileProjectApprovals} from '../../shared/projectApprovalReconcile.ts';
 export default async function(req:Request):Promise<Response>{
  let action='',attempt=1,allowWait=false;
  try{
@@ -14,8 +15,9 @@ export default async function(req:Request):Promise<Response>{
   action=input.action;attempt=input.attempt ?? 1;allowWait=input.allowWait===true;
   if(!Number.isInteger(attempt) || attempt<1 || attempt>30)throw new Error('Invalid approval intake retry.');
   const validId=value=>typeof value==='string' && /^[a-zA-Z0-9_-]{1,100}$/.test(value);
-  if(['counter','setCounter','receive'].includes(input.action)){
+  if(['counter','setCounter','receive','reconcile'].includes(input.action)){
    if(user.role!=='admin')return Response.json({error:'Administrator access required.'},{status:403});
+   if(input.action==='reconcile')return Response.json(await reconcileProjectApprovals(base44,input));
    if(input.action==='receive'){if(!validId(input.projectId))throw new Error('Choose a project.');return Response.json(await receiveProjectApproval(base44,input.projectId));}
    return Response.json(await projectNumberAdmin(base44,user,input));
   }
