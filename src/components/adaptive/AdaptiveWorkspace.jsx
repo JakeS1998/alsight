@@ -32,7 +32,7 @@ export default function AdaptiveWorkspace({user}) {
  return <div className="adaptive-today"><div className="at-container"><div className="at-experiment-bar"><Link to="/today"><ArrowLeft size={13}/> Original Today</Link><span><span className="at-live-dot"/> ALSIGHT LABS <b>Experimental workspace</b></span><button className="at-text-link" disabled={query.isFetching} onClick={()=>{query.refetch();query.calendar.refresh();}}><RefreshCw size={13} className={query.isFetching?'animate-spin':''}/> Refresh</button></div>
   <AdaptiveTodayHero>
    {data?<DailyBriefing user={user} data={data} actions={actions} time={time}/>:<section className="at-briefing"><div className="at-brief-copy"><span className="at-eyebrow">TODAY · YOUR WORKSPACE</span><h1>Your day, connected.</h1><p className="at-hero-summary">Your role. Your context. Your next move.</p></div></section>}
-   <AdaptiveCommandBar intelligence={intelligence} hasRecords={!!records.length}/><AdaptiveFocusNav focus={focus} prefs={prefs}/>
+   <AdaptiveCommandBar intelligence={intelligence} hasRecords={!!records.length} prefs={prefs} context={context}/><AdaptiveFocusNav focus={focus} prefs={prefs}/>
   </AdaptiveTodayHero>
   {query.isPending&&<div className="at-loading" role="status"><span className="at-spinner"/><h2>Bringing your working day into focus.</h2><p>Reading your assigned work and accessible project records…</p></div>}
   {query.error&&<div role="alert" className="at-empty"><h2>Your workspace could not be loaded.</h2><p>{query.error.message}</p><button className="at-btn" onClick={()=>query.refetch()}>Try again</button></div>}

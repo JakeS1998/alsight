@@ -6,7 +6,7 @@ import useAdaptiveCalendar from '@/components/adaptive/useAdaptiveCalendar';
 import { dayBounds } from '@/components/adaptive/adaptiveTime';
 export default function useAdaptiveToday(user,prefs,now) {
  const client=useQueryClient(),bounds=dayBounds(now);
- const query=useQuery({queryKey:['adaptive-today',user.id,user.role,user.region,user.staff_aad_id,JSON.stringify(user.data||{}),JSON.stringify(user.duty_roles||[]),prefs.since,bounds.day],queryFn:()=>adaptiveData(user,prefs.since,bounds),staleTime:120000,retry:false,refetchOnWindowFocus:false});
+ const query=useQuery({queryKey:['adaptive-today',user.id,user.role,user.region,user.staff_aad_id,JSON.stringify(user.data||{}),JSON.stringify(user.duty_roles||[]),prefs.since,bounds.day],queryFn:()=>adaptiveData(user,prefs.since,bounds),enabled:prefs.ready||!!prefs.error,staleTime:120000,retry:false,refetchOnWindowFocus:false});
  const calendar=useAdaptiveCalendar(user,now);
  useEffect(()=>{if(query.data?.refreshedAt)prefs.save({lastVisit:query.data.refreshedAt});},[query.data?.refreshedAt]);
  async function complete(row) {

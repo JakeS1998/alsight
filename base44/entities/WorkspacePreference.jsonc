@@ -1,0 +1,44 @@
+{
+  "name": "WorkspacePreference",
+  "type": "object",
+  "properties": {
+    "owner_id": {
+      "type": "string"
+    },
+    "scope": {
+      "type": "string",
+      "enum": [
+        "adaptive",
+        "wellbeing"
+      ]
+    },
+    "name": {
+      "type": "string",
+      "maxLength": 80
+    },
+    "setting": {
+      "type": "object",
+      "additionalProperties": true
+    }
+  },
+  "required": [
+    "owner_id",
+    "scope",
+    "name",
+    "setting"
+  ],
+  "rls": {
+    "read": {
+      "created_by_id": "{{user.id}}"
+    },
+    "create": {
+      "data.owner_id": "{{user.id}}"
+    },
+    "update": {
+      "created_by_id": "{{user.id}}"
+    },
+    "delete": {
+      "created_by_id": "{{user.id}}"
+    }
+  }
+}
