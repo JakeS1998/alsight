@@ -6,6 +6,7 @@ import ChecklistHover from '@/components/delivery/ChecklistHover';
 import { readinessChecklistDetails } from '@/components/delivery/checklistDetails';
 import contractorAppointment from '@/components/delivery/contractorAppointment';
 import agreementNames from '@/components/projects/agreementNames';
+import ribaProgrammeEvidence from '@/components/delivery/ribaProgrammeEvidence';
 
 import { preConstructionAppointments } from '@/components/delivery/preConstructionAppointments';
 import PDbrApplicability from '@/components/delivery/PDbrApplicability';
@@ -23,7 +24,7 @@ export function PreConstructionReadiness({ project, legalDocs, dmas, jcts, warra
     const feeAccepted = feeProposals.some((f) => f.status === "accepted");
     const feeAny = feeProposals.length > 0;
     const contractor = appointment.identified || jcts.length > 0 || warranties.some((w) => w.category === "contractor");
-    const riba2 = !!project.riba2_end;
+    const programme = ribaProgrammeEvidence(project);
 
     const details = readinessChecklistDetails({ project, legalDocs, dmas, jcts, warranties, feeProposals, appointment, pdBrDecision });
     const names = agreementNames(project.project_number);
@@ -34,7 +35,7 @@ export function PreConstructionReadiness({ project, legalDocs, dmas, jcts, warra
       mk("Appointments", appts.done, appts.completed > 0, `${appts.completed}/${appts.total}`),
       mk("PCSA", pcsa?.executed === "yes", !!pcsa),
       mk("DMA", dma?.executed === "yes", !!dma),
-      mk("Programme (RIBA 2)", riba2, false),
+      mk("Programme (RIBA)", programme.recorded, false),
       mk("Contractor identified", contractor, false),
     ];
   }, [project, legalDocs, dmas, jcts, warranties, feeProposals, deliveryTeam, suppliers, accountMap, pdBrDecision]);

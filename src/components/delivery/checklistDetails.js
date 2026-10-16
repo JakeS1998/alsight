@@ -1,5 +1,6 @@
 import { formatDate, DOCUMENT_TYPE } from '@/lib/portal';
 import agreementNames from '@/components/projects/agreementNames';
+import ribaProgrammeEvidence from '@/components/delivery/ribaProgrammeEvidence';
 import { requiredAppointments, pdBrNotApplicable } from '@/components/delivery/preConstructionAppointments';
 
 export function documentChecklistDetails(record, label) {
@@ -30,7 +31,7 @@ export function readinessChecklistDetails({ project, legalDocs, dmas, jcts, warr
     })],
     PCSA: [...documentChecklistDetails(appointment?.document, 'Contractor appointment'), 'Matches a non-JCT document to the contractor in the Fee Proposal delivery team.', ...(appointment?.name ? [`Contractor: ${appointment.name}`] : []), ...(appointment?.document ? [`Document type: ${DOCUMENT_TYPE[appointment.document.document_type]?.label || appointment.document.document_type}`] : [])],
     DMA: documentChecklistDetails(dmas[0], agreementNames(project.project_number).developmentShort),
-    'Programme (RIBA 2)': project.riba2_end ? [`RIBA 2 completion date recorded: ${formatDate(project.riba2_end)}.`, 'This readiness check uses the recorded completion date, not a separate approval.'] : ['Missing: RIBA 2 completion date.'],
+    'Programme (RIBA)': ribaProgrammeEvidence(project).details,
     'Contractor identified': appointment?.identified ? [`Contractor identified from the Fee Proposal delivery team${appointment.name ? `: ${appointment.name}` : ''}.`] : jcts.length ? ['Contractor identified from a JCT record.', ...documentChecklistDetails(jcts.find(j => j.executed === 'yes') || jcts[0], 'JCT')] : warranties.some(w => w.category === 'contractor') ? ['Contractor identified from a contractor warranty.', 'No JCT record; contract execution cannot be confirmed.'] : ['Missing: JCT or contractor warranty identifying the contractor.'],
   };
 }
