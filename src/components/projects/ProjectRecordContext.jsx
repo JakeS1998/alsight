@@ -7,12 +7,12 @@ import {projectStaffName} from '@/components/projects/projectStaffName';
 import organisationQueryPolicy from '@/components/data/organisationQueryPolicy';
 export default function ProjectRecordContext({project,client,user,isSupplier}) {
  const ids=[project.bdm_aad_id,project.bsm_aad_id].filter(Boolean);
- const staff=useQuery({queryKey:['project-record-owners','user-first',project.id,user?.id,user?.role,...ids],enabled:ids.length>0 && !!user?.id && !isSupplier,...organisationQueryPolicy,staleTime:300000,queryFn:async()=>{
+ const staff=useQuery({queryKey:['project-record-owners','names-and-links-v1',project.id,user?.id,user?.role,...ids],enabled:ids.length>0 && !!user?.id && !isSupplier,...organisationQueryPolicy,staleTime:300000,queryFn:async()=>{
   const {data}=await base44.functions.invoke('getProjectBDMManager',{action:'staff_names',projectId:project.id});
   if(data.error)throw new Error(data.error);
-  return data.names;
- }});
- const staffMap={...(staff.data || {})};
+  return data;
+  }});
+  const staffMap={...staff.data?.names};
  [user?.id,user?.staff_aad_id,user?.data?.staff_aad_id].filter(Boolean).forEach(id=>{if(user?.full_name)staffMap[id]=user.full_name;});
  const owner=id=>projectStaffName(id,staffMap) || (id ? staff.isPending ? 'Loading…' : staff.error ? 'Unable to load name' : 'Assigned; name unavailable' : 'Not assigned');
  return <div className="ws-record-context mt-3 text-xs text-sidebar-foreground/80">

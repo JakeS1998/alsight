@@ -8,7 +8,7 @@ export default function useProjectAssignmentPeople(project) {
   const { user } = useAuth();
   const ids = [project.bdm_aad_id, project.bsm_aad_id].filter(Boolean);
   const staff = useQuery({
-    queryKey: ['project-record-owners', 'user-first', project.id, user?.id, user?.role, ...ids],
+    queryKey: ['project-record-owners', 'names-and-links-v1', project.id, user?.id, user?.role, ...ids],
     enabled: ids.length > 0 && !!user?.id && user?.role !== 'supplier', ...organisationQueryPolicy, staleTime: 300000,
     queryFn: async () => {
       const { data } = await base44.functions.invoke('getProjectBDMManager', { action: 'staff_names', projectId: project.id });
