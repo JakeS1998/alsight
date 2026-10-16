@@ -9,6 +9,8 @@ import { useAuth } from '@/lib/AuthContext';
 import AliceWidget from '@/components/alice/AliceWidget';
 import aliceAccessKey from '@/components/alice/aliceAccessKey';
 import usePortalDataRefresh from '@/components/data/usePortalDataRefresh';
+import WellbeingProvider from '@/components/wellbeing/WellbeingProvider';
+import GlobalWellbeingNotifications from '@/components/wellbeing/GlobalWellbeingNotifications';
 import '@/components/layout/portal-responsive.css';
 import '@/components/layout/portal-design.css';
 import '@/components/layout/portal-header.css';
@@ -24,12 +26,13 @@ export default function PortalLayout() {
     const previous = JSON.parse(localStorage.getItem(key) || '[]');
     localStorage.setItem(key, JSON.stringify([match[1], ...previous.filter(id => id !== match[1])].slice(0, 8)));
   }, [pathname, user?.id]);
-  return <div className="portal-shell flex min-h-screen flex-col bg-secondary">
+  return <WellbeingProvider key={user?.id} user={user}><div className="portal-shell flex min-h-screen flex-col bg-secondary">
     <PortalHeader />
     <main className="portal-main w-full flex-1"><Suspense fallback={<div className="flex min-h-[40vh] items-center justify-center text-sm text-muted-foreground" role="status">Loading page…</div>}><Outlet /></Suspense></main>
     <PortalFooter />
     {user?.id && <PageFeedbackWidget key={user.id} user={user} route={pathname} />}
     {user?.id && internalMessagingRoles.includes(user.role) && <DirectMessagesWidget key={user.id} user={user} />}
     {user?.id && user.role !== 'framework_stakeholder' && <AliceWidget key={aliceAccessKey(user)} />}
-  </div>;
+    {user?.id && <GlobalWellbeingNotifications user={user}/>}
+  </div></WellbeingProvider>;
 }

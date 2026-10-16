@@ -10,6 +10,7 @@ import ProfilePictureEditor from '@/components/profile/ProfilePictureEditor';
 import OutlookConnectionCard from '@/components/outlook/OutlookConnectionCard';
 import TeamsConnectionCard from '@/components/teams/TeamsConnectionCard';
 import DataverseConnectionCard from '@/components/dataverse/DataverseConnectionCard';
+import WellbeingPreferences from '@/components/wellbeing/WellbeingPreferences';
 
 export default function AccountSettings() {
   const { user } = useAuth();
@@ -33,6 +34,7 @@ export default function AccountSettings() {
   return <div className="w-full max-w-none space-y-6">
     <div><h1 className="font-heading text-2xl font-semibold text-foreground">Account settings</h1><p className="mt-1 text-sm text-muted-foreground">Manage your profile picture and sign-in password.</p></div>
     <ProfilePictureEditor />
+    <WellbeingPreferences />
     <OutlookConnectionCard />
     {['admin', 'director', 'regional_director', 'bsm', 'bdm', 'finance'].includes(user?.role) && <TeamsConnectionCard />}
     {['admin', 'director', 'regional_director', 'bsm', 'bdm', 'finance'].includes(user?.role) && <DataverseConnectionCard />}

@@ -17,7 +17,7 @@ export default async function adaptiveData(user,since,bounds=dayBounds()) {
  const taskQueries=TASK_SOURCES.map(source=>assignedTaskQuery(source,user,contacts.items));
  const [taskPages,tomorrowPages]=await Promise.all([
   Promise.all(TASK_SOURCES.map((source,i)=>read(source.label,async()=>{const [page,count]=await Promise.all([db[source.entity].filter(taskQueries[i],{sort:source.due,limit:10}),db[source.entity].count(taskQueries[i])]);return {rows:page.items.map(r=>({...taskRow(source,r),detail:`Assigned to you · ${source.label}`,label:'Open task',severity:'attention'})),count,more:page.has_more};},{rows:[],count:null,more:false}))),
-  Promise.all(TASK_SOURCES.map((source,i)=>read(`${source.label} deadlines tomorrow`,async()=>{const dated=source.due==='due_at',page=await db[source.entity].filter({...taskQueries[i],[source.due]:{$gte:dated?bounds.tomorrowStart:bounds.tomorrow,$lt:dated?bounds.end:bounds.afterTomorrow}},{sort:source.due,limit:3});return page.items.map(row=>taskRow(source,row));},[])))
+  Promise.all(TASK_SOURCES.map((source,i)=>read(`${source.label} next working-day deadlines`,async()=>{const dated=source.due==='due_at',page=await db[source.entity].filter({...taskQueries[i],[source.due]:{$gte:dated?bounds.nextWorkStart:bounds.nextWorkDay,$lt:dated?bounds.nextWorkEnd:bounds.nextWorkAfter}},{sort:source.due,limit:3});return page.items.map(row=>taskRow(source,row));},[])))
  ]);
  const supplierIds=[...new Set(projects.items.flatMap(p=>p.related_supplier_account_ids||[]))];
  const [briefing,policies,opportunities]=await Promise.all([
@@ -28,5 +28,5 @@ export default async function adaptiveData(user,since,bounds=dayBounds()) {
  const insurance=policies.items.map(p=>({key:`insurance-${p.id}`,title:p.name,detail:`${p.policy_type||'Supplier insurance'} expires ${p.expiry_date.slice(0,10)}. Review compliance before relying on cover.`,due:p.expiry_date,to:`/accounts/${p.account_id}`,label:'Review compliance',category:'compliance',severity:'upcoming'}));
  const actions=[...taskPages.flatMap(p=>p.rows),...briefing.items,...insurance];
  const priorityTotal=taskPages.every(p=>p.count!==null)&&policies.total!==null?taskPages.reduce((n,p)=>n+p.count,0)+Object.values(briefing.totals).reduce((n,value)=>n+Number(value||0),0)+policies.total:null;
- return {projects:projects.items,projectTotal,changes,actions,tomorrowActions:tomorrowPages.flat(),priorityTotal,taskTotal:taskPages.every(p=>p.count!==null)?taskPages.reduce((n,p)=>n+p.count,0):null,moreTasks:taskPages.some(p=>p.more),totals:briefing.totals,opportunities:opportunities.items,warnings,refreshedAt:new Date().toISOString(),projectMore:projects.has_more};
+ return {projects:projects.items,projectTotal,changes,actions,nextWorkActions:tomorrowPages.flat(),priorityTotal,taskTotal:taskPages.every(p=>p.count!==null)?taskPages.reduce((n,p)=>n+p.count,0):null,moreTasks:taskPages.some(p=>p.more),totals:briefing.totals,opportunities:opportunities.items,warnings,refreshedAt:new Date().toISOString(),projectMore:projects.has_more};
 }
