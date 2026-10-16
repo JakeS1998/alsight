@@ -1,0 +1,73 @@
+{
+  "name": "IEFinance",
+  "type": "object",
+  "properties": {
+    "engagement_id": {
+      "type": "string"
+    },
+    "engagement_value": {
+      "type": [
+        "number",
+        "null"
+      ],
+      "minimum": 0
+    },
+    "invoiced": {
+      "type": [
+        "number",
+        "null"
+      ],
+      "minimum": 0
+    },
+    "added_value": {
+      "type": [
+        "number",
+        "null"
+      ],
+      "minimum": 0
+    },
+    "payment_type": {
+      "type": "string",
+      "enum": [
+        "",
+        "direct_invoice",
+        "als_fees",
+        "added_value",
+        "sponsorship",
+        "other"
+      ]
+    },
+    "notes": {
+      "type": "string",
+      "maxLength": 4000
+    },
+    "saved_by_name": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "engagement_id"
+  ],
+  "rls": {
+    "read": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "create": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "update": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "delete": {
+      "user_condition": {
+        "role": "admin"
+      }
+    }
+  }
+}
