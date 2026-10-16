@@ -2,7 +2,7 @@ import React from 'react';
 import IEPanel from '@/components/ie/IEPanel';
 import {StatusBadge} from '@/components/StatusBadge';
 import {IE_STATUSES} from '@/components/ie/ieClient';
-import {regionName} from '@/lib/portal';
+import {regionName} from '@/components/ie/ieRegions';
 
 export default function IEEngagementInformation({item}){
  const fields=[['Engagement owner',item.owner_name||'Unassigned'],['Service',item.category_name],['Support type',item.support_type_name],['Region',regionName(item.region_id)],['Priority',item.priority?.replaceAll('_',' ')],['Sites',(item.sites||[]).join(', ')]];

@@ -3,7 +3,7 @@ import {Search} from 'lucide-react';
 import {Input} from '@/components/ui/input';
 import {Button} from '@/components/ui/button';
 import {IE_STATUSES} from '@/components/ie/ieClient';
-import {regionName} from '@/lib/portal';
+import {regionName} from '@/components/ie/ieRegions';
 export default function IEFilters({value,onChange,options={},classifications=[],actions}){
  const set=(key,val)=>onChange({...value,[key]:val});
  const fields=[['client_id','Client',options.clients||[]],['category_id','Service type',classifications.filter(c=>c.kind==='category')],['owner_id','SAM',options.people||[]],['support_type_id','Support type',classifications.filter(c=>c.kind==='support')],['region_id','Region',(options.regions||[]).map(id=>({id,name:regionName(id)}))],['context','Linked to',[{id:'standalone',name:'Standalone'},{id:'project',name:'Project-linked'},{id:'opportunity',name:'Opportunity-linked'}]]];
