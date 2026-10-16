@@ -1,0 +1,8 @@
+import React from 'react';
+import {IE_STATUSES} from '@/components/ie/ieClient';
+const colors={live:'hsl(var(--success))',scoping:'hsl(var(--chart-4))',planned:'hsl(var(--chart-2))',on_hold:'hsl(var(--primary))',completed:'hsl(var(--muted-foreground))',cancelled:'hsl(var(--border))'};
+export default function IEStatusChart({statuses=[],total=0,onFilter}){
+ const rows=['live','scoping','planned','on_hold','completed','cancelled'].map(status=>({status,count:statuses.find(s=>s.status===status)?.count||0})).filter(s=>s.count);
+ let offset=0;const stops=rows.map(row=>{const start=offset;offset+=row.count/Math.max(total,1)*100;return `${colors[row.status]} ${start}% ${offset}%`;});
+ return <section className="ie-dashboard-panel ie-status-panel"><header className="ie-panel-heading"><h2>Engagement status</h2></header><div className="ie-status-content"><div className="ie-status-donut" role="img" aria-label={`${total} engagements by status`} style={{background:total?`conic-gradient(${stops.join(',')})`:'hsl(var(--border))'}}><div><strong>{total.toLocaleString('en-GB')}</strong><span>Total</span></div></div><div className="ie-status-legend">{rows.map(row=><button type="button" key={row.status} onClick={()=>onFilter({status:row.status})}><span className="ie-legend-dot" style={{backgroundColor:colors[row.status]}}/><span>{IE_STATUSES[row.status]?.label||row.status}</span><strong>{row.count} <small>({Math.round(row.count/total*100)}%)</small></strong></button>)}{!rows.length&&<p className="text-xs text-muted-foreground">No engagements yet.</p>}</div></div></section>;
+}

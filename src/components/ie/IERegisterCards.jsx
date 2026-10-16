@@ -1,0 +1,9 @@
+import React from 'react';
+import {Link} from 'react-router-dom';
+import {Building2,ArrowUpRight} from 'lucide-react';
+import {StatusBadge} from '@/components/StatusBadge';
+import {IE_STATUSES} from '@/components/ie/ieClient';
+import {formatDate} from '@/lib/portal';
+export default function IERegisterCards({items=[]}){
+ return <div className="ie-engagement-cards">{items.map(item=><Link key={item.id} to={`/insights-engagement/${item.id}`} className="ie-engagement-card"><div className="flex items-center justify-between"><span className="ie-row-thumb"><Building2/></span><StatusBadge status={item.status} map={IE_STATUSES}/></div><h3>{item.name}</h3><p>{item.client_name}</p><span className="ie-card-service">{item.category_name||'Not classified'} · {item.support_type_name||'Support not set'}</span><div className="ie-card-footer"><span>{item.owner_name||'Unassigned'}<small>{item.target_date?formatDate(item.target_date):'No target date'}</small></span><ArrowUpRight/></div></Link>)}{!items.length&&<p className="ie-register-empty">No engagements match these filters.</p>}</div>;
+}

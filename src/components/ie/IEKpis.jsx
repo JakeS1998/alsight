@@ -1,3 +1,13 @@
 import React from 'react';
-import {Layers,Clock3,CheckCircle2} from 'lucide-react';
-export default function IEKpis({data}){return <section aria-label="Engagement headline indicators" className="grid gap-4 sm:grid-cols-3">{[{label:'Active engagements',value:data?.active,Icon:Layers,note:'Planned and Live'},{label:'Awaiting action',value:data?.awaiting,Icon:Clock3,note:'Outstanding information or target within 7 days'},{label:'Completed this year',value:data?.completed,Icon:CheckCircle2,note:`Actual completion · ${data?.year||new Date().getFullYear()}`}].map(({label,value,Icon,note})=><div key={label} className="flex items-start gap-4 rounded-panel border border-border bg-card p-5"><span className="rounded-xl bg-primary/10 p-3 text-foreground"><Icon className="h-5 w-5"/></span><div><p className="text-xs text-muted-foreground">{label}</p><p className="mt-1 text-3xl font-bold tabular-nums">{value??'—'}</p><p className="mt-1 text-xs text-muted-foreground">{note}</p></div></div>)}</section>;}
+import {Layers,Clock3,CheckCircle2,BriefcaseBusiness,UserRound,Link2} from 'lucide-react';
+export default function IEKpis({data}){
+ const metrics=[
+  {label:'Active engagements',value:data?.active,Icon:Layers,note:'Planned and live engagements',tone:'blue'},
+  {label:'Awaiting action',value:data?.awaiting,Icon:Clock3,note:'Outstanding actions or upcoming targets',tone:'orange'},
+  {label:'Completed this year',value:data?.completed,Icon:CheckCircle2,note:`Actual completion · ${data?.year||new Date().getFullYear()}`,tone:'green'},
+  {label:'Total engagements',value:data?.total,Icon:BriefcaseBusiness,note:'All recorded I&E engagements',tone:'blue'},
+  {label:'Unassigned engagements',value:data?.unassigned,Icon:UserRound,note:'Awaiting a responsible SAM',tone:'navy'},
+  {label:'Client-linked engagements',value:data?.clientLinked,Icon:Link2,note:'Matched to an ALSight client',tone:'orange'}
+ ];
+ return <section aria-label="Engagement headline indicators" className="ie-metrics">{metrics.map(({label,value,Icon,note,tone})=><article key={label} className="ie-metric"><span className={`ie-metric-icon ie-tone-${tone}`}><Icon strokeWidth={1.7}/></span><div><p className="ie-metric-label">{label}</p><p className="ie-metric-value">{value==null?'—':value.toLocaleString('en-GB')}</p><p className="ie-metric-note">{note}</p></div></article>)}</section>;
+}

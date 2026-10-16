@@ -23,7 +23,12 @@ export default async function(req){
    if(input.id){const previous=await db.IEClassification.get(ieText(input.id,100));if(previous.kind!==input.kind||(previous.parent_id||'')!==values.parent_id)ieError('Keep the existing classification hierarchy; retire it and add another if needed.');return Response.json(await db.IEClassification.update(previous.id,values));}
    return Response.json(await db.IEClassification.create({...values,provisional:true}));
   }
-  if(action==='list')return Response.json(await db.IEEngagement.filter(ieQuery(user,input.filters),{sort:'-updated_date',limit:30,...(input.cursor?{cursor:ieText(input.cursor,4000)}:{})}));
+  if(action==='list'){
+   const query=ieQuery(user,input.filters),limit=input.page_size==null?30:Number(input.page_size);
+   if(!Number.isInteger(limit)||limit<1||limit>30)ieError('Choose a page size between 1 and 30.');
+   const [page,total]=await Promise.all([db.IEEngagement.filter(query,{sort:'-updated_date',limit,...(input.cursor?{cursor:ieText(input.cursor,4000)}:{})}),db.IEEngagement.count(query)]);
+   return Response.json({...page,total});
+  }
   if(action==='detail'){
    const item=await ieRecord(base44,user,input.id);
    const events=await db.IEEvent.filter({engagement_id:item.id},{sort:'-occurred_at',limit:10});

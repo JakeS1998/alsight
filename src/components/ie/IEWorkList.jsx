@@ -1,6 +1,13 @@
 import React from 'react';
 import {Link} from 'react-router-dom';
+import {Building2,CheckCircle2} from 'lucide-react';
 import {StatusBadge} from '@/components/StatusBadge';
 import {IE_STATUSES} from '@/components/ie/ieClient';
 import {formatDate} from '@/lib/portal';
-export default function IEWorkList({items=[],empty='No engagements to show.',activity=false}){return <div className="space-y-3">{items.map(item=><Link key={item.id} to={`/insights-engagement/${item.id}`} className="block rounded-lg border border-border p-3 hover:border-primary"><div className="flex flex-wrap items-center justify-between gap-2"><strong className="text-sm">{item.name}</strong><StatusBadge status={item.status} map={IE_STATUSES}/></div><p className="mt-1 text-xs text-muted-foreground">{item.client_name} · {activity?`Updated ${formatDate(item.updated_date)}`:`Target ${formatDate(item.target_date)}`}</p>{item.awaiting_action&&item.action_note&&<p className="mt-2 text-xs text-foreground">{item.action_note}</p>}</Link>)}{!items.length&&<p className="py-3 text-sm text-muted-foreground">{empty}</p>}</div>;}
+export default function IEWorkList({items=[],empty='No engagements to show.',activity=false,attention=false}){
+ const today=new Date().toISOString().slice(0,10);
+ return <div className="ie-work-list">{items.map(item=>{
+  const overdue=item.target_date&&item.target_date<today&&!['completed','cancelled'].includes(item.status);
+  return <Link key={item.id} to={`/insights-engagement/${item.id}`} className="ie-work-row"><span className="ie-work-thumb"><Building2 strokeWidth={1.5}/></span><span className="ie-work-copy"><strong>{item.name}</strong><span>{item.client_name}</span>{attention&&item.action_note&&<span className="ie-work-note" title={item.action_note}>{item.action_note}</span>}</span><span className="ie-work-state">{attention?<span className={`ie-attention-badge ${overdue?'ie-overdue':''}`}>{overdue?'Overdue':item.awaiting_action?'Action needed':'Due soon'}</span>:<StatusBadge status={item.status} map={IE_STATUSES}/>}</span><span className="ie-work-date">{activity?formatDate(item.updated_date):item.target_date?formatDate(item.target_date):'No target'}</span></Link>;
+ })}{!items.length&&<div className="ie-work-empty"><CheckCircle2/><p>{empty}</p></div>}</div>;
+}
