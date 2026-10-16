@@ -1,14 +1,26 @@
-import React, { useEffect, useState } from 'react';
+import React from 'react';
+import {useInfiniteQuery,useQuery} from '@tanstack/react-query';
 import projectFullValue from '@/components/projects/projectFullValue';
-import { Link } from 'react-router-dom';
-import { base44 } from '@/api/base44Client';
-import { formatCurrency } from '@/lib/portal';
-import { Button } from '@/components/ui/button';
-export default function ContactProjects({ contact }) {
-  const [rows, setRows] = useState([]), [cursor, setCursor] = useState(null), [more, setMore] = useState(false), [loading, setLoading] = useState(true), [error, setError] = useState('');
-  const ids = [contact.id, contact.dataverse_id].filter(Boolean);
-  const query = { $or: ['client_rep_id','client_rep2_id','project_manager_id','contractor_contact_id'].map(key => ({ [key]: { $in: ids } })) };
-  const load = async (next = null) => { setLoading(true); try { const page = await base44.entities.Project.filter(query, { sort: '-created_date', limit: 20, ...(next ? { cursor: next } : {}) }); setRows(old => next ? [...old,...page.items] : page.items); setCursor(page.next_cursor); setMore(page.has_more); } catch (e) { setError(e.message); } finally { setLoading(false); } };
-  useEffect(() => { load(); }, [contact.id]);
-  return <section className="rounded-xl border border-border bg-card p-5"><h2 className="font-semibold">Linked projects</h2>{error && <p role="alert" className="text-sm text-destructive">{error}</p>}{loading && !rows.length ? <p className="mt-3 text-sm text-muted-foreground">Loading projects…</p> : !rows.length ? <p className="mt-3 text-sm text-muted-foreground">No directly linked projects found.</p> : <ul className="mt-3 divide-y divide-border">{rows.map(p => <li key={p.id} className="py-2 text-sm"><Link to={`/projects/${p.id}`} className="font-medium text-primary hover:underline">{p.name}</Link><p className="text-xs text-muted-foreground">{p.live_project ? 'Live' : 'On Hold'} · {p.project_manager_id && ids.includes(p.project_manager_id) ? 'Project manager' : p.contractor_contact_id && ids.includes(p.contractor_contact_id) ? 'Contractor contact' : 'Client representative'} · {(p.submitted_proposal_value ?? p.estimated_value) != null ? formatCurrency(projectFullValue(p)) : 'Value not recorded'}</p></li>)}</ul>}{more && <Button size="sm" variant="outline" onClick={() => load(cursor)} disabled={loading}>Load more</Button>}</section>;
+import {Link} from 'react-router-dom';
+import {base44} from '@/api/base44Client';
+import {useAuth} from '@/lib/AuthContext';
+import {formatCurrency} from '@/lib/portal';
+import {Button} from '@/components/ui/button';
+import contactProjectQuery from '@/components/crm/contact360/contactProjectQuery';
+export default function ContactProjects({contact,account}){
+ const {user}=useAuth();
+ const ids=[contact.id,contact.dataverse_id].filter(Boolean);
+ const key=[user?.id,user?.role,contact.id,contact.dataverse_id,account?.id,account?.dataverse_id];
+ const scope=useQuery({queryKey:['contact-project-scope',...key],queryFn:()=>contactProjectQuery(contact,account),staleTime:60000,retry:false});
+ const projects=useInfiniteQuery({queryKey:['contact-projects',...key,scope.data],enabled:!!scope.data,initialPageParam:null,queryFn:({pageParam})=>base44.entities.Project.filter(scope.data,{sort:'-created_date',limit:20,...(pageParam?{cursor:pageParam}:{})}),getNextPageParam:page=>page.has_more?page.next_cursor:undefined,staleTime:60000,retry:false});
+ const rows=projects.data?.pages.flatMap(page=>page.items)||[];
+ const error=scope.error||projects.error,loading=scope.isPending||projects.isPending;
+ const relationship=project=>project.project_manager_id&&ids.includes(project.project_manager_id)?'Project manager':project.contractor_contact_id&&ids.includes(project.contractor_contact_id)?'Contractor contact':[project.client_rep_id,project.client_rep2_id].some(id=>ids.includes(id))?'Client representative':'Organisation project';
+ return <section className="rounded-xl border border-border bg-card p-5">
+  <h2 className="font-semibold">Linked projects</h2>
+  {account?<p className="mt-1 text-xs text-muted-foreground">Projects linked directly to this person and all accessible projects for <Link to={`/accounts/${account.id}`} className="text-primary hover:underline">{account.name}</Link>.</p>:<p className="mt-1 text-xs text-muted-foreground">Only directly linked projects are shown until this person has a recorded organisation.</p>}
+  {error&&<p role="alert" className="mt-3 text-sm text-destructive">{error.message} <button type="button" className="underline" onClick={()=>scope.error?scope.refetch():projects.refetch()}>Try again</button></p>}
+  {loading&&!rows.length&&!error?<p role="status" className="mt-3 text-sm text-muted-foreground">Loading projects…</p>:!rows.length&&!error?<p className="mt-3 text-sm text-muted-foreground">No accessible projects found.</p>:<ul className="mt-3 divide-y divide-border">{rows.map(project=><li key={project.id} className="py-2 text-sm"><Link to={`/projects/${project.id}`} className="font-medium text-primary hover:underline">{project.name}</Link><p className="text-xs text-muted-foreground">{project.live_project?'Live':'On Hold'} · {relationship(project)} · {(project.submitted_proposal_value??project.estimated_value)!=null?formatCurrency(projectFullValue(project)):'Value not recorded'}</p></li>)}</ul>}
+  {projects.hasNextPage&&<Button size="sm" variant="outline" onClick={()=>projects.fetchNextPage()} disabled={projects.isFetching}>{projects.isFetchingNextPage?'Loading…':'Load more'}</Button>}
+ </section>;
 }
