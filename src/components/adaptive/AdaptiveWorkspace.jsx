@@ -20,8 +20,10 @@ import '@/components/adaptive/adaptive-time.css';
 import { useWellbeing } from '@/components/wellbeing/WellbeingProvider';
 import WrapUpChecklist from '@/components/adaptive/WrapUpChecklist';
 import CarriedForwardPlan from '@/components/adaptive/CarriedForwardPlan';
+import useWellbeingAnchor from '@/components/wellbeing/useWellbeingAnchor';
 export default function AdaptiveWorkspace({user}) {
  const {settings}=useWellbeing(),now=useAdaptiveClock(),prefs=useAdaptivePreferences(user.id),query=useAdaptiveToday(user,prefs,now),context=roleContext(user),focus=focuses.includes(prefs.config.focus)?prefs.config.focus:focuses[0],time=timeState(now,query.calendar,settings.hours);
+ useWellbeingAnchor(!!query.data);
  const data=query.data,ranked=timeRank(rankActions(data?.actions||[],context,focus,time.day),time),actions=ranked.filter(a=>!prefs.config.dismissed.includes(a.key)),records=evidenceContext(actions,data?.projects||[]),intelligence=useAdaptiveIntelligence(records,time);
  return <div className="adaptive-today"><div className="at-container"><div className="at-experiment-bar"><Link to="/today"><ArrowLeft size={13}/> Original Today</Link><span><span className="at-live-dot"/> ALSIGHT LABS <b>Experimental workspace</b></span><button className="at-text-link" disabled={query.isFetching} onClick={()=>{query.refetch();query.calendar.refresh();}}><RefreshCw size={13} className={query.isFetching?'animate-spin':''}/> Refresh</button></div>
   <AdaptiveTodayHero/>
