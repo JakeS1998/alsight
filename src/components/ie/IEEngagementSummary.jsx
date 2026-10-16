@@ -5,7 +5,7 @@ import {formatDate} from '@/lib/portal';
 
 export default function IEEngagementSummary({item}){
  const imported=item.origin?.startsWith('sharepoint:');
- const summary=imported ? [item.category_name,item.support_type_name].filter(Boolean).join(' · ') : item.description;
+ const summary=imported ? [item.product_name,item.support_type_name].filter(Boolean).join(' · ') : item.description;
  return <IEPanel title="Engagement summary" className="h-full">
   <p className="whitespace-pre-wrap text-sm leading-7 text-muted-foreground">{summary||'No background or scope recorded.'}</p>
   {imported&&<p className="mt-3 text-sm leading-6 text-muted-foreground">{[item.client_name,(item.sites||[]).join(', ')].filter(Boolean).join(' · ')}</p>}

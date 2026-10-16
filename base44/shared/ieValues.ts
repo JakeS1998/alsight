@@ -4,11 +4,13 @@ import {ieServiceValue} from './ieServiceValue.ts';
 const statuses=['scoping','planned','live','on_hold','completed','cancelled'];
 export async function ieValues(base44,user,input,previous){
  const db=base44.asServiceRole.entities,values=input.values||{},out={};
- for(const [field,max] of Object.entries({name:250,client_id:100,owner_id:100,opportunity_id:100,project_id:100,category_id:100,support_type_id:100,region_id:100,description:6000,expected_outcome:4000,notes_risks:4000,action_note:1000}))out[field]=ieText(values[field],max);
+ for(const [field,max] of Object.entries({name:250,client_id:100,owner_id:100,opportunity_id:100,project_id:100,product_id:100,support_type_id:100,region_id:100,description:6000,expected_outcome:4000,notes_risks:4000,action_note:1000}))out[field]=ieText(values[field],max);
  if(!out.name||!out.client_id||!out.owner_id)ieError('Enter a name, client and responsible SAM.');
  const people=await iePeople(db),map=iePersonMap(people);
  if(user.role==='sam'&&!previous&&map.get(out.owner_id)?.user_id!==user.id)ieError('Create the engagement in your own name; a SAM Director can reassign it.',403);
  if(user.role==='sam'&&previous&&(out.owner_id!==previous.owner_id||JSON.stringify(values.team_ids||[])!==JSON.stringify(previous.team_ids||[])))ieError('A SAM Director must change engagement ownership or team membership.',403);
+ out.service=values.service||previous?.service||'engagement';
+ if(!['insights','engagement'].includes(out.service))ieError('Choose Insights or Engagement as the service.');
  out.status=values.status||'scoping';out.priority=values.priority||'normal';
  if(!statuses.includes(out.status)||!['normal','high','urgent'].includes(out.priority))ieError('Choose a valid status and priority.');
  for(const key of ['start_date','target_date','completion_date']){out[key]=ieText(values[key],10);if(out[key]&&(!/^\d{4}-\d{2}-\d{2}$/.test(out[key])||isNaN(Date.parse(out[key]))||new Date(out[key]).toISOString().slice(0,10)!==out[key]))ieError('Enter a valid date.');}
@@ -30,7 +32,7 @@ export async function ieValues(base44,user,input,previous){
  const accountIds=[account.id,account.dataverse_id].filter(Boolean);out.project_name='';out.opportunity_name='';out.bsm_identity='';
  if(out.project_id){const project=await db.Project.get(out.project_id);if(!accountIds.includes(project.client_account_id)&&!accountIds.includes(project.account_id))ieError('The project must belong to the selected client.');out.project_name=project.name;out.bsm_identity=project.bsm_aad_id||'';out.region_id=project.department_id||out.region_id;}
  if(out.opportunity_id){const opportunity=await base44.entities.Opportunity.get(out.opportunity_id);if(!opportunity||!accountIds.includes(opportunity.account_id))ieError('The opportunity must be accessible and belong to the client.');out.opportunity_name=opportunity.title;}
- for(const [field,name,kind] of [['category_id','category_name','category'],['support_type_id','support_type_name','support']]){out[name]='';if(out[field]){const item=await db.IEClassification.get(out[field]);if(item.kind!==kind||item.active===false&&out[field]!==previous?.[field])ieError('Choose an active service classification.');if(kind==='support'&&item.parent_id&&item.parent_id!==out.category_id)ieError('Choose a support type from the selected category.');out[name]=item.name;}}
+ for(const [field,name,kind] of [['product_id','product_name','category'],['support_type_id','support_type_name','support']]){out[name]='';if(out[field]){const item=await db.IEClassification.get(out[field]);if(item.kind!==kind||item.active===false&&out[field]!==previous?.[field])ieError('Choose an active product classification.');if(kind==='support'&&item.parent_id&&item.parent_id!==out.product_id)ieError('Choose a support type from the selected product.');out[name]=item.name;}}
  Object.assign(out,ieServiceValue({...previous,...out}));
  return out;
  }

@@ -3,11 +3,12 @@ import {ieDashboardBreakdown} from './ieDashboardBreakdown.ts';
 import {iePeople} from './iePeople.ts';
 export function ieQuery(user,filters={}){
  const parts=[ieScope(user)],search=ieText(filters.search,100);
- for(const field of ['status','client_id','owner_id','category_id','support_type_id','region_id','project_id'])if(filters[field])parts.push({[field]:ieText(filters[field],100)});
+ for(const field of ['status','service','client_id','owner_id','product_id','support_type_id','region_id','project_id'])if(filters[field])parts.push({[field]:ieText(filters[field],100)});
  if(search)parts.push({$or:['reference','name','client_name'].map(field=>({[field]:{$regex:ieEscape(search),$options:'i'}}))});
  if(filters.mine)parts.push({access_user_ids:user.id});
  if(filters.attention)parts.push(ieAttention());
- if(filters.unclassified)parts.push({$or:[{category_id:''},{category_id:{$exists:false}}]});
+ if(filters.unclassified)parts.push({$or:[{product_id:''},{product_id:{$exists:false}}]});
+ if(filters.service_unset)parts.push({$or:[{service:''},{service:{$exists:false}}]});
  if(filters.context==='standalone')parts.push({project_id:'',opportunity_id:''});
  if(filters.context==='project')parts.push({project_id:{$ne:''}});
  if(filters.context==='opportunity')parts.push({opportunity_id:{$ne:''}});

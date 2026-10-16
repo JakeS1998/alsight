@@ -28,10 +28,10 @@ export default async function(req){
   if(action==='lookup'){if(!ieEditable(user))ieError('Engagement creation access required.',403);return Response.json(await ieLookup(base44,user,input));}
   if(action==='classifications')return Response.json(await db.IEClassification.filter({},{sort:'name',limit:500}));
   if(action==='classificationSave'){
-   if(!['admin','sam_director'].includes(user.role))ieError('A SAM Director or administrator must maintain service types.',403);
+   if(!['admin','sam_director'].includes(user.role))ieError('A SAM Director or administrator must maintain products.',403);
    const name=ieText(input.name,150);if(!name||!['category','support'].includes(input.kind))ieError('Enter a classification name and type.');
    const parent_id=ieText(input.parent_id,100);
-   if(parent_id){const parent=await db.IEClassification.get(parent_id);if(parent.kind!=='category')ieError('Choose a category.');}
+   if(parent_id){const parent=await db.IEClassification.get(parent_id);if(parent.kind!=='category')ieError('Choose a product.');}
    const values={name,kind:input.kind,parent_id:input.kind==='support'?parent_id:'',active:input.active!==false};
    if(input.id){const previous=await db.IEClassification.get(ieText(input.id,100));if(previous.kind!==input.kind||(previous.parent_id||'')!==values.parent_id)ieError('Keep the existing classification hierarchy; retire it and add another if needed.');return Response.json(await db.IEClassification.update(previous.id,values));}
    return Response.json(await db.IEClassification.create({...values,provisional:true}));

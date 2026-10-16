@@ -11,7 +11,7 @@ import IETeamFields from '@/components/ie/IETeamFields';
 import IELifecycleFields from '@/components/ie/IELifecycleFields';
 export default function IEEngagementForm({item,onClose}){
  const {user}=useAuth(),cache=useQueryClient(),navigate=useNavigate();
- const [value,setValue]=useState(item||{name:'',owner_id:user.role==='sam'?user.id:'',client_id:'',status:'scoping',priority:'normal',sites:[],team_ids:[]}),[labels,setLabels]=useState({client:item?.client_name||'',project:item?.project_name||'',opportunity:item?.opportunity_name||''}),[reason,setReason]=useState(''),[saving,setSaving]=useState(false),[error,setError]=useState('');
+ const [value,setValue]=useState(item||{name:'',owner_id:user.role==='sam'?user.id:'',client_id:'',service:'engagement',status:'scoping',priority:'normal',sites:[],team_ids:[]}),[labels,setLabels]=useState({client:item?.client_name||'',project:item?.project_name||'',opportunity:item?.opportunity_name||''}),[reason,setReason]=useState(''),[saving,setSaving]=useState(false),[error,setError]=useState('');
  const types=useQuery({queryKey:['ie-classifications',user.id],queryFn:()=>ieCall('classifications'),staleTime:60000,retry:false});
  const set=(key,val)=>setValue(old=>({...old,...(typeof key==='object'?key:{[key]:val})}));
  const submit=async event=>{event.preventDefault();setError('');setSaving(true);try{const result=await ieCall('save',{id:item?.id,revision:item?.revision,values:value,reason});await cache.invalidateQueries({predicate:q=>String(q.queryKey[0]).startsWith('ie-')});onClose();navigate(`/insights-engagement/${result.item.id}`);}catch(failure){setError(failure.message);}finally{setSaving(false);}};

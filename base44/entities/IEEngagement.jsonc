@@ -35,11 +35,28 @@
     "project_name": {
       "type": "string"
     },
-    "category_id": {
+    "service": {
+      "type": "string",
+      "enum": [
+        "insights",
+        "engagement"
+      ],
+      "description": "I&E service: Insights or Engagement."
+    },
+    "product_id": {
+      "type": "string",
+      "description": "Product classification, formerly the I&E service type."
+    },
+    "product_name": {
       "type": "string"
     },
+    "category_id": {
+      "type": "string",
+      "description": "Legacy service-type field migrated to product_id."
+    },
     "category_name": {
-      "type": "string"
+      "type": "string",
+      "description": "Legacy service-type label migrated to product_name."
     },
     "support_type_id": {
       "type": "string"
