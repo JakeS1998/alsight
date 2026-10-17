@@ -95,7 +95,6 @@ const AuthenticatedApp = () => {
     <PageLoadBoundary route={location.pathname}>
       <Suspense fallback={<div className="flex min-h-[40vh] items-center justify-center" role="status">Loading page…</div>}>
     <Routes>
-      <Route path="/" element={<Login />} />
       <Route path="/login" element={<Login />} />
       <Route path="/register" element={<Register />} />
       <Route path="/forgot-password" element={<ForgotPassword />} />
@@ -112,6 +111,7 @@ const AuthenticatedApp = () => {
       <Route element={<ProtectedRoute unauthenticatedElement={<Navigate to="/login" replace />} />}>
         <Route element={<OnboardingGate />}>
         <Route element={<PortalLayout />}>
+          <Route path="/" element={useStakeholderView ? <Navigate to="/framework-reports" replace /> : ['sam','sam_director'].includes(user?.role) ? <Navigate to="/insights-engagement" replace /> : <AdaptiveTodayPage />} />
           <Route path="/access-denied" element={<AccessDenied />} />
           <Route path="/framework-reports" element={<FrameworkReports />} />
           <Route path="/framework-reports/:reportId" element={<FrameworkProjectDetail />} />
