@@ -11,7 +11,7 @@ export function timeState(now,calendar,workday={}) {
  const date=new Date(now),bounds=dayBounds(now),working=workingContext(now,workday),{minute}=working;
  const start=toMinutes(working.hours.start),end=toMinutes(working.hours.end);
  const phase=working.resting?'rest':working.checklistAvailable?'wrap':minute>=840?'afternoon':minute>=720?'midday':minute>=600?'focus':'morning';
- const headings={morning:'Your morning briefing',focus:'What needs your attention?',midday:'Your day so far',afternoon:'Make the most of your afternoon',wrap:'Prepare for your next working day',rest:working.early?'Your workspace is ready when you need it':'Make a little room for rest'};
+ const headings={morning:'Your morning briefing',focus:'What needs your attention?',midday:'Your day so far',afternoon:'Make the most of your afternoon',wrap:'Prepare for your next working day',rest:!working.workingDay?'It will be here on Monday':working.early?'Your workspace is ready when you need it':'Make a little room for rest'};
  const events=calendar.rows||[],timed=events.filter(e=>!e.allDay&&Number.isFinite(e.startsAt)&&Number.isFinite(e.endsAt));
  const current=timed.find(e=>e.startsAt<=now&&e.endsAt>now),next=timed.find(e=>e.startsAt>now),finished=[...timed].reverse().find(e=>e.endsAt<=now&&now-e.endsAt<30*60000);
  const minutesToNext=next?Math.max(0,Math.ceil((next.startsAt-now)/60000)):null;

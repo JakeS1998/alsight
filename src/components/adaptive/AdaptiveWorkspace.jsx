@@ -43,7 +43,7 @@ export default function AdaptiveWorkspace({user}) {
   {data&&<><AdaptiveMetrics data={data} calendar={query.calendar}/>
    {data.warnings.length>0&&<details className="at-source-warning"><summary>Some sources are unavailable ({data.warnings.length}). This briefing is partial.</summary>{data.warnings.map(w=><p key={w}>{w}</p>)}</details>}
    <div className="at-main-grid">
-    <div className="at-main-column"><PriorityActions actions={actions} prefs={prefs} onComplete={query.complete} moreTasks={data.moreTasks} resting={time.resting}/></div>
+    <div className="at-main-column"><PriorityActions actions={actions} prefs={prefs} onComplete={query.complete} moreTasks={data.moreTasks} resting={time.resting} weekend={!time.workingDay}/></div>
     <div className="at-side-column">{time.prominent&&<NextMeeting time={time} userId={user.id}/>}<WorkingDayTimeline calendar={query.calendar} actions={actions} time={time}/>{!time.prominent&&<NextMeeting time={time} userId={user.id}/>}</div>
     <aside className="at-alice-column" aria-label="ALICE Intelligence"><IntelligentRecommendations actions={actions} intelligence={intelligence} prefs={prefs} time={time}/><ALSightIntelligencePanel intelligence={intelligence} hasRecords={!!records.length} time={time}/></aside>
     <div className="at-project-zone"><PersonalWorkspace data={data} actions={actions} context={context} focus={focus} prefs={prefs}/></div>
