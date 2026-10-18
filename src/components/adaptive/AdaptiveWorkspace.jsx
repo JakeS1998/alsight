@@ -5,25 +5,18 @@ import useAdaptiveIntelligence from '@/components/adaptive/useAdaptiveIntelligen
 import { focuses, roleContext, rankActions, evidenceContext } from '@/components/adaptive/adaptiveEngine';
 import DailyBriefing from '@/components/adaptive/DailyBriefing';
 import AdaptiveTodayHero from '@/components/adaptive/AdaptiveTodayHero';
-import PriorityActions from '@/components/adaptive/PriorityActions';
-import WorkingDayTimeline from '@/components/adaptive/WorkingDayTimeline';
-import IntelligentRecommendations from '@/components/adaptive/IntelligentRecommendations';
-import ALSightIntelligencePanel from '@/components/adaptive/ALSightIntelligencePanel';
-import PersonalWorkspace from '@/components/adaptive/PersonalWorkspace';
+import AdaptiveWorkspaceColumns from '@/components/adaptive/AdaptiveWorkspaceColumns';
 import useAdaptiveClock from '@/components/adaptive/useAdaptiveClock';
 import { timeState, timeRank } from '@/components/adaptive/adaptiveTime';
-import TimeAwareBriefing from '@/components/adaptive/TimeAwareBriefing';
-import NextMeeting from '@/components/adaptive/NextMeeting';
+
 import '@/components/adaptive/adaptive-time.css';
 import { useWellbeing } from '@/components/wellbeing/WellbeingProvider';
-import WrapUpChecklist from '@/components/adaptive/WrapUpChecklist';
-import CarriedForwardPlan from '@/components/adaptive/CarriedForwardPlan';
+
 import useWellbeingAnchor from '@/components/wellbeing/useWellbeingAnchor';
 import AdaptiveCommandBar from '@/components/adaptive/AdaptiveCommandBar';
 import AdaptiveFocusNav from '@/components/adaptive/AdaptiveFocusNav';
 import AdaptiveMetrics from '@/components/adaptive/AdaptiveMetrics';
-import AdaptiveRoleContext from '@/components/adaptive/AdaptiveRoleContext';
-import AdaptiveConnectedFeeds from '@/components/adaptive/AdaptiveConnectedFeeds';
+
 export default function AdaptiveWorkspace({user}) {
  const [commandFeedback,setCommandFeedback]=useState('');
  const {settings}=useWellbeing(),now=useAdaptiveClock(),prefs=useAdaptivePreferences(user.id),query=useAdaptiveToday(user,prefs,now),context=roleContext(user),focus=focuses.includes(prefs.config.focus)?prefs.config.focus:focuses[0],time=timeState(now,query.calendar,settings.hours);
@@ -40,14 +33,7 @@ export default function AdaptiveWorkspace({user}) {
   {query.error&&<div role="alert" className="at-empty"><h2>Your workspace could not be loaded.</h2><p>{query.error.message}</p><button className="at-btn" onClick={()=>query.refetch()}>Try again</button></div>}
   {data&&<><AdaptiveMetrics data={data} calendar={query.calendar}/>
    {data.warnings.length>0&&<details className="at-source-warning"><summary>Some sources are unavailable ({data.warnings.length}). This briefing is partial.</summary>{data.warnings.map(w=><p key={w}>{w}</p>)}</details>}
-   <div className="at-main-grid">
-    <div className="at-main-column"><PriorityActions actions={actions} prefs={prefs} onComplete={query.complete} moreTasks={data.moreTasks} resting={time.resting} weekend={!time.workingDay}/></div>
-    <div className="at-side-column">{time.prominent&&<NextMeeting time={time} userId={user.id}/>}<WorkingDayTimeline calendar={query.calendar} actions={actions} time={time}/>{!time.prominent&&<NextMeeting time={time} userId={user.id}/>}</div>
-    <aside className="at-alice-column" aria-label="ALICE Intelligence"><IntelligentRecommendations actions={actions} intelligence={intelligence} prefs={prefs} time={time}/><ALSightIntelligencePanel intelligence={intelligence} hasRecords={!!records.length} time={time}/></aside>
-    <div className="at-project-zone"><PersonalWorkspace data={data} actions={actions} context={context} focus={focus} prefs={prefs}/></div>
-   </div>
-   <div className="at-supporting-grid"><div><TimeAwareBriefing time={time} calendar={query.calendar} data={data} prefs={prefs}/><AdaptiveRoleContext context={context} data={data} calendar={query.calendar} since={prefs.since}/></div><div><WrapUpChecklist time={time} prefs={prefs} actions={ranked} onComplete={query.complete}/><CarriedForwardPlan prefs={prefs}/></div></div>
-   <AdaptiveConnectedFeeds user={user} time={time} calendar={query.calendar} projects={data.projects}/>
+   <AdaptiveWorkspaceColumns user={user} time={time} query={query} data={data} actions={actions} ranked={ranked} prefs={prefs} context={context} focus={focus} intelligence={intelligence} hasRecords={!!records.length}/>
    <footer className="at-experiment-footer"><span>ALSight · Your workspace</span><span>Project intelligence covers up to 30 recent accessible active projects; insurance uses their recorded supplier links. Counts cover available source categories, not unique projects. No sample data.</span><span>Updated {new Date(data.refreshedAt).toLocaleTimeString('en-GB',{hour:'2-digit',minute:'2-digit'})}</span></footer>
   </>}
  </div></div>;
