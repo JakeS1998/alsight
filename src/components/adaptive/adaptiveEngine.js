@@ -1,6 +1,7 @@
 import assignedRoles from '@/components/data/assignedRoles';
 import { localDay, deadlineDay } from '@/components/adaptive/adaptiveTime';
 import adaptiveRoles from '@/components/adaptive/adaptiveRoles';
+import workspaceSignal from '@/components/adaptive/workspaceSignal';
 export const focuses = ['My priorities', 'My projects', 'Commercial', 'Documents', 'My activity'];
 export function roleContext(user) {
  const roles=assignedRoles(user),role=roles.includes('director')||roles.includes('admin')?'director':roles.includes('finance')?'finance':roles.includes('bsm')?'bsm':roles.includes('bdm')?'bdm':user?.role;
@@ -16,7 +17,7 @@ export function actionCategory(item) {
 export function rankActions(items,context,focus,day=localDay()) {
  const preferred=context.categories||['projects'];
  const wanted={'My projects':'projects',Commercial:'commercial',Documents:'documents'}[focus];
- return items.map(item=>{const category=item.category||actionCategory(item),date=deadlineDay(item.due),level=date&&date<=day?'Urgent':item.severity==='urgent'?'Urgent':item.severity==='upcoming'?'Upcoming':'Important';return {...item,category,level,score:({Urgent:100,Important:60,Upcoming:20}[level])+(preferred.includes(category)?12:0)+(wanted===category?20:0)+(item.taskEntity?5:0)};}).sort((a,b)=>b.score-a.score||String(a.due||'9999').localeCompare(String(b.due||'9999')));
+ return items.map(item=>{const category=item.category||actionCategory(item),signal=workspaceSignal(item,day),level=item.severity==='urgent'?'Urgent':item.severity==='upcoming'?'Upcoming':'Important';return {...item,...signal,category,level,score:(signal.intent==='Priority'?200:0)+({Urgent:100,Important:60,Upcoming:20}[level])+(preferred.includes(category)?12:0)+(wanted===category?20:0)+(item.taskEntity?5:0)};}).sort((a,b)=>b.score-a.score||String(a.due||'9999').localeCompare(String(b.due||'9999')));
 }
 export function widgetOrder(config,context,focus) {
  const order=[...new Set([...(config.order||[]),...context.widgets])].filter(id=>context.widgets.includes(id)&&!(config.hidden||[]).includes(id));

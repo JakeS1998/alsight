@@ -13,12 +13,13 @@ import OutlookEmailSummary from '@/components/adaptive/OutlookEmailSummary';
 import MeetingIntelligence from '@/components/adaptive/MeetingIntelligence';
 import IETodayFeed from '@/components/adaptive/IETodayFeed';
 import { IE_ROLES } from '@/components/ie/ieClient';
+import { askFromWorkspace, widgetEvidence } from '@/components/adaptive/workspaceEvidence';
 
 export default function AdaptiveWorkspaceColumns({user,time,query,data,actions,ranked,prefs,context,focus,intelligence,hasRecords}) {
  return <div className="at-flow-grid">
   <div className="at-flow-primary">
-   <div className="at-flow-priorities"><PriorityActions actions={actions} prefs={prefs} onComplete={query.complete} moreTasks={data.moreTasks} resting={time.resting} weekend={!time.workingDay}/></div>
-   <div className="at-flow-workspace"><PersonalWorkspace data={data} actions={actions} context={context} focus={focus} prefs={prefs}/></div>
+   <div className="at-flow-priorities"><PriorityActions actions={actions} prefs={prefs} onComplete={query.complete} onAsk={item=>askFromWorkspace(intelligence,'Why is this item appearing here? Explain its source, recorded responsibility and deadline without inferring urgency. Suggest a next step only.',widgetEvidence([item]),'Priority and awareness signals')} moreTasks={data.moreTasks} resting={time.resting} weekend={!time.workingDay}/></div>
+   <div className="at-flow-workspace"><PersonalWorkspace data={data} actions={actions} context={context} focus={focus} prefs={prefs} intelligence={intelligence}/></div>
    <div className="at-flow-mail"><OutlookEmailSummary user={user} time={time}/></div>
   </div>
   <div className="at-flow-day">
