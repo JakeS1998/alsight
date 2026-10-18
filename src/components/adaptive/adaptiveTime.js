@@ -26,7 +26,7 @@ export function timeRank(items,time) {
  return items.map(item=>{const date=deadlineDay(item.due),boost=(time.phase==='afternoon'&&item.taskEntity?8:0)+(time.phase==='wrap'&&date===time.nextWorkDay?18:0);return {...item,score:item.score+boost,timeReason:date===time.day?'Due today.':time.phase==='wrap'&&date===time.nextWorkDay?'Due next working day: review when convenient.':time.phase==='afternoon'&&item.taskEntity?'Assigned work is emphasised during the afternoon.':''};}).sort((a,b)=>Number(b.intent==='Priority')-Number(a.intent==='Priority')||b.score-a.score||String(a.due||'9999').localeCompare(String(b.due||'9999')));
 }
 export function timeSuggestions(actions,time) {
- if(time.resting)return [];
+ if(time.resting||!time.withinPersonal)return [];
  const limit=time.available!==null&&time.available<15?1:time.available!==null&&time.available<45?2:3;
  return actions.filter(a=>a.intent==='Priority').slice(0,limit).map(a=>({title:time.phase==='wrap'?'Review what carries forward':a.title,reason:[a.timeReason||a.detail||a.source,time.available!==null?`${time.available}-minute calendar gap within your planning hours. Effort is not recorded; confirm what fits.`:'Calendar availability is unconfirmed. No task duration has been assumed.'].filter(Boolean).join(' '),to:a.to,source:a.title,key:a.key}));
 }

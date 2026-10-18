@@ -13,7 +13,7 @@ export default function useAdaptiveToday(user,prefs,now) {
   const {data}=await base44.functions.invoke('completeAssignedTask',{entity:row.taskEntity,id:row.id});if(data.error)throw Error(data.error);
   const stamp=Date.now(),day=dayBounds(stamp).day;
   prefs.save(old=>({carryForward:old.carryForward?{...old.carryForward,items:old.carryForward.items.filter(item=>item.key!==row.key)}:null,completions:{day,items:[...(old.completions?.day===day?old.completions.items:[]).filter(item=>item.key!==row.key),{key:row.key,title:row.title,to:row.to,completedAt:new Date(stamp).toISOString()}]}}));
-  await client.invalidateQueries({queryKey:['adaptive-today',user.id]});
+  await Promise.all([client.invalidateQueries({queryKey:['adaptive-today',user.id]}),client.invalidateQueries({queryKey:['adaptive-task-drilldown',user.id]})]);
   window.dispatchEvent(new Event('alsight-tasks-changed'));
  }
  return {...query,calendar,complete};
