@@ -1,0 +1,5 @@
+import React from 'react';
+import { Link } from 'react-router-dom';
+export default function MetricRecordList({rows,onSelect}) {
+ return <ul className="space-y-3">{rows.map(row=><li key={row.key||row.id||row.to} className="rounded-lg border border-border bg-card p-3"><Link onClick={onSelect} className="font-medium underline underline-offset-4" to={row.to}>{row.title}</Link>{row.detail&&<p className="mt-1 text-sm text-muted-foreground">{row.detail}</p>}{row.why&&<p className="mt-2 text-sm">{row.why}</p>}{row.dateLabel&&<p className="mt-1 text-xs text-muted-foreground">{row.dateLabel}{row.due?` · ${String(row.due).slice(0,10)}`:''}</p>}<Link onClick={onSelect} className="mt-2 inline-block text-sm font-medium underline underline-offset-4" to={row.to}>{row.label||'Open source record'}</Link></li>)}</ul>;
+}

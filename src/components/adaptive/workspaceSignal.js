@@ -1,0 +1,9 @@
+import { deadlineDay } from '@/components/adaptive/adaptiveTime';
+export default function workspaceSignal(item,day) {
+ const key=item.key||'',due=deadlineDay(item.due),overdue=!!due&&due<day||key.startsWith('decision-');
+ const mine=!!item.taskEntity||key.startsWith('approval-')||item.priority===true;
+ const waiting=key.startsWith('proposal-');
+ const source=item.source||(key.startsWith('approval-')?'Approval inbox':key.startsWith('document-')?'Document briefing':key.startsWith('risk-')?'Project risk register':key.startsWith('decision-')?'Project decision register':waiting?'Current fee proposal':key.startsWith('date-')?'Project programme':key.startsWith('insurance-')?'Supplier insurance':'Project record');
+ const why=item.taskEntity?'The source task is assigned to you.':key.startsWith('approval-')?'The approval inbox returned this pending decision for your access.':item.priority===true?'The document briefing links this outstanding document to your recorded responsibilities.':waiting?'A current proposal is awaiting a client response. This does not establish that an action is assigned to you.':key.startsWith('risk-')?'A linked project has high-risk items. Your personal involvement is not confirmed by this briefing.':key.startsWith('decision-')?'A linked project has an overdue open decision. Check the decision owner before acting.':key.startsWith('date-')?'A linked project has a programme milestone within the briefing horizon.':key.startsWith('insurance-')?'A supplier linked to a loaded project has cover expiring within the reporting window.':'This accessible project record is provided for reference.';
+ return {intent:mine?'Priority':'Awareness',attentionKind:mine?'Action for me':waiting?'Awaiting others':'For awareness',overdue,dateLabel:overdue?'Overdue':due===day?'Due today':due?'Upcoming date':'',source,why};
+}
