@@ -10,7 +10,7 @@ export default async function adaptiveData(user,since,bounds=dayBounds()) {
  const contacts=await read('Identity',()=>db.Contact.filter({$or:[{aad_id:user.id},...(user.email?[{email:user.email}]:[])]},{limit:20,fields:['full_name','aad_id']}),{items:[]});
  const scope={...projectScope(user,contacts.items[0]?.aad_id),status:{$ne:'inactive'},live_project:true};
  const [projects,projectTotal,changes]=await Promise.all([
-  read('Projects',()=>db.Project.filter(scope,{sort:'-updated_date',limit:30,fields:['name','project_number','dataverse_id','client_name','related_supplier_account_ids','updated_date','practical_completion_date']}),{items:[],has_more:false}),
+  read('Projects',()=>db.Project.filter(scope,{sort:'-updated_date',limit:30,fields:['name','project_number','dataverse_id','client_name','related_supplier_account_ids','updated_date','practical_completion_date','site_postcode','procurement_route']}),{items:[],has_more:false}),
   read('Project total',()=>db.Project.count(scope),null),
   since?read('Project changes',()=>db.Project.count({...scope,updated_date:{$gt:since}}),null):Promise.resolve(null)
  ]);

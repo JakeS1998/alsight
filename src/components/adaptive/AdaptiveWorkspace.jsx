@@ -1,6 +1,4 @@
 import React, { useState } from 'react';
-import { useQueryClient } from '@tanstack/react-query';
-import { RefreshCw } from 'lucide-react';
 import useAdaptivePreferences from '@/components/adaptive/useAdaptivePreferences';
 import useAdaptiveToday from '@/components/adaptive/useAdaptiveToday';
 import useAdaptiveIntelligence from '@/components/adaptive/useAdaptiveIntelligence';
@@ -27,11 +25,11 @@ import AdaptiveMetrics from '@/components/adaptive/AdaptiveMetrics';
 import AdaptiveRoleContext from '@/components/adaptive/AdaptiveRoleContext';
 import AdaptiveConnectedFeeds from '@/components/adaptive/AdaptiveConnectedFeeds';
 export default function AdaptiveWorkspace({user}) {
- const [commandFeedback,setCommandFeedback]=useState(''),client=useQueryClient();
+ const [commandFeedback,setCommandFeedback]=useState('');
  const {settings}=useWellbeing(),now=useAdaptiveClock(),prefs=useAdaptivePreferences(user.id),query=useAdaptiveToday(user,prefs,now),context=roleContext(user),focus=focuses.includes(prefs.config.focus)?prefs.config.focus:focuses[0],time=timeState(now,query.calendar,settings.hours);
  useWellbeingAnchor(!!query.data);
  const data=query.data,ranked=timeRank(rankActions(data?.actions||[],context,focus,time.day),time),actions=ranked.filter(a=>!prefs.config.dismissed.includes(a.key)),records=evidenceContext(actions,data?.projects||[]),intelligence=useAdaptiveIntelligence(records,time);
- return <div className="adaptive-today"><div className="at-container"><div className="at-experiment-bar justify-end"><button className="at-text-link" disabled={query.isFetching} onClick={()=>{query.refetch();query.calendar.refresh();client.invalidateQueries({queryKey:['adaptive-outlook-mail',user.id]});client.invalidateQueries({queryKey:['adaptive-ie-feed',user.id]});client.invalidateQueries({queryKey:['adaptive-meeting-projects',user.id]});}}><RefreshCw size={13} className={query.isFetching?'animate-spin':''}/> Refresh</button></div>
+ return <div className="adaptive-today"><div className="at-container">
   <AdaptiveTodayHero>
    <DailyBriefing user={user} time={time}/>
    <AdaptiveCommandBar intelligence={intelligence} hasRecords={!!records.length} prefs={prefs} context={context} onFeedback={setCommandFeedback}/>

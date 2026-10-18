@@ -4,7 +4,7 @@ import { dayBounds, localDay, localTime } from '@/components/adaptive/adaptiveTi
 const utc=value=>/(?:Z|[+-]\d{2}:\d{2})$/i.test(value||'')?value:`${value}Z`;
 export default function useAdaptiveCalendar(user,now,enabled=true) {
  const bounds=dayBounds(now);
- const query=useInfiniteQuery({queryKey:['adaptive-outlook-agenda',user.id,bounds.day],enabled:enabled&&!!user.id,initialPageParam:null,queryFn:({pageParam})=>calendarRequest('list',{start:bounds.start,end:bounds.calendarEnd,timeZone:'UTC',...(pageParam?{cursor:pageParam}:{})}),getNextPageParam:page=>page.next_cursor||undefined,staleTime:120000,retry:false,refetchOnWindowFocus:true});
+ const query=useInfiniteQuery({queryKey:['adaptive-outlook-agenda',user.id,bounds.day],enabled:enabled&&!!user.id,initialPageParam:null,queryFn:({pageParam})=>calendarRequest('list',{start:bounds.start,end:bounds.calendarEnd,timeZone:'UTC',...(pageParam?{cursor:pageParam}:{})}),getNextPageParam:page=>page.next_cursor||undefined,staleTime:120000,refetchInterval:300000,retry:false,refetchOnWindowFocus:true});
  const events=(query.data?.pages||[]).flatMap(page=>page.events).map(event=>{
   const startsAt=Date.parse(utc(event.start?.dateTime)),endsAt=Date.parse(utc(event.end?.dateTime)),time=event.isAllDay?'All day':localTime(startsAt),finish=localTime(endsAt);
   const day=localDay(startsAt);
