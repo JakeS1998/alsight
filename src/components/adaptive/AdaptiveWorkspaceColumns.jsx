@@ -32,7 +32,7 @@ export default function AdaptiveWorkspaceColumns({user,time,query,data,actions,r
    <div className="at-flow-meetings"><MeetingIntelligence calendar={query.calendar} time={time} projects={data.projects} userId={user.id}/></div>
   </div>
   <div className="at-flow-alice">
-   <aside className="at-flow-assistant" aria-label="ALICE Intelligence"><IntelligentRecommendations actions={actions} intelligence={intelligence} prefs={prefs} time={time}/><ALSightIntelligencePanel intelligence={intelligence} hasRecords={hasRecords} time={time}/></aside>
+   <aside className="at-flow-assistant" aria-label="ALICE Intelligence"><div className="at-flow-recommendations"><IntelligentRecommendations actions={actions} intelligence={intelligence} prefs={prefs} time={time}/></div><div className="at-flow-intelligence"><ALSightIntelligencePanel intelligence={intelligence} hasRecords={hasRecords} time={time}/></div></aside>
    {(time.checklistAvailable||!!prefs.config.carryForward?.items?.length)&&<div className="at-flow-planning"><WrapUpChecklist time={time} prefs={prefs} actions={ranked} onComplete={query.complete}/><CarriedForwardPlan prefs={prefs}/></div>}
    {IE_ROLES.includes(user.role)&&<div className="at-flow-ie"><IETodayFeed user={user} time={time}/></div>}
   </div>
