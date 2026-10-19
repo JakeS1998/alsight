@@ -61,7 +61,7 @@ function docStatus(docs) {
 
 
 
-export function ProjectDraftingTab({ project, legalDocs, dmas, jcts, accountMap, pmView = false, onProjectUpdated }) {
+export function ProjectDraftingTab({ project, legalDocs, dmas, jcts, accountMap, pmView = false, onProjectUpdated, readOnly = false, psoChecks }) {
   const loiDocs = legalDocs.filter(isLetterOfIntent);
   const singleTask = frameworkAgreementRoute(legalDocs, dmas, project.project_number).route === 'single_task';
   const taskStages = [STAGES.find(stage => stage.key === 'single_task'), ...STAGES.filter(stage => stage.key !== 'single_task' && ((stage.kind === 'legal' && legalDocs.some(doc => stage.docTypes.includes(doc.document_type))) || (stage.kind === 'dma' && dmas.length) || (stage.kind === 'jct' && jcts.length)))].map(stage => stage.key === 'precon' ? { ...stage, label: 'Task supplier documents' } : stage);
@@ -73,6 +73,7 @@ export function ProjectDraftingTab({ project, legalDocs, dmas, jcts, accountMap,
   const [psoStatus, setPsoStatus] = useState({ pq: false, aa: false, aa_variations: false, dma: false });
 
   useEffect(() => {
+    if (psoChecks) { setPsoStatus(psoChecks); return; }
     (async () => {
       const recs = await base44.entities.ProjectDelivery.filter({ project_id: project.id }, "-created_date", 5).catch(() => []);
       const d = recs[0];
@@ -85,7 +86,7 @@ export function ProjectDraftingTab({ project, legalDocs, dmas, jcts, accountMap,
         });
       }
     })();
-  }, [project.id]);
+  }, [project.id, psoChecks]);
 
   const docByType = {};
   const preConstructionDocs = legalDocs.filter(isPreConstructionDocument);
@@ -99,7 +100,7 @@ export function ProjectDraftingTab({ project, legalDocs, dmas, jcts, accountMap,
   const totalDocs = legalDocs.length + dmas.length + jcts.length + (pmView ? 0 : project.link_to_project_questionnaire ? 1 : 0);
 
   if (totalDocs === 0) {
-    return <section className="space-y-4">{!pmView && <PQDocumentLink project={project} onUpdated={onProjectUpdated} />}<ProjectEmptyState icon={FileSearch} title="No project documents available yet." description="Ask the project's BSM to confirm the questionnaire and document programme; internal documents continue to use SharePoint links." to={`/projects/${project.id}?tab=general`} action="View project team" /><h3 className="text-sm font-semibold text-foreground">RIBA 4 report</h3><RibaReportLink project={project} onProjectUpdated={onProjectUpdated} /></section>;
+    return <section className="space-y-4">{!pmView && <PQDocumentLink readOnly={readOnly} project={project} onUpdated={onProjectUpdated} />}<ProjectEmptyState icon={FileSearch} title="No project documents available yet." description="Ask the project's BSM to confirm the questionnaire and document programme; internal documents continue to use SharePoint links." to={`/projects/${project.id}?tab=general`} action="View project team" /><h3 className="text-sm font-semibold text-foreground">RIBA 4 report</h3><RibaReportLink readOnly={readOnly} project={project} onProjectUpdated={onProjectUpdated} /></section>;
   }
 
   return (
@@ -138,8 +139,8 @@ export function ProjectDraftingTab({ project, legalDocs, dmas, jcts, accountMap,
                 </span>
               </div>
 
-              {stage.kind === 'report' ? <RibaReportLink project={project} onProjectUpdated={onProjectUpdated} /> : stage.kind === "pq" ? (
-                <PQDocumentLink project={project} psoOutstanding={!!project.link_to_project_questionnaire && !psoStatus.pq} onUpdated={onProjectUpdated} />
+              {stage.kind === 'report' ? <RibaReportLink readOnly={readOnly} project={project} onProjectUpdated={onProjectUpdated} /> : stage.kind === "pq" ? (
+                <PQDocumentLink readOnly={readOnly} project={project} psoOutstanding={!!project.link_to_project_questionnaire && !psoStatus.pq} onUpdated={onProjectUpdated} />
               ) : docs.length === 0 ? (
                 <div className="rounded-xl border border-dashed border-slate-200 bg-slate-50/50 px-4 py-3">
                   <p className="text-xs text-muted-foreground">No documents at this stage. Ask the project's BSM to confirm the next document milestone.</p>

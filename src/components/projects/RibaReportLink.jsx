@@ -4,9 +4,9 @@ import { useAuth } from '@/lib/AuthContext';
 import { Button } from '@/components/ui/button';
 import { ExternalLink, FileCheck } from 'lucide-react';
 
-export default function RibaReportLink({ project, onProjectUpdated }) {
+export default function RibaReportLink({ project, onProjectUpdated, readOnly = false }) {
   const { user } = useAuth();
-  const canEdit = ['admin', 'director', 'bdm'].includes(user?.role);
+  const canEdit = !readOnly && ['admin', 'director', 'bdm'].includes(user?.role);
   const [link, setLink] = useState(project.link_to_riba4_report || '');
   const [saving, setSaving] = useState(false);
   const [message, setMessage] = useState('');
