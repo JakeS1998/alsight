@@ -52,6 +52,21 @@
 .ie-dashboard .ie-card-footer { font-size: 12px; }
 .ie-dashboard .ie-card-service,
 .ie-dashboard .ie-card-footer small { font-size: 11px; }
+@media (min-width: 768px) {
+  .ie-dashboard .ie-metrics {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    grid-template-rows: repeat(2, minmax(0, 1fr));
+    align-items: stretch;
+  }
+  .ie-dashboard .ie-metric:first-child {
+    grid-column: 1;
+    grid-row: 1 / span 2;
+    align-items: center;
+  }
+  .ie-dashboard .ie-metric:first-child .ie-metric-value {
+    font-size: 60px;
+  }
+}
 @media (max-width: 767px) {
   .ie-dashboard .ie-hero { min-height: 200px; }
   .ie-dashboard .ie-hero-copy { padding: 24px 20px; }
