@@ -6,13 +6,18 @@ module.exports = {
   	extend: {
   		opacity: Object.fromEntries(Array.from({ length: 101 }, (_, i) => [i, `${i / 100}`])),
   		borderRadius: {
+            none: '0',
+            DEFAULT: 'var(--radius)',
+            sm: 'var(--radius)',
+            md: 'var(--radius)',
+            lg: 'var(--radius)',
+            xl: 'var(--radius)',
+            '2xl': 'var(--radius)',
+            '3xl': 'var(--radius)',
+            full: 'var(--radius)',
             panel: 'var(--panel-radius)',
-            '2xl': 'var(--panel-radius)',
-            hero: 'var(--hero-radius)',
-  			lg: 'var(--radius)',
-  			md: 'calc(var(--radius) - 2px)',
-  			sm: 'calc(var(--radius) - 4px)'
-  		},
+            hero: 'var(--hero-radius)'
+        },
   		colors: {
             lookout: {
                 navy: 'rgb(var(--lookout-navy))',

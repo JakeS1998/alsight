@@ -12,7 +12,7 @@
 .help-pathway-stage::after { content: '»'; position: absolute; top: 42px; right: -5px; color: hsl(var(--sidebar-foreground)); font-size: 23px; font-weight: 400; pointer-events: none; }
 .help-pathway-stage:last-child::after { content: none; }
 .help-pathway-number { align-self: center; color: hsl(var(--muted-foreground)); font-size: 14px; font-weight: 800; margin-bottom: 6px; }
-.help-pathway-node { display: flex; align-self: center; align-items: center; justify-content: center; width: 58px; height: 58px; border: 6px solid hsl(var(--muted-foreground) / .35); border-radius: 50%; background: hsl(var(--card)); color: hsl(var(--als-navy)); }
+.help-pathway-node { display: flex; align-self: center; align-items: center; justify-content: center; width: 58px; height: 58px; border: 6px solid hsl(var(--muted-foreground) / .35); border-radius: var(--radius); background: hsl(var(--card)); color: hsl(var(--als-navy)); }
 .help-pathway-stage:nth-child(n+4) .help-pathway-node { border-color: hsl(var(--als-navy)); }
 .help-pathway-stage:nth-child(n+9) .help-pathway-node { border-color: hsl(var(--primary)); color: hsl(var(--primary)); }
 .help-pathway-label { margin-top: 14px; font-size: 15px; font-weight: 800; }

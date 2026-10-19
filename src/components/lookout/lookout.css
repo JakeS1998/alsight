@@ -3,7 +3,7 @@
 .lookout-masthead { border-bottom: 4px solid rgb(var(--lookout-orange)); }
 .lookout-section { background: rgb(var(--lookout-white)); border: 1px solid rgb(var(--lookout-grey)); border-radius: var(--radius); padding: 1.25rem; }
 .lookout-heading { color: rgb(var(--lookout-navy)); font-weight: 800; letter-spacing: .06em; text-transform: uppercase; font-size: .85rem; }
-.lookout-number { background: rgb(var(--lookout-orange)); color: rgb(var(--lookout-navy)); border-radius: .3rem; padding: .15rem .45rem; margin-right: .5rem; }
+.lookout-number { background: rgb(var(--lookout-orange)); color: rgb(var(--lookout-navy)); border-radius: var(--radius); padding: .15rem .45rem; margin-right: .5rem; }
 .lookout-kpi { border: 1px solid rgb(var(--lookout-grey)); border-radius: var(--radius); padding: 1rem; background: rgb(var(--lookout-white)); }
 .lookout-actions { border-left: 5px solid rgb(var(--lookout-orange)); }
 .lookout-button { background: rgb(var(--lookout-orange)); color: rgb(var(--lookout-navy)); border-radius: var(--radius); padding: .5rem .9rem; font-size: .8rem; font-weight: 700; }

@@ -4,7 +4,7 @@
   box-sizing: border-box;
   overflow: hidden;
   border: 1px solid hsl(var(--als-navy) / .16);
-  border-radius: 10px;
+  border-radius: var(--radius);
   background: hsl(var(--card));
   box-shadow: 0 5px 14px hsl(var(--als-navy) / .06);
   vertical-align: top;
@@ -38,7 +38,7 @@
   height: 30px;
   place-items: center;
   border: 1px solid hsl(var(--primary) / .58);
-  border-radius: 6px;
+  border-radius: var(--radius);
   background: hsl(var(--card));
   color: hsl(var(--foreground));
   transition: background-color .18s ease, transform .18s ease;
@@ -63,7 +63,7 @@
   height: 13px;
   border-top: 2px solid hsl(var(--primary));
   border-right: 2px solid hsl(var(--primary));
-  border-radius: 0 7px 0 0;
+  border-radius: 0 var(--radius) 0 0;
   animation: deliveryStageCornerPulse 3.6s ease-in-out infinite;
 }
 @keyframes deliveryStageCornerPulse { 0%, 100% { opacity: .38; } 50% { opacity: 1; } }

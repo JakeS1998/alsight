@@ -32,7 +32,7 @@
 .account-relationship-totals dt { font-size: 11px; color: hsl(var(--muted-foreground)); }
 .account-relationship-totals dd { margin-top: 5px; font-size: 15px; font-weight: 700; }
 .account-person-row { display: flex; align-items: start; gap: 12px; }
-.account-person-avatar { display: flex; flex-shrink: 0; align-items: center; justify-content: center; width: 38px; height: 38px; border-radius: 50%; background: hsl(var(--secondary)); color: hsl(var(--foreground)); font-size: 12px; font-weight: 700; }
+.account-person-avatar { display: flex; flex-shrink: 0; align-items: center; justify-content: center; width: 38px; height: 38px; border-radius: var(--radius); background: hsl(var(--secondary)); color: hsl(var(--foreground)); font-size: 12px; font-weight: 700; }
 .account-structure-tree { display: flex; flex-direction: column; align-items: center; padding-block: 8px; }
 .account-structure-node { width: 100%; padding: 16px; border: 1px solid hsl(var(--border)); border-radius: var(--radius); background: hsl(var(--muted)); text-align: center; }
 .account-structure-connector { width: 1px; height: 28px; background: hsl(var(--border)); }
@@ -78,7 +78,7 @@
 .account-card:focus-visible { outline: 2px solid hsl(var(--ring)); outline-offset: 3px; }
 .account-card h2 { font-size: 18px; line-height: 1.35; font-weight: 750; }
 .account-badges { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 10px; }
-.account-badges span { padding: 4px 9px; border: 1px solid hsl(var(--border)); border-radius: 999px; background: hsl(var(--muted)); font-size: 11px; line-height: 1.2; font-weight: 650; text-transform: capitalize; }
+.account-badges span { padding: 4px 9px; border: 1px solid hsl(var(--border)); border-radius: var(--radius); background: hsl(var(--muted)); font-size: 11px; line-height: 1.2; font-weight: 650; text-transform: capitalize; }
 .account-card-facts { display: grid; grid-template-columns: repeat(2,minmax(0,1fr)); gap: 14px; }
 .account-card-facts dt, .account-key-info dt { font-size: 12px; color: hsl(var(--muted-foreground)); }
 .account-card-facts dd, .account-key-info dd { margin-top: 4px; font-size: 13px; font-weight: 650; overflow-wrap: anywhere; }

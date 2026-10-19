@@ -80,7 +80,7 @@ export default function ContractValueWaterfall({ summary }) {
             />
             <Tooltip
               cursor={{ fill: 'rgba(0,0,0,0.03)' }}
-              contentStyle={{ borderRadius: 8, border: '1px solid #e5e7eb', fontSize: 12 }}
+              contentStyle={{ borderRadius: 'var(--radius)', border: '1px solid #e5e7eb', fontSize: 12 }}
               formatter={(value, name, props) => {
                 if (name === 'base') return null;
                 const d = props.payload;
