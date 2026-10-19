@@ -10,10 +10,13 @@ export default function HoldDeleteButton({ onConfirm }) {
   const begin = () => {
     if (timer.current || confirmed.current) return;
     started.current = performance.now(); setHolding(true);
-    timer.current = setTimeout(() => {
-      if (document.hidden || performance.now() - started.current < 300 || confirmed.current) return cancel();
+    const finish = () => {
+      if (document.hidden || confirmed.current) return cancel();
+      const remaining = 300 - (performance.now() - started.current);
+      if (remaining > 0) { timer.current = setTimeout(finish, remaining); return; }
       confirmed.current = true; onConfirm();
-    }, 300);
+    };
+    timer.current = setTimeout(finish, 300);
   };
   return <Button type="button" className="relative select-none overflow-hidden touch-none" aria-label="Hold for 300 milliseconds to confirm delete"
     onPointerDown={event => { if (event.button === 0 && event.isPrimary) { event.preventDefault(); begin(); } }}
