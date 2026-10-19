@@ -1,12 +1,13 @@
 import React from 'react';
+import KpiIllustration from '@/components/metrics/KpiIllustration';
 import { Link } from 'react-router-dom';
 import { AlertTriangle, ArrowUpRight } from 'lucide-react';
 
 export default function AdaptiveAttentionMetric({ data, actions, onSelect }) {
   return <section className="at-metric" data-tone="attention" aria-label="Requiring attention">
-    <button type="button" className="at-attention-summary" aria-haspopup="dialog" onClick={() => onSelect('attention')}>
+    <button type="button" className="at-attention-summary alsight-illustrated-kpi" aria-haspopup="dialog" onClick={() => onSelect('attention')}>
       <span><strong>{data.priorityTotal ?? '—'}</strong><span className="at-metric-label">Requiring attention</span><small>Actions, awareness and waiting items</small></span>
-      <span className="at-metric-icon"><AlertTriangle size={26} aria-hidden="true"/></span>
+      <KpiIllustration label="Requiring attention"/>
     </button>
     <ul className="at-attention-items" aria-label="Recorded items needing attention">
       {actions.map(item => {

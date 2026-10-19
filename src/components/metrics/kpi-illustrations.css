@@ -1,0 +1,9 @@
+.alsight-illustrated-kpi { position: relative; isolation: isolate; overflow: hidden; }
+.alsight-illustrated-kpi > :not(.alsight-kpi-art) { position: relative; z-index: 1; }
+.alsight-illustrated-kpi > .alsight-kpi-art { position: absolute; inset: 0; z-index: 0; display: block; overflow: hidden; pointer-events: none; user-select: none; border-radius: inherit; background: none; }
+.alsight-kpi-art .alsight-kpi-drawing { position: absolute; right: 0; bottom: 0; height: 100%; width: 85%; object-fit: cover; opacity: .32; mix-blend-mode: multiply; mask-image: linear-gradient(to right, transparent, rgba(0,0,0,.35) 35%, black 78%); -webkit-mask-image: linear-gradient(to right, transparent, rgba(0,0,0,.35) 35%, black 78%); }
+.dark .alsight-kpi-art .alsight-kpi-drawing { filter: invert(1); mix-blend-mode: screen; opacity: .25; }
+.finance-hero .pipeline-metric.alsight-illustrated-kpi { background: hsl(var(--card)); color: hsl(var(--card-foreground)); border-color: hsl(var(--border)); }
+.finance-hero .pipeline-metric.alsight-illustrated-kpi .pipeline-metric-label { color: hsl(var(--foreground)); }
+.finance-hero .pipeline-metric.alsight-illustrated-kpi .pipeline-metric-caption { color: hsl(var(--muted-foreground)); }
+@media (max-width: 767px) { .alsight-kpi-art .alsight-kpi-drawing { width: 90%; opacity: .24; } }

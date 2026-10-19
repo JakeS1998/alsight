@@ -1,4 +1,5 @@
 import React from "react";
+import KpiIllustration from '@/components/metrics/KpiIllustration';
 import { formatCurrency } from "@/lib/portal";
 import { PoundSterling, FolderKanban, Activity, TrendingUp } from "lucide-react";
 import useProjectValueSummary from '@/components/projects/useProjectValueSummary';
@@ -23,10 +24,8 @@ export function DashboardKPIs({ projects, hideValues = false }) {
       {kpis.filter(k => !hideValues || (k.label !== 'Pipeline Value' && k.label !== 'Avg Project Value')).map((k) => {
         const Icon = k.icon;
         return (
-          <div key={k.label} className="min-w-0 rounded-xl border border-border bg-card p-4">
-            <div className={`mb-3 inline-flex h-9 w-9 items-center justify-center rounded-lg ${k.accent}`}>
-              <Icon className="h-4 w-4" />
-            </div>
+          <div key={k.label} className="alsight-illustrated-kpi min-w-0 rounded-xl border border-border bg-card p-4">
+            <KpiIllustration label={k.label}/>
             <p className="text-2xl font-semibold tracking-tight text-slate-900">{k.value}</p>
             <p className="mt-0.5 text-sm text-slate-500">{k.label}</p>
           </div>
