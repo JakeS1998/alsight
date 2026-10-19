@@ -21,7 +21,7 @@
 .finance-briefing .finance-button-primary:hover, .finance-briefing button[data-variant="selected"]:hover { background:hsl(var(--als-navy) / .94); }
 .finance-briefing .finance-button-accent { background:hsl(var(--primary)); border-color:hsl(var(--primary)); color:hsl(var(--primary-foreground)); }
 .finance-briefing .finance-button-soft { background:hsl(var(--secondary)); }
-.finance-card { background:hsl(var(--card)); border:1px solid hsl(var(--border)); border-radius:16px; padding:28px; box-shadow:0 10px 28px hsl(var(--als-navy) / .07); position:relative; min-width:0; animation:finance-rise .8s cubic-bezier(.2,.7,.2,1) both; }
+.finance-card { background:hsl(var(--card)); border:1px solid hsl(var(--border)); border-radius:var(--panel-radius); padding:28px; box-shadow:0 10px 28px hsl(var(--als-navy) / .07); position:relative; min-width:0; animation:finance-rise .8s cubic-bezier(.2,.7,.2,1) both; }
 .finance-accent { border-left:6px solid hsl(var(--primary)); }
 @keyframes finance-rise { from { opacity:0; transform:translateY(18px); } to { opacity:1; transform:none; } }
 .finance-delay-1 { animation-delay:.05s; }.finance-delay-2 { animation-delay:.15s; }.finance-delay-3 { animation-delay:.25s; }.finance-delay-4 { animation-delay:.35s; }.finance-delay-5 { animation-delay:.45s; }.finance-delay-6 { animation-delay:.55s; }.finance-delay-7 { animation-delay:.65s; }

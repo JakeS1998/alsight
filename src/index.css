@@ -55,7 +55,7 @@
     --chart-4: 198 88% 77%;
     --chart-5: 34 86% 67%;
     --radius: 0.5625rem;
-    --panel-radius: 1.0625rem;
+    --panel-radius: 0.75rem;
     --hero-radius: 1.375rem;
     --surface-shadow: 0 8px 24px hsl(var(--als-navy) / .045);
     --font-heading: system-ui, -apple-system, "Arial Narrow", Arial, sans-serif;
