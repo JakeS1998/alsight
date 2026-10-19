@@ -1,6 +1,9 @@
 .adaptive-today button.at-metric{text-align:left;font:inherit;color:inherit}.adaptive-today button.at-metric:hover{border-color:var(--at-orange)}
 .adaptive-today .at-metrics{grid-template-columns:repeat(3,minmax(0,1fr));grid-template-rows:repeat(2,minmax(96px,1fr));align-items:stretch}
 .adaptive-today .at-metrics .at-metric:last-child{grid-column:auto}
+.adaptive-today .at-metrics .at-metric strong{font-size:clamp(32px,2.8vw,44px);font-weight:800;line-height:1.08;letter-spacing:-.035em;font-variant-numeric:tabular-nums;color:var(--at-ink)}
+.adaptive-today .at-metrics .at-metric .at-metric-label{font-size:clamp(14px,1.1vw,17px);font-weight:750;line-height:1.3;margin-top:7px;color:var(--at-ink)}
+.adaptive-today .at-metrics .at-metric small{font-size:clamp(11px,.85vw,12px);line-height:1.5;margin-top:5px}
 .adaptive-today .at-metrics .at-metric[data-tone=attention]{grid-column:1;grid-row:1 / span 2;flex-direction:column;align-items:stretch;justify-content:flex-start;gap:16px;padding:24px;background:var(--at-surface);border-color:hsl(var(--primary)/.55)}
 .adaptive-today .at-metrics .at-metric[data-tone=attention] strong{font-size:60px;line-height:1.05;letter-spacing:-1px;font-weight:800}
 .adaptive-today .at-metrics .at-metric[data-tone=attention] .at-metric-label{font-size:20px;margin-top:10px;line-height:1.35;font-weight:700}
