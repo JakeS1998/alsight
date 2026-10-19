@@ -21,8 +21,8 @@ export default function IEEngagementDetail(){
  const [search,setSearch]=useSearchParams(),{hash}=useLocation();
  const query=useQuery({queryKey:['ie-detail',engagementId,user.id,user.role],queryFn:()=>ieCall('detail',{id:engagementId}),retry:false});
  const item=query.data?.item;
- const showDocuments=item?.origin!=='project_department'||/^PROJ/i.test(query.data?.project?.project_number||'');
- const activeTab=IE_WORK_TABS.includes(search.get('tab'))&&(search.get('tab')!=='documents'||showDocuments)?search.get('tab'):'overview';
+ const showDocuments=true,showLegal=!!item?.project_id&&!!query.data?.project;
+ const activeTab=IE_WORK_TABS.includes(search.get('tab'))&&(search.get('tab')!=='legal'||showLegal)?search.get('tab'):'overview';
  useEffect(()=>{
   if(!item||!['#ie-awaiting-action','#ie-target-completion'].includes(hash))return;
   const frame=requestAnimationFrame(()=>{const target=document.getElementById(hash.slice(1));target?.focus({preventScroll:true});target?.scrollIntoView({block:'center'});});
@@ -33,11 +33,11 @@ export default function IEEngagementDetail(){
   <main className="ws-main">
    <ProjectStickyHeader className="ws-sticky-header">
     <IEEngagementHeader item={item} canEdit={query.data.canEdit} onEdit={()=>setEditing(true)}/>
-    <IEEngagementNav showDocuments={showDocuments}/>
+    <IEEngagementNav showDocuments={showDocuments} showLegal={showLegal}/>
    </ProjectStickyHeader>
    <TabsContent value="overview" className="ws-content"><IEOverview data={query.data} onEdit={()=>setEditing(true)}/></TabsContent>
    <TabsContent id="ie-target-completion" tabIndex={-1} value="timeline" className="ws-content"><IEEngagementTimeline item={item}/></TabsContent>
-   <IEWorkingTabs engagement={item} canEdit={query.data.canEdit} project={query.data.project} showDocuments={showDocuments}/>
+   <IEWorkingTabs engagement={item} canEdit={query.data.canEdit} project={query.data.project} showDocuments={showDocuments} showLegal={showLegal}/>
    <TabsContent value="activity" className="ws-content"><IERecentChanges events={query.data.events}/></TabsContent>
   </main>
   {editing&&<IEEngagementForm item={item} onClose={()=>setEditing(false)}/>}
