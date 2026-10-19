@@ -3,12 +3,12 @@ import {Link,useParams} from 'react-router-dom';
 import AccessDenied from '@/pages/AccessDenied';
 import {useQuery} from '@tanstack/react-query';
 import {useAuth} from '@/lib/AuthContext';
-import {INTERNAL_ROLES} from '@/lib/portal';
+import {canViewWorkspace} from '@/components/navigation/workspaceAccess';
 import LookoutPublication from '@/components/lookout/LookoutPublication';
 import lookoutRequest,{downloadLookout} from '@/components/lookout/lookoutClient';
 export default function Lookout() {
   const {issueId}=useParams(),{user}=useAuth(),[busy,setBusy]=useState(false),[error,setError]=useState('');
-  const enabled=!!user && INTERNAL_ROLES.includes(user.role);
+  const enabled=!!user && canViewWorkspace(user.role,'insider');
   const query=useQuery({queryKey:['lookout','issue',issueId,user?.id],enabled,queryFn:()=>lookoutRequest('get',{id:issueId}),staleTime:30000});
   if(user && !enabled) return <AccessDenied/>;
   const pdf=async()=>{setBusy(true);setError('');try{await downloadLookout(query.data.issue);}catch(e){setError(e.message);}finally{setBusy(false);}};

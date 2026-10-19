@@ -9,7 +9,7 @@ import UserMenu from '@/components/UserMenu';
 import PortalSearch from '@/components/search/PortalSearch';
 import UKLFIcon from '@/components/framework/UKLFIcon';
 import InsightsEngagementIcon from '@/components/InsightsEngagementIcon';
-import {IE_ROLES} from '@/components/ie/ieClient';
+import {WORKSPACE_ACCESS} from '@/components/navigation/workspaceAccess';
 import RelationshipNavigation from '@/components/relationships/RelationshipNavigation';
 import useApprovalAccess from '@/components/approvals/useApprovalAccess';
 import useApprovalSummary from '@/components/approvals/useApprovalSummary';
@@ -17,22 +17,20 @@ import { LayoutDashboard, FolderKanban, Building2, UserCircle, Users, BriefcaseB
 import MobileBottomNavigation from '@/components/navigation/MobileBottomNavigation';
 import mobileNavigationItems from '@/components/navigation/mobileNavigationItems';
 
-const ALL_ROLES = ['admin', 'director', 'regional_director', 'bsm', 'finance', 'bdm', 'client', 'supplier', 'project_manager'];
 const NAV_ITEMS = [
-  { label: 'Today', path: '/today', icon: House, roles: STAFF_WORKSPACE_ROLES.concat(['client', 'supplier']) },
-  { label: 'Alliance360', path: '/alliance360', icon: LayoutDashboard, roles: STAFF_WORKSPACE_ROLES },
-  { label: 'Network', path: '/accounts', icon: Building2, roles: [...STAFF_WORKSPACE_ROLES, 'client', 'project_manager'] },
-  { label: 'I & E', path: '/insights-engagement', icon: InsightsEngagementIcon, roles: IE_ROLES },
-  { label: 'Opportunities', path: '/opportunities', icon: BriefcaseBusiness, roles: INTERNAL_ROLES },
-  { label: 'Projects', path: '/projects', icon: FolderKanban, roles: ALL_ROLES.concat(['sam_director']) },
-
-  { label: 'Commercial', path: '/commercial', icon: ChartNoAxesCombined, roles: STAFF_WORKSPACE_ROLES },
-  { label: 'Approvals', path: '/approvals', icon: ClipboardCheck, roles: ALL_ROLES.concat(['framework_stakeholder']) },
-  { label: 'Framework', path: '/framework', icon: UKLFIcon, roles: INTERNAL_ROLES.concat(['framework_stakeholder']) },
-  { label: 'Insider', path: '/insider', icon: MessagesSquare, roles: STAFF_WORKSPACE_ROLES },
-  { label: 'My Account', path: '/account', icon: UserCircle, roles: ['client'] },
-  { label: 'Contacts', path: '/contacts', icon: Users, roles: ['admin'] },
-  { label: 'Help', path: '/help', icon: CircleHelp, roles: ALL_ROLES.concat(['framework_stakeholder']) },
+  { label: 'Today', path: '/today', icon: House, roles: WORKSPACE_ACCESS.today },
+  { label: 'Alliance360', path: '/alliance360', icon: LayoutDashboard, roles: WORKSPACE_ACCESS.alliance360 },
+  { label: 'Network', path: '/accounts', icon: Building2, roles: WORKSPACE_ACCESS.network },
+  { label: 'I & E', path: '/insights-engagement', icon: InsightsEngagementIcon, roles: WORKSPACE_ACCESS.ie },
+  { label: 'Opportunities', path: '/opportunities', icon: BriefcaseBusiness, roles: WORKSPACE_ACCESS.opportunities },
+  { label: 'Projects', path: '/projects', icon: FolderKanban, roles: WORKSPACE_ACCESS.projects },
+  { label: 'Commercial', path: '/commercial', icon: ChartNoAxesCombined, roles: WORKSPACE_ACCESS.commercial },
+  { label: 'Approvals', path: '/approvals', icon: ClipboardCheck, roles: WORKSPACE_ACCESS.approvals },
+  { label: 'Framework', path: '/framework', icon: UKLFIcon, roles: WORKSPACE_ACCESS.framework },
+  { label: 'Insider', path: '/insider', icon: MessagesSquare, roles: WORKSPACE_ACCESS.insider },
+  { label: 'My Account', path: '/account', icon: UserCircle, roles: WORKSPACE_ACCESS.account },
+  { label: 'Contacts', path: '/contacts', icon: Users, roles: WORKSPACE_ACCESS.contacts },
+  { label: 'Help', path: '/help', icon: CircleHelp, roles: WORKSPACE_ACCESS.help },
 ];
 export default function PortalHeader() {
   const headerRef = useRef(null);
