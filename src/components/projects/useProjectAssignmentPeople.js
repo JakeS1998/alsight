@@ -6,9 +6,9 @@ import { projectStaffName } from '@/components/projects/projectStaffName';
 
 export default function useProjectAssignmentPeople(project) {
   const { user } = useAuth();
-  const ids = [project.bdm_aad_id, project.bsm_aad_id].filter(Boolean);
+  const ids = [project.bdm_aad_id, project.bsm_aad_id, project.director_aad_id].filter(Boolean);
   const staff = useQuery({
-    queryKey: ['project-record-owners', 'names-and-links-v1', project.id, user?.id, user?.role, ...ids],
+    queryKey: ['project-record-owners', 'names-and-links-v2', project.id, user?.id, user?.role, ...ids],
     enabled: ids.length > 0 && !!user?.id && user?.role !== 'supplier', ...organisationQueryPolicy, staleTime: 300000,
     queryFn: async () => {
       const { data } = await base44.functions.invoke('getProjectBDMManager', { action: 'staff_names', projectId: project.id });
@@ -24,8 +24,8 @@ export default function useProjectAssignmentPeople(project) {
       { limit: 50, fields: ['full_name', 'first_name', 'last_name', 'dataverse_id'] })).items,
   });
   const director = useQuery({
-    queryKey: ['project-assignment-director', project.id, project.bdm_aad_id, user?.id, user?.role],
-    enabled: !!project.bdm_aad_id && !!user?.id, ...organisationQueryPolicy, staleTime: 300000,
+    queryKey: ['project-assignment-director-v2', project.id, project.bdm_aad_id, project.director_aad_id, user?.id, user?.role],
+    enabled: !!(project.bdm_aad_id || project.director_aad_id) && !!user?.id, ...organisationQueryPolicy, staleTime: 300000,
     queryFn: async () => {
       const { data } = await base44.functions.invoke('getProjectBDMManager', { projectId: project.id });
       if (data.error) throw new Error(data.error);
@@ -42,7 +42,7 @@ export default function useProjectAssignmentPeople(project) {
     contactName: id => contactMap[id] || (id ? fallback(contacts) : null),
     staffTo: id => staff.data?.links?.[id],
     contactTo: id => { const person=(contacts.data||[]).find(row=>row.id===id||row.dataverse_id===id);return person?`/people/${person.id}`:undefined; },
-    directorName: director.data?.managerName || (project.bdm_aad_id ? fallback(director) : 'Not assigned'),
+    directorName: director.data?.managerName || (director.data && !project.director_aad_id ? 'Not recorded' : project.bdm_aad_id || project.director_aad_id ? fallback(director) : 'Not assigned'),
     directorTo: director.data?.managerContactId ? `/people/${director.data.managerContactId}` : undefined,
   };
 }

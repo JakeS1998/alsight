@@ -1,8 +1,7 @@
 import { createClientFromRequest } from 'npm:@base44/sdk@0.8.52';
 import { bdmRequestDefaults } from '../../shared/bdmRequestDefaults.ts';
 import { resolveStaffReportingLine } from '../../shared/staffReportingIdentity.ts';
-import {withPortalUserNames} from '../../shared/portalUserNames.ts';
-import {missingFullName} from '../../shared/fullName.ts';
+import { projectAssignedStaff } from '../../shared/projectAssignedStaff.ts';
 
 export default async function(req: Request): Promise<Response> {
   try {
@@ -22,37 +21,19 @@ export default async function(req: Request): Promise<Response> {
     if (!project) return Response.json({ error: 'Project not available' }, { status: 404 });
     if (payload.action === 'staff_names') {
       if (user.role === 'supplier') return Response.json({ error: 'Staff names not available' }, { status: 403 });
-      const ids = [...new Set([project.bdm_aad_id, project.bsm_aad_id].filter(Boolean))];
-      const names = {};
-      if (!ids.length) return Response.json({ names });
-      const users = await withPortalUserNames(base44.asServiceRole.entities,await base44.asServiceRole.entities.User.filter({ $or: [{ id: { $in: ids } }, { staff_aad_id: { $in: ids } }] }));
-      for (const person of users) {
-        const name = String(person.full_name || '').trim();
-        if (!name || name===missingFullName) continue;
-        for (const id of [person.id, person.staff_aad_id, person.data?.staff_aad_id]) {
-          if (ids.includes(id)) names[id] = name;
-        }
-      }
-      const unresolved = ids.filter(id => !names[id]);
-      if (unresolved.length) {
-        const contacts = await base44.asServiceRole.entities.Contact.filter({ aad_id: { $in: unresolved } }, { limit: 10, fields: ['aad_id', 'full_name', 'first_name', 'last_name'] });
-        for (const person of contacts.items) {
-          const name = String(person.full_name || [person.first_name, person.last_name].filter(Boolean).join(' ')).trim();
-          if (name && unresolved.includes(person.aad_id) && !names[person.aad_id]) names[person.aad_id] = name;
-        }
-      }
-      const emails=users.map(person=>person.email).filter(Boolean);
-      const records=await base44.entities.Contact.filter({$or:[{aad_id:{$in:ids}},{dataverse_id:{$in:ids}},...emails.map(email=>({email:{$regex:`^${email.replace(/[.*+?^${}()|[\]\\]/g,'\\$&')}$`,$options:'i'}}))]},{limit:30,fields:['aad_id','dataverse_id','email']});
-      const links={};
-      for(const id of ids){
-        const person=users.find(row=>[row.id,row.staff_aad_id,row.data?.staff_aad_id].includes(id));
-        const matches=records.items.filter(row=>row.aad_id===id||row.dataverse_id===id||(person?.email&&row.email?.toLowerCase()===person.email.toLowerCase()));
-        if(matches.length===1)links[id]=`/people/${matches[0].id}`;
-      }
+      const { names, links } = await projectAssignedStaff(base44, [project.bdm_aad_id, project.bsm_aad_id, project.director_aad_id]);
       return Response.json({ names, links });
     }
+    if (project.director_aad_id) {
+      const { names, links } = await projectAssignedStaff(base44, [project.director_aad_id]);
+      if (names[project.director_aad_id]) return Response.json({ managerName: names[project.director_aad_id], managerContactId: links[project.director_aad_id]?.split('/').pop() });
+    }
     if (!project.bdm_aad_id) return Response.json({ managerName: '' });
-    const line = await resolveStaffReportingLine(base44.asServiceRole.entities, project.bdm_aad_id);
+    let line = await resolveStaffReportingLine(base44.asServiceRole.entities, project.bdm_aad_id);
+    if (!line?.manager_name) {
+      const resolved = await projectAssignedStaff(base44, [project.bdm_aad_id], project.bdm_aad_id);
+      line = { ...line, manager_name: resolved.managerName, manager_aad_id: resolved.managerId };
+    }
     let managerContactId;
     if(line?.manager_email||line?.manager_aad_id){
       const rules=[];

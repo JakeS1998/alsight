@@ -7,7 +7,7 @@ import {projectStaffName} from '@/components/projects/projectStaffName';
 import organisationQueryPolicy from '@/components/data/organisationQueryPolicy';
 export default function ProjectRecordContext({project,client,user,isSupplier}) {
  const ids=[project.bdm_aad_id,project.bsm_aad_id].filter(Boolean);
- const staff=useQuery({queryKey:['project-record-owners','names-and-links-v1',project.id,user?.id,user?.role,...ids],enabled:ids.length>0 && !!user?.id && !isSupplier,...organisationQueryPolicy,staleTime:300000,queryFn:async()=>{
+ const staff=useQuery({queryKey:['project-record-owners','names-and-links-v2',project.id,user?.id,user?.role,...ids],enabled:ids.length>0 && !!user?.id && !isSupplier,...organisationQueryPolicy,staleTime:300000,queryFn:async()=>{
   const {data}=await base44.functions.invoke('getProjectBDMManager',{action:'staff_names',projectId:project.id});
   if(data.error)throw new Error(data.error);
   return data;
