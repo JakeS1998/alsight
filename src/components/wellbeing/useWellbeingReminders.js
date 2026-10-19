@@ -8,22 +8,22 @@ import { claimReminder, meetingBusy, workflowBusy } from '@/components/wellbeing
 import { localDay } from '@/components/adaptive/adaptiveTime';
 export default function useWellbeingReminders(calendar,pathname) {
  const {settings,userId,save}=useWellbeing(),mutating=useIsMutating(),{toasts}=useToast(),[notification,setNotification]=useState(null);
- const latest=useRef({}),session=useRef({active:0,last:{},interaction:0,tick:Date.now(),shownAt:0,blockedUntil:0,day:localDay(),postponed:null,dirtyForm:null});
+ const latest=useRef({}),session=useRef({active:0,last:{},interaction:Date.now(),quiet:Date.now(),tick:Date.now(),shownAt:0,blockedUntil:0,day:localDay(),postponed:null,dirtyForm:null,editingAt:0});
  latest.current={settings,calendar,pathname,mutating,otherToast:toasts.some(t=>t.open),notification};
  useEffect(()=>{session.current.blockedUntil=Date.now()+30000;session.current.dirtyForm=null;setNotification(null);},[pathname]);
  useEffect(()=>{
-  const activity=e=>{if(e.isTrusted)session.current.interaction=Date.now();},submission=()=>{session.current.blockedUntil=Date.now()+60000;setNotification(null);},visibility=()=>{session.current.interaction=0;session.current.tick=Date.now();setNotification(null);};
-  const editing=e=>{const form=e.target.closest('form');if(e.isTrusted&&e.target.type!=='search'&&form)session.current.dirtyForm=form;},resetting=()=>{session.current.dirtyForm=null;};
+  const activity=e=>{if(e.isTrusted){session.current.interaction=Date.now();if(e.type!=='pointermove')session.current.quiet=Date.now();}},submission=()=>{session.current.blockedUntil=Date.now()+60000;session.current.dirtyForm=null;setNotification(null);},visibility=()=>{session.current.interaction=!document.hidden&&document.hasFocus()?Date.now():0;session.current.tick=Date.now();setNotification(null);};
+  const editing=e=>{const form=e.target.closest('form');if(e.isTrusted&&e.target.type!=='search'&&form){session.current.dirtyForm=form;session.current.editingAt=Date.now();}},resetting=()=>{session.current.dirtyForm=null;};
   window.addEventListener('input',editing,true);window.addEventListener('reset',resetting,true);
   ['pointerdown','pointermove','keydown','scroll'].forEach(name=>window.addEventListener(name,activity,{passive:true}));window.addEventListener('submit',submission,true);document.addEventListener('visibilitychange',visibility);window.addEventListener('blur',visibility);
   const timer=setInterval(()=>{
    const now=Date.now(),s=session.current,v=latest.current,hours=workingContext(now,v.settings.hours),delta=Math.min(15000,Math.max(0,now-s.tick));s.tick=now;
    if(s.day!==localDay(now)){Object.assign(s,{day:localDay(now),active:0,last:{},postponed:null});}
-   const awake=!document.hidden&&document.hasFocus()&&now-s.interaction<120000;
+   const awake=!document.hidden&&document.hasFocus()&&now-s.interaction<300000;
    if(awake&&hours.nudgeHours&&v.settings.enabled)s.active+=delta;
-   const blocked=!awake||!hours.nudgeHours||!v.settings.enabled||now<v.settings.snoozeUntil||now<s.blockedUntil||s.dirtyForm?.isConnected||workflowBusy(v.pathname,v.mutating)||meetingBusy(v.calendar,now)||v.otherToast;
+   const blocked=!awake||!hours.nudgeHours||!v.settings.enabled||now<v.settings.snoozeUntil||now<s.blockedUntil||(s.dirtyForm?.isConnected&&now-s.editingAt<60000)||workflowBusy(v.pathname,v.mutating)||meetingBusy(v.calendar,now)||v.otherToast;
    if(blocked){if(v.notification)setNotification(null);return;}
-   if(v.notification||now-s.interaction<8000||now-s.shownAt<minimumSpacing[v.settings.frequency]*60000)return;
+   if(v.notification||now-s.quiet<8000||now-s.shownAt<minimumSpacing[v.settings.frequency]*60000)return;
    const interval=reminderIntervals[v.settings.frequency],categories=v.settings.categories;
    const due=Object.keys(interval).filter(key=>categories[key]&&s.active-(s.last[key]||0)>=interval[key]*60000).sort((a,b)=>(s.active-(s.last[b]||0))/interval[b]-(s.active-(s.last[a]||0))/interval[a]);
    let wrapShown=s.wrapDay===s.day;try{wrapShown=wrapShown||localStorage.getItem(`alsight-wrap-nudge:${userId}`)===s.day;}catch{/* The in-memory flag remains available. */}

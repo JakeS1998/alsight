@@ -3,7 +3,7 @@ import {withPortalUserNames} from '../../shared/portalUserNames.ts';
 export default async function(req) {
  try {
   const base44=createClientFromRequest(req),user=await base44.auth.me();
-  const roles=['admin','director','regional_director','bsm','finance','bdm'];
+  const roles=['admin','director','regional_director','bsm','finance','bdm','sam','sam_director'];
   if(!user || !roles.includes(user.role))return Response.json({error:'Internal team access required.'},{status:403});
   const input=await req.json(),db=base44.asServiceRole.entities;
   if(input.action==='directory') {
