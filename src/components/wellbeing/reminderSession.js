@@ -5,13 +5,13 @@ export function createReminderSession(userId) {
  const session={active:0,last:{},interaction:now,quiet:now,tick:now,shownAt:0,blockedUntil:0,day,postponed:null,dirtyForm:null,editingAt:0};
  try {
   const saved=JSON.parse(sessionStorage.getItem(key(userId))||'null');
+  session.notification=saved?.notification||null;
   if(saved?.day===day) {
    session.active=Math.max(0,Number(saved.active)||0);
    session.last=saved.last && typeof saved.last==='object'?saved.last:{};
    session.shownAt=Number(saved.shownAt)||0;
    session.postponed=saved.postponed||null;
    session.wrapDay=saved.wrapDay;
-   session.notification=saved.notification||null;
   }
  }catch{/* Keep reminders working when browser storage is unavailable. */}
  return session;
