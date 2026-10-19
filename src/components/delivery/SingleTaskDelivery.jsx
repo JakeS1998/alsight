@@ -14,7 +14,11 @@ export default function SingleTaskDelivery({ project, legalDocs, delivery, saved
   const completed = !!savedDelivery?.pc_achieved && savedDelivery?.client_handover === 'complete';
   const agreed = agreement?.executed === 'yes' && current?.status === 'accepted';
   const active = completed ? 'completion' : agreed ? 'works' : 'agreement';
-  const [phase, setPhase] = useState(() => ['agreement', 'works', 'completion'].includes(localStorage.getItem(key)) ? localStorage.getItem(key) : active);
+  const [phase, setPhase] = useState(() => {
+    const requested = new URLSearchParams(window.location.search).get('phase');
+    if (['agreement', 'works', 'completion'].includes(requested)) return requested;
+    return ['agreement', 'works', 'completion'].includes(localStorage.getItem(key)) ? localStorage.getItem(key) : active;
+  });
   const [visited, setVisited] = useState(() => new Set([phase]));
   const select = value => { setPhase(value); setVisited(previous => new Set([...previous, value])); localStorage.setItem(key, value); };
   return <div className="space-y-4">

@@ -35,7 +35,7 @@ export default function PortfolioOverview() {
   return <div className="portfolio-reference space-y-4"><WorkspacePageHeader title="Alliance360" description="Live commercial and delivery position across Alliance Leisure." image="https://images.unsplash.com/photo-1530549387789-4c1017266635?auto=format&fit=crop&w=1800&q=85" imageAlt="Swimming pool and leisure facilities" /><OverviewFilters user={dashboard.user} filters={filters} onChange={setFilters} onRefresh={dashboard.refresh} loading={dashboard.loading || analytics.isFetching} refreshedAt={data?.refreshedAt} />
     {error ? <div role="alert" className="dashboard-panel text-sm text-destructive">{error}<button onClick={dashboard.refresh} className="ml-3 underline">Try again</button></div> : dashboard.loading || !data ? <DashboardSkeleton internal /> : <>
       <PortfolioImpact projectIds={dashboard.projects.map(p=>p.id)} />
-      <OverviewKpis metrics={metrics} businessContext={data.businessContext} onRisk={() => document.getElementById('overview-attention')?.scrollIntoView({behavior:'smooth',block:'center'})} />
+      <OverviewKpis metrics={metrics} businessContext={data.businessContext} attentionProjects={dashboard.portfolio.atRisk} onRisk={() => document.getElementById('overview-attention')?.scrollIntoView({behavior:'smooth',block:'center'})} />
       <OverviewIEHeadlines refreshKey={dashboard.scopeKey}/>
       <div className="overview-journey-row"><PipelineTimeline projects={dashboard.portfolio.pipeline} accountMap={dashboard.accountMap} stageSummary={data.stages} opportunitySummary={opportunities} /><OverviewHealth metrics={metrics} /></div>
       <PortfolioCapacity dashboard={dashboard} />

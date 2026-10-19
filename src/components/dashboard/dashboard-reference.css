@@ -57,9 +57,11 @@
 .overview-journey-row { display: grid; grid-template-columns: minmax(0, 3fr) minmax(0, 1fr); gap: 14px; }
 .overview-middle { display: grid; grid-template-columns: minmax(0, 1.1fr) minmax(0, 1fr) minmax(0, 1.1fr); gap: 14px; }
 .overview-bottom { display: grid; grid-template-columns: minmax(0, 1.7fr) minmax(0, 1.1fr) minmax(0, 1fr) minmax(0, 1.1fr); gap: 14px; }
-.overview-kpis { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); grid-template-rows: repeat(2, minmax(0, 1fr)) auto; gap: 12px; }
-.overview-kpi-attention { grid-column: 1; grid-row: 1 / span 2; }
-.overview-kpi-banner { grid-column: 1; grid-row: 3; }
+.overview-kpis { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; align-items: stretch; }
+.overview-kpi-primary { display: flex; min-width: 0; flex-direction: column; gap: 12px; }
+.overview-kpi-attention { flex: 1; }
+.overview-kpi-banner { flex-shrink: 0; }
+.overview-kpi-secondary-grid { display: grid; min-width: 0; grid-column: span 2; grid-template-columns: repeat(2, minmax(0, 1fr)); grid-template-rows: repeat(2, minmax(0, 1fr)); gap: 12px; }
 .overview-funnel { clip-path: polygon(0 0,100% 0,82% 100%,18% 100%); border-radius: var(--radius); height: 28px; margin: 2px auto; }
 .readiness-bars { display: flex; align-items: end; justify-content: space-between; height: 160px; gap: 8px; }
 .readiness-bars > div { min-width: 0; flex: 1; text-align: center; }
@@ -72,9 +74,7 @@
 }
 @media (max-width: 767px) {
   .overview-map .leaflet-container, .overview-map .h-\[400px\] { height: 320px !important; }
-  .overview-kpis { grid-template-rows: none; }
-  .overview-kpi-attention { grid-column: auto; grid-row: auto; order: -2; }
-  .overview-kpi-banner { grid-column: auto; grid-row: auto; order: -1; }
+  .overview-kpi-secondary-grid { grid-column: auto; grid-template-columns: minmax(0, 1fr); grid-template-rows: none; }
 }
 .portfolio-reference .overview-journey-row > section:first-child > div:first-child { padding: 16px 18px 0; }
 .portfolio-reference .overview-journey-row > section:first-child > div:nth-child(2) { padding: 14px 18px; }
