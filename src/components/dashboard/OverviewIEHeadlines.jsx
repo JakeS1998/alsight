@@ -1,15 +1,13 @@
 import React,{useEffect} from 'react';
 import KpiIllustration from '@/components/metrics/KpiIllustration';
-import {useQuery,useQueryClient} from '@tanstack/react-query';
+import {useQueryClient} from '@tanstack/react-query';
+import useIEHeadlines from '@/components/dashboard/useIEHeadlines';
 import {BriefcaseBusiness,Layers,PoundSterling} from 'lucide-react';
-import {useAuth} from '@/lib/AuthContext';
 import {base44} from '@/api/base44Client';
-import {ieCall,IE_ROLES} from '@/components/ie/ieClient';
 import DashboardPanel from '@/components/dashboard/DashboardPanel';
 import formatOverviewNumber from '@/components/dashboard/formatOverviewNumber';
 export default function OverviewIEHeadlines({refreshKey}){
- const {user}=useAuth(),cache=useQueryClient(),enabled=!!user&&IE_ROLES.includes(user.role);
- const query=useQuery({queryKey:['ie-headlines',user?.id,user?.role,refreshKey],enabled,queryFn:()=>ieCall('headlines'),staleTime:60000,retry:false});
+ const {query,user,enabled}=useIEHeadlines(refreshKey),cache=useQueryClient();
  useEffect(()=>{
   if(!enabled)return;
   const update=()=>cache.invalidateQueries({queryKey:['ie-headlines']});
