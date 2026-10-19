@@ -23,7 +23,7 @@ export default function ScrollPageHeader({children,title,image,imageAlt='',actio
   <div className="pointer-events-none fixed inset-x-0 z-30 bg-background" style={{top:position.top-position.gap,paddingTop:position.gap}}>
    <div aria-hidden="true" className="absolute inset-x-0 top-full h-6" style={{background:'linear-gradient(to bottom, hsl(var(--background)), hsl(var(--background) / 0))'}}/>
    <div role="region" aria-label={`${typeof title==='string'?title:'Page'} compact header`} className="pointer-events-auto relative isolate flex min-h-[76px] items-center justify-between gap-4 overflow-hidden rounded-hero bg-als-navy px-7 py-4 font-body text-sidebar-foreground shadow-md" style={{marginLeft:position.left,width:position.width}}>
-   {image&&<div className="absolute inset-y-0 right-0 -z-20 w-[70%]"><Image src={image} alt={imageAlt} className="h-full w-full"/></div>}
+   {image&&<div className="absolute inset-y-0 right-0 -z-20 w-[70%]"><Image src={image} alt={imageAlt} fittingType="fill" className="h-full w-full object-cover object-center"/></div>}
    <div className="absolute inset-0 -z-10" style={{background:'linear-gradient(90deg, hsl(var(--als-navy)) 20%, hsl(var(--als-navy) / .9) 42%, hsl(var(--als-navy) / .35) 72%, hsl(var(--als-navy) / .15) 100%)'}}/>
    <p className="min-w-0 font-heading text-2xl font-bold leading-tight">{title}</p>
    {actions&&<div className="flex shrink-0 flex-wrap items-center justify-end gap-2 [&_.border-input]:bg-card [&_.border-input]:text-card-foreground">{actions}</div>}
