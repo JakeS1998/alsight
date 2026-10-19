@@ -15,7 +15,9 @@ import { convertOpportunity } from '@/components/crm/convertOpportunity';
 import OpportunityBrief from '@/components/crm/OpportunityBrief';
 import OpportunityTeam from '@/components/crm/OpportunityTeam';
 import OpportunityFee from '@/components/crm/OpportunityFee';
-import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
+import { Tabs, TabsList, TabsContent } from '@/components/ui/tabs';
+import TabsTrigger from '@/components/navigation/SlidingTabTrigger';
+import SlidingTabHighlight from '@/components/navigation/SlidingTabHighlight';
 import OpportunityPeople from '@/components/commercial/OpportunityPeople';
 import OpportunityHistory from '@/components/commercial/OpportunityHistory';
 import CommercialQuickAction from '@/components/commercial/CommercialQuickAction';
@@ -92,7 +94,8 @@ export default function OpportunityDetail() {
     {saved && <div role="status"><p className="text-sm text-success">Planning saved.</p><SubmissionSummary rows={saved}/></div>}
     <OpportunityAttention item={item} user={user} canEdit={canEdit} onActivity={()=>setTab('activity')} onReview={()=>document.getElementById('opportunity-context')?.scrollIntoView({block:'start'})}/>
     <Tabs value={['overview','activity','people','history','brief','team','fees','handover','questionnaire'].includes(params.get('tab')) ? params.get('tab') : 'overview'} onValueChange={setTab} className="space-y-4">
-      <TabsList className="flex h-auto flex-wrap justify-start gap-1">
+      <TabsList className="sliding-tab-list sliding-surface-tabs flex h-auto flex-wrap justify-start gap-1">
+        <SlidingTabHighlight/>
         <TabsTrigger value="overview">Overview</TabsTrigger><TabsTrigger value="activity">Activity</TabsTrigger><TabsTrigger value="people">People</TabsTrigger><TabsTrigger value="history">History</TabsTrigger><TabsTrigger value="brief">Opportunity &amp; Scoping</TabsTrigger><TabsTrigger value="team">Design Team</TabsTrigger><TabsTrigger value="fees">Commercial</TabsTrigger><TabsTrigger value="questionnaire">Project Questionnaire</TabsTrigger><TabsTrigger value="handover">Handover</TabsTrigger>
       </TabsList>
       <TabsContent value="overview"><OpportunityOverview item={item} account={account} contacts={contacts} user={user} canEdit={canEdit} onAction={()=>setQuickAction({item,kind:'action'})} /></TabsContent>
