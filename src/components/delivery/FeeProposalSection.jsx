@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/forms/form-dialog";
 import { FormSection, FormGrid, FormField, formInputClass } from "@/components/forms/PowerForm";
 import { LookupCombobox } from "@/components/forms/LookupCombobox";
-import { Plus, Trash2, Loader2, FileDown, TrendingUp, ArrowUpRight, ArrowDownRight, Check, FileCheck } from "lucide-react";
+import { Plus, Trash2, Loader2, FileDown, TrendingUp, ArrowUpRight, ArrowDownRight, Check } from "lucide-react";
 import { formatCurrency, formatDate } from "@/lib/portal";
 import { exportFeeProposalPdf } from "./exportFeeProposalPdf";
 import { feeProposalTotals } from "./feeProposalTotals";

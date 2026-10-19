@@ -2,10 +2,11 @@ import { useEffect, useState } from 'react';
 import { useInfiniteQuery } from '@tanstack/react-query';
 import calendarRequest from '@/components/outlook/calendarClient';
 import { plannerDay, plannerDayEnd, plannerTime } from '@/components/dashboard/plannerDates';
+import useDeletion from '@/components/deletion/useDeletion';
 
 export default function useTodayOutlookAgenda(user) {
   const [now, setNow] = useState(Date.now);
-  const day = plannerDay(now);
+  const day = plannerDay(now), deletion = useDeletion('OutlookEvent');
   useEffect(() => {
     const refreshDay = () => setNow(Date.now());
     const timer = setInterval(refreshDay, 30000);
@@ -25,7 +26,7 @@ export default function useTodayOutlookAgenda(user) {
     refetchOnWindowFocus: true,
   });
   const utc = value => /(?:Z|[+-]\d{2}:\d{2})$/i.test(value || '') ? value : `${value}Z`;
-  const rows = (query.data?.pages || []).flatMap(page => page.events).map(event => {
+  const rows = deletion.visible((query.data?.pages || []).flatMap(page => page.events)).map(event => {
     const time = event.isAllDay ? 'All day' : plannerTime(utc(event.start?.dateTime));
     const finish = plannerTime(utc(event.end?.dateTime));
     return { key: `outlook-${event.id}`, kind: 'calendar', title: event.subject || 'Untitled event', time,

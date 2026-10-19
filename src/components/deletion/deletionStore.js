@@ -31,10 +31,11 @@ export function confirmDeletion() {
     } finally { emit({ pending: state.pending.filter(item => item !== pending) }); }
   }, 5000);
   emit({ modal: null, pending: [...state.pending, pending], hidden: new Set([...state.hidden, operation.key]) });
+  operation.onStaged?.();
 }
 export function cancelPendingDeletions() {
   const waiting = state.pending.filter(item => !item.committing);
   waiting.forEach(item => clearTimeout(item.timer));
   const hidden = new Set(state.hidden); waiting.forEach(item => hidden.delete(item.key));
-  emit({ modal: null, pending: state.pending.filter(item => item.committing), hidden });
+  emit({ modal: null, pending: state.pending.filter(item => item.committing), hidden, error: null });
 }

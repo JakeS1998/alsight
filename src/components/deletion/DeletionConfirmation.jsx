@@ -5,7 +5,7 @@ import { cancelDeletion, confirmDeletion } from '@/components/deletion/deletionS
 export default function DeletionConfirmation({ operation }) {
   const cancel = useRef(null);
   return <AlertDialog open={!!operation} onOpenChange={open => { if (!open) cancelDeletion(); }}>
-    <AlertDialogContent onOpenAutoFocus={event => { event.preventDefault(); cancel.current?.focus(); }}>
+    <AlertDialogContent className="max-h-[85dvh] overflow-y-auto" onOpenAutoFocus={event => { event.preventDefault(); cancel.current?.focus(); }}>
       <AlertDialogHeader><AlertDialogTitle>Confirm deletion</AlertDialogTitle>
         <AlertDialogDescription className="whitespace-pre-wrap break-words">You are about to delete {operation?.label}. Are you sure?{operation?.description ? `\n\n${operation.description}` : ''}</AlertDialogDescription>
       </AlertDialogHeader>
