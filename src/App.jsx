@@ -7,6 +7,7 @@ import PageNotFound from './lib/PageNotFound';
 import { AuthProvider, useAuth } from '@/lib/AuthContext';
 import UserNotRegisteredError from '@/components/UserNotRegisteredError';
 import ScrollToTop from './components/ScrollToTop';
+import DeletionFeedback from '@/components/deletion/DeletionFeedback';
 import ProtectedRoute from '@/components/ProtectedRoute';
 const PortalLayout = lazy(() => import('@/components/PortalLayout'));
 import AdminContactsRoute from '@/components/contacts/AdminContactsRoute';
@@ -185,6 +186,7 @@ function App() {
       <QueryClientProvider client={queryClientInstance}>
         <Router>
           <ScrollToTop />
+          <DeletionFeedback />
           <AuthenticatedApp />
         </Router>
         <Toaster />
