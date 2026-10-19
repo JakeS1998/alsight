@@ -19,4 +19,8 @@
  .project-operations-list { height:calc(100dvh - var(--portal-header-height) - 235px); min-height:440px; max-height:none; }
  .project-operations-detail { position:sticky; top:calc(var(--portal-header-height) + 16px); height:calc(100dvh - var(--portal-header-height) - 235px); min-height:440px; }
  .project-operations-detail .leaflet-container { height:calc(100dvh - var(--portal-header-height) - 310px); min-height:365px; }
+ .project-operations-detail[aria-label="Project map"] { display:flex; flex-direction:column; overflow:hidden; }
+ .project-operations-detail[aria-label="Project map"] > .project-map-view { display:flex; flex:1; flex-direction:column; min-height:0; }
+ .project-operations-detail[aria-label="Project map"] .project-browser-map { display:flex; flex:1; flex-direction:column; min-height:0; border:0; border-radius:0; }
+ .project-operations-detail[aria-label="Project map"] .leaflet-container { flex:1; height:100%; min-height:0; }
 }
