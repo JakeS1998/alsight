@@ -8,7 +8,7 @@ import AdaptiveMetricDialog from '@/components/adaptive/AdaptiveMetricDialog';
 import HomeContextNote from '@/components/adaptive/HomeContextNote';
 import DailyBriefing from '@/components/adaptive/DailyBriefing';
 import AdaptiveTodayHero from '@/components/adaptive/AdaptiveTodayHero';
-import AdaptiveWorkspaceColumns from '@/components/adaptive/AdaptiveWorkspaceColumns';
+import AdaptiveFocusContent from '@/components/adaptive/AdaptiveFocusContent';
 import useAdaptiveClock from '@/components/adaptive/useAdaptiveClock';
 import { timeState, timeRank } from '@/components/adaptive/adaptiveTime';
 
@@ -39,7 +39,7 @@ export default function AdaptiveWorkspace({user}) {
    <AdaptiveMetricDialog view={metricView} onClose={()=>setMetricView(null)} data={data} calendar={query.calendar} user={user} actions={ranked}/>
    <HomeContextNote data={data} time={time} calendar={query.calendar}/>
    {data.warnings.length>0&&<details className="at-source-warning"><summary>Some sources are unavailable ({data.warnings.length}). This briefing is partial.</summary>{data.warnings.map(w=><p key={w}>{w}</p>)}</details>}
-   <AdaptiveWorkspaceColumns user={user} time={time} query={query} data={data} actions={actions} ranked={ranked} prefs={prefs} context={context} focus={focus} intelligence={intelligence} hasRecords={!!records.length}/>
+   <AdaptiveFocusContent user={user} time={time} query={query} data={data} actions={actions} ranked={ranked} prefs={prefs} context={context} focus={focus} intelligence={intelligence} hasRecords={!!records.length}/>
    <footer className="at-experiment-footer"><span>ALSight · Your workspace</span><details><summary>About this workspace</summary><p>Project intelligence covers up to 30 recent accessible active projects; insurance uses their recorded supplier links. KPI calculations are unchanged. The attention total adds source-category counts, not unique projects or equally urgent actions. Presentation now prioritises recorded responsibility; a deadline alone does not establish urgency. No sample data.</p></details><span>Updated {new Date(data.refreshedAt).toLocaleTimeString('en-GB',{hour:'2-digit',minute:'2-digit'})}</span></footer>
   </>}
  </div></div>;

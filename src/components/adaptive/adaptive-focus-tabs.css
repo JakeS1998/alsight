@@ -1,0 +1,2 @@
+.adaptive-today .at-focus-panel { min-width: 0; }
+.adaptive-today .at-workspace-focused .at-widget-grid { grid-template-columns: minmax(0, 1fr); }
