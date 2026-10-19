@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from 'react';
+import PageContentSkeleton from '@/components/loading/PageContentSkeleton';
 import { Link, useParams, useSearchParams } from 'react-router-dom';
 import {Tabs,TabsList,TabsTrigger,TabsContent} from '@/components/ui/tabs';
 import PersonColleagues from '@/components/relationships/PersonColleagues';
@@ -69,7 +70,7 @@ export default function ContactDetail() {
     return base44.entities.ContactProfile.subscribe(event => { if (event.data?.contact_id === contactId && ['create','update'].includes(event.type)) {setProfile(event.data);cache.setQueryData(['person-detail',user?.id,user?.role,contactId,accountId],old=>old ? {...old,profile:event.data} : old);} });
   }, [contactId, accountId, internal, cache, user?.id, user?.role]);
   useEffect(() => { if (!action) return; requestAnimationFrame(() => document.getElementById(['log','note'].includes(action) ? 'contact-activity' : ['task','followup'].includes(action) ? 'contact-tasks' : 'contact-action-panel')?.scrollIntoView({ block: 'start' })); }, [action]);
-  if (loading) return <p className="p-8 text-muted-foreground">Loading person…</p>;
+  if (loading) return <PageContentSkeleton label="Loading person"/>;
   if (error) return <div role="alert" className="space-y-3 p-8"><p className="text-destructive">{/rate limit|too many requests/i.test(error) ? 'Too many requests. Please wait a minute, then try again.' : error}</p><Button variant="outline" onClick={refreshPerson}>Try again</Button> <Link className="text-sm underline" to="/people">Back to People</Link></div>;
   if (!contact || (accountId && !account)) return <p className="p-8 text-muted-foreground">Person not found.</p>;
   const belongs = !accountId || contactBelongsToAccount(account,contact);

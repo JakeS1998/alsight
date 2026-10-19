@@ -1,4 +1,5 @@
 import React, { useEffect, useState, useMemo } from "react";
+import PageContentSkeleton from '@/components/loading/PageContentSkeleton';
 import projectFullValue from '@/components/projects/projectFullValue';
 import { Link, useSearchParams } from "react-router-dom";
 import { useAuth } from "@/lib/AuthContext";
@@ -225,9 +226,7 @@ export default function Projects() {
           <ProjectMapView user={user} query={projectPage.mapQuery} sort={projectPage.mapSort} ready={projectPage.mapReady} scopeError={projectPage.scopeError} retryScope={projectPage.retryScope} serverPaging={serverPaging} refreshKey={refreshKey} portfolio={filtered} externalLoading={metadataLoading} />
         </React.Suspense>
       ) : loading ? (
-        <div className="flex justify-center py-20">
-          <div className="h-8 w-8 animate-spin rounded-full border-4 border-slate-200 border-t-primary" />
-        </div>
+        <PageContentSkeleton header={false} cards={0} label="Loading projects"/>
       ) : filtered.length === 0 ? (
         <div className="rounded-2xl border border-dashed border-slate-300 bg-white py-16 text-center">
           <FolderKanban className="mx-auto h-8 w-8 text-slate-300" />

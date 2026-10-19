@@ -1,4 +1,5 @@
 import React, { useEffect, useRef, useState } from "react";
+import PageContentSkeleton from '@/components/loading/PageContentSkeleton';
 import projectFullValue from '@/components/projects/projectFullValue';
 import { useParams, Link, useSearchParams, useLocation } from "react-router-dom";
 import { base44 } from "@/api/base44Client";
@@ -108,9 +109,7 @@ export default function AccountDetail() {
     return () => { active = false; };
   }, [accountId,user?.id,user?.role,cache]);
 
-  if (loading) {
-    return <div className="flex justify-center py-20"><div className="h-8 w-8 animate-spin rounded-full border-4 border-slate-200 border-t-primary" /></div>;
-  }
+  if (loading) return <PageContentSkeleton label="Loading account"/>;
 
   if (!account) {
     return (

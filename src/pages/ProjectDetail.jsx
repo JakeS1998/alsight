@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from "react";
+import PageContentSkeleton from '@/components/loading/PageContentSkeleton';
 import { useParams, Link, useLocation } from "react-router-dom";
 import { base44 } from "@/api/base44Client";
 import { useAuth } from "@/lib/AuthContext";
@@ -92,13 +93,7 @@ export default function ProjectDetail({ embedded = false, embeddedProjectId, sup
     })();
   }, [projectId, isExternalPM, isSupplier, supplierAccountId]);
 
-  if (loading || documents.loading) {
-    return (
-      <div className="flex justify-center py-20">
-        <div className="h-8 w-8 animate-spin rounded-full border-4 border-slate-200 border-t-primary" />
-      </div>
-    );
-  }
+  if (loading || documents.loading) return <PageContentSkeleton label="Loading project"/>;
 
   if (!project && accessDenied) return <AccessDenied />;
   if (!project) {

@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from 'react';
+import PageContentSkeleton from '@/components/loading/PageContentSkeleton';
 import { Link, useParams, useSearchParams } from 'react-router-dom';
 import {useQueryClient} from '@tanstack/react-query';
 import OpportunityAttention from '@/components/crm/OpportunityAttention';
@@ -79,7 +80,7 @@ export default function OpportunityDetail() {
   useEffect(() => { load(); }, [opportunityId]);
   useEffect(()=>{if(['won','lost'].includes(params.get('outcome')))setOutcome(params.get('outcome'));},[params.get('outcome')]);
   if (!['admin', 'director', 'regional_director', 'bsm', 'finance', 'bdm'].includes(user?.role)) return <p className="p-6 text-muted-foreground">Opportunity not available.</p>;
-  if (loading) return <p className="p-6 text-muted-foreground">Loading opportunity…</p>;
+  if (loading) return <PageContentSkeleton label="Loading opportunity"/>;
   if (error) return <p role="alert" className="p-6 text-destructive">{error}</p>;
   if (!item || !account) return <p className="p-6 text-muted-foreground">Opportunity not found.</p>;
   const canEdit = ['admin', 'director', 'bdm', 'bsm'].includes(user?.role);

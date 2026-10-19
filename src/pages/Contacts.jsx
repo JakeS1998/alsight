@@ -1,4 +1,5 @@
 import React, { useEffect, useState, useMemo } from "react";
+import PageContentSkeleton from '@/components/loading/PageContentSkeleton';
 import { Link } from 'react-router-dom';
 import { base44 } from "@/api/base44Client";
 import { listAll } from "@/components/data/loadAll";
@@ -86,7 +87,7 @@ export default function Contacts() {
       />
 
       {loading ? (
-        <div className="flex justify-center py-20"><div className="h-8 w-8 animate-spin rounded-full border-4 border-slate-200 border-t-slate-800" /></div>
+        <PageContentSkeleton header={false} cards={0} label="Loading contacts"/>
       ) : filtered.length === 0 ? (
         <div className="rounded-2xl border border-dashed border-slate-300 bg-white py-16 text-center">
           <Users className="mx-auto h-8 w-8 text-slate-300" />

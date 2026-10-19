@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from "react";
+import PageContentSkeleton from '@/components/loading/PageContentSkeleton';
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/lib/AuthContext";
 import { base44 } from "@/api/base44Client";
@@ -69,7 +70,7 @@ export default function AccountProfile() {
     }
   };
 
-  if (loading) return <div className="flex justify-center py-20"><div className="h-8 w-8 animate-spin rounded-full border-4 border-slate-200 border-t-slate-800" /></div>;
+  if (loading) return <PageContentSkeleton label="Loading account profile"/>;
 
   if (!account) {
     return (
