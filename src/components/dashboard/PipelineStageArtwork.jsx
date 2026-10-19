@@ -3,12 +3,12 @@ import { Image } from '@/components/ui/image';
 import '@/components/metrics/kpi-illustrations.css';
 
 const artwork = {
-  PIPELINE: 'e9b868f02',
-  'RIBA 1': '9d39d9a3b',
-  'RIBA 2': '9b0ecb40e',
-  'RIBA 3': 'd2382e6e8',
-  'RIBA 4': '2cac5caea',
-  'RIBA 5–7': '4291a16fa',
+  PIPELINE: '27cd0bd39',
+  'RIBA 1': '9f8e9a20f',
+  'RIBA 2': '54b8cb37c',
+  'RIBA 3': '6cfe35936',
+  'RIBA 4': '862fa7961',
+  'RIBA 5–7': '67cb42bb5',
 };
 
 export default function PipelineStageArtwork({ stage, dark = false }) {
