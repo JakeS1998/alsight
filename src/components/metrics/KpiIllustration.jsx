@@ -2,6 +2,9 @@ import React from 'react';
 import {Image} from '@/components/ui/image';
 import '@/components/metrics/kpi-illustrations.css';
 const illustrations={
+ buildingFinance:'https://media.base44.com/images/public/6ab62433a194f918c54c8249/6e872df22_generated_image.png',
+ contracts:'https://media.base44.com/images/public/6ab62433a194f918c54c8249/1a2e5cf7f_generated_image.png',
+ calculations:'https://media.base44.com/images/public/6ab62433a194f918c54c8249/637fbedb9_generated_image.png',
  projects:'https://media.base44.com/images/public/6ab62433a194f918c54c8249/a3815ca07_generated_image.png',
  actions:'https://media.base44.com/images/public/6ab62433a194f918c54c8249/cd9214ca6_generated_image.png',
  completed:'https://media.base44.com/images/public/6ab62433a194f918c54c8249/1c3c86ee4_generated_image.png',
