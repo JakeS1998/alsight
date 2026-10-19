@@ -79,7 +79,7 @@ export default async function(req: Request): Promise<Response> {
     let matchingIds = null;
     if (filters.live || filters.opportunities) {
       const identities = await base44.entities.Account.aggregate({ query: searchClauses.length ? { $and: searchClauses } : {}, groupBy: ['id','dataverse_id'], limit: 1000 });
-      if (identities.truncated) return Response.json({ error: 'Account relationship filters exceed the reporting limit. Narrow your organisation filters.' }, { status: 422 });
+      if (identities.truncated) throw Object.assign(new Error('Account relationship filters exceed the reporting limit. Narrow your organisation filters.'),{status:422});
       matchingIds = identities.rows.filter(row => {
         const hasLive = [row.id,row.dataverse_id].some(key => projectKeys.includes(key));
         const hasOpen = [row.id,row.dataverse_id].some(key => opportunityKeys.includes(key));
