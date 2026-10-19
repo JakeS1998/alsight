@@ -4,7 +4,7 @@ import { ArrowUp, Sparkles } from 'lucide-react';
 import AliceSuggestionInput from '@/components/alice/AliceSuggestionInput';
 export default function ALSightIntelligencePanel({intelligence,hasRecords,time}) {
  const [question,setQuestion]=useState('');
- function submit(e){e.preventDefault();if(question.trim())intelligence.request('ask',question.trim());}
+ async function submit(e){e.preventDefault();const submitted=question.trim();if(!submitted||intelligence.busy||!hasRecords)return;if(await intelligence.request('ask',submitted))setQuestion(current=>current.trim()===submitted?'':current);}
  return <section className="at-panel at-intelligence scroll-mt-24" id="adaptive-intelligence"><header className="at-section-head"><div><span className="at-eyebrow"><Sparkles size={13}/> YOUR THINKING PARTNER</span><h2>ALICE Intelligence</h2></div><span className="at-ai-label">AI</span></header>
   <p className="at-section-note">Understand the records here, or ask from a widget for a focused explanation. Read-only: nothing is changed.</p>
   <div className="at-prompts">{(time.resting||time.checklistAvailable?['What should I prepare for my next working day?','Which approvals are waiting for me?','Which recorded deadlines should I be aware of?']:['Which projects have recorded attention signals?','Which approvals are waiting for me?','What project record updates are visible? Do not infer what changed.']).map(prompt=><button key={prompt} disabled={intelligence.busy} onClick={()=>setQuestion(prompt)}>{prompt}</button>)}</div>
