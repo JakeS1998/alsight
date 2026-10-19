@@ -163,6 +163,16 @@
           }
         },
         {
+          "user_condition": {
+            "role": "sam"
+          }
+        },
+        {
+          "user_condition": {
+            "role": "sam_director"
+          }
+        },
+        {
           "$and": [
             {
               "data.aad_id": "{{user.id}}"
