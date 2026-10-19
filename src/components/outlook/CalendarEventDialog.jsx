@@ -14,7 +14,7 @@ export default function CalendarEventDialog({ event, week, onClose, onSaved, ini
     const payload = eventPayload(form);
     if (payload.end <= payload.start) { setError('The event must end after it starts.'); return; }
     setBusy(true);
-    try { await calendarRequest(event?.id ? 'update' : 'create', { id: event?.id, event: payload, requestId: requestId.current }); onSaved(); }
+    try { await calendarRequest(event?.id ? 'update' : 'create', { id: event?.id, event: payload, requestId: requestId.current }); onSaved(payload); }
     catch (err) { setError(err.message); }
     finally { setBusy(false); }
   };

@@ -12,7 +12,7 @@ export default function PageFeedbackForm({route,onSubmitted,recent,compact=false
   try{
    const width=window.innerWidth;
    await feedbackCall({action:'submit',page_route:route,rating,feedback_category:category,comment,device_type:width<768?'mobile':width<1024?'tablet':'desktop',submission_id:token.current});
-   client.invalidateQueries({queryKey:['page-feedback']});onSubmitted();
+   client.invalidateQueries({queryKey:['page-feedback']});onSubmitted({page_route:route,rating,feedback_category:category,comment});
   }catch(e){setError(e.response?.data?.error||e.message||'Feedback could not be saved. Please try again.');}
   finally{lock.current=false;setBusy(false);}
  }

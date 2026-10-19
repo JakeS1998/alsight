@@ -71,8 +71,7 @@ export function ProjectGeneralTab({ project, accountMap, onProjectUpdated, singl
         ? (await base44.functions.invoke('manageValuation', { action: 'riba_dates', projectId: project.id, ...dates })).data.project
         : await base44.entities.Project.update(project.id, Object.fromEntries(dateEntries.map(([key, value]) => [key, fromDateInput(value)])));
       onProjectUpdated?.(updated);
-      setSaved(true);
-      setTimeout(() => setSaved(false), 2500);
+      setSaved(dateEntries.map(([key,value])=>[key==='practical_completion_date'?'Practical completion':`${key.replace('_end','').toUpperCase()} actual completion`,value||'Not provided']));
     } catch (error) {
       setSaveError(error.response?.data?.error || error.message || 'Unable to save dates');
     } finally {

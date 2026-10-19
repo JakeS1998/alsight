@@ -5,6 +5,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/forms/form-dialog';
 import teamsRequest from '@/components/teams/teamsClient';
 import { base44 } from '@/api/base44Client';
+import SubmissionSummary from '@/components/forms/SubmissionSummary';
 export default function ProjectTeamsShare({ project }) {
   const [open, setOpen] = useState(false), [teams, setTeams] = useState([]), [channels, setChannels] = useState([]);
   const [team, setTeam] = useState(''), [channel, setChannel] = useState(''), [message, setMessage] = useState('');
@@ -26,7 +27,8 @@ export default function ProjectTeamsShare({ project }) {
   }, [open, team]);
   const send = async e => {
     e.preventDefault(); setBusy(true); setError('');
-    try { await teamsRequest('share', { projectId: project.id, teamId: team, channelId: channel, message }); setSent(true); setMessage(''); }
+    const submitted=[['Project',project.name],['Team',teams.find(item=>item.id===team)?.displayName],['Channel',channels.find(item=>item.id===channel)?.displayName],['Update',message]];
+    try { await teamsRequest('share', { projectId: project.id, teamId: team, channelId: channel, message }); setSent(submitted); setMessage(''); }
     catch (err) { setError(err.message); } finally { setBusy(false); }
   };
   return <><Button variant="outline" size="sm" onClick={() => setOpen(true)}>Share to Teams</Button><Dialog open={open} onOpenChange={value => { if (!busy) setOpen(value); }}><DialogContent><DialogHeader><DialogTitle>Share project update</DialogTitle><DialogDescription>Send an update about {project.name} as your own Teams account. Everyone with access to the selected channel can read it.</DialogDescription></DialogHeader>
@@ -34,6 +36,6 @@ export default function ProjectTeamsShare({ project }) {
       <label className="block space-y-1 text-sm">Team<select required value={team} onChange={e => { setTeam(e.target.value); setChannel(''); setChannels([]); setSent(false); }} className="block w-full rounded-md border border-input bg-background p-2"><option value="">Choose a team</option>{teams.map(item => <option key={item.id} value={item.id}>{item.displayName}</option>)}</select></label>
       <label className="block space-y-1 text-sm">Channel<select required value={channel} onChange={e => { setChannel(e.target.value); setSent(false); }} className="block w-full rounded-md border border-input bg-background p-2"><option value="">Choose a channel</option>{channels.map(item => <option key={item.id} value={item.id}>{item.displayName}</option>)}</select></label>
       <label className="block space-y-1 text-sm">Update<Textarea required maxLength={2000} value={message} onChange={e => { setMessage(e.target.value); setSent(false); }} rows={4} /></label>
-    </fieldset>{busy && <p role="status" className="text-sm">Working…</p>}{!busy && !error && !teams.length && <p className="text-sm text-muted-foreground">No Teams memberships found.</p>}{!busy && team && !error && !channels.length && <p className="text-sm text-muted-foreground">No channels found.</p>}{error && <p role="alert" className="text-sm text-destructive">{error} <Link to="/account-settings" className="underline">Account Settings</Link></p>}{sent && <p role="status" className="text-sm text-success">Update sent to Teams.</p>}<Button disabled={busy || !channel || !message.trim()} type="submit">Send update</Button></form>
+    </fieldset>{busy && <p role="status" className="text-sm">Working…</p>}{!busy && !error && !teams.length && <p className="text-sm text-muted-foreground">No Teams memberships found.</p>}{!busy && team && !error && !channels.length && <p className="text-sm text-muted-foreground">No channels found.</p>}{error && <p role="alert" className="text-sm text-destructive">{error} <Link to="/account-settings" className="underline">Account Settings</Link></p>}{sent && <div role="status"><p className="text-sm text-success">Update sent to Teams.</p><SubmissionSummary rows={sent}/></div>}<Button disabled={busy || !channel || !message.trim()} type="submit">Send update</Button></form>
   </DialogContent></Dialog></>;
 }

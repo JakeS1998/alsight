@@ -2,6 +2,7 @@ import React from 'react';
 import { Button } from '@/components/ui/button';
 import useUKLFDigest from '@/components/framework/useUKLFDigest';
 import UKLFDigestRecipients from '@/components/framework/UKLFDigestRecipients';
+import SubmissionSummary from '@/components/forms/SubmissionSummary';
 export default function UKLFDigestSettings() {
   const digest = useUKLFDigest();
   const { settings, setSettings, busy } = digest;
@@ -14,7 +15,7 @@ export default function UKLFDigestSettings() {
     {settings && <form onSubmit={digest.save} className="mt-4 space-y-4">
       <label className="flex items-center gap-2 text-sm font-medium"><input type="checkbox" checked={settings.enabled} disabled={!!busy} onChange={event => setSettings(previous => ({ ...previous, enabled: event.target.checked }))} />Enable monthly emails</label>
       <UKLFDigestRecipients users={digest.users} selected={settings.selected_user_ids || []} onChange={ids => setSettings(previous => ({ ...previous, selected_user_ids: ids }))} disabled={!!busy} more={digest.more} onMore={digest.loadMore} />
-      {digest.notice && <p role="status" className="text-sm text-muted-foreground">{digest.notice}</p>}
+      {digest.notice && <div role="status"><p className="text-sm text-muted-foreground">{digest.notice}</p><SubmissionSummary rows={digest.submitted}/></div>}
       {settings.last_run_at && <p className="text-xs text-muted-foreground">Last run: {new Date(settings.last_run_at).toLocaleString('en-GB', { timeZone: 'Europe/London' })} UK · {settings.last_result}</p>}
       <div className="flex flex-wrap gap-2">
         <Button type="submit" disabled={!!busy}>{busy === 'saving' ? 'Saving…' : 'Save digest settings'}</Button>

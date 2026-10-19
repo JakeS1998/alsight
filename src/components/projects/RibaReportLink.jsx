@@ -22,7 +22,7 @@ export default function RibaReportLink({ project, onProjectUpdated }) {
     setSaving(true);
     try {
       const updated = await base44.entities.Project.update(project.id, { link_to_riba4_report: value });
-      onProjectUpdated?.(updated); setLink(value); setMessage('Link saved.');
+      onProjectUpdated?.(updated); setLink(value); setMessage(value ? `SharePoint link saved: ${value}` : 'SharePoint link removed.');
     } catch { setMessage('Unable to save the link. Please try again.'); }
     finally { setSaving(false); }
   };

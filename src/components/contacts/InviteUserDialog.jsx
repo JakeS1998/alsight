@@ -13,6 +13,7 @@ import { REGION_OPTIONS } from "@/lib/portal";
 import PortalDutyRoles from '@/components/contacts/PortalDutyRoles';
 import { useAuth } from '@/lib/AuthContext';
 import { Loader2, Mail, CheckCircle2, ShieldCheck, UserPlus } from "lucide-react";
+import SubmissionSummary from '@/components/forms/SubmissionSummary';
 
 const ROLES = [
   { value: "admin", label: "Administrator" },
@@ -142,7 +143,7 @@ export function InviteUserDialog({ open, onOpenChange, contact, accounts, existi
       }
       await base44.entities.CRMActivity.create({contact_id:contact.id,owner_id:administrator.id,author_id:administrator.id,author_name:administrator.full_name || administrator.email,type:'system',occurred_at:new Date().toISOString(),subject:existingUser || pendingAssignment ? 'Portal access updated' : 'Portal invitation sent',description:`Person: ${contact.full_name}\nPortal role: ${role}\nAdditional duty roles: ${dutyRoles.filter(value=>value!==role).join(', ') || 'None'}\nOrganisation access: ${organisation?.name || 'Not assigned'}`});
       if(existingUser?.id===signedInUser?.id)await checkUserAuth();
-      setSuccess(true);
+      setSuccess([['Person',contact.full_name],['Email',address],['Access role',ROLES.find(item=>item.value===role)?.label||role],['Additional duty roles',dutyRoles.filter(value=>value!==role).map(value=>value.toUpperCase())],['Organisation access',linkedAccountId ? organisation?.name||'Assigned organisation' : 'Not assigned'],...(role==='regional_director'?[['Region',REGION_OPTIONS.find(item=>item.value===region)?.label||region]]:[])]);
       onDone?.(address);
     } catch (err) {
       setError(err.message || "Something went wrong");
@@ -181,6 +182,7 @@ export function InviteUserDialog({ open, onOpenChange, contact, accounts, existi
                 ? "The person’s portal role and organisation access have been updated."
                 : "The selected portal role and organisation access are saved and will be applied when the invitee signs in."}
             </p>
+            <SubmissionSummary rows={success}/>
             <Button variant="outline" className="mt-4" onClick={() => onOpenChange(false)}>Close</Button>
           </div>
         ) : (

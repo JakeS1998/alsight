@@ -10,7 +10,7 @@ export default function HomeFollowupForm({ user, initial, contactId, onClose, on
     event.preventDefault(); setBusy(true); setError('');
     try {
       await base44.entities.CRMReminder.create({ user_id: user.id, subject: subject.trim(), remind_at: new Date(when).toISOString(), ...(contactId ? { contact_id: contactId } : {}) });
-      await onSaved(); onClose();
+      await onSaved({subject:subject.trim(),remind_at:new Date(when).toISOString()}); onClose();
     } catch (err) { setError(err.message || 'Could not schedule your follow-up.'); }
     finally { setBusy(false); }
   };

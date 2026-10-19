@@ -11,7 +11,7 @@ export default function ApprovalAccessControl({contact}) {
    const result=await approvalClient('setContactAccess',{contactId:contact.id,enabled});
    cache.setQueryData(key,result);
    await cache.invalidateQueries({queryKey:['approval-access']});
-   setNotice(enabled ? 'Approval access granted.' : 'Approval access revoked.');
+   setNotice(`${enabled ? 'Approval access granted' : 'Approval access revoked'} for ${contact.full_name || contact.email}${contact.email ? ` (${contact.email})` : ''}.`);
   } catch(failure) {setError(failure?.response?.data?.error || failure.message || 'Approval access could not be saved.');}
   finally {setBusy(false);}
  }

@@ -5,6 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Save, Loader2, Check } from 'lucide-react';
 import CompletionVariance from '@/components/projects/CompletionVariance';
 import { formatDate } from '@/lib/portal';
+import SubmissionSummary from '@/components/forms/SubmissionSummary';
 
 export default function ProjectWorkspaceDates({ project, singleTask, ribaRows, expectedDates, ribaDates, setRibaDates, canEdit, saving, saved, saveError, onSave }) {
   const { mappedFields = [], checking = false } = useContext(DataverseEditContext) || {};
@@ -29,5 +30,6 @@ export default function ProjectWorkspaceDates({ project, singleTask, ribaRows, e
         {!singleTask && <td><CompletionVariance expected={row.expected} actual={canEdit && !mappedFields.includes(row.key) ? ribaDates[row.key] : project[row.key]} /></td>}
       </tr>)}</tbody>
     </table></div>
+    {saved && <SubmissionSummary rows={saved}/>}
   </section>;
 }

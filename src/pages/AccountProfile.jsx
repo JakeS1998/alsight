@@ -9,6 +9,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { Loader2, Check, ExternalLink } from "lucide-react";
 import RecordUpdatedAt from '@/components/RecordUpdatedAt';
+import SubmissionSummary from '@/components/forms/SubmissionSummary';
 
 export default function AccountProfile() {
   const { user } = useAuth();
@@ -63,8 +64,7 @@ export default function AccountProfile() {
         address_postcode: form.address_postcode,
       });
       setAccount(updated);
-      setSaved(true);
-      setTimeout(() => setSaved(false), 2500);
+      setSaved([['Account',updated.name||account.name],['Email',updated.email],['Phone',updated.phone],['Address line 1',updated.address_line1],['Address line 2',updated.address_line2],['City',updated.address_city],['County',updated.address_county],['Postcode',updated.address_postcode]]);
     } finally {
       setSaving(false);
     }
@@ -139,6 +139,7 @@ export default function AccountProfile() {
             </Button>
             {saved && <span className="flex items-center gap-1 text-sm text-emerald-600"><Check className="h-4 w-4" /> Saved</span>}
           </div>
+          {saved && <SubmissionSummary rows={saved}/>}
         </form>
       </div>
     </div>

@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import { base44 } from '@/api/base44Client';
 export default function useUKLFDigest() {
   const [settings, setSettings] = useState(null), [users, setUsers] = useState([]), [more, setMore] = useState(false);
-  const [busy, setBusy] = useState('loading'), [error, setError] = useState(''), [notice, setNotice] = useState('');
+  const [busy, setBusy] = useState('loading'), [error, setError] = useState(''), [notice, setNotice] = useState(''),[submitted,setSubmitted]=useState(null);
   const load = async (offset = 0) => {
     setBusy(offset ? 'more' : 'loading'); setError('');
     try {
@@ -17,18 +17,18 @@ export default function useUKLFDigest() {
     event.preventDefault(); setBusy('saving'); setError(''); setNotice('');
     try {
       const { data } = await base44.functions.invoke('manageUKLFDigest', { action: 'save', enabled: settings.enabled, selectedUserIds: settings.selected_user_ids });
-      setSettings(data.settings); setNotice(settings.enabled ? 'Saved. The digest will run on the first of each month at 9am UK time.' : 'Saved. Monthly emails are paused.');
+      setSubmitted([['Monthly emails enabled',data.settings.enabled],['Additional recipients',(data.settings.selected_user_ids||[]).map(id=>{const person=users.find(user=>user.id===id);return person?.full_name||person?.email||`Portal account ${id}`;})],['Automatic recipients','All framework stakeholder accounts']]);setSettings(data.settings); setNotice(settings.enabled ? 'Saved. The digest will run on the first of each month at 9am UK time.' : 'Saved. Monthly emails are paused.');
     } catch (failure) { setError(failure.response?.data?.error || 'Unable to save digest settings.'); }
     finally { setBusy(''); }
   };
   const sendTest = async () => {
     if (busy) return;
-    setBusy('sending'); setError(''); setNotice('');
+    setBusy('sending'); setError(''); setNotice('');setSubmitted(null);
     try {
       const { data } = await base44.functions.invoke('sendUKLFMonthlyDigest', { action: 'test' });
       setNotice(`Test digest sent to ${data.recipient}. The monthly schedule is unchanged.`);
     } catch (failure) { setError(failure.response?.data?.error || 'Unable to send the test digest. Please try again.'); }
     finally { setBusy(''); }
   };
-  return { settings, setSettings, users, more, busy, error, notice, save, sendTest, reload: () => load(), loadMore: () => load(users.length) };
+  return { settings, setSettings, users, more, busy, error, notice, submitted, save, sendTest, reload: () => load(), loadMore: () => load(users.length) };
 }

@@ -11,6 +11,7 @@ import OutlookConnectionCard from '@/components/outlook/OutlookConnectionCard';
 import TeamsConnectionCard from '@/components/teams/TeamsConnectionCard';
 import DataverseConnectionCard from '@/components/dataverse/DataverseConnectionCard';
 import WellbeingPreferences from '@/components/wellbeing/WellbeingPreferences';
+import SubmissionSummary from '@/components/forms/SubmissionSummary';
 
 export default function AccountSettings() {
   const { user } = useAuth();
@@ -27,7 +28,7 @@ export default function AccountSettings() {
     setSaving(true);
     try {
       await base44.auth.changePassword({ userId: user.id, currentPassword, newPassword });
-      setCurrentPassword(''); setNewPassword(''); setConfirmPassword(''); setSuccess(true);
+      setCurrentPassword(''); setNewPassword(''); setConfirmPassword(''); setSuccess([['Account',user.email],['Action','Sign-in password updated. Passwords are not displayed.']]);
     } catch (err) { setError(err.message || 'Could not change your password.'); }
     finally { setSaving(false); }
   };
@@ -44,7 +45,7 @@ export default function AccountSettings() {
       <div className="space-y-1.5"><Label htmlFor="new-password">New password</Label><Input id="new-password" type="password" autoComplete="new-password" value={newPassword} onChange={e => setNewPassword(e.target.value)} required /></div>
       <div className="space-y-1.5"><Label htmlFor="confirm-password">Confirm new password</Label><Input id="confirm-password" type="password" autoComplete="new-password" value={confirmPassword} onChange={e => setConfirmPassword(e.target.value)} required /></div>
       {error && <p role="alert" className="text-sm text-destructive">{error}</p>}
-      {success && <p role="status" className="text-sm text-emerald-700">Password updated.</p>}
+      {success && <div role="status"><p className="text-sm text-success">Password updated.</p><SubmissionSummary rows={success}/></div>}
       <div className="flex flex-wrap items-center justify-between gap-3"><Link to="/forgot-password" className="text-sm text-primary hover:underline">Forgot your password?</Link><Button type="submit" disabled={saving}>{saving && <Loader2 className="h-4 w-4 animate-spin" />} Update password</Button></div>
     </form>
   </div>;

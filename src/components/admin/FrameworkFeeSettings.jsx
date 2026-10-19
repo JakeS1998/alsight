@@ -8,6 +8,7 @@ import { frameworkFeeAmount } from '@/lib/frameworkFees';
 import useFrameworkFees from '@/components/delivery/useFrameworkFees';
 import { AGREEMENT_FEE_ROUTES } from '@/components/delivery/frameworkAgreementRoute';
 import { agreementFeeLabel } from '@/components/projects/agreementNames';
+import SubmissionSummary from '@/components/forms/SubmissionSummary';
 
 const bandLabel = (band, index, total) => {
   const min = Number(band.min) || 0;
@@ -63,9 +64,8 @@ export default function FrameworkFeeSettings() {
       };
       if (settings?.id) await base44.entities.FrameworkFeeSettings.update(settings.id, payload);
       else await base44.entities.FrameworkFeeSettings.create(payload);
-      setSaved(true);
+      setSaved([['Framework',version],['Agreement',agreementFeeLabel(version,route)],['UKLF fee line label',payload.uklf_label],['Contingency line label',payload.contingency_label],['Fee bands',cleaned.map(band=>({minimum:formatCurrency(band.min),maximum:band.max?formatCurrency(band.max):'Open-ended',rate:`${band.pct}%`}))]]);
       reload();
-      setTimeout(() => setSaved(false), 4000);
     } catch (failure) {
       setSaveError(failure.message || 'Unable to save framework fee settings.');
     } finally {
@@ -132,7 +132,7 @@ export default function FrameworkFeeSettings() {
       {settings?.calculation === 'progressive' && <p className="text-sm text-muted-foreground">Worked example: £12,000 = £250 on the first £5,000 + £150 on the next £5,000 + £30 on the remaining £2,000 = £430 (using the supplied rates).</p>}
       <button type="button" onClick={addBand} className="inline-flex items-center gap-1 text-sm text-primary hover:underline"><Plus className="h-4 w-4" /> Add band</button>
       {saveError && <p role="alert" className="text-sm text-destructive">{saveError}</p>}
-      {saved && <p role="status" className="text-sm text-success">Framework fee bands saved. New fee proposals will use the updated rates.</p>}
+      {saved && <div role="status"><p className="text-sm text-success">Framework fee bands saved. New fee proposals will use the updated rates.</p><SubmissionSummary rows={saved}/></div>}
       <div className="flex gap-2">
         <Button type="submit" disabled={saving || !settings || !!error}>{saving && <Loader2 className="mr-1.5 h-4 w-4 animate-spin" />} Save fee bands</Button>
       </div>

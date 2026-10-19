@@ -21,7 +21,7 @@ export default function ForgotPassword() {
       // Always show success regardless
     } finally {
       setLoading(false);
-      setSent(true);
+      setSent(email);
     }
   };
 
@@ -38,7 +38,7 @@ export default function ForgotPassword() {
     >
       {sent ? (
         <p className="text-sm text-foreground text-center">
-          If an account exists with that email, you'll receive a password reset link shortly.
+          If an account exists with <strong className="break-all">{sent}</strong>, you'll receive a password reset link shortly.
         </p>
       ) : (
         <form onSubmit={handleSubmit} className="space-y-4">

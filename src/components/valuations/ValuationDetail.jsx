@@ -9,6 +9,7 @@ import ValuationActions from './ValuationActions';
 import ValuationEvidence from './ValuationEvidence';
 import ValuationExport from './ValuationExport';
 import ValuationActivity from './ValuationActivity';
+import SubmissionSummary from '@/components/forms/SubmissionSummary';
 
 export default function ValuationDetail({ project, initial, valuations, user, onAction, onBack, managerName, contractorName, meta }) {
   const [value, setValue] = useState(initial);
@@ -31,7 +32,7 @@ export default function ValuationDetail({ project, initial, valuations, user, on
       if (action === 'submit') await onAction('save', { ...value }, value.id);
       const result = await onAction(action, action === 'save' ? { ...value } : extra, value.id);
       setValue(['attachment','comment'].includes(action) && editable ? { ...result, period_start: value.period_start, period_end: value.period_end, valuation_date: value.valuation_date, payment_due_date: value.payment_due_date, notes: value.notes, items: value.items, deductions: value.deductions, retention_percent: value.retention_percent } : result);
-      if (action === 'save' || action === 'submit') setSaved(true);
+      if (action === 'save' || action === 'submit') setSaved({action,rows:[['Project',project.name],['Valuation',result.number],['Period start',result.period_start],['Period end',result.period_end],['Valuation date',result.valuation_date],['Payment due date',result.payment_due_date],['Retention (%)',result.retention_percent],['Schedule',result.items||[]],['Deductions',result.deductions||[]],['Notes',result.notes],['Attachments',(result.attachments||[]).map(file=>file.file_name||file.name||file.type)]]});
       return result;
     } catch(err) { setError(err.response?.data?.error || err.message || 'Unable to update valuation'); }
     finally { setBusy(false); }
@@ -46,7 +47,7 @@ export default function ValuationDetail({ project, initial, valuations, user, on
     <ValuationEvidence value={value} editable={editable} onAction={run} />
     <ValuationExport value={value} />
     <ValuationActions key={value.id} value={value} role={role} editable={editable} onAction={run} busy={busy} previousCertified={previousCertified} />
-    {saved && editable && <p role="status" className="text-sm text-emerald-700">Draft saved. You can return to it later from the valuation register.</p>}
+    {saved && <div role="status"><p className="text-sm text-success">{saved.action==='submit'?'Valuation submitted.':'Draft saved. You can return to it later from the valuation register.'}</p><SubmissionSummary rows={saved.rows}/></div>}
     <ValuationActivity value={value} onAction={run} busy={busy} />
   </div>;
 }

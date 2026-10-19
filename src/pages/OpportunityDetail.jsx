@@ -20,6 +20,7 @@ import OpportunityPeople from '@/components/commercial/OpportunityPeople';
 import OpportunityHistory from '@/components/commercial/OpportunityHistory';
 import CommercialQuickAction from '@/components/commercial/CommercialQuickAction';
 import OpportunityQuestionnaire from '@/components/questionnaire/OpportunityQuestionnaire';
+import SubmissionSummary,{submissionRows} from '@/components/forms/SubmissionSummary';
 
 export default function OpportunityDetail() {
   const { opportunityId } = useParams();
@@ -43,7 +44,7 @@ export default function OpportunityDetail() {
       const updated = await updateCRMOpportunity(item, patch, user);
       setItem(updated);
       cache.invalidateQueries({queryKey:['opportunity-attention',item.id]});
-      setSaved(true);
+      setSaved([['Opportunity',updated.title||item.title],...submissionRows(patch),...('contact_id' in patch?[['Contact',contacts.find(person=>person.id===patch.contact_id)?.full_name||'Not assigned']]:[])]);
       return true;
     } catch (e) { setPlanError(e.message || 'Unable to save opportunity planning.'); return false; }
     finally { setSaving(false); }
@@ -88,7 +89,7 @@ export default function OpportunityDetail() {
     <Link to="/crm/opportunities" className="text-sm text-primary hover:underline">← All opportunities</Link>
     <OpportunityHeader key={item.id} item={item} account={account} contacts={contacts} canEdit={canEdit} canConvert={['admin','director','bdm'].includes(user?.role)} busy={saving} onSave={savePlan} onStage={changeStage} onOutcome={setOutcome} onConvert={() => setReviewOpen(true)} onActivity={()=>setTab('activity')} onAction={()=>setQuickAction({item,kind:'action'})} />
     {planError && <p role="alert" className="text-sm text-destructive">{planError}</p>}
-    {saved && <p role="status" className="text-sm text-emerald-700">Planning saved.</p>}
+    {saved && <div role="status"><p className="text-sm text-success">Planning saved.</p><SubmissionSummary rows={saved}/></div>}
     <OpportunityAttention item={item} user={user} canEdit={canEdit} onActivity={()=>setTab('activity')} onReview={()=>document.getElementById('opportunity-context')?.scrollIntoView({block:'start'})}/>
     <Tabs value={['overview','activity','people','history','brief','team','fees','handover','questionnaire'].includes(params.get('tab')) ? params.get('tab') : 'overview'} onValueChange={setTab} className="space-y-4">
       <TabsList className="flex h-auto flex-wrap justify-start gap-1">
