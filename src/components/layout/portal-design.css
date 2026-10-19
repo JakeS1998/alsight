@@ -11,10 +11,10 @@
 .portal-main :is(section, article, div, header, a, form).border:is(.bg-white, .bg-card):is(.rounded-lg, .rounded-xl, .rounded-2xl) { border-radius: var(--panel-radius); box-shadow: var(--surface-shadow); }
 .portal-main :is(input:not([type=checkbox]):not([type=radio]):not([type=range]):not([type=file]), textarea, select) { border-color: hsl(var(--input)); border-radius: var(--radius); background-color: hsl(var(--card)); color: hsl(var(--foreground)); }
 .portal-main :is(input, textarea)::placeholder { color: hsl(var(--muted-foreground)); }
-.portal-main [role=tablist]:not(.ws-railnav) { background: hsl(var(--als-navy)); border-color: hsl(var(--sidebar-border)); border-radius: var(--panel-radius); padding: 6px; gap: 6px; }
-.portal-main [role=tablist]:not(.ws-railnav) > [role=tab] { border-radius: var(--radius); color: hsl(var(--sidebar-foreground) / .8); }
-.portal-main [role=tablist]:not(.ws-railnav) > [role=tab]:is([data-state=active], [aria-selected=true]) { background: hsl(var(--primary)); color: hsl(var(--primary-foreground)); box-shadow: 0 5px 14px hsl(var(--primary) / .2); }
-.portal-main [role=tablist]:not(.ws-railnav) > [role=tab]:focus-visible { outline: 2px solid hsl(var(--ring)); outline-offset: 2px; }
+.portal-main [role=tablist]:not(.ws-railnav):not(.at-focus) { background: hsl(var(--als-navy)); border-color: hsl(var(--sidebar-border)); border-radius: var(--panel-radius); padding: 6px; gap: 6px; }
+.portal-main [role=tablist]:not(.ws-railnav):not(.at-focus) > [role=tab] { border-radius: var(--radius); color: hsl(var(--sidebar-foreground) / .8); }
+.portal-main [role=tablist]:not(.ws-railnav):not(.at-focus) > [role=tab]:is([data-state=active], [aria-selected=true]) { background: hsl(var(--primary)); color: hsl(var(--primary-foreground)); box-shadow: 0 5px 14px hsl(var(--primary) / .2); }
+.portal-main [role=tablist]:not(.ws-railnav):not(.at-focus) > [role=tab]:focus-visible { outline: 2px solid hsl(var(--ring)); outline-offset: 2px; }
 .portal-main table th { color: hsl(var(--muted-foreground)); font-weight: 700; }
 .portal-main table :is(th, td) { border-color: hsl(var(--border)); }
 .portal-shell .dashboard-panel { border-color: hsl(var(--border)); border-radius: var(--panel-radius); box-shadow: var(--surface-shadow); }
