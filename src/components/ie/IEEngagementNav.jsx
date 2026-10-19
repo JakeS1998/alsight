@@ -1,9 +1,12 @@
 import React from 'react';
 import {Activity,CalendarDays,LayoutDashboard,Search,Users,Palette,FolderOpen,PoundSterling} from 'lucide-react';
-import {TabsList,TabsTrigger} from '@/components/ui/tabs';
+import {TabsList} from '@/components/ui/tabs';
+import TabsTrigger from '@/components/navigation/SlidingTabTrigger';
+import SlidingTabHighlight from '@/components/navigation/SlidingTabHighlight';
 
 export default function IEEngagementNav(){
- return <nav aria-label="Engagement menu" className="min-w-0"><TabsList className="ws-project-tabs" aria-label="Engagement navigation">
+ return <nav aria-label="Engagement menu" className="min-w-0"><TabsList className="ws-project-tabs sliding-tab-list" aria-label="Engagement navigation">
+  <SlidingTabHighlight/>
   <TabsTrigger className="ws-navitem" value="overview"><LayoutDashboard/>Overview</TabsTrigger>
   <TabsTrigger className="ws-navitem" value="timeline"><CalendarDays/>Timeline</TabsTrigger>
   <TabsTrigger className="ws-navitem" value="research"><Search/>Research &amp; Insights</TabsTrigger>
