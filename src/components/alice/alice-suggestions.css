@@ -1,0 +1,10 @@
+.alice-suggestion-field { display: flex; flex: 1; min-width: 0; }
+.alice-suggestion-field > input, .alice-suggestion-field > textarea { width: 100%; min-width: 0; }
+.alice-suggestion-popup { width: var(--radix-popover-trigger-width); max-width: calc(100vw - 24px); max-height: min(22rem, var(--radix-popover-content-available-height)); overflow-y: auto; overscroll-behavior: contain; padding: 6px; z-index: 100; background: hsl(var(--popover)); color: hsl(var(--popover-foreground)); border: 1px solid hsl(var(--border)); border-radius: var(--panel-radius); animation: none !important; }
+.alice-suggestion-popup .alice-suggestion-caption { margin: 0; padding: 6px 8px; color: hsl(var(--muted-foreground)); font-size: 11px; line-height: 1.5; }
+.alice-suggestion-popup button.alice-suggestion-option { display: flex; align-items: flex-start; gap: 9px; width: 100%; height: auto; min-height: 40px; padding: 9px 8px; border: 0; border-radius: var(--radius); background: transparent; color: hsl(var(--foreground)); text-align: left; font-family: var(--font-body); font-size: 12px; line-height: 1.5; white-space: normal; cursor: pointer; box-shadow: none; }
+.alice-suggestion-popup button.alice-suggestion-option:hover, .alice-suggestion-popup button.alice-suggestion-option[aria-selected=true] { background: hsl(var(--secondary)); color: hsl(var(--foreground)); box-shadow: none; }
+.alice-suggestion-option > svg { flex-shrink: 0; width: 14px; height: 14px; margin-top: 3px; }
+.alice-suggestion-option > span { min-width: 0; overflow-wrap: anywhere; }
+.alice-suggestion-option small { display: block; color: hsl(var(--muted-foreground)); font-size: 10px; line-height: 1.5; }
+.alice-suggestion-status { display: flex; align-items: center; gap: 6px; }

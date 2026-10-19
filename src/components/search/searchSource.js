@@ -15,10 +15,10 @@ async function resolveProjects(source, rows, role, projects) {
   return rows.map(record => ({ record, project: byRef.get(record[source.projectKey]) })).filter(item => item.project);
 }
 
-export default async function searchSource(source, regex, role, cursor, projects = new Map()) {
+export default async function searchSource(source, regex, role, cursor, projects = new Map(), limit = 12) {
   const query = { $or: source.fields.map(field => ({ [field]: { $regex: regex, $options: 'i' } })),
     ...(source.entity === 'LegalDocument' && role === 'client' ? { document_type: { $nin: CLIENT_HIDDEN_DOC_TYPES } } : {}) };
-  const page = await base44.entities[source.entity].filter(query, { limit: 12, ...(cursor ? { cursor } : {}), fields: [...new Set([...source.fields, ...(source.extra || []), ...(source.projectKey ? [source.projectKey] : [])])] });
+  const page = await base44.entities[source.entity].filter(query, { limit, ...(cursor ? { cursor } : {}), fields: [...new Set([...source.fields, ...(source.extra || []), ...(source.projectKey ? [source.projectKey] : [])])] });
   const linked = await resolveProjects(source, page.items, role, projects);
   return { label: source.label, items: linked.map(({ record, project }) => ({
     id: record.id, title: source.title(record), detail: source.detail?.(record) || project?.name || '',

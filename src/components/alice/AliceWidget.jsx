@@ -2,6 +2,7 @@ import React, { useEffect, useRef, useState } from 'react';
 import { base44 } from '@/api/base44Client';
 import { MessageCircle, Send, X } from 'lucide-react';
 import AliceAvatar from '@/components/alice/AliceAvatar';
+import AliceSuggestionInput from '@/components/alice/AliceSuggestionInput';
 import AliceMessages from '@/components/alice/AliceMessages';
 import AliceWelcome from '@/components/alice/AliceWelcome';
 import AliceGuidedChat from '@/components/alice/AliceGuidedChat';
@@ -136,7 +137,7 @@ export default function AliceWidget() {
           <AliceMessages messages={messages} busy={busy} draftMode={draftMode} onApply={apply} />
         </>}
         {error && <p role="alert" className="px-5 text-xs text-destructive">{error}</p>}
-        <div className="alice-composer"><form onSubmit={e => { e.preventDefault(); send(text); }} className="flex gap-2"><input aria-label="Message ALICE" value={text} onChange={e => setText(e.target.value)} placeholder="Ask about a project, risk, opportunity…" className="min-w-0 flex-1 rounded-xl border border-input bg-background px-4 py-3 text-sm" /><button aria-label="Send message" type="submit" disabled={busy || restoring || !text.trim()} className="rounded-xl bg-assistant px-4 text-white disabled:opacity-50"><Send className="h-4 w-4" /></button></form><button type="button" onClick={draft} disabled={busy || restoring} className="mt-2 text-xs text-muted-foreground hover:text-foreground">Help fill selected text field</button></div>
+        <div className="alice-composer"><form onSubmit={e => { e.preventDefault(); send(text); }} className="flex gap-2"><AliceSuggestionInput aria-label="Message ALICE" value={text} onValueChange={setText} placement="top" suggestionsDisabled={busy || restoring} placeholder="Ask about a project, risk, opportunity…" className="min-w-0 flex-1 rounded-xl border border-input bg-background px-4 py-3 text-sm" /><button aria-label="Send message" type="submit" disabled={busy || restoring || !text.trim()} className="rounded-xl bg-assistant px-4 text-white disabled:opacity-50"><Send className="h-4 w-4" /></button></form><button type="button" onClick={draft} disabled={busy || restoring} className="mt-2 text-xs text-muted-foreground hover:text-foreground">Help fill selected text field</button></div>
       </>}
     </section>}
     <button type="button" onClick={() => setOpen(v => !v)} aria-expanded={open} aria-label="Open ALICE assistant" className="ml-auto flex h-11 w-[6.5rem] items-center justify-center gap-2 rounded-full bg-als-navy px-4 py-3 text-sm font-semibold text-white shadow-lg"><MessageCircle className="h-5 w-5" /> ALICE</button>

@@ -3,6 +3,7 @@ import { Bot, Loader2, Send } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import AliceReply from '@/components/alice/AliceReply';
 import BriefDocumentInput from '@/components/projects/BriefDocumentInput';
+import AliceSuggestionInput from '@/components/alice/AliceSuggestionInput';
 
 export default function ProjectBriefChat({ brief, onManual, onReview, ready }) {
   const [text, setText] = useState('');
@@ -20,7 +21,7 @@ export default function ProjectBriefChat({ brief, onManual, onReview, ready }) {
     {brief.error && <p role="alert" className="text-sm text-destructive">{brief.error}</p>}
     <form onSubmit={submit} className="flex shrink-0 flex-col gap-3">
       <label htmlFor="project-alice-brief" className="text-sm font-medium">{brief.messages.length === 1 ? 'Your project brief' : 'Your answer or correction'}</label>
-      <textarea id="project-alice-brief" rows={4} maxLength={6000} value={text} onChange={event => setText(event.target.value)} disabled={brief.busy} placeholder="Describe your project, or answer ALICE’s follow-up questions…" className="w-full resize-y rounded-lg border border-input bg-background p-3 text-sm focus:outline-none focus:ring-2 focus:ring-ring" />
+      <AliceSuggestionInput as="textarea" mode="brief" id="project-alice-brief" rows={4} maxLength={6000} value={text} onValueChange={setText} disabled={brief.busy} placeholder="Describe your project, or answer ALICE’s follow-up questions…" className="w-full resize-y rounded-lg border border-input bg-background p-3 text-sm focus:outline-none focus:ring-2 focus:ring-ring" />
       <BriefDocumentInput file={file} setFile={setFile} link={link} setLink={setLink} disabled={brief.busy} />
       <Button type="submit" disabled={(!text.trim() && !file && !link.trim()) || brief.busy || !ready}>{brief.busy ? <Loader2 className="h-4 w-4 animate-spin" /> : <Send className="h-4 w-4" />}{ready ? brief.messages.length === 1 ? 'Give brief to ALICE' : 'Send to ALICE' : 'Loading project choices…'}</Button>
     </form>

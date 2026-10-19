@@ -3,6 +3,7 @@ import {Sparkles,Loader2} from 'lucide-react';
 import {base44} from '@/api/base44Client';
 import {Button} from '@/components/ui/button';
 import {Textarea} from '@/components/ui/textarea';
+import AliceSuggestionInput from '@/components/alice/AliceSuggestionInput';
 import aliceFormFields from '@/components/forms/aliceFormFields';
 import applyAliceFormFields from '@/components/forms/applyAliceFormFields';
 export default function AliceFormPrefill({bodyRef}){
@@ -18,5 +19,5 @@ export default function AliceFormPrefill({bodyRef}){
   }catch(failure){if(root.isConnected)setError(failure.response?.data?.error||failure.message||'ALICE could not fill this draft. You can still enter the fields manually.');}
   finally{if(root.isConnected)setBusy(false);}
  };
- return <section data-alice-input className="als-form-alice space-y-2" aria-label="ALICE form prefill"><div className="flex items-center gap-2 text-sm font-semibold"><Sparkles className="h-4 w-4"/>ALICE</div><Textarea aria-label="Describe the details for ALICE to fill" placeholder="Describe what to add or change. ALICE will fill the matching fields for review." rows={2} maxLength={3000} value={text} disabled={busy} onChange={event=>setText(event.target.value)} onKeyDown={event=>{if((event.ctrlKey||event.metaKey)&&event.key==='Enter'){event.preventDefault();fill();}}}/><div className="flex items-center justify-between gap-3"><p className="text-xs text-muted-foreground">Draft only. Nothing is saved or sent.</p><Button type="button" size="sm" disabled={busy||!text.trim()} onClick={fill}>{busy?<><Loader2 className="h-4 w-4 animate-spin"/>Filling…</>:'Fill fields'}</Button></div>{message&&<p role="status" className="text-xs text-muted-foreground">{message}</p>}{error&&<p role="alert" className="text-xs text-destructive">{error}</p>}</section>;
+ return <section data-alice-input className="als-form-alice space-y-2" aria-label="ALICE form prefill"><div className="flex items-center gap-2 text-sm font-semibold"><Sparkles className="h-4 w-4"/>ALICE</div><AliceSuggestionInput as={Textarea} mode="form" aria-label="Describe the details for ALICE to fill" placeholder="Describe what to add or change. ALICE will fill the matching fields for review." rows={2} maxLength={3000} value={text} disabled={busy} onValueChange={setText} onKeyDown={event=>{if((event.ctrlKey||event.metaKey)&&event.key==='Enter'){event.preventDefault();fill();}}}/><div className="flex items-center justify-between gap-3"><p className="text-xs text-muted-foreground">Draft only. Nothing is saved or sent.</p><Button type="button" size="sm" disabled={busy||!text.trim()} onClick={fill}>{busy?<><Loader2 className="h-4 w-4 animate-spin"/>Filling…</>:'Fill fields'}</Button></div>{message&&<p role="status" className="text-xs text-muted-foreground">{message}</p>}{error&&<p role="alert" className="text-xs text-destructive">{error}</p>}</section>;
 }
