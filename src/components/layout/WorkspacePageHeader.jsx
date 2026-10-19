@@ -1,9 +1,10 @@
 import React from 'react';
 import { Image } from '@/components/ui/image';
+import ScrollPageHeader from '@/components/layout/ScrollPageHeader';
 
 export default function WorkspacePageHeader({ title, description, eyebrow, image, imageAlt, actions, imageFocalPointY }) {
   const fade = 'linear-gradient(90deg, transparent 0%, rgb(0 0 0 / .4) 18%, rgb(0 0 0) 42%)';
-  return <>
+  return <ScrollPageHeader title={title} image={image} imageAlt={imageAlt} actions={actions}>
     <header className="relative isolate flex min-h-[240px] items-center overflow-hidden rounded-hero bg-als-navy text-sidebar-foreground">
       <div className="absolute inset-y-0 right-0 -z-20 w-[70%]" style={{ maskImage: fade, WebkitMaskImage: fade }}>
         <Image src={image} alt={imageAlt} className="h-full w-full object-cover" loading="eager" focalPointX={imageFocalPointY === undefined ? undefined : 0.5} focalPointY={imageFocalPointY} style={imageFocalPointY === undefined ? undefined : { objectPosition: `center ${imageFocalPointY * 100}%` }} />
@@ -17,5 +18,5 @@ export default function WorkspacePageHeader({ title, description, eyebrow, image
         {actions && <div className="flex shrink-0 flex-wrap items-center gap-2 sm:justify-end [&_.border-input]:bg-card [&_.border-input]:text-card-foreground">{actions}</div>}
       </div>
     </header>
-  </>;
+  </ScrollPageHeader>;
 }

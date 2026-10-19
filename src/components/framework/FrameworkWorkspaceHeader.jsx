@@ -1,9 +1,10 @@
 import React from 'react';
 import { Image } from '@/components/ui/image';
+import ScrollPageHeader from '@/components/layout/ScrollPageHeader';
 
 export default function FrameworkWorkspaceHeader() {
   const fade = 'linear-gradient(90deg, transparent 0%, rgb(0 0 0 / .4) 18%, rgb(0 0 0) 42%)';
-  return <header className="relative isolate flex min-h-[240px] items-center overflow-hidden rounded-hero bg-als-navy text-sidebar-foreground">
+  return <ScrollPageHeader title="Framework" image="https://media.base44.com/images/public/6ab62433a194f918c54c8249/2e8f91840_AllianceChalfont98.jpg"><header className="relative isolate flex min-h-[240px] items-center overflow-hidden rounded-hero bg-als-navy text-sidebar-foreground">
     <div className="absolute inset-y-0 right-0 -z-20 w-[70%]" style={{ maskImage: fade, WebkitMaskImage: fade }}>
       <Image src="https://media.base44.com/images/public/6ab62433a194f918c54c8249/2e8f91840_AllianceChalfont98.jpg" alt="Indoor cycling studio with colourful lighting at Chalfont leisure centre" className="h-full w-full object-cover" loading="eager" />
     </div>
@@ -13,5 +14,5 @@ export default function FrameworkWorkspaceHeader() {
       <h1 className="mt-4 font-heading text-3xl font-bold tracking-tight sm:text-4xl">Framework</h1>
       <p className="mt-3 max-w-lg text-sm text-sidebar-foreground/85">UK Leisure Framework · Project milestones and delivery outcomes.</p>
     </div>
-  </header>;
+  </header></ScrollPageHeader>;
 }

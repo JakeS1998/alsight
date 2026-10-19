@@ -27,7 +27,7 @@ export default function AdaptiveWorkspace({user}) {
  useWellbeingAnchor(!!query.data);
  const data=query.data,ranked=timeRank(rankActions(data?.actions||[],context,focus,time.day),time),actions=ranked.filter(a=>!prefs.config.dismissed.includes(a.key)),records=homepageEvidence(actions,data,query.calendar),intelligence=useAdaptiveIntelligence(records,time);
  return <div className="adaptive-today"><div className="at-container">
-  <AdaptiveTodayHero>
+  <AdaptiveTodayHero title={`${time.greeting}, ${user.full_name?.trim().split(' ')[0]||'there'}.`}>
    <DailyBriefing user={user} time={time}/>
    <AdaptiveCommandBar intelligence={intelligence} hasRecords={!!records.length} prefs={prefs} context={context} onFeedback={setCommandFeedback}/>
   </AdaptiveTodayHero>
