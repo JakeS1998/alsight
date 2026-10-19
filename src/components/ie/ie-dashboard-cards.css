@@ -52,6 +52,18 @@
 .ie-dashboard .ie-card-footer { font-size: 12px; }
 .ie-dashboard .ie-card-service,
 .ie-dashboard .ie-card-footer small { font-size: 11px; }
+.ie-dashboard .ie-awaiting-action { display: flex; flex-direction: column; align-items: stretch; gap: 0; min-width: 0; }
+.ie-awaiting-summary { display: flex; align-items: flex-start; gap: 15px; padding-bottom: 14px; }
+.ie-awaiting-list { margin: 0; padding: 0; list-style: none; border-top: 1px solid hsl(var(--border)); }
+.ie-awaiting-list li + li { border-top: 1px solid hsl(var(--border) / .65); }
+.ie-awaiting-link { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 9px 0; color: hsl(var(--foreground)); }
+.ie-awaiting-link strong { display: block; font-size: 12px; font-weight: 650; line-height: 1.4; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; }
+.ie-awaiting-note, .ie-awaiting-context { display: block; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; font-size: 11px; line-height: 1.5; color: hsl(var(--muted-foreground)); margin-top: 2px; }
+.ie-awaiting-link:hover strong { text-decoration: underline; text-underline-offset: 3px; }
+.ie-awaiting-link:hover > svg { color: hsl(var(--primary)); }
+.ie-awaiting-all { display: inline-flex; align-items: center; align-self: flex-start; gap: 6px; margin-top: auto; padding-top: 12px; font-size: 11px; font-weight: 650; }
+.ie-awaiting-all:hover { text-decoration: underline; }
+.ie-awaiting-empty { padding: 18px 0; font-size: 12px; color: hsl(var(--muted-foreground)); }
 @media (min-width: 768px) {
   .ie-dashboard .ie-metrics {
     grid-template-columns: repeat(3, minmax(0, 1fr));
@@ -61,13 +73,15 @@
   .ie-dashboard .ie-metric:first-child {
     grid-column: 1;
     grid-row: 1 / span 2;
-    align-items: center;
+    align-items: stretch;
+    align-self: stretch;
   }
   .ie-dashboard .ie-metric:first-child .ie-metric-value {
-    font-size: 60px;
+    font-size: 34px;
   }
 }
 @media (max-width: 767px) {
+  .ie-dashboard .ie-awaiting-action { grid-column: 1 / -1; }
   .ie-dashboard .ie-hero { min-height: 200px; }
   .ie-dashboard .ie-hero-copy { padding: 24px 20px; }
   .ie-dashboard .ie-hero-art { opacity: .35; }
