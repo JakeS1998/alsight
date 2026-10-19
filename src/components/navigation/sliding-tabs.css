@@ -1,0 +1,10 @@
+.sliding-tab-list { position: relative; isolation: isolate; }
+.sliding-tab-list > [role=tab] { position: static; }
+.sliding-tab-list > [role=tab] > .sliding-tab-label { position: relative; z-index: 2; display: inline-flex; align-items: center; justify-content: center; gap: inherit; }
+.sliding-tab-highlight { position: absolute; top: 0; left: 0; z-index: 1; pointer-events: none; box-sizing: border-box; border-radius: var(--radius); transition: transform 280ms cubic-bezier(.22, 1, .36, 1), width 280ms cubic-bezier(.22, 1, .36, 1), height 280ms cubic-bezier(.22, 1, .36, 1); }
+.sliding-tab-highlight[data-positioned=false] { visibility: hidden; transition: none; }
+.at-focus.sliding-tab-list > .sliding-tab-highlight { background: var(--at-ink); border: 1px solid var(--at-ink); box-shadow: 0 3px 8px hsl(var(--als-navy) / .06); }
+.ws-project-tabs.sliding-tab-list > .sliding-tab-highlight { background: hsl(var(--primary)); box-shadow: 0 5px 14px hsl(var(--primary) / .2); }
+.at-focus.sliding-tab-list > [role=tab][aria-selected=true],
+.ws-project-tabs.sliding-tab-list > [role=tab][data-state=active] { background: transparent !important; border-color: transparent !important; box-shadow: none !important; }
+@media (prefers-reduced-motion: reduce) { .sliding-tab-list > .sliding-tab-highlight { transition: none; } }

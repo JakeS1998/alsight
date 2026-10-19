@@ -1,12 +1,15 @@
 import React from 'react';
-import { TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { TabsList } from '@/components/ui/tabs';
+import TabsTrigger from '@/components/navigation/SlidingTabTrigger';
+import SlidingTabHighlight from '@/components/navigation/SlidingTabHighlight';
 import { INTERNAL_ROLES } from '@/lib/portal';
 import UKLFIcon from '@/components/framework/UKLFIcon';
 import { FileText, ShieldCheck, LayoutDashboard, Receipt, Calendar, ClipboardList, ListChecks, FileQuestion } from 'lucide-react';
 
 export default function ProjectWorkspaceNav({ user, project, isSupplier, isExternalPM, canSeeValuations, children }) {
   return <nav className="min-w-0" aria-label="Project menu">
-    <TabsList className="ws-project-tabs" aria-label="Project navigation">
+    <TabsList className="ws-project-tabs sliding-tab-list" aria-label="Project navigation">
+      <SlidingTabHighlight/>
       <TabsTrigger className="ws-navitem" value="general"><LayoutDashboard />Overview</TabsTrigger>
       <TabsTrigger className="ws-navitem" value="timeline"><Calendar />Timeline</TabsTrigger>
       {INTERNAL_ROLES.includes(user?.role) && <TabsTrigger className="ws-navitem" value="questionnaire"><FileQuestion />PQ</TabsTrigger>}

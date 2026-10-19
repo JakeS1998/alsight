@@ -1,6 +1,7 @@
 import React from 'react';
 import { ClipboardList, FolderKanban, PoundSterling, FileText, Activity } from 'lucide-react';
 import { focuses } from '@/components/adaptive/adaptiveEngine';
+import SlidingTabHighlight from '@/components/navigation/SlidingTabHighlight';
 const icons=[ClipboardList,FolderKanban,PoundSterling,FileText,Activity];
 export const focusTargets={'My priorities':'priorities','My projects':'projects',Commercial:'commercial',Documents:'documents','My activity':'activity'};
 export default function AdaptiveFocusNav({focus,prefs,context,ready}) {
@@ -15,5 +16,5 @@ export default function AdaptiveFocusNav({focus,prefs,context,ready}) {
   select(visible[next]);
   document.getElementById(`adaptive-focus-tab-${focuses.indexOf(visible[next])}`)?.focus({preventScroll:true});
  }
- return <nav className="at-focus" role="tablist" aria-label="Workspace focus">{visible.map((item,index)=>{const id=focuses.indexOf(item),Icon=icons[id];return <button key={item} id={`adaptive-focus-tab-${id}`} role="tab" type="button" disabled={!ready} aria-controls="adaptive-focus-panel" aria-selected={focus===item} tabIndex={focus===item?0:-1} className={focus===item?'at-focus-active':''} onKeyDown={event=>onKeyDown(event,index)} onClick={()=>select(item)}><Icon size={13} aria-hidden="true"/>{item}</button>;})}</nav>;
+ return <nav className="at-focus sliding-tab-list" role="tablist" aria-label="Workspace focus"><SlidingTabHighlight/>{visible.map((item,index)=>{const id=focuses.indexOf(item),Icon=icons[id];return <button key={item} id={`adaptive-focus-tab-${id}`} role="tab" type="button" disabled={!ready} aria-controls="adaptive-focus-panel" aria-selected={focus===item} tabIndex={focus===item?0:-1} className={focus===item?'at-focus-active':''} onKeyDown={event=>onKeyDown(event,index)} onClick={()=>select(item)}><span className="sliding-tab-label"><Icon size={13} aria-hidden="true"/>{item}</span></button>;})}</nav>;
 }

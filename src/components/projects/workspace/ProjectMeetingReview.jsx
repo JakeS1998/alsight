@@ -1,5 +1,6 @@
 import React from 'react';
-import { TabsTrigger, TabsContent } from '@/components/ui/tabs';
+import { TabsContent } from '@/components/ui/tabs';
+import TabsTrigger from '@/components/navigation/SlidingTabTrigger';
 import { ListChecks, StickyNote } from 'lucide-react';
 import ProjectDetail from '@/pages/ProjectDetail';
 import ProjectReviewHeader from '@/components/projects/workspace/ProjectReviewHeader';
