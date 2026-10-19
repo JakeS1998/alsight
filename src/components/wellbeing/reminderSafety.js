@@ -1,7 +1,8 @@
-export function workflowBusy(pathname,mutating) {
+export function workflowBusy(pathname,mutating,recentInteraction=true) {
  if(mutating||/\/(?:approvals|risk-approvals|pq-approvals|documents|warranties)(?:\/|$)/.test(pathname))return true;
- if(document.activeElement?.closest('input,textarea,select,[contenteditable="true"],form'))return true;
- return [...document.querySelectorAll('[role="dialog"],[role="alertdialog"],[aria-modal="true"],[aria-busy="true"],iframe,[data-wellbeing-suppress]')].some(el=>el.getClientRects().length>0);
+ if(document.activeElement?.matches('iframe'))return true;
+ if(recentInteraction&&document.activeElement?.closest('input,textarea,select,[contenteditable="true"]'))return true;
+ return [...document.querySelectorAll('[role="dialog"],[role="alertdialog"],[aria-modal="true"],form[aria-busy="true"],form [aria-busy="true"],[data-wellbeing-suppress="true"]')].some(el=>el.getClientRects().length>0);
 }
 export function meetingBusy(calendar,now) {
  if(!calendar.error&&(calendar.loading||calendar.more))return true;
