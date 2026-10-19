@@ -15,6 +15,7 @@ export default defineConfig({
       analyticsTracker: true,
       visualEditAgent: true
     }),
-    react({ babel: { plugins: [actionControlsTransform] } }),
+    actionControlsTransform(),
+    react(),
   ]
 });

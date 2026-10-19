@@ -1,5 +1,26 @@
-// Apply the same action lifecycle to native JSX controls without changing their handlers or styling.
-export default function actionControlsTransform({ types: t }) {
+import { parse } from '@babel/parser';
+import traverseModule from '@babel/traverse';
+import generateModule from '@babel/generator';
+import * as t from '@babel/types';
+
+// Run before JSX compilation, in both the live preview and published builds.
+export default function actionControlsTransform() {
+  return {
+    name: 'alsight-action-controls', enforce: 'pre',
+    transform(code, id) {
+      const filename = id.split('?')[0].replace(/\\/g, '/');
+      if (!filename.includes('/src/') || filename.includes('/components/actions/') || !/\.[jt]sx?$/.test(filename) || !/(<button\b|<form\b|onClick|onSubmit)/.test(code)) return null;
+      const ast = parse(code, { sourceType: 'module', plugins: ['jsx', ...(/\.tsx?$/.test(filename) ? ['typescript'] : [])] });
+      const traverse = traverseModule.default || traverseModule;
+      traverse(ast, actionControlsVisitor({ types: t }).visitor, undefined, { filename });
+      const generate = generateModule.default || generateModule;
+      return generate(ast, { sourceMaps: true, sourceFileName: filename }, code);
+    }
+  };
+}
+
+// Apply the same action lifecycle without changing action arguments or styling.
+function actionControlsVisitor({ types: t }) {
   return {
     name: 'alsight-action-controls',
     visitor: {
@@ -20,7 +41,8 @@ export default function actionControlsTransform({ types: t }) {
       },
       JSXAttribute(path, state) {
         if (!state.actionControls || !['onClick', 'onSubmit'].includes(path.node.name.name)) return;
-        const handler = path.get('value.expression');
+        if (!t.isJSXExpressionContainer(path.node.value)) return;
+        const handler = path.get('value').get('expression');
         if (!handler?.isArrowFunctionExpression() && !handler?.isFunctionExpression()) return;
         handler.traverse({ CallExpression(call) {
           if (call.getFunctionParent() !== handler) return;
