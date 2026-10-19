@@ -2,13 +2,13 @@ import React, { useState } from 'react';
 import { ArrowRight, Sparkles } from 'lucide-react';
 import adaptiveLayoutCommand from '@/components/adaptive/adaptiveLayoutCommand';
 import AliceSuggestionInput from '@/components/alice/AliceSuggestionInput';
-export default function AdaptiveCommandBar({intelligence,hasRecords,prefs,context,onFeedback}) {
+export default function AdaptiveCommandBar({intelligence,prefs,context,onFeedback}) {
  const [question,setQuestion]=useState(''),setFeedback=onFeedback;
  async function submit(e){
   e.preventDefault();if(!question.trim()||intelligence.busy)return;
   const command=adaptiveLayoutCommand(question.trim(),prefs.config,context);
   if(command){if(command.patch)prefs.save(command.patch);setFeedback(command.error||command.message);if(!command.error)setQuestion('');return;}
-  if(!hasRecords){setFeedback('No source records are loaded yet. Layout commands remain available.');return;}
+
   const submitted=question.trim();
   setFeedback('');document.getElementById('adaptive-intelligence')?.scrollIntoView({behavior:'auto',block:'start'});
   if(await intelligence.request('ask',submitted))setQuestion(current=>current.trim()===submitted?'':current);
