@@ -109,7 +109,7 @@ export function RequestDialog({ open, onOpenChange, accounts, users, user, onCre
         {pq.busy&&<p role="status" className="text-sm">Saving or loading your project request…</p>}
         {mode!=='pq'&&<SavedProjectRequests onSelect={pq.resume} refreshKey={pq.draft?.id}/>}
         {mode==='pq'&&pq.draft?<RequestQuestionnaire draft={pq.draft} onBack={()=>setMode('manual')}/>:mode === 'alice' ? <ProjectBriefChat brief={brief} ready={choicesReady} onManual={() => setMode('manual')} onReview={() => setMode('review')} /> : <form onSubmit={submit} className="flex min-h-0 flex-col gap-4 overflow-hidden">
-          <button type="button" onClick={() => setMode('alice')} className="shrink-0 text-left text-sm font-medium text-foreground underline underline-offset-4">Back to ALICE</button>
+          <button type="button" onClick={() => setMode('alice')} className="shrink-0 text-left text-sm font-medium text-foreground underline underline-offset-4">Open guided ALICE chat</button>
           {submitError && <p role="alert" className="text-sm text-destructive">{submitError}</p>}
           <div className="min-h-0 space-y-4 overflow-y-auto overscroll-contain px-1">
           <FormSection title="Project Details" description="Describe the leisure construction or refurbishment project">
