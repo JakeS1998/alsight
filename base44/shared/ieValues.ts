@@ -1,12 +1,17 @@
 import {ieError,ieText,ieToday} from './ieAccess.ts';
 import {iePeople,iePersonMap,ieAccessUsers} from './iePeople.ts';
 import {ieServiceValue} from './ieServiceValue.ts';
+import {ieProjectOwners} from './ieProjectOwner.ts';
 const statuses=['scoping','planned','live','on_hold','completed','cancelled'];
 export async function ieValues(base44,user,input,previous){
  const db=base44.asServiceRole.entities,values=input.values||{},out={};
  for(const [field,max] of Object.entries({name:250,client_id:100,owner_id:100,opportunity_id:100,project_id:100,product_id:100,support_type_id:100,region_id:100,description:6000,expected_outcome:4000,notes_risks:4000,action_note:1000}))out[field]=ieText(values[field],max);
+ const projectOwner=previous?.origin==='project_department'&&out.project_id?(await ieProjectOwners(base44,[await db.Project.get(out.project_id)])).get(out.project_id):null;
+ if(projectOwner)out.owner_id=projectOwner.owner_id;
  if(!out.name||!out.client_id||!out.owner_id)ieError('Enter a name, client and responsible SAM.');
- const people=await iePeople(db),map=iePersonMap(people);
+ const people=await iePeople(db);
+ if(projectOwner&&!people.some(person=>person.id===projectOwner.owner_id))people.push({id:projectOwner.owner_id,name:projectOwner.owner_name,user_id:projectOwner.user_id});
+ const map=iePersonMap(people);
  if(user.role==='sam'&&!previous&&map.get(out.owner_id)?.user_id!==user.id)ieError('Create the engagement in your own name; a SAM Director can reassign it.',403);
  if(user.role==='sam'&&previous&&(out.owner_id!==previous.owner_id||JSON.stringify(values.team_ids||[])!==JSON.stringify(previous.team_ids||[])))ieError('A SAM Director must change engagement ownership or team membership.',403);
  out.service=values.service||previous?.service||'engagement';

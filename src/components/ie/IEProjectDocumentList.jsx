@@ -16,7 +16,7 @@ export default function IEProjectDocumentList({engagementId,kind,title}){
   <div className="divide-y divide-border">{items.map(doc=><article key={doc.id} className="space-y-3 py-4">
    <div className="flex flex-wrap items-center justify-between gap-3"><h3 className="text-sm font-semibold">{doc.document_type?(DOCUMENT_TYPE[doc.document_type]?.label||doc.document_type):title} · {doc.document_id}</h3><ExecutedBadge status={doc.executed}/></div>
    <ProgressTracker steps={(kind==='dma'?getDMASteps:kind==='jct'?getJCTSteps:getLegalDocSteps)(doc)}/>
-   <p className="text-xs text-muted-foreground">Drafted: {formatDate(doc.drafted_date)||'Not recorded'} · Executed: {formatDate(doc.date_of_execution)||'Not recorded'}{doc.approval_status?` · ${doc.approval_status}`:''}</p>
+   <p className="text-xs text-muted-foreground">Drafted: {formatDate(doc.drafted_date)||'Not recorded'} · Drafting due: {formatDate(doc.drafting_due_date)||'Not recorded'} · Executed: {formatDate(doc.date_of_execution)||'Not recorded'}{doc.approval_status?` · ${doc.approval_status}`:''}</p>
    <p className="text-xs text-muted-foreground">Approval date: {formatDate(doc.approval_date)||'Not recorded'} · Sent for signing: {formatDate(doc.sent_to_client||doc.sent_for_signing)||'Not recorded'} · Signing target: {formatDate(doc.signing_target_date)||'Not recorded'}</p>
    {doc.approvers_name&&<p className="text-xs">Approver: {doc.approvers_name}</p>}
    {doc.approval_comments&&<p className="whitespace-pre-wrap text-sm">Approval comments: {doc.approval_comments}</p>}
