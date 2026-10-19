@@ -1,6 +1,7 @@
 import {ieError,ieText} from './ieAccess.ts';
 import {ieDepartmentIds} from './ieDepartmentProjects.ts';
 import {ieProjectOwners} from './ieProjectOwner.ts';
+import {ieProjectReferences} from './ieProjectReferences.ts';
 export async function ieMapDepartmentProjects(base44,user,input){
  if(user.role!=='admin')ieError('Administrator access required.',403);
  const db=base44.asServiceRole.entities,id=ieText(input.project_id,100);
@@ -24,9 +25,9 @@ export async function ieMapDepartmentProjects(base44,user,input){
   }
   const account=accounts.items.find(a=>[a.id,a.dataverse_id].includes(p.client_account_id))||accounts.items.find(a=>[a.id,a.dataverse_id].includes(p.account_id));
   const completed=p.practical_completion_date?.slice(0,10)||'';
-  records.push({reference:`IE-PROJECT-${p.id}`,name:p.name,client_id:account?.id||'',client_name:account?.name||p.client_name||'',project_id:p.id,project_name:p.name,owner_id:owner.owner_id,owner_name:owner.owner_name,team_ids:[],team:[],access_user_ids:owner.user_id?[owner.user_id]:[],bsm_identity:p.bsm_aad_id||'',region_id:p.department_id||'',status:completed?'completed':p.live_project?'live':'scoping',priority:'normal',start_date:p.ie_commencement_date?.slice(0,10)||'',completion_date:completed,description:p.description||'',notes_risks:p.ie_comments||'',awaiting_action:false,revision:1,origin:'project_department'});
+  records.push({name:p.name,client_id:account?.id||'',client_name:account?.name||p.client_name||'',project_id:p.id,project_name:p.name,owner_id:owner.owner_id,owner_name:owner.owner_name,team_ids:[],team:[],access_user_ids:owner.user_id?[owner.user_id]:[],bsm_identity:p.bsm_aad_id||'',region_id:p.department_id||'',status:completed?'completed':p.live_project?'live':'scoping',priority:'normal',start_date:p.ie_commencement_date?.slice(0,10)||'',completion_date:completed,description:p.description||'',notes_risks:p.ie_comments||'',awaiting_action:false,revision:1,origin:'project_department'});
  }
- if(records.length)await db.IEEngagement.upsert(records,{key:'reference'});
+ if(records.length){const references=await ieProjectReferences(db,records.length);await db.IEEngagement.upsert(records.map((record,index)=>({...record,reference:references[index]})),{key:'project_id'});}
  if(updates.length)await db.IEEngagement.bulkUpdate(updates);
  return {mapped:records.length,updated:updates.length,has_more:page.has_more,next_cursor:page.next_cursor};
 }

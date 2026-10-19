@@ -14,6 +14,8 @@ import {ieDepartmentProjects,ieDepartmentIds} from '../../shared/ieDepartmentPro
 import {ieMapDepartmentProjects} from '../../shared/ieMapDepartmentProjects.ts';
 import {ieProjectContext,ieProjectDocuments} from '../../shared/ieProjectDocuments.ts';
 import {ieProjectNumbers} from '../../shared/ieProjectNumbers.ts';
+import {ieProjectReferences} from '../../shared/ieProjectReferences.ts';
+import {ieRenumberProjectReferences} from '../../shared/ieRenumberProjectReferences.ts';
 export default async function(req){
  try{
   const base44=createClientFromRequest(req);let user=await base44.auth.me();
@@ -23,6 +25,7 @@ export default async function(req){
   user=await ieRegionalProjects(base44,user);
   const db=base44.asServiceRole.entities,action=input.action;
   if(action==='mapDepartmentProjects')return Response.json(await ieMapDepartmentProjects(base44,user,input));
+   if(action==='numberProjectReferences')return Response.json(await ieRenumberProjectReferences(base44,user));
   if(action==='projectDocuments')return Response.json(await ieProjectDocuments(base44,user,input));
   if(['departmentProjects','departmentProject'].includes(action))return Response.json(await ieDepartmentProjects(base44,user,input));
   if(action==='todayFeed')return Response.json(await ieTodayFeed(base44,user,input));
@@ -76,7 +79,7 @@ export default async function(req){
     const result=await db.IEEngagement.updateMany({id:previous.id,revision:previous.revision},{$set:values,$inc:{revision:1}});
     if(!result.updated)ieError('Another update was saved first. Refresh before retrying.',409);
     item=await db.IEEngagement.get(previous.id);
-   }else item=await db.IEEngagement.create({...values,reference:`IE-${now.slice(0,4)}-${crypto.randomUUID().replaceAll('-','').toUpperCase()}`,revision:1,origin:'alsight'});
+   }else item=await db.IEEngagement.create({...values,reference:values.project_id?(await ieProjectReferences(db))[0]:`IE-${now.slice(0,4)}-${crypto.randomUUID().replaceAll('-','').toUpperCase()}`,revision:1,origin:'alsight'});
    const changes=Object.fromEntries(Object.keys(values).filter(key=>!previous||JSON.stringify(previous[key])!==JSON.stringify(values[key])).map(key=>[key,{before:previous?.[key]??null,after:values[key]}]));
    const kind=!previous?'created':previous.status!==item.status?'status_changed':previous.owner_id!==item.owner_id?'assigned':'updated';
    await db.IEEvent.create({engagement_id:item.id,engagement_name:item.name,actor_id:user.id,actor_name:user.full_name||user.email,kind,summary:!previous?'Engagement created':kind==='status_changed'?`Status changed to ${item.status.replaceAll('_',' ')}`:kind==='assigned'?'Engagement reassigned':'Engagement updated',occurred_at:now,changes:{...changes,...(input.reason?{reason:ieText(input.reason,1000)}:{})}});
