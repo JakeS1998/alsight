@@ -143,3 +143,17 @@
     @apply bg-background text-foreground font-body;
   }
 }
+
+/* Shared summary-card icon treatment; status badges and charts retain their colours. */
+.adaptive-today .at-metrics .at-metric[data-tone] .at-metric-icon,
+.ie-metrics .ie-metric .ie-metric-icon,
+.alsight-summary-icon {
+  color: hsl(var(--foreground));
+  background: hsl(var(--foreground) / .06);
+}
+
+/* Opaque backing preserves the same icon colour on the navy commercial banner. */
+.pipeline-metric .pipeline-metric-icon {
+  color: hsl(var(--foreground));
+  background: hsl(var(--background));
+}
