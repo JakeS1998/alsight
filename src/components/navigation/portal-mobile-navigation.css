@@ -1,0 +1,12 @@
+@media (max-width: 1023px) {
+  .portal-shell { --portal-mobile-nav-height: calc(60px + env(safe-area-inset-bottom, 0px)); padding-bottom: var(--portal-mobile-nav-height); }
+  .portal-mobile-navigation { position: fixed; inset-inline: 0; bottom: 0; z-index: 45; display: flex; min-height: var(--portal-mobile-nav-height); padding: 4px 8px calc(4px + env(safe-area-inset-bottom, 0px)); border-top: 1px solid hsl(var(--sidebar-border)); background: hsl(var(--als-navy)); color: hsl(var(--sidebar-foreground)); }
+  .portal-mobile-navigation > a, .portal-mobile-navigation > button { display: flex; flex: 1 1 0; align-items: center; justify-content: center; min-width: 44px; min-height: 48px; border-radius: var(--radius); border-top: 2px solid transparent; color: hsl(var(--sidebar-foreground) / .7); }
+  .portal-mobile-navigation [aria-current="page"], .portal-mobile-navigation [aria-expanded="true"] { color: hsl(var(--primary)); background: hsl(var(--primary) / .1); border-top-color: hsl(var(--primary)); }
+  .portal-mobile-navigation a:focus-visible, .portal-mobile-navigation button:focus-visible { outline: 2px solid hsl(var(--ring)); outline-offset: -2px; }
+  .portal-mobile-menu { bottom: var(--portal-mobile-nav-height, calc(60px + env(safe-area-inset-bottom, 0px))); }
+  .portal-shell > .portal-chat-widget, .portal-shell > [data-alice-widget] { bottom: calc(var(--portal-mobile-nav-height) + 1rem); }
+  .portal-chat-widget > [role="dialog"] { max-height: calc(100dvh - var(--portal-mobile-nav-height) - 9rem); }
+  .portal-shell .alice-chat { max-height: calc(100dvh - var(--portal-mobile-nav-height) - 110px); }
+  body:has(.portal-mobile-navigation) [data-deletion-feedback] { bottom: calc(76px + env(safe-area-inset-bottom, 0px)); padding-bottom: 0; }
+}

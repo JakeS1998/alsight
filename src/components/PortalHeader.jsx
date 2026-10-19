@@ -13,7 +13,9 @@ import {IE_ROLES} from '@/components/ie/ieClient';
 import RelationshipNavigation from '@/components/relationships/RelationshipNavigation';
 import useApprovalAccess from '@/components/approvals/useApprovalAccess';
 import useApprovalSummary from '@/components/approvals/useApprovalSummary';
-import { LayoutDashboard, FolderKanban, Building2, UserCircle, Menu, X, Users, BriefcaseBusiness, CircleHelp, House, MessagesSquare, ClipboardCheck, ChartNoAxesCombined } from 'lucide-react';
+import { LayoutDashboard, FolderKanban, Building2, UserCircle, Users, BriefcaseBusiness, CircleHelp, House, MessagesSquare, ClipboardCheck, ChartNoAxesCombined } from 'lucide-react';
+import MobileBottomNavigation from '@/components/navigation/MobileBottomNavigation';
+import mobileNavigationItems from '@/components/navigation/mobileNavigationItems';
 
 const ALL_ROLES = ['admin', 'director', 'regional_director', 'bsm', 'finance', 'bdm', 'client', 'supplier', 'project_manager'];
 const NAV_ITEMS = [
@@ -44,13 +46,14 @@ export default function PortalHeader() {
   const approvalSummary = useApprovalSummary();
   const items = NAV_ITEMS.filter(item => item.roles.includes(role) && !['/account','/contacts','/help'].includes(item.path) && (item.path !== '/approvals' || approvalAccess.enabled));
   const signOut = () => { setMenuOpen(false); logout(false); navigate('/login'); };
-  const nav = (compact = false) => items.map(item => {
+  const primaryItems = mobileNavigationItems(role);
+  const nav = (compact = false, excluded = []) => items.filter(item => !excluded.includes(item.path)).map(item => {
     const Icon = item.icon;
     if(item.path==='/accounts') return <RelationshipNavigation key="relationships" compact={compact} showPeople={INTERNAL_ROLES.includes(role)} onNavigate={()=>setMenuOpen(false)}/>;
     const active = item.path === '/crm/opportunities' ? (location.pathname.startsWith('/crm') || location.pathname.startsWith('/opportunities/')) : item.path === '/today' ? location.pathname === '/today' : location.pathname === item.path || location.pathname.startsWith(`${item.path}/`);
     return <Link key={item.path} to={item.path} onClick={() => setMenuOpen(false)} aria-current={active ? 'page' : undefined} data-active={active} data-outstanding={item.path === '/approvals' && approvalSummary.data?.pending > 0} className={`portal-nav-item ${['/today', '/portfolio-overview'].includes(item.path) ? 'font-bold' : ''} ${compact ? 'w-full' : ''}`}>{Icon === UKLFIcon ? <UKLFIcon darkBackground /> : <Icon className="h-4 w-4 shrink-0" />}{item.path === '/portfolio-overview' ? <span>Alliance<span className="text-primary">360</span></span> : item.label}{item.path==='/approvals' && approvalSummary.data?.pending>0 && <span className="rounded-full bg-primary px-1.5 py-0.5 text-[10px] font-bold text-primary-foreground">{approvalSummary.data.pending}</span>}</Link>;
   });
-  return <header ref={headerRef} className="sticky top-0 z-40 bg-als-navy text-white shadow-sm">
+  return <><header ref={headerRef} className="sticky top-0 z-40 bg-als-navy text-white shadow-sm">
     <div className="portal-topbar">
       <Link to={['sam','sam_director'].includes(role) ? '/insights-engagement' : role === 'framework_stakeholder' ? '/framework-reports' : '/today'} aria-label="ALSight home" onClick={() => setMenuOpen(false)} className="portal-logo"><Logo variant="header" className="portal-logo-image" /></Link>
       <nav aria-label="Main navigation" className="portal-navigation hidden min-w-0 items-center lg:flex">{nav()}</nav>
@@ -58,9 +61,12 @@ export default function PortalHeader() {
         <PortalSearch />
         {INTERNAL_ROLES.includes(role) && <NotificationCenter user={user} />}
         <div className="portal-profile hidden min-w-0 shrink-0 lg:block"><UserMenu user={user} onSignOut={signOut} /></div>
-        <button type="button" aria-label={menuOpen ? 'Close menu' : 'Open menu'} aria-expanded={menuOpen} onClick={() => setMenuOpen(v => !v)} className="portal-icon-button lg:hidden">{menuOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}</button>
+
       </div>
     </div>
-    {menuOpen && <div className="border-t border-white/10 px-5 pb-4 pt-3 lg:hidden sm:px-8"><nav aria-label="Main navigation" className="grid gap-1 sm:grid-cols-2">{nav(true)}</nav><div className="mt-3 border-t border-white/10 pt-3"><UserMenu user={user} mobile onSignOut={signOut} onNavigate={() => setMenuOpen(false)} /></div></div>}
-  </header>;
+  </header>
+    <MobileBottomNavigation user={user} items={primaryItems} open={menuOpen} onOpenChange={setMenuOpen} onSignOut={signOut}>
+      {nav(true, ['/today', ...primaryItems.map(item => item.path)])}
+    </MobileBottomNavigation>
+  </>;
 }
