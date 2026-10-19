@@ -5,7 +5,7 @@ import {useAuth} from '@/lib/AuthContext';
 import {Button} from '@/components/ui/button';
 export default function AccessDenied() {
   const {user}=useAuth();
-  const destination=['sam','sam_director'].includes(user?.role) ? '/insights-engagement' : user?.role==='framework_stakeholder' ? '/framework-reports' : ['admin','director','regional_director','finance','bdm','bsm'].includes(user?.role) ? '/today' : '/projects';
+  const destination=['sam','sam_director'].includes(user?.role) ? '/insights-engagement' : user?.role==='framework_stakeholder' ? '/framework' : ['admin','director','regional_director','finance','bdm','bsm'].includes(user?.role) ? '/today' : '/projects';
   return <section aria-labelledby="access-denied-title" role="alert" className="mx-auto flex min-h-[60vh] max-w-2xl items-center justify-center px-5 py-12">
     <div className="w-full rounded-panel border border-border bg-card p-7 text-center shadow-sm sm:p-12">
       <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-primary/15 text-primary"><ShieldAlert aria-hidden="true" className="h-8 w-8"/></div>

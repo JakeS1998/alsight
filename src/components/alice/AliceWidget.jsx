@@ -18,7 +18,7 @@ import '@/components/alice/alice-workspace.css';
 const AGENT = 'alice';
 export default function AliceWidget() {
   const { user } = useAuth();
-  const frameworkContext=useLocation().pathname.startsWith('/framework-reports');
+  const frameworkContext=useLocation().pathname.startsWith('/framework');
   const storageKey = aliceAccessKey(user);
   const { guide, start, cancel, next, back, confirm } = useAliceGuide(user);
   const [open, setOpen] = useState(false);

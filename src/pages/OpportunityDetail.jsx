@@ -88,7 +88,7 @@ export default function OpportunityDetail() {
   if (!item || !account) return <p className="p-6 text-muted-foreground">Opportunity not found.</p>;
   const canEdit = ['admin', 'director', 'bdm', 'bsm'].includes(user?.role);
   return <div className="min-w-0 space-y-6">
-    <Link to="/crm/opportunities" className="text-sm text-primary hover:underline">← All opportunities</Link>
+    <Link to="/opportunities" className="text-sm text-primary hover:underline">← All opportunities</Link>
     <OpportunityHeader key={item.id} item={item} account={account} contacts={contacts} canEdit={canEdit} canConvert={['admin','director','bdm'].includes(user?.role)} busy={saving} onSave={savePlan} onStage={changeStage} onOutcome={setOutcome} onConvert={() => setReviewOpen(true)} onActivity={()=>setTab('activity')} onAction={()=>setQuickAction({item,kind:'action'})} />
     {planError && <p role="alert" className="text-sm text-destructive">{planError}</p>}
     {saved && <div role="status"><p className="text-sm text-success">Planning saved.</p><SubmissionSummary rows={saved}/></div>}

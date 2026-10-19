@@ -9,6 +9,7 @@ import UserNotRegisteredError from '@/components/UserNotRegisteredError';
 import ScrollToTop from './components/ScrollToTop';
 import DeletionFeedback from '@/components/deletion/DeletionFeedback';
 import ProtectedRoute from '@/components/ProtectedRoute';
+import LegacyPageRedirect from '@/components/navigation/LegacyPageRedirect';
 const PortalLayout = lazy(() => import('@/components/PortalLayout'));
 import AdminContactsRoute from '@/components/contacts/AdminContactsRoute';
 import CRMRoute from '@/components/crm/CRMRoute';
@@ -97,6 +98,14 @@ const AuthenticatedApp = () => {
     <PageLoadBoundary route={location.pathname}>
       <Suspense fallback={<PageLoadingSkeleton />}>
     <Routes>
+      {[
+        ['/pulse','/insider'],
+        ['/portfolio-overview','/alliance360'],
+        ['/finance','/commercial'],
+        ['/framework-reports','/framework'],
+        ['/crm/opportunities','/opportunities'],
+        ['/today-adaptive','/today']
+      ].map(([from,to])=><Route key={from} path={`${from}/*`} element={<LegacyPageRedirect from={from} to={to}/>}/>)}
       <Route path="/login" element={<Login />} />
       <Route path="/register" element={<Register />} />
       <Route path="/forgot-password" element={<ForgotPassword />} />
@@ -113,23 +122,23 @@ const AuthenticatedApp = () => {
       <Route element={<ProtectedRoute unauthenticatedElement={<Navigate to="/login" replace />} />}>
         <Route element={<OnboardingGate />}>
         <Route element={<PortalLayout />}>
-          <Route path="/" element={useStakeholderView ? <Navigate to="/framework-reports" replace /> : ['sam','sam_director'].includes(user?.role) ? <Navigate to="/insights-engagement" replace /> : <AdaptiveTodayPage />} />
+          <Route path="/" element={useStakeholderView ? <Navigate to="/framework" replace /> : ['sam','sam_director'].includes(user?.role) ? <Navigate to="/insights-engagement" replace /> : <AdaptiveTodayPage />} />
           <Route path="/access-denied" element={<AccessDenied />} />
-          <Route path="/framework-reports" element={<FrameworkReports />} />
-          <Route path="/framework-reports/:reportId" element={<FrameworkProjectDetail />} />
+          <Route path="/framework" element={<FrameworkReports />} />
+          <Route path="/framework/:reportId" element={<FrameworkProjectDetail />} />
           <Route path="/projects/:projectId" element={useStakeholderView ? <FrameworkProjectDetail /> : user?.role==='sam_director' ? <SAMProjectWorkspace /> : <ProjectDetail />} />
           <Route path="/account-settings" element={<AccountSettings />} />
           <Route path="/dataverse" element={<DataverseWorkspace />} />
           <Route path="/calendar" element={<Calendar />} />
           <Route path="/approvals" element={<ApprovalCentre />} />
           <Route path="/help" element={<Help />} />
-          <Route path="/today-adaptive" element={<AdaptiveTodayPage />} />
+
           <Route element={<StakeholderRoute />}>
           <Route path="/today" element={<AdaptiveTodayPage />} />
           <Route path="/today-legacy" element={['sam','sam_director'].includes(user?.role) ? <Navigate to="/insights-engagement" replace /> : <Home />} />
-          <Route path="/portfolio-overview" element={<PortfolioOverview />} />
-          <Route element={<FinanceRoute />}><Route path="/finance" element={<FinanceDashboard />} /></Route>
-          <Route path="/pulse" element={<Pulse />} />
+          <Route path="/alliance360" element={<PortfolioOverview />} />
+          <Route element={<FinanceRoute />}><Route path="/commercial" element={<FinanceDashboard />} /></Route>
+          <Route path="/insider" element={<Pulse />} />
           <Route element={<IERoute />}>
             <Route path="/insights-engagement" element={<InsightsEngagement />} />
             <Route path="/insights-engagement/:engagementId" element={<IEEngagementDetail />} />
@@ -145,10 +154,10 @@ const AuthenticatedApp = () => {
           <Route path="/clients" element={<Clients />} />
           <Route path="/accounts/:accountId" element={<AccountDetail />} />
           <Route element={<CRMRoute />}>
-            <Route path="/crm" element={<Navigate to="/crm/opportunities" replace />} />
-            <Route path="/crm/opportunities" element={<CRMOpportunities />} />
-            <Route path="/crm/opportunities/lost" element={<LostOpportunities />} />
-            <Route path="/crm/pipeline" element={<Navigate to="/crm/opportunities" replace />} />
+            <Route path="/crm" element={<Navigate to="/opportunities" replace />} />
+            <Route path="/opportunities" element={<CRMOpportunities />} />
+            <Route path="/opportunities/lost" element={<LostOpportunities />} />
+            <Route path="/crm/pipeline" element={<Navigate to="/opportunities" replace />} />
             <Route path="/crm/tasks" element={<CRMTasks />} />
             <Route path="/crm/activities" element={<CRMActivities />} />
             <Route path="/crm/clients" element={<CRMClients />} />

@@ -1,7 +1,7 @@
 import { useEffect } from 'react';
 import { useQueryClient } from '@tanstack/react-query';
 
-const views = ['/today', '/portfolio-overview', '/pulse'];
+const views = ['/today', '/alliance360', '/insider'];
 const sharedKeys = new Set(['dashboard-data', 'dashboard-portfolio-extras', 'overview-analytics', 'overview-recent', 'alliance-layer', 'project-value-summary']);
 
 export default function usePortalDataRefresh(userId, pathname) {

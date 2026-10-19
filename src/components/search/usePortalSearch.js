@@ -20,7 +20,7 @@ export default function usePortalSearch(term, role, viewerId) {
       const sources = SEARCH_SOURCES.filter(source => source.roles.includes(role));
       const projects = new Map();
       const tasks = sources.map(source => () => searchSource(source, escapeSearch(value), role, undefined, projects));
-      if (role === 'framework_stakeholder') tasks.push(() => base44.functions.invoke('getStakeholderFrameworkReport', { term: value, stage: 'all', page: 0 }).then(({ data }) => ({ label: 'Framework360', more: data.count > data.rows.length, cursor: data.rows.length ? 1 : null, items: data.rows.map(r => ({ id: r.id, title: r.site || r.framework_ref, detail: r.framework_ref, path: `/framework-reports/${r.id}` })) })));
+      if (role === 'framework_stakeholder') tasks.push(() => base44.functions.invoke('getStakeholderFrameworkReport', { term: value, stage: 'all', page: 0 }).then(({ data }) => ({ label: 'Framework360', more: data.count > data.rows.length, cursor: data.rows.length ? 1 : null, items: data.rows.map(r => ({ id: r.id, title: r.site || r.framework_ref, detail: r.framework_ref, path: `/framework/${r.id}` })) })));
       const results = new Array(tasks.length);
       let next = 0, failed = false;
       const worker = async () => {
@@ -49,7 +49,7 @@ export default function usePortalSearch(term, role, viewerId) {
     try {
       const source = SEARCH_SOURCES.find(s => s.label === group.label);
       const next = source ? await searchSource(source, escapeSearch(term.trim().slice(0, 80)), role, group.cursor)
-        : await base44.functions.invoke('getStakeholderFrameworkReport', { term: term.trim().slice(0, 80), stage: 'all', page: group.cursor }).then(({ data }) => ({ items: data.rows.map(r => ({ id: r.id, title: r.site || r.framework_ref, detail: r.framework_ref, path: `/framework-reports/${r.id}` })), more: group.cursor * 50 + data.rows.length < data.count, cursor: group.cursor + 1 }));
+        : await base44.functions.invoke('getStakeholderFrameworkReport', { term: term.trim().slice(0, 80), stage: 'all', page: group.cursor }).then(({ data }) => ({ items: data.rows.map(r => ({ id: r.id, title: r.site || r.framework_ref, detail: r.framework_ref, path: `/framework/${r.id}` })), more: group.cursor * 50 + data.rows.length < data.count, cursor: group.cursor + 1 }));
       if (current !== revision.current) return;
       setState(previous => ({ ...previous, groups: previous.groups.map(g => g.label === group.label ? { ...g, items: [...g.items, ...next.items], more: next.more, cursor: next.cursor, loadingMore: false } : g) }));
     } catch (error) {

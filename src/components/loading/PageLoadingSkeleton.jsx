@@ -10,7 +10,7 @@ import '@/components/adaptive/adaptive-flow.css';
 import '@/components/adaptive/adaptive-refinements.css';
 export default function PageLoadingSkeleton() {
  const {pathname}=useLocation();
- if(['/','/today','/today-adaptive'].includes(pathname))return <AdaptiveWorkspaceSkeleton/>;
- if(pathname==='/finance')return <div className="space-y-8"><Skeleton className="h-52 w-full rounded-panel"/><CommercialSkeleton/></div>;
+ if(['/','/today','/today'].includes(pathname))return <AdaptiveWorkspaceSkeleton/>;
+ if(pathname==='/commercial')return <div className="space-y-8"><Skeleton className="h-52 w-full rounded-panel"/><CommercialSkeleton/></div>;
  return <PageContentSkeleton/>;
 }

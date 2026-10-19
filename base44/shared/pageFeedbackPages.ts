@@ -1,16 +1,16 @@
 export const feedbackPages = [
- ['/today','Today'], ['/portfolio-overview','Alliance360'], ['/finance','Commercial'],
+ ['/today','Today'], ['/alliance360','Alliance360'], ['/commercial','Commercial'],
  ['/projects','Projects'], ['/projects/:projectId','Project details'],
- ['/framework-reports','Framework'], ['/framework-reports/:reportId','Framework project details'],
+ ['/framework','Framework'], ['/framework/:reportId','Framework project details'],
  ['/documents','Legal documents'], ['/warranties','Warranties'], ['/suppliers','Suppliers'], ['/clients','Clients'],
  ['/account','My Account'], ['/accounts/:accountId','Organisation details'],
  ['/accounts/:accountId/contacts/:contactId','Organisation contact details'],
  ['/people','People'], ['/people/:contactId','Person details'], ['/contacts/:contactId','Contact details'],
- ['/crm/opportunities','Opportunities'], ['/crm/opportunities/lost','Lost opportunities'],
+ ['/opportunities','Opportunities'], ['/opportunities/lost','Lost opportunities'],
  ['/opportunities/:opportunityId','Opportunity details'], ['/crm/tasks','CRM tasks'],
  ['/crm/activities','CRM activities'], ['/crm/clients','CRM clients'], ['/crm/contacts/:contactId','CRM contact details'],
  ['/delegation','Delegation'], ['/account-settings','Account settings'], ['/dataverse','Dataverse workspace'],
- ['/calendar','Calendar'], ['/approvals','Approvals'], ['/help','Help'], ['/pulse','Insider'],
+ ['/calendar','Calendar'], ['/approvals','Approvals'], ['/help','Help'], ['/insider','Insider'],
  ['/lookout/:issueId','The Lookout'], ['/admin','Administration'], ['/admin/lookout','The Lookout administration'],
  ['/admin/approvals','Approval administration'], ['/admin/finance','Finance administration']
 ].map(([key,name])=>({key,name,pattern:new RegExp(`^${key.replace(/:[^/]+/g,'[^/]+')}/?$`)}));

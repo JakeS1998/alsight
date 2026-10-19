@@ -18,6 +18,6 @@ export default async function frameworkAliceAnswer(question) {
  else if(/linked/.test(text))answer=`${data.linked} of ${data.total} Framework projects are linked to ALSight. Linked project access still follows your permissions.`;
  else answer=`Framework context: ${data.total} projects, ${data.linked} linked to ALSight, ${data.outcomes} with recorded outcomes. Ask about missing agreements, unlinked projects, Call-Off, recorded outcomes, recent activity or aggregate Total Call-Off Value.`;
  let links=[];
- if(filters && /which|show|list|find/.test(text)){const {data:page}=await base44.functions.invoke('getStakeholderFrameworkReport',{workspaceAction:'list',filters,limit:10});answer+=` Showing ${page.rows.length} of ${page.count} matching records.`;links=page.rows.map(row=>({label:`${row.site || row.framework_ref} · ${row.client || 'Client not recorded'}`,to:`/framework-reports/${row.id}`}));}
+ if(filters && /which|show|list|find/.test(text)){const {data:page}=await base44.functions.invoke('getStakeholderFrameworkReport',{workspaceAction:'list',filters,limit:10});answer+=` Showing ${page.rows.length} of ${page.count} matching records.`;links=page.rows.map(row=>({label:`${row.site || row.framework_ref} · ${row.client || 'Client not recorded'}`,to:`/framework/${row.id}`}));}
  return {text:answer,links};
 }

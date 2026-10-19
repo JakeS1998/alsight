@@ -14,8 +14,8 @@ export default function MobileBottomNavigation({ user, items, open, onOpenChange
     desktop.addEventListener('change', close);
     return () => desktop.removeEventListener('change', close);
   }, [onOpenChange]);
-  const active = item => item.path === '/today-adaptive'
-    ? ['/', '/today', '/today-adaptive', '/today-legacy'].includes(pathname)
+  const active = item => item.path === '/today'
+    ? ['/', '/today', '/today-legacy'].includes(pathname)
     : pathname === item.path || pathname.startsWith(`${item.path}/`);
   return <Sheet open={open} onOpenChange={onOpenChange}>
     <nav aria-label="Mobile navigation" className="portal-mobile-navigation lg:hidden">
