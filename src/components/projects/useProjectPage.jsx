@@ -4,6 +4,7 @@ import { base44 } from '@/api/base44Client';
 import projectScope from '@/components/projects/projectScope';
 import { escapeSearch } from '@/components/search/searchSources';
 import projectFilterValues from '@/components/projects/projectFilterValues';
+import { IE_DEPARTMENT_IDS } from '@/components/ie/ieProjectDepartment';
 
 const sorts = { name_asc: 'name', name_desc: '-name', number: 'project_number', value_desc: '-full_value', value_asc: 'full_value', newest: '-created_date' };
 export default function useProjectPage(user, filters, cursor, enabled, refreshKey) {
@@ -12,7 +13,7 @@ export default function useProjectPage(user, filters, cursor, enabled, refreshKe
     const page = await base44.entities.Contact.filter({ email: { $regex: `^${escapeSearch(user.email)}$`, $options: 'i' } }, { limit: 1, fields: ['aad_id'] });
     return page.items[0]?.aad_id || null;
   }, staleTime: 300000 });
-  const base = useMemo(() => ({ $and: [{ status: { $ne: 'inactive' } }, projectScope(user, staff.data)] }), [user, staff.data]);
+  const base = useMemo(() => ({ $and: [{ status: { $ne: 'inactive' }, department_id: { $nin: IE_DEPARTMENT_IDS } }, projectScope(user, staff.data)] }), [user, staff.data]);
   const query = useMemo(() => {
     const conditions = [...base.$and];
     if (filters.search.trim()) conditions.push({ $or: ['name', 'project_number', 'client_name'].map(field => ({ [field]: { $regex: escapeSearch(filters.search.trim()), $options: 'i' } })) });

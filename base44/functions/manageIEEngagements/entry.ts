@@ -10,6 +10,7 @@ import {ieCommercialFinance} from '../../shared/ieCommercialFinance.ts';
 import {ieBackfillFinance} from '../../shared/ieFinanceWorkbook.ts';
 import {ieRegionalProjects} from '../../shared/ieRegionalProjects.ts';
 import {ieTodayFeed} from '../../shared/ieTodayFeed.ts';
+import {ieDepartmentProjects,ieDepartmentIds} from '../../shared/ieDepartmentProjects.ts';
 export default async function(req){
  try{
   const base44=createClientFromRequest(req);let user=await base44.auth.me();
@@ -18,6 +19,7 @@ export default async function(req){
   const input=await req.json();if(!input||typeof input!=='object'||Array.isArray(input))ieError('Invalid request.');
   user=await ieRegionalProjects(base44,user);
   const db=base44.asServiceRole.entities,action=input.action;
+  if(['departmentProjects','departmentProject'].includes(action))return Response.json(await ieDepartmentProjects(base44,user,input));
   if(action==='todayFeed')return Response.json(await ieTodayFeed(base44,user,input));
   if(action==='commercialFinance')return Response.json(await ieCommercialFinance(base44,user));
   if(action==='backfillFinance')return Response.json(await ieBackfillFinance(base44,user,input));
@@ -56,7 +58,7 @@ export default async function(req){
   if(action==='projects'){
    if(!['admin','sam_director'].includes(user.role))ieError('SAM Director project access required.',403);
    const linked=await db.IEEngagement.filter({project_id:{$ne:''}},{distinct:'project_id',limit:1000});if(linked.has_more)ieError('The SAM project register needs another reporting page.');
-   const query={$and:[{$or:[{id:{$in:linked.items}},{strategic_account_manager_aad_id:{$exists:true,$nin:[null,'']}}]},{name:{$regex:ieText(input.search,100).replace(/[.*+?^${}()|[\]\\]/g,'\\$&'),$options:'i'}}]};
+   const query={$and:[{department_id:{$nin:ieDepartmentIds}},{$or:[{id:{$in:linked.items}},{strategic_account_manager_aad_id:{$exists:true,$nin:[null,'']}}]},{name:{$regex:ieText(input.search,100).replace(/[.*+?^${}()|[\]\\]/g,'\\$&'),$options:'i'}}]};
    return Response.json(await db.Project.filter(query,{sort:'name',limit:30,fields:['name','project_number','client_name','site_postcode','live_project'],...(input.cursor?{cursor:ieText(input.cursor,4000)}:{})}));
   }
   if(action==='save'){

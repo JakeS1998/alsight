@@ -133,6 +133,7 @@ const AuthenticatedApp = () => {
           <Route element={<IERoute />}>
             <Route path="/insights-engagement" element={<InsightsEngagement />} />
             <Route path="/insights-engagement/:engagementId" element={<IEEngagementDetail />} />
+            <Route path="/insights-engagement/projects/:projectId" element={<SAMProjectWorkspace departmentView />} />
           </Route>
           <Route path="/lookout/:issueId" element={<Lookout />} />
           <Route path="/projects" element={user?.role==='sam_director' ? <SAMProjects /> : <Projects />} />
