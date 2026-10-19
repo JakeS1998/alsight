@@ -8,7 +8,8 @@ export default function ScrollPageHeader({children,title,image,imageAlt='',actio
   let compact=false,frame;
   const update=()=>{
    const rect=(element.firstElementChild||element).getBoundingClientRect();
-   const top=parseFloat(window.getComputedStyle(element).getPropertyValue('--portal-header-height'))||64;
+   const styles=window.getComputedStyle(element);
+   const top=(parseFloat(styles.getPropertyValue('--portal-header-height'))||64)+(parseFloat(styles.getPropertyValue('--portal-page-header-gap'))||16);
    compact=window.matchMedia('(min-width: 1024px)').matches&&rect.top<top-(compact?0:32);
    setPosition(compact?{top,left:rect.left,width:rect.width}:null);
   };
