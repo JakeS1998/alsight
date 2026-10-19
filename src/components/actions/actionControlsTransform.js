@@ -21,6 +21,12 @@ export default function actionControlsTransform() {
 
 // Apply the same action lifecycle without changing action arguments or styling.
 function actionControlsVisitor({ types: t }) {
+  const mutation = (path, state) => {
+    const callee = path.node.callee;
+    if (!state.actionControls || !t.isMemberExpression(callee) || callee.computed || !t.isIdentifier(callee.property, { name: 'mutate' })) return;
+    if (!state.actionControls.has('mutation')) state.actionControls.set('mutation', path.scope.generateUidIdentifier('captureMutationAction'));
+    path.replaceWith(t.callExpression(t.cloneNode(state.actionControls.get('mutation')), [callee.object, ...path.node.arguments]));
+  };
   return {
     name: 'alsight-action-controls',
     visitor: {
@@ -33,12 +39,13 @@ function actionControlsVisitor({ types: t }) {
           state.actionControls?.forEach((identifier, tag) => {
             const component = tag === 'button' ? 'ActionButton' : tag === 'form' ? 'ActionForm' : 'actionResults';
             path.unshiftContainer('body', t.importDeclaration(
-              [tag === 'capture' ? t.importSpecifier(identifier, t.identifier('captureActionResult')) : t.importDefaultSpecifier(identifier)],
+              [tag === 'capture' || tag === 'mutation' ? t.importSpecifier(identifier, t.identifier(tag === 'mutation' ? 'captureMutationAction' : 'captureActionResult')) : t.importDefaultSpecifier(identifier)],
               t.stringLiteral(`@/components/actions/${component}`)
             ));
           });
         }
       },
+      CallExpression: mutation,
       JSXAttribute(path, state) {
         if (!state.actionControls || !['onClick', 'onSubmit'].includes(path.node.name.name)) return;
         if (!t.isJSXExpressionContainer(path.node.value)) return;
@@ -46,6 +53,7 @@ function actionControlsVisitor({ types: t }) {
         if (!handler?.isArrowFunctionExpression() && !handler?.isFunctionExpression()) return;
         handler.traverse({ CallExpression(call) {
           if (call.getFunctionParent() !== handler) return;
+          mutation(call, state);
           if (!state.actionControls.has('capture')) state.actionControls.set('capture', path.scope.generateUidIdentifier('captureActionResult'));
           call.replaceWith(t.callExpression(t.cloneNode(state.actionControls.get('capture')), [call.node]));
           call.skip();

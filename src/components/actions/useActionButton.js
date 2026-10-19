@@ -10,7 +10,8 @@ export default function useActionButton({ disabled, loading, type, asChild, onCl
     if (lock.engaged && disabled) setAwaitingDisabled(true);
     if (!disabled) setAwaitingDisabled(false);
   }, [lock.engaged, disabled]);
-  const busy = loading || lock.pending || (disabled && (lock.engaged || awaitingDisabled)) || (submit && form.pending && form.submitter === node.current);
+  const tracked = lock.tracked.current || (submit && form.tracked.current);
+  const busy = loading || lock.pending || (!tracked && disabled && (lock.engaged || awaitingDisabled)) || (submit && form.pending && form.submitter === node.current);
   const blocked = disabled || loading || lock.pending || (submit && form.pending);
   const stop = event => { event.preventDefault(); event.stopPropagation(); };
   const capture = event => {

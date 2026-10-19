@@ -16,7 +16,7 @@ const ActionForm = forwardRef(function ActionForm({ children, onSubmit, onSubmit
     setSubmitter(button);
     return lock.run(() => onSubmit(event));
   };
-  return <ActionFormContext.Provider value={{ pending: lock.pending, locked: lock.locked, submitter }}>
+  return <ActionFormContext.Provider value={{ pending: lock.pending, locked: lock.locked, tracked: lock.tracked, submitter }}>
     <form {...props} ref={ref} onSubmitCapture={capture} onSubmit={onSubmit ? submit : undefined}>{children}</form>
   </ActionFormContext.Provider>;
 });

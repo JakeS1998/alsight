@@ -5,6 +5,12 @@ export function captureActionResult(value) {
   return value;
 }
 
+export function captureMutationAction(action, ...args) {
+  if (!currentResults || typeof action.mutateAsync !== 'function') return action.mutate(...args);
+  // React Query's mutate() also consumes its rejection; retain that behaviour.
+  captureActionResult(action.mutateAsync(...args).catch(() => undefined));
+}
+
 export function collectActionResults(callback) {
   const previous = currentResults, results = new Set();
   currentResults = results;

@@ -2,7 +2,7 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import { collectActionResults } from '@/components/actions/actionResults';
 
 export default function useActionLock() {
-  const locked = useRef(false), mounted = useRef(true), frames = useRef([]);
+  const locked = useRef(false), tracked = useRef(false), mounted = useRef(true), frames = useRef([]);
   const [engaged, setEngaged] = useState(false), [pending, setPending] = useState(false);
   useEffect(() => { mounted.current = true; return () => { mounted.current = false; frames.current.forEach(cancelAnimationFrame); }; }, []);
   const release = useCallback(() => {
@@ -12,12 +12,14 @@ export default function useActionLock() {
   const run = useCallback(callback => {
     if (locked.current) return;
     locked.current = true;
+    tracked.current = false;
     setEngaged(true);
     let waiting = false;
     try {
       const { result, results } = collectActionResults(callback);
       if (results.length) {
         waiting = true;
+        tracked.current = true;
         setPending(true);
         return Promise.allSettled(results).then(() => result).finally(release);
       }
@@ -31,5 +33,5 @@ export default function useActionLock() {
       }
     }
   }, [release]);
-  return { locked, engaged, pending, run };
+  return { locked, tracked, engaged, pending, run };
 }
