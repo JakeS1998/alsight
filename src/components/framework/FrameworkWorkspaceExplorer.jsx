@@ -1,4 +1,5 @@
 import React,{useState} from 'react';
+import useListState from '@/components/navigation/useListState';
 import {useQuery} from '@tanstack/react-query';
 import {List,Map,Download} from 'lucide-react';
 import {Button} from '@/components/ui/button';
@@ -10,7 +11,7 @@ import FrameworkLinkDialog from '@/components/framework/FrameworkLinkDialog';
 import frameworkExport from '@/components/framework/frameworkExport';
 import organisationQueryPolicy from '@/components/data/organisationQueryPolicy';
 export default function FrameworkWorkspaceExplorer({filters,onFilter,search,onSearch,term,user}) {
- const [paging,setPaging]=useState({key:'',cursor:null,trail:[]}),[view,setView]=useState('list'),[selected,setSelected]=useState(null),[link,setLink]=useState(null),[exporting,setExporting]=useState(false),[exportError,setExportError]=useState('');
+ const [paging,setPaging]=useListState('paging',{key:'',cursor:null,trail:[]}),[view,setView]=useListState('view','list'),[selected,setSelected]=useListState('selected',null),[link,setLink]=useState(null),[exporting,setExporting]=useState(false),[exportError,setExportError]=useState('');
  const key=JSON.stringify([filters,term]),current=paging.key===key ? paging : {key,cursor:null,trail:[]};
  const query=useQuery({queryKey:['framework-workspace','list',user?.id,user?.role,filters,term,current.cursor,'complete-delivery-outcomes-v2'],queryFn:async()=>{const {data}=await base44.functions.invoke('getStakeholderFrameworkReport',{workspaceAction:'list',filters,term,...(current.cursor ? {cursor:current.cursor} : {})});if(data.error)throw new Error(data.error);return data;},enabled:!!user?.id,...organisationQueryPolicy,retry:false,staleTime:60000});
  const rows=query.data?.rows || [];

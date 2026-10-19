@@ -1,4 +1,5 @@
-import React,{useState,useEffect} from 'react';
+import React,{useEffect} from 'react';
+import useListState from '@/components/navigation/useListState';
 import {useQuery} from '@tanstack/react-query';
 import {List,LayoutGrid,ArrowRight} from 'lucide-react';
 import {useAuth} from '@/lib/AuthContext';
@@ -9,10 +10,10 @@ import IERegisterCards from '@/components/ie/IERegisterCards';
 import IEPagination from '@/components/ie/IEPagination';
 import IEQueryState from '@/components/ie/IEQueryState';
 export default function IERegister({classifications=[],actions,children}){
- const {user}=useAuth(),[filters,setFilters]=useState({}),[applied,setApplied]=useState({});
- const [view,setView]=useState('list'),[expanded,setExpanded]=useState(false),[paging,setPaging]=useState({index:0,cursors:['']});
+ const {user}=useAuth(),[filters,setFilters]=useListState('filters',{}),[applied,setApplied]=useListState('applied',{});
+ const [view,setView]=useListState('view','list'),[expanded,setExpanded]=useListState('expanded',false),[paging,setPaging]=useListState('paging',{index:0,cursors:['']});
  const size=expanded?30:8,cursor=paging.cursors[paging.index]||'';
- useEffect(()=>{const timer=setTimeout(()=>{setApplied(filters);setPaging({index:0,cursors:['']});},250);return()=>clearTimeout(timer);},[filters]);
+ useEffect(()=>{if(JSON.stringify(filters)===JSON.stringify(applied))return;const timer=setTimeout(()=>{setApplied(filters);setPaging({index:0,cursors:['']});},250);return()=>clearTimeout(timer);},[filters]);
  const options=useQuery({queryKey:['ie-options',user.id],queryFn:()=>ieCall('options'),staleTime:60000,retry:false});
  const query=useQuery({queryKey:['ie-register',user.id,user.role,applied,cursor,size],queryFn:()=>ieCall('list',{filters:applied,cursor,page_size:size}),retry:false});
  const next=()=>setPaging(old=>({index:old.index+1,cursors:[...old.cursors.slice(0,old.index+1),query.data.next_cursor]}));

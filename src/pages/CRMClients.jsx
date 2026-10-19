@@ -1,4 +1,6 @@
-import React, { useEffect, useState } from 'react';
+import React, { useState } from 'react';
+import useListState from '@/components/navigation/useListState';
+import useRememberedPages from '@/components/navigation/useRememberedPages';
 import { Link } from 'react-router-dom';
 import { base44 } from '@/api/base44Client';
 import { useAuth } from '@/lib/AuthContext';
@@ -6,10 +8,10 @@ import { Button } from '@/components/ui/button';
 import { scopedClientQuery } from '@/components/crm/clientScope';
 export default function CRMClients() {
   const { user } = useAuth();
-  const [rows, setRows] = useState([]), [search, setSearch] = useState(''), [cursor, setCursor] = useState(null), [more, setMore] = useState(false), [loading, setLoading] = useState(true), [error, setError] = useState(''), [name, setName] = useState(''), [saving, setSaving] = useState(false);
-  const load = async (next = null) => { setLoading(true); setError(''); try { const q = await scopedClientQuery(user, search); const page = await base44.entities.Account.filter(q, { sort: 'name', limit: 50, ...(next ? { cursor: next } : {}) }); setRows(old => next ? [...old, ...page.items] : page.items); setCursor(page.next_cursor); setMore(page.has_more); } catch (e) { setError(e.message); } finally { setLoading(false); } };
-  useEffect(() => { load(); }, [search]);
+  const [search, setSearch] = useListState('search',''), [actionError, setError] = useState(''), [name, setName] = useState(''), [saving, setSaving] = useState(false);
+  const {rows,cursor,more,loading,load,error:readError}=useRememberedPages('clients',async next=>{const q=await scopedClientQuery(user,search);return base44.entities.Account.filter(q,{sort:'name',limit:50,...(next?{cursor:next}:{})});},search);
+  const error=actionError || readError;
   const create = async e => { e.preventDefault(); setSaving(true); setError(''); try { const existing = await base44.entities.Account.filter({ account_type: 'client', name: name.trim() }, { limit: 1 }); if (existing.items.length) { setError('A client with this name already exists. Open the existing client instead.'); return; } await base44.entities.Account.create({ name: name.trim(), account_type: 'client', status: 'active' }); setName(''); await load(); } catch (e) { setError(e.message); } finally { setSaving(false); } };
-  return <div className="space-y-4"><h1 className="font-heading text-2xl font-semibold">Clients</h1>{user?.role === 'admin' && <form onSubmit={create} className="flex flex-wrap gap-2"><input required aria-label="New client name" placeholder="New client legal name" value={name} onChange={e => setName(e.target.value)} className="min-w-56 flex-1 rounded-lg border border-input p-2 text-sm" /><Button disabled={saving || !name.trim()}>{saving ? 'Creating…' : 'Add client'}</Button></form>}
+  return <div className="space-y-4" aria-busy={loading}><h1 className="font-heading text-2xl font-semibold">Clients</h1>{user?.role === 'admin' && <form onSubmit={create} className="flex flex-wrap gap-2"><input required aria-label="New client name" placeholder="New client legal name" value={name} onChange={e => setName(e.target.value)} className="min-w-56 flex-1 rounded-lg border border-input p-2 text-sm" /><Button disabled={saving || !name.trim()}>{saving ? 'Creating…' : 'Add client'}</Button></form>}
     <input aria-label="Search clients" placeholder="Search clients" value={search} onChange={e => setSearch(e.target.value)} className="w-full rounded-lg border border-input p-2 text-sm sm:max-w-sm" />{error && <p role="alert" className="text-destructive">{error}</p>}{loading && !rows.length ? <p>Loading clients…</p> : !rows.length ? <p className="text-muted-foreground">No clients found.</p> : <div className="portal-card-grid">{rows.map(a => <Link key={a.id} to={`/accounts/${a.id}`} className="rounded-xl border border-border bg-card p-4 hover:border-primary"><p className="font-semibold">{a.name}</p><p className="text-sm text-muted-foreground">{a.address_city || a.company_number || 'Client profile'}</p></Link>)}</div>}{more && <Button disabled={loading} variant="outline" onClick={() => load(cursor)}>Load more</Button>}</div>;
 }

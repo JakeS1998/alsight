@@ -1,4 +1,6 @@
 import React,{useEffect,useState} from 'react';
+import useListState from '@/components/navigation/useListState';
+import useListFilterReset from '@/components/navigation/useListFilterReset';
 import {useQuery} from '@tanstack/react-query';
 import {Users,Star,Flag,BriefcaseBusiness,Search,List,LayoutGrid,Plus} from 'lucide-react';
 import {base44} from '@/api/base44Client';
@@ -11,9 +13,9 @@ import LoadingPanel from '@/components/loading/LoadingPanel';
 import AddPersonDialog from '@/components/relationships/AddPersonDialog';
 import WorkspacePageHeader from '@/components/layout/WorkspacePageHeader';
 export default function People() {
-  const {user}=useAuth(),[filters,setFilters]=useState({}),[search,setSearch]=useState(''),[cursor,setCursor]=useState(null),[trail,setTrail]=useState([]),[open,setOpen]=useState(false),[view,setView]=useState(()=>localStorage.getItem('alsight-people-view') || 'list');
+  const {user}=useAuth(),[filters,setFilters]=useListState('filters',{}),[search,setSearch]=useListState('search',''),[cursor,setCursor]=useListState('cursor',null),[trail,setTrail]=useListState('trail',[]),[open,setOpen]=useState(false),[view,setView]=useListState('view',()=>localStorage.getItem('alsight-people-view') || 'list');
   useEffect(()=>{const timer=setTimeout(()=>setFilters(f=>(f.search || '')===search ? f : {...f,search}),400);return()=>clearTimeout(timer);},[search]);
-  useEffect(()=>{setCursor(null);setTrail([]);},[JSON.stringify(filters)]);
+  useListFilterReset(()=>{setCursor(null);setTrail([]);},[filters]);
   const query=useQuery({queryKey:['people-workspace','organisation-contact-links',user?.id,user?.role,filters,cursor],enabled:!!user?.id,queryFn:async()=>{const {data}=await base44.functions.invoke('getRelationshipWorkspace',{filters,cursor}).catch(error=>{throw new Error(error.response?.data?.error || error.message || 'Unable to load People.');});if(data.error) throw new Error(data.error);return data;},staleTime:60000,retry:false,refetchOnMount:true,refetchOnWindowFocus:false});
   const m=query.data?.metrics || {},items=[{key:'',label:'Total people',value:m.total,icon:Users},{key:'decision',label:'Key Decision-Makers',value:m.decision,icon:Star},{key:'attention',label:'Need Attention',value:m.attention,icon:Flag,tone:'bg-primary/10 text-primary'},{key:'live',label:'Linked to live opportunities',value:m.live,icon:BriefcaseBusiness,tone:'bg-success/10 text-success'}];
   const changeView=v=>{setView(v);localStorage.setItem('alsight-people-view',v);};

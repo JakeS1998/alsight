@@ -1,4 +1,5 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect } from 'react';
+import useListState from '@/components/navigation/useListState';
 import { Button } from '@/components/ui/button';
 import AccountFilters from '@/components/accounts/AccountFilters';
 import AccountCard from '@/components/accounts/AccountCard';
@@ -14,9 +15,9 @@ export default function AccountsDirectory({relationship}) {
   const noun = title.toLowerCase(), directoryPath = relationship === 'client' ? '/clients' : '/suppliers';
   const {user} = useAuth(), cache = useQueryClient();
   const saved = cache.getQueryData(['accounts-directory-filters',user?.id,user?.role,relationship || 'all']) || {};
-  const [filters,setFilters] = useState(() => saved), [search,setSearch] = useState(() => saved.search || ''), [cursor,setCursor] = useState(null), [history,setHistory] = useState([]), [view,setView] = useState('cards');
+  const [filters,setFilters] = useListState('filters',() => saved), [search,setSearch] = useListState('search',() => saved.search || ''), [cursor,setCursor] = useListState('cursor',null), [history,setHistory] = useListState('history',[]), [view,setView] = useListState('view','cards');
   useEffect(() => { cache.setQueryData(['accounts-directory-filters',user?.id,user?.role,relationship || 'all'],{...filters,search}); },[cache,user?.id,user?.role,filters,search]);
-  useEffect(() => { const timer = setTimeout(() => { setFilters(old => ({ ...old, search })); setCursor(null); setHistory([]); },500); return () => clearTimeout(timer); },[search]);
+  useEffect(() => { if ((filters.search || '') === search) return; const timer = setTimeout(() => { setFilters(old => ({ ...old, search })); setCursor(null); setHistory([]); },500); return () => clearTimeout(timer); },[search]);
   const result = useAccountsView({ filters: relationship ? {...filters,relationship} : filters, cursor });
   const options = useAccountFilterOptions();
   const change = (key,value) => { if (key === 'search') setSearch(value); else { setFilters(old => ({ ...old,[key]:value })); setCursor(null); setHistory([]); } };

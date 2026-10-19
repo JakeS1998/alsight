@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from "react";
+import useListState from '@/components/navigation/useListState';
 import PageContentSkeleton from '@/components/loading/PageContentSkeleton';
 import { base44 } from "@/api/base44Client";
 import { useAuth } from '@/lib/AuthContext';
@@ -14,7 +15,7 @@ export default function Warranties() {
   const [warranties, setWarranties] = useState([]);
   const [accounts, setAccounts] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [statusFilter, setStatusFilter] = useState("all");
+  const [statusFilter, setStatusFilter] = useListState('statusFilter', 'all');
 
   useEffect(() => {
     (async () => {

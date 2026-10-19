@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from "react";
+import useListState from '@/components/navigation/useListState';
 import PageContentSkeleton from '@/components/loading/PageContentSkeleton';
 import { Link } from "react-router-dom";
 import { base44 } from "@/api/base44Client";
@@ -21,7 +22,7 @@ export default function LegalDocuments() {
   const [projects, setProjects] = useState([]);
   const [accounts, setAccounts] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [typeFilter, setTypeFilter] = useState("all");
+  const [typeFilter, setTypeFilter] = useListState('typeFilter', 'all');
 
   useEffect(() => {
     (async () => {

@@ -1,4 +1,6 @@
 import React,{useEffect,useState,Suspense} from 'react';
+import useListState from '@/components/navigation/useListState';
+import useListFilterReset from '@/components/navigation/useListFilterReset';
 import {useQuery} from '@tanstack/react-query';
 import {base44} from '@/api/base44Client';
 import {Button} from '@/components/ui/button';
@@ -13,10 +15,10 @@ import MeetingOperationContext from '@/components/projects/workspace/MeetingOper
 import '@/components/projects/workspace/workspace.css';
 const ProjectMapView=React.lazy(()=>import('@/components/projects/ProjectMapView'));
 export default function ProjectsOperationalWorkspace({projects,user,accountMap,staffMap,loading,meeting,mapProps,filterKey,paging,total}) {
- const [selected,setSelected]=useState(null),[quickAction,setQuickAction]=useState(null);
+ const [selected,setSelected]=useListState('workspaceSelected',null),[quickAction,setQuickAction]=useState(null);
  const openAction=(project,kind)=>setQuickAction({project,kind});
  const manager=useReviewSession(user,[...new Set([...projects.map(p=>p.id),selected?.id].filter(Boolean))].sort()),{session,reviewed,record}=manager;
- useEffect(()=>{setSelected(null);},[filterKey]);
+ useListFilterReset(()=>{setSelected(null);},[filterKey]);
  const found=projects.find(p=>p.id===selected?.id),remote=useQuery({queryKey:['workspace-selected-project',user.id,user.role,selected?.id],enabled:!!selected && !found && mapProps.serverPaging,queryFn:()=>base44.entities.Project.get(selected.id)});
  const project=found || remote.data || (!mapProps.serverPaging ? selected : null);
  const metrics=useWorkspaceMetrics(projects,user),index=projects.findIndex(p=>p.id===project?.id);
