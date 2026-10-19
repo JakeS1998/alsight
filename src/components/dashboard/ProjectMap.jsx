@@ -6,13 +6,19 @@ import { Link } from "react-router-dom";
 import { formatCurrency, regionName } from "@/lib/portal";
 import MapResizeObserver from '@/components/dashboard/MapResizeObserver';
 
-const REGION_PALETTE = [
-  "hsl(var(--chart-1))",
-  "hsl(var(--chart-2))",
-  "hsl(var(--chart-3))",
-  "hsl(var(--chart-4))",
-  "hsl(var(--chart-5))",
-];
+const REGION_COLORS = {
+  'Scotland & Northern Ireland': 'hsl(var(--map-region-scotland))',
+  'South East & London': 'hsl(var(--map-region-south-east))',
+  'East': 'hsl(var(--map-region-east))',
+  'North': 'hsl(var(--map-region-north))',
+  'Insights & Engagement': 'hsl(var(--map-region-insights))',
+  'West Midlands & North Wales': 'hsl(var(--map-region-midlands))',
+  'South West & South Wales': 'hsl(var(--map-region-south-west))',
+  'Business Support Services': 'hsl(var(--map-region-support))',
+  'Marketing & Framework': 'hsl(var(--map-region-marketing))',
+  'Finance': 'hsl(var(--map-region-finance))',
+  'Executive': 'hsl(var(--map-region-executive))',
+};
 
 export function ProjectMap({ projects, showValues = true, resizeAware = false }) {
   const validProjects = projects.filter((p) => p.status !== "inactive" && p.latitude && p.longitude);
@@ -20,13 +26,11 @@ export function ProjectMap({ projects, showValues = true, resizeAware = false })
   const { regionColors, legend } = useMemo(() => {
     const map = {};
     const list = [];
-    let idx = 0;
     validProjects.forEach((p) => {
       const region = regionName(p.department_id);
       if (region && region !== p.department_id && !map[region]) {
-        map[region] = REGION_PALETTE[idx % REGION_PALETTE.length];
+        map[region] = REGION_COLORS[region] || 'hsl(var(--muted-foreground))';
         list.push({ region, color: map[region] });
-        idx++;
       }
     });
     return { regionColors: map, legend: list };

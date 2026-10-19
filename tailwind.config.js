@@ -19,6 +19,19 @@ module.exports = {
             hero: 'var(--hero-radius)'
         },
   		colors: {
+            'map-region': {
+                scotland: 'hsl(var(--map-region-scotland))',
+                'south-east': 'hsl(var(--map-region-south-east))',
+                east: 'hsl(var(--map-region-east))',
+                north: 'hsl(var(--map-region-north))',
+                insights: 'hsl(var(--map-region-insights))',
+                midlands: 'hsl(var(--map-region-midlands))',
+                'south-west': 'hsl(var(--map-region-south-west))',
+                support: 'hsl(var(--map-region-support))',
+                marketing: 'hsl(var(--map-region-marketing))',
+                finance: 'hsl(var(--map-region-finance))',
+                executive: 'hsl(var(--map-region-executive))'
+            },
             lookout: {
                 navy: 'rgb(var(--lookout-navy))',
                 orange: 'rgb(var(--lookout-orange))',
