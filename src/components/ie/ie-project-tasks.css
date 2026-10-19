@@ -1,0 +1,6 @@
+.project-workspace.ie-project-task-shell .ws-sticky-header { gap: 0; }
+.project-workspace.ie-project-task-shell .ws-project-tabs[role="tablist"] { border: 0; border-bottom: 1px solid hsl(var(--border)); border-radius: 0; background: hsl(var(--card)); padding: 4px 12px; gap: 4px; }
+.project-workspace.ie-project-task-shell .ws-project-tabs[role="tablist"] > .ws-navitem[role="tab"] { color: hsl(var(--muted-foreground)); background: transparent; border-radius: 0; border-bottom: 2px solid transparent; }
+.project-workspace.ie-project-task-shell .ws-project-tabs[role="tablist"] > .ws-navitem[role="tab"][data-state="active"] { color: hsl(var(--foreground)); background: transparent; border-bottom-color: hsl(var(--primary)); }
+.project-workspace.ie-project-task-shell .ws-project-tabs .sliding-tab-highlight { display: none; }
+.ie-task-board { display: grid; grid-template-columns: repeat(3,minmax(260px,1fr)); gap: 16px; overflow-x: auto; align-items: start; padding-bottom: 12px; }

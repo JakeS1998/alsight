@@ -1,6 +1,6 @@
 export const IE_WORK_AREAS={research:{title:'Research & Insights',description:'Research, analysis and evidence informing this engagement.',singular:'research item',typeLabel:'Research type',notesLabel:'Findings & notes'},consultation:{title:'Engagement & Consultation',description:'Community and stakeholder activities, audiences and recorded outcomes.',singular:'activity',typeLabel:'Activity type',notesLabel:'Outcomes & notes'},creative:{title:'Creative & Marketing',description:'Branding, communications and marketing deliverables.',singular:'deliverable',typeLabel:'Deliverable type',notesLabel:'Brief, asset references & notes'}};
 export const IE_WORK_STATUS={planned:'Planned',in_progress:'In progress',complete:'Complete'};
 export const IE_WORK_STATUS_CLASS={planned:'bg-secondary text-secondary-foreground',in_progress:'bg-primary/10 text-foreground',complete:'bg-success/10 text-success'};
-export const IE_WORK_TABS=['overview','timeline','research','consultation','creative','legal','documents','finance','activity'];
+export const IE_WORK_TABS=['overview','tasks','board','timeline','research','consultation','creative','legal','documents','finance','activity'];
 export const IE_PAYMENT_TYPES={'':'Not recorded',direct_invoice:'Direct engagement invoice',als_fees:'Included in ALS fees',added_value:'Added value (FOC)',sponsorship:'In lieu of sponsorship',other:'Other'};
 export const ieMoney=value=>value==null?'Not recorded':new Intl.NumberFormat('en-GB',{style:'currency',currency:'GBP',maximumFractionDigits:2}).format(value);

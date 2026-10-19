@@ -6,8 +6,9 @@ export async function ieWorkspaceAction(base44,user,input){
  const item=await ieRecord(base44,user,input.engagement_id),db=base44.asServiceRole.entities,action=input.action;
  const options={limit:30,sort:'-created_date',...(input.cursor?{cursor:ieText(input.cursor,4000)}:{})};
  if(action==='workList'){
-  const kind=ieText(input.kind,30);if(!workKinds.includes(kind))ieError('Choose a work area.');
-  const query={engagement_id:item.id,kind};
+  const kind=ieText(input.kind,30),status=ieText(input.status,30);if(kind!=='all'&&!workKinds.includes(kind))ieError('Choose a work area.');
+  if(status&&!['planned','in_progress','complete'].includes(status))ieError('Choose a task status.');
+  const query={engagement_id:item.id,...(kind==='all'?{}:{kind}),...(status?{status}:{})};
   const [page,summary]=await Promise.all([db.IEWorkItem.filter(query,options),db.IEWorkItem.aggregate({query,groupBy:'status',sum:['attendees','stakeholders','survey_responses']})]);
   return {...page,summary:summary.rows};
  }

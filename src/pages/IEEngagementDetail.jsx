@@ -16,6 +16,9 @@ import IEQueryState from '@/components/ie/IEQueryState';
 import IEOverview from '@/components/ie/IEOverview';
 import IERecentChanges from '@/components/ie/IERecentChanges';
 import IEEngagementForm from '@/components/ie/IEEngagementForm';
+import IEProjectHeader from '@/components/ie/IEProjectHeader';
+import IETaskWorkspace from '@/components/ie/IETaskWorkspace';
+import '@/components/ie/ie-project-tasks.css';
 export default function IEEngagementDetail(){
  const {engagementId}=useParams(),{user}=useAuth(),[editing,setEditing]=useState(false);
  const [search,setSearch]=useSearchParams(),{hash}=useLocation();
@@ -29,13 +32,17 @@ export default function IEEngagementDetail(){
   return()=>cancelAnimationFrame(frame);
  },[item?.id,activeTab,hash]);
  const selectTab=tab=>{const next=new URLSearchParams(search);if(tab==='overview')next.delete('tab');else next.set('tab',tab);setSearch(next,{replace:true,preventScrollReset:true});};
- return <IEQueryState query={query}>{item&&<Tabs className="project-workspace ie-engagement-workspace" value={activeTab} onValueChange={selectTab}>
+ const taskSurface=!['legal','finance','documents'].includes(activeTab);
+ const Header=taskSurface?IEProjectHeader:IEEngagementHeader;
+ return <IEQueryState query={query}>{item&&<Tabs className={`project-workspace ie-engagement-workspace ${taskSurface?'ie-project-task-shell':''}`} value={activeTab} onValueChange={selectTab}>
   <main className="ws-main">
    <ProjectStickyHeader className="ws-sticky-header">
-    <IEEngagementHeader item={item} canEdit={query.data.canEdit} onEdit={()=>setEditing(true)}/>
+    <Header item={item} canEdit={query.data.canEdit} onEdit={()=>setEditing(true)}/>
     <IEEngagementNav showDocuments={showDocuments} showLegal={showLegal}/>
    </ProjectStickyHeader>
    <TabsContent value="overview" className="ws-content"><IEOverview data={query.data} onEdit={()=>setEditing(true)}/></TabsContent>
+   <TabsContent value="tasks" className="ws-content"><IETaskWorkspace engagement={item} canEdit={query.data.canEdit}/></TabsContent>
+   <TabsContent value="board" className="ws-content"><IETaskWorkspace engagement={item} canEdit={query.data.canEdit} board/></TabsContent>
    <TabsContent id="ie-target-completion" tabIndex={-1} value="timeline" className="ws-content"><IEEngagementTimeline item={item}/></TabsContent>
    <IEWorkingTabs engagement={item} canEdit={query.data.canEdit} project={query.data.project} showDocuments={showDocuments} showLegal={showLegal}/>
    <TabsContent value="activity" className="ws-content"><IERecentChanges events={query.data.events}/></TabsContent>
