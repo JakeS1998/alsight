@@ -10,7 +10,7 @@ export default function AdaptiveAttentionMetric({ data, actions, onSelect }) {
     </button>
     <ul className="at-attention-items" aria-label="Recorded items needing attention">
       {actions.map(item => {
-        const projectName = item.project?.name || data.projects?.find(project => project.id === item.project_id || project.dataverse_id === item.project_id)?.name;
+        const projectName = item.project?.name || (item.project_id && data.projects?.find(project => project.id === item.project_id || project.dataverse_id === item.project_id)?.name);
         const to = item.taskEntity === 'ProjectAction' ? `${item.to}&stage=6&phase=works` : item.to;
         return <li key={item.key}>
           <Link to={to} className="at-attention-item">
