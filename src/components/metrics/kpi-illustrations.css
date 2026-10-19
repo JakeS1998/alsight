@@ -6,4 +6,5 @@
 .finance-hero .pipeline-metric.alsight-illustrated-kpi { background: hsl(var(--card)); color: hsl(var(--card-foreground)); border-color: hsl(var(--border)); }
 .finance-hero .pipeline-metric.alsight-illustrated-kpi .pipeline-metric-label { color: hsl(var(--foreground)); }
 .finance-hero .pipeline-metric.alsight-illustrated-kpi .pipeline-metric-caption { color: hsl(var(--muted-foreground)); }
+.pipeline-metric.alsight-illustrated-kpi > .pipeline-metric-chevron { position: absolute; color: hsl(var(--muted-foreground)); }
 @media (max-width: 767px) { .alsight-kpi-art .alsight-kpi-drawing { width: 90%; opacity: .24; } }
