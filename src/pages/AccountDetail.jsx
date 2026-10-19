@@ -10,7 +10,9 @@ import { Button } from '@/components/ui/button';
 import { formatDate, formatCurrency } from "@/lib/portal";
 import { DocTypeBadge, ExecutedBadge, WarrantyStatusBadge } from "@/components/StatusBadge";
 import AccountCRM from '@/components/crm/AccountCRM';
-import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
+import { Tabs, TabsList, TabsContent } from '@/components/ui/tabs';
+import TabsTrigger from '@/components/navigation/SlidingTabTrigger';
+import SlidingTabHighlight from '@/components/navigation/SlidingTabHighlight';
 import { useQueryClient } from '@tanstack/react-query';
 import AccountHeader from '@/components/accounts/AccountHeader';
 import RecordUpdatedAt from '@/components/RecordUpdatedAt';
@@ -127,7 +129,8 @@ export default function AccountDetail() {
     <Tabs value={['overview','contacts','projects','opportunities','financials','activity','documents','insurance'].includes(params.get('tab')) ? params.get('tab') : 'overview'} onValueChange={tab=>setParams(current=>{const next=new URLSearchParams(current);next.set('tab',tab);return next;},{replace:true})} className="account-profile space-y-6">
       <div className="account-sticky-header">
         <AccountHeader account={account} owner={summary.isPending ? 'Loading…' : signals?.owner || (account.account_manager_aad_id ? 'Assigned owner' : 'Not assigned')} actions={<AccountClassification account={account} user={user} onSaved={updated => setAccount(current => ({ ...current,...updated }))} />} />
-        <TabsList className="account-tabs mt-4" aria-label="Relationship sections">
+        <TabsList className="account-tabs sliding-tab-list sliding-network-tabs mt-4" aria-label="Relationship sections">
+          <SlidingTabHighlight/>
           {['Overview','Contacts','Projects',...(['admin','director','regional_director','bsm','finance','bdm'].includes(user?.role) ? ['Opportunities'] : []),...(['admin','director','regional_director','bsm','finance','bdm','client'].includes(user?.role) ? ['Financials'] : []),'Activity','Documents','Insurance'].map(title => <TabsTrigger key={title} value={title.toLowerCase()}>{title==='Contacts' ? 'People' : title}</TabsTrigger>)}
         </TabsList>
       </div>

@@ -11,4 +11,6 @@
 .sliding-selector > button[aria-pressed=true] { background: transparent !important; box-shadow: none !important; }
 .sliding-surface-tabs > .sliding-tab-highlight { background: hsl(var(--background)); box-shadow: 0 1px 3px hsl(var(--foreground) / .1), 0 1px 2px hsl(var(--foreground) / .06); }
 .sliding-surface-tabs > [role=tab][data-state=active] { background: transparent !important; box-shadow: none !important; }
+.sliding-network-tabs > .sliding-tab-highlight { background: hsl(var(--primary)); box-shadow: 0 5px 14px hsl(var(--primary) / .2); }
+.sliding-network-tabs > [role=tab][data-state=active] { background: transparent !important; border-color: transparent !important; box-shadow: none !important; }
 @media (prefers-reduced-motion: reduce) { .sliding-tab-list > .sliding-tab-highlight { transition: none; } }
