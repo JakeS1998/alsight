@@ -80,6 +80,37 @@
     font-size: 34px;
   }
 }
+@media (min-width: 1900px) {
+  .ie-dashboard .ie-metric:not(.ie-awaiting-action) {
+    align-items: center;
+    gap: 24px;
+    padding: 32px;
+  }
+  .ie-dashboard .ie-metric:not(.ie-awaiting-action) > div { min-width: 0; }
+  .ie-dashboard .ie-metric:not(.ie-awaiting-action) .ie-metric-icon {
+    width: 64px;
+    height: 64px;
+  }
+  .ie-dashboard .ie-metric:not(.ie-awaiting-action) .ie-metric-icon svg {
+    width: 32px;
+    height: 32px;
+  }
+  .ie-dashboard .ie-metric:not(.ie-awaiting-action) .ie-metric-label {
+    font-size: 16px;
+    font-weight: 650;
+    line-height: 1.4;
+  }
+  .ie-dashboard .ie-metric:not(.ie-awaiting-action) .ie-metric-value {
+    font-size: clamp(44px, 2vw, 56px);
+    line-height: 1.05;
+    margin-top: 12px;
+  }
+  .ie-dashboard .ie-metric:not(.ie-awaiting-action) .ie-metric-note {
+    font-size: 13px;
+    line-height: 1.5;
+    margin-top: 10px;
+  }
+}
 @media (max-width: 767px) {
   .ie-dashboard .ie-awaiting-action { grid-column: 1 / -1; }
   .ie-dashboard .ie-hero { min-height: 200px; }
