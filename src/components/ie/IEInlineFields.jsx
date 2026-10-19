@@ -6,7 +6,9 @@ import IEScopeFields from '@/components/ie/IEScopeFields';
 import IETeamFields from '@/components/ie/IETeamFields';
 import IEInlineRecordFields from '@/components/ie/IEInlineRecordFields';
 import IEInlineDateFields from '@/components/ie/IEInlineDateFields';
-export default function IEInlineFields({section,value,set,previous,classifications,reason,setReason}){
+import IEInlineFieldInput from '@/components/ie/IEInlineFieldInput';
+export default function IEInlineFields({section,field,value,set,previous,classifications,reason,setReason}){
+ if(field)return <IEInlineFieldInput field={field} value={value} set={set} previous={previous} classifications={classifications} reason={reason} setReason={setReason}/>;
  if(section==='records')return <IEInlineRecordFields value={value} set={set}/>;
  if(section==='team')return <IETeamFields value={value} set={set} editing/>;
  if(section==='dates')return <IEInlineDateFields value={value} set={set}/>;
