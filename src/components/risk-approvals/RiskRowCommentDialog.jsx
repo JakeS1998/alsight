@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { useQueryClient } from '@tanstack/react-query';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/forms/form-dialog';
 import useRiskApprovalAction from '@/components/risk-approvals/useRiskApprovalAction';
 export default function RiskRowCommentDialog({ row, packetId, challengeId, session, onClose }) {
   const [comment, setComment] = useState('');

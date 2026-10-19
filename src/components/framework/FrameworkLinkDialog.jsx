@@ -1,7 +1,7 @@
 import React,{useState} from 'react';
 import {useQuery,useMutation,useQueryClient} from '@tanstack/react-query';
 import {base44} from '@/api/base44Client';
-import {Dialog,DialogContent,DialogHeader,DialogTitle,DialogDescription} from '@/components/ui/dialog';
+import {Dialog,DialogContent,DialogHeader,DialogTitle,DialogDescription} from '@/components/forms/form-dialog';
 import {Button} from '@/components/ui/button';
 export default function FrameworkLinkDialog({row,onClose}) {
  const [term,setTerm]=useState(''),[search,setSearch]=useState(''),[selected,setSelected]=useState(null),cache=useQueryClient();

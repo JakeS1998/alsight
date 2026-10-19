@@ -1,6 +1,6 @@
 import React,{useEffect,useState} from 'react';
 import {useQuery} from '@tanstack/react-query';
-import {Dialog,DialogContent,DialogHeader,DialogTitle,DialogDescription} from '@/components/ui/dialog';
+import {Dialog,DialogContent,DialogHeader,DialogTitle,DialogDescription} from '@/components/forms/form-dialog';
 import {useToast} from '@/components/ui/use-toast';
 import PageFeedbackForm from '@/components/feedback/PageFeedbackForm';
 import {feedbackCall} from '@/components/feedback/feedbackClient';

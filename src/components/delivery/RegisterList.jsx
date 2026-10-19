@@ -4,7 +4,7 @@ import { filterAll } from "@/components/data/loadAll";
 import { Button } from "@/components/ui/button";
 import SearchableSelect from '@/components/forms/SearchableSelect';
 import ActionOwnerInput from './ActionOwnerInput';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/forms/form-dialog";
 import { FormField, FormGrid, formInputClass } from "@/components/forms/PowerForm";
 import { Plus, Pencil, Trash2, Loader2 } from "lucide-react";
 import { formatDate } from "@/lib/portal";

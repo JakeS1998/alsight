@@ -2,7 +2,7 @@ import React, { useEffect, useState, useCallback, useMemo } from "react";
 import { base44 } from "@/api/base44Client";
 import { filterAll } from "@/components/data/loadAll";
 import { Button } from "@/components/ui/button";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/forms/form-dialog";
 import { FormSection, FormGrid, FormField, formInputClass } from "@/components/forms/PowerForm";
 import { LookupCombobox } from "@/components/forms/LookupCombobox";
 import { Plus, Trash2, Loader2, FileDown, TrendingUp, ArrowUpRight, ArrowDownRight, Check, FileCheck } from "lucide-react";

@@ -1,6 +1,6 @@
 import {flushSync} from 'react-dom';
-export default function applyAliceFormFields(fields,patches){
- let applied=0;
+export default async function applyAliceFormFields(fields,patches){
+ let applied=0,unmatched=0;
  for(const patch of patches){
   const entry=fields.find(item=>item.field.id===patch.field);if(!entry)continue;
   const {node,before,field}=entry,custom=node.alicePrefill;if(!node.isConnected||node.matches(':disabled')||node.readOnly)continue;
@@ -10,6 +10,7 @@ export default function applyAliceFormFields(fields,patches){
   if(field.type==='number'&&(!value.trim()||!Number.isFinite(Number(value))||(field.min!==undefined&&Number(value)<Number(field.min))||(field.max!==undefined&&Number(value)>Number(field.max))))continue;
   if(field.maxLength&&value.length>field.maxLength)continue;
   if(['checkbox','radio'].includes(field.type)){if(!['true','false'].includes(value)||field.type==='radio'&&value==='false')continue;flushSync(()=>node.click());}
+  else if(custom?.resolve){const match=await custom.resolve(value);if(!match){unmatched++;continue;}if(!node.isConnected||String(node.alicePrefill?.value??'')!==before)continue;flushSync(()=>node.alicePrefill.onChange(match));if(String(node.alicePrefill?.value??'')===String(match.id))applied++;continue;}
   else if(custom){flushSync(()=>custom.onChange(value));}
   else {
    const prototype=node.tagName==='TEXTAREA'?HTMLTextAreaElement.prototype:node.tagName==='SELECT'?HTMLSelectElement.prototype:HTMLInputElement.prototype;
@@ -17,5 +18,5 @@ export default function applyAliceFormFields(fields,patches){
   }
   const after=String(node.alicePrefill?.value??(['checkbox','radio'].includes(field.type)?node.checked:node.value));if(after===value)applied++;
  }
- return applied;
+ return {applied,unmatched};
 }

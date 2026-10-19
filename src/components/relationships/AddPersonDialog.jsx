@@ -2,7 +2,7 @@ import React,{useEffect,useState,useRef} from 'react';
 import {useQueryClient} from '@tanstack/react-query';
 import {useNavigate} from 'react-router-dom';
 import {base44} from '@/api/base44Client';
-import {Dialog,DialogContent,DialogHeader,DialogTitle} from '@/components/ui/dialog';
+import {Dialog,DialogContent,DialogHeader,DialogTitle} from '@/components/forms/form-dialog';
 import {Button} from '@/components/ui/button';
 export default function AddPersonDialog({open,onOpenChange}) {
   const navigate=useNavigate(),queryClient=useQueryClient(),requestId=useRef(''),[form,setForm]=useState({first_name:'',last_name:'',job_title:'',company_name:'',email:''}),[busy,setBusy]=useState(false),[error,setError]=useState('');

@@ -1,7 +1,7 @@
 import React, { useRef, useState } from 'react';
 import { Loader2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/forms/form-dialog';
 import CalendarEventFields from '@/components/outlook/CalendarEventFields';
 import calendarRequest from '@/components/outlook/calendarClient';
 import { emptyEvent, eventForm, eventPayload } from '@/components/outlook/calendarDates';

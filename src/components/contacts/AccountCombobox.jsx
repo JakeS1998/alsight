@@ -3,15 +3,19 @@ import { Popover, PopoverTrigger, PopoverContent } from "@/components/ui/popover
 import { Command, CommandInput, CommandList, CommandEmpty, CommandGroup, CommandItem } from "@/components/ui/command";
 import { Check, ChevronsUpDown } from "lucide-react";
 import { cn } from "@/lib/utils";
+import useAliceLookup from '@/components/forms/useAliceLookup';
 
 export function AccountCombobox({ value, onChange, accounts, placeholder = "Select organisation" }) {
   const [open, setOpen] = useState(false);
   const selected = accounts.find((a) => a.dataverse_id === value);
+  const aliceRef = useAliceLookup({options:accounts.map(account=>({value:account.dataverse_id,label:account.name})),value,onChange,label:placeholder});
 
   return (
     <Popover open={open} onOpenChange={setOpen}>
       <PopoverTrigger asChild>
         <button
+          ref={aliceRef}
+          data-alice-lookup
           type="button"
           role="combobox"
           aria-expanded={open}

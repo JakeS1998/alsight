@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { useQueryClient } from '@tanstack/react-query';
 import { base44 } from '@/api/base44Client';
 import { Button } from '@/components/ui/button';
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/forms/form-dialog';
 import { RELATIONSHIPS } from '@/components/accounts/accountPresentation';
 import CompanyNumberInput from '@/components/accounts/CompanyNumberInput';
 import CouncilCodeReference from '@/components/accounts/CouncilCodeReference';

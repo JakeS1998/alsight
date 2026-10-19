@@ -1,5 +1,5 @@
 import React from 'react';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/forms/form-dialog';
 import { Button } from '@/components/ui/button';
 import DataQualityEditorField from '@/components/admin/DataQualityEditorField';
 import useDataQualityEditor from '@/components/admin/useDataQualityEditor';

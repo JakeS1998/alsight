@@ -5,7 +5,7 @@ import { filterAll } from "@/components/data/loadAll";
 import { Button } from "@/components/ui/button";
 import {
   Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter,
-} from "@/components/ui/dialog";
+} from "@/components/forms/form-dialog";
 import { FormSection, FormGrid, FormField, formInputClass } from "@/components/forms/PowerForm";
 import { AccountCombobox } from "@/components/contacts/AccountCombobox";
 import { LookupCombobox } from "@/components/forms/LookupCombobox";
@@ -40,7 +40,7 @@ export function RequestDialog({ open, onOpenChange, accounts, users, user, onCre
   const [directorOptions, setDirectorOptions] = useState([]);
 
   const clientAccounts = accounts.filter((a) => a.account_type === "client");
-  const [mode, setMode] = useState('alice');
+  const [mode, setMode] = useState('manual');
   const [choicesReady, setChoicesReady] = useState(false);
   const [submitError, setSubmitError] = useState('');
   const pq=useRequestPQ({form,setForm,setMode,requestId,empty:EMPTY,open,resumeId:resumeRequestId});
@@ -49,7 +49,7 @@ export function RequestDialog({ open, onOpenChange, accounts, users, user, onCre
     client_account_id: clientAccounts.map(account => ({ value: account.dataverse_id, label: account.name })),
     bdm_aad_id: bdmOptions, director_aad_id: directorOptions, department_id: REGION_OPTIONS,
   } });
-  useEffect(() => { if (open) setMode('alice'); }, [open]);
+  useEffect(() => { if (open) setMode('manual'); }, [open]);
 
   // Load BDM and Director lookup options (staff contacts + portal users).
   useEffect(() => {

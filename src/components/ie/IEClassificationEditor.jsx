@@ -2,7 +2,7 @@ import React,{useState} from 'react';
 import {useQuery,useQueryClient} from '@tanstack/react-query';
 import {useAuth} from '@/lib/AuthContext';
 import {ieCall} from '@/components/ie/ieClient';
-import {Dialog,DialogContent,DialogHeader,DialogTitle,DialogDescription} from '@/components/ui/dialog';
+import {Dialog,DialogContent,DialogHeader,DialogTitle,DialogDescription} from '@/components/forms/form-dialog';
 import {Input} from '@/components/ui/input';
 import {Button} from '@/components/ui/button';
 export default function IEClassificationEditor({onClose}){

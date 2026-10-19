@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/forms/form-dialog';
 import { Button } from '@/components/ui/button';
 export default function ValuationIssueForm({ type, busy, error, onClose, onIssue }) {
   const [contractReference, setContract] = useState('');

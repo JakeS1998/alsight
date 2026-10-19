@@ -1,6 +1,6 @@
 import React,{useState} from 'react';
 import {useNavigate} from 'react-router-dom';
-import {Dialog,DialogContent,DialogHeader,DialogTitle} from '@/components/ui/dialog';
+import {Dialog,DialogContent,DialogHeader,DialogTitle} from '@/components/forms/form-dialog';
 import {Button} from '@/components/ui/button';
 import ClientSelect from '@/components/crm/ClientSelect';
 import {STAGES,createCRMOpportunity} from '@/components/crm/crm';

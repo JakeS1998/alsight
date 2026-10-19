@@ -3,7 +3,7 @@ import {useQuery,useQueryClient} from '@tanstack/react-query';
 import {useNavigate} from 'react-router-dom';
 import {useAuth} from '@/lib/AuthContext';
 import {ieCall} from '@/components/ie/ieClient';
-import {Dialog,DialogContent,DialogHeader,DialogTitle,DialogDescription} from '@/components/ui/dialog';
+import {Dialog,DialogContent,DialogHeader,DialogTitle,DialogDescription} from '@/components/forms/form-dialog';
 import {Button} from '@/components/ui/button';
 import IEIdentityFields from '@/components/ie/IEIdentityFields';
 import IEScopeFields from '@/components/ie/IEScopeFields';

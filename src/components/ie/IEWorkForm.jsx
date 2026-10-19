@@ -1,6 +1,6 @@
 import React,{useState} from 'react';
 import {useQueryClient} from '@tanstack/react-query';
-import {Dialog,DialogContent,DialogHeader,DialogTitle,DialogDescription} from '@/components/ui/dialog';
+import {Dialog,DialogContent,DialogHeader,DialogTitle,DialogDescription} from '@/components/forms/form-dialog';
 import {Button} from '@/components/ui/button';
 import {ieCall} from '@/components/ie/ieClient';
 import {IE_WORK_AREAS} from '@/components/ie/ieWorkConfig';

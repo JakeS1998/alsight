@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import SearchableSelect from '@/components/forms/SearchableSelect';
 import {
   Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter,
-} from "@/components/ui/dialog";
+} from "@/components/forms/form-dialog";
 import { FormField, formInputClass } from "@/components/forms/PowerForm";
 import { AccountCombobox } from "@/components/contacts/AccountCombobox";
 import PortalOrganisationSelect from '@/components/relationships/PortalOrganisationSelect';

@@ -14,7 +14,7 @@ export default function AliceFormPrefill({bodyRef}){
   try{
    const {data}=await base44.functions.invoke('prefillPopupForm',{description:text.trim(),title:root.querySelector('h2')?.textContent||'Edit form',fields:fields.map(item=>item.field),localDate:new Date().toLocaleDateString('en-CA'),timezone:Intl.DateTimeFormat().resolvedOptions().timeZone});
    if(data.error)throw new Error(data.error);if(token!==request.current||!root.isConnected)return;
-   const count=applyAliceFormFields(fields,data.patches||[]);setMessage(`${count?`Filled ${count} ${count===1?'field':'fields'}. Review the details before saving.`:'No matching changes were applied. Try naming the fields and values.'}${data.note?' '+data.note:''}`);
+   const {applied:count,unmatched}=await applyAliceFormFields(fields,data.patches||[]);if(!root.isConnected)return;setMessage(`${count?`Filled ${count} ${count===1?'field':'fields'}. Review the details before saving.`:'No matching changes were applied. Try naming the fields and values.'}${unmatched?' Some linked records could not be uniquely matched; please select them manually.':''}${data.note?' '+data.note:''}`);
   }catch(failure){if(root.isConnected)setError(failure.response?.data?.error||failure.message||'ALICE could not fill this draft. You can still enter the fields manually.');}
   finally{if(root.isConnected)setBusy(false);}
  };
