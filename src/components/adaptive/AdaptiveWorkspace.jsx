@@ -36,7 +36,7 @@ export default function AdaptiveWorkspace({user}) {
   {query.isPending&&<AdaptiveWorkspaceSkeleton contentOnly/>}
   {query.error&&<div role="alert" className="at-empty"><h2>Your workspace could not be loaded.</h2><p>{query.error.message}</p><button className="at-btn" onClick={()=>query.refetch()}>Try again</button></div>}
   {data&&<><AdaptiveMetrics data={data} calendar={query.calendar} onSelect={setMetricView} actions={ranked}/>
-   <AdaptiveMetricDialog view={metricView} onClose={()=>setMetricView(null)} data={data} calendar={query.calendar} user={user} actions={ranked}/>
+   <AdaptiveMetricDialog view={metricView} onClose={()=>setMetricView(null)} data={data} calendar={query.calendar} user={user} actions={ranked} onComplete={query.complete}/>
    <HomeContextNote data={data} time={time} calendar={query.calendar}/>
    {data.warnings.length>0&&<details className="at-source-warning"><summary>Some sources are unavailable ({data.warnings.length}). This briefing is partial.</summary>{data.warnings.map(w=><p key={w}>{w}</p>)}</details>}
    <AdaptiveFocusContent user={user} time={time} query={query} data={data} actions={actions} ranked={ranked} prefs={prefs} context={context} focus={focus} intelligence={intelligence} hasRecords={!!records.length}/>
