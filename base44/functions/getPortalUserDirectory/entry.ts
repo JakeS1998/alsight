@@ -9,7 +9,13 @@ export default async function(req) {
   const input=await req.json(),offset=input.offset ?? 0,search=input.search ?? '';
   if(!Number.isInteger(offset) || offset<0 || offset>10000 || typeof search!=='string' || search.length>100 || (input.linked!=null && typeof input.linked!=='boolean'))return Response.json({error:'Invalid directory page.'},{status:400});
   const db=base44.entities,query={...(input.linked ? {} : portalDirectoryQuery),...await portalUserSearch(db,search),...(input.linked ? {dataverse_systemuser_id:{$exists:true,$nin:[null,'']}} : {})};
-  const people=await db.User.filter(query,'full_name',51,offset),items=await withPortalUserNames(db,people.slice(0,50));
-  return Response.json({items,has_more:people.length>50,next_offset:offset+50});
+  let people=await db.User.filter(query,'full_name',51,offset),suggested=false;
+  const direct=offset && !people.length ? await db.User.filter(query,'full_name',1,0) : people;
+  if(!direct.length && search.trim().length>=2){
+   const fallback={...(input.linked ? {} : portalDirectoryQuery),...await portalUserSearch(db,search,true),...(input.linked ? {dataverse_systemuser_id:{$exists:true,$nin:[null,'']}} : {})};
+   people=await db.User.filter(fallback,'full_name',51,offset);suggested=true;
+  }
+  const items=await withPortalUserNames(db,people.slice(0,50));
+  return Response.json({items,suggested,has_more:people.length>50,next_offset:offset+50});
  }catch(error){return Response.json({error:error.message},{status:500});}
 }

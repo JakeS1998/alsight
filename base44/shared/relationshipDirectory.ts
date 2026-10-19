@@ -1,9 +1,10 @@
 import {accountContactQuery,contactAccountQuery,resolveContactAccount} from './accountContactLinks.ts';
+import {resolveSearchQuery} from './searchFallback.ts';
 const escape=value=>String(value || '').replace(/[.*+?^${}()|[\]\\]/g,'\\$&');
 async function ids(entity,query,field) {const page=await entity.filter(query,{distinct:field,limit:1000});if(page.has_more) throw new Error('Please narrow the filters; this relationship selection exceeds 1,000 linked records.');return page.items.filter(Boolean);}
 export async function relationshipDirectory(db,input) {
   const f=input.filters || {},clauses=[],today=new Date().toISOString(),cutoff=new Date(Date.now()-60*86400000).toISOString();
-  if(f.search?.trim()) clauses.push({$or:['full_name','job_title','company_name','email','officer_role','authority'].map(k=>({[k]:{$regex:escape(f.search.trim()),$options:'i'}}))});
+  const search=String(f.search || '').trim().slice(0,80);
   if(f.status) clauses.push({status:f.status});if(f.portal==='yes') clauses.push({aad_id:{$regex:'\\S'}});if(f.portal==='no') clauses.push({$or:[{aad_id:{$exists:false}},{aad_id:''},{aad_id:null}]});
   if(f.organisation) {const a=await db.Account.get(f.organisation);if(!a) throw new Error('Organisation unavailable.');clauses.push(accountContactQuery(a));}
   const profileQuery={};if(f.strength) profileQuery.relationship_strength=f.strength;if(f.owner) profileQuery.relationship_owner_contact_id=f.owner;if(f.strategic==='yes') profileQuery.contact_priority='strategic';if(f.key==='yes' || f.focus==='decision') profileQuery.key_decision_maker=true;
@@ -12,13 +13,14 @@ export async function relationshipDirectory(db,input) {
   const recent=[...new Set([...recentA,...recentC])],attention=[...new Set([...late,...[...live,...marked].filter(id=>!recent.includes(id))])];
   const selected=f.focus==='attention' ? attention : f.focus==='live' || f.live==='yes' ? live : null;if(selected) include=include===null ? selected : include.filter(id=>selected.includes(id));
   if(f.live==='yes' && f.focus!=='live')include=include===null ? live : include.filter(id=>live.includes(id));
-  const query=clauses.length ? {$and:clauses} : {};if(include!==null) query.id={$in:include};
-  const matchedTotal=input.includeMatchedTotal===true ? await db.Contact.count(query) : undefined;
+  const baseQuery=clauses.length ? {$and:clauses} : {};if(include!==null) baseQuery.id={$in:include};
+  const {query,total:searchTotal,suggested}=await resolveSearchQuery(db.Contact,search,pattern=>({...baseQuery,...(pattern ? {$and:[...clauses,{$or:['full_name','job_title','company_name','email','officer_role','authority'].map(k=>({[k]:{$regex:pattern,$options:'i'}}))}]} : {})}));
+  const matchedTotal=input.includeMatchedTotal===true ? searchTotal : undefined;
   const [page,total,decision,need,liveCount]=await Promise.all([db.Contact.filter(query,{sort:'full_name',limit:input.limit || 50,fields:['full_name','job_title','company_name','company_number','email','email2','email3','officer_role','authority','status','aad_id','dataverse_id','updated_date'],...(input.cursor ? {cursor:input.cursor} : {})}),db.Contact.count({}),db.Contact.count({id:{$in:marked}}),db.Contact.count({id:{$in:attention}}),db.Contact.count({id:{$in:live}})]);
-  const personIds=page.items.map(c=>c.id);if(!personIds.length) return {matchedTotal,page:{has_more:page.has_more,next_cursor:page.next_cursor},rows:[],metrics:{total,decision,attention:need,live:liveCount}};
+  const personIds=page.items.map(c=>c.id);if(!personIds.length) return {matchedTotal,suggested,page:{has_more:page.has_more,next_cursor:page.next_cursor},rows:[],metrics:{total,decision,attention:need,live:liveCount}};
   const accountQuery=contactAccountQuery(page.items);
   const [profiles,accounts,activity,conversation,tasks,actions]=await Promise.all([db.ContactProfile.filter({contact_id:{$in:personIds}},{limit:100}),db.Account.filter(accountQuery,{limit:150,fields:['name','company_name','company_number','primary_contact_id','email','website']}),db.CRMActivity.aggregate({query:{contact_id:{$in:personIds}},groupBy:'contact_id',max:'occurred_at'}),db.Conversation.aggregate({query:{contact_id:{$in:personIds}},groupBy:'contact_id',max:'occurred_at'}),db.CRMContactTask.aggregate({query:{contact_id:{$in:personIds},status:'open'},groupBy:'contact_id',min:'due_at'}),db.CRMContactTask.filter({contact_id:{$in:personIds},status:'open'},{sort:'due_at',limit:100,fields:['contact_id','title','due_at']})]);
   const owners=profiles.items.map(p=>p.relationship_owner_contact_id).filter(Boolean),staff=owners.length ? await db.Contact.filter({id:{$in:owners}},{limit:100,fields:['full_name']}) : {items:[]};
   const rows=page.items.map(person=>{const profile=profiles.items.find(p=>p.contact_id===person.id),org=accounts.has_more ? null : resolveContactAccount(accounts.items,person),last=[activity.rows.find(a=>a.contact_id===person.id)?.max_occurred_at,conversation.rows.find(a=>a.contact_id===person.id)?.max_occurred_at].filter(Boolean).sort().at(-1),task=tasks.rows.find(t=>t.contact_id===person.id),next=actions.items.find(t=>t.contact_id===person.id && (!task?.min_due_at || t.due_at===task.min_due_at));return {person,profile,organisation:org,last,next:next || (task?.count ? {title:'Open action, view person',due_at:task.min_due_at} : null),owner:staff.items.find(s=>s.id===profile?.relationship_owner_contact_id)?.full_name};});
-  return {matchedTotal,page:{has_more:page.has_more,next_cursor:page.next_cursor},rows,metrics:{total,decision,attention:need,live:liveCount}};
+  return {matchedTotal,suggested,page:{has_more:page.has_more,next_cursor:page.next_cursor},rows,metrics:{total,decision,attention:need,live:liveCount}};
 }

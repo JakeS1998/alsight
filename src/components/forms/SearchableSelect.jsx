@@ -3,12 +3,14 @@ import { Popover, PopoverTrigger, PopoverContent } from '@/components/ui/popover
 import { Command, CommandInput, CommandList, CommandEmpty, CommandGroup, CommandItem } from '@/components/ui/command';
 import { Check, ChevronsUpDown } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import SearchHighlight from '@/components/search/SearchHighlight';
+import {textContent} from '@/components/search/orderedSearch';
 
-export default function SearchableSelect({ children, value, ...props }) {
+export default function SearchableSelect({ children, value, externalSearch=false, searchTerm='', ...props }) {
   const [open, setOpen] = useState(false);
   const select = useRef(null), trigger = useRef(null);
   const options = React.Children.toArray(children).filter(React.isValidElement);
-  if (options.length <= 10 || props.multiple) return <select value={value} {...props}>{children}</select>;
+  if ((!externalSearch && options.length <= 10) || props.multiple) return <select value={value} {...props}>{children}</select>;
   const optionValue = option => String(option.props.value ?? option.props.children ?? '');
   const selected = options.find(option => optionValue(option) === String(value ?? props.defaultValue ?? optionValue(options[0])));
   function choose(option) {
@@ -25,12 +27,12 @@ export default function SearchableSelect({ children, value, ...props }) {
         </button>
       </PopoverTrigger>
       <PopoverContent align="start" className="p-0" style={{ width: 'var(--radix-popover-trigger-width)' }}>
-        <Command filter={(_, search, keywords) => (keywords || []).join(' ').toLowerCase().includes(search.trim().toLowerCase()) ? 1 : 0}>
-          <CommandInput aria-label={`Search ${props['aria-label'] || props.name || 'options'}`} placeholder="Search options…"/>
+        <Command shouldFilter={!externalSearch}>
+          {!externalSearch && <CommandInput aria-label={`Search ${props['aria-label'] || props.name || 'options'}`} placeholder="Search options…"/>}
           <CommandList>
             <CommandEmpty>No matches found.</CommandEmpty>
             <CommandGroup>{options.map((option, index) => <CommandItem key={index} value={String(index)} keywords={[String(option.props.children ?? '')]} disabled={option.props.disabled} onSelect={() => choose(option)}>
-              <Check className={cn('h-4 w-4 shrink-0', selected === option ? 'opacity-100' : 'opacity-0')}/>{option.props.children}
+              <Check className={cn('h-4 w-4 shrink-0', selected === option ? 'opacity-100' : 'opacity-0')}/>{externalSearch ? <SearchHighlight text={textContent(option.props.children)} term={searchTerm}/> : option.props.children}
             </CommandItem>)}</CommandGroup>
           </CommandList>
         </Command>

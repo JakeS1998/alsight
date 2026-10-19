@@ -1,22 +1,23 @@
 import {ieError,ieText,ieEscape,ieRoles,ieIdentity} from './ieAccess.ts';
 import {iePeople} from './iePeople.ts';
+import {searchRecordPage} from './searchFallback.ts';
 export async function ieLookup(base44,user,input){
  const db=base44.asServiceRole.entities,kind=input.kind,search=ieText(input.search,100),cursor=ieText(input.cursor,4000),opts={limit:30,sort:'name',...(cursor?{cursor}:{})};
  const match=field=>search?{[field]:{$regex:ieEscape(search),$options:'i'}}:{};
  if(kind==='people'){
   return {items:await iePeople(db),has_more:false};
  }
- if(kind==='client')return db.Account.filter({account_type:'client',status:{$ne:'inactive'},...match('name')},{...opts,fields:['name']});
+ if(kind==='client')return searchRecordPage(db.Account,{account_type:'client',status:{$ne:'inactive'}},['name'],search,{...opts,fields:['name']});
  if(!['project','opportunity'].includes(kind))ieError('Unknown relationship type.');
  const clientId=ieText(input.client_id,100);if(!clientId)return {items:[],has_more:false};
  const account=await db.Account.get(clientId);if(account.account_type!=='client')ieError('Choose an existing client.');
  if(kind==='project'){
-  const conditions=[{status:{$ne:'inactive'}},{$or:[{client_account_id:{$in:[account.id,account.dataverse_id].filter(Boolean)}},{account_id:{$in:[account.id,account.dataverse_id].filter(Boolean)}}]},match('name')];
-  return db.Project.filter({$and:conditions},{...opts,fields:['name','project_number','site_postcode','client_name']});
+  const conditions=[{status:{$ne:'inactive'}},{$or:[{client_account_id:{$in:[account.id,account.dataverse_id].filter(Boolean)}},{account_id:{$in:[account.id,account.dataverse_id].filter(Boolean)}}]}];
+   return searchRecordPage(db.Project,{$and:conditions},['name','project_number'],search,{...opts,fields:['name','project_number','site_postcode','client_name']});
  }
  // Opportunity RLS remains authoritative. SAMs do not inherit other BDMs' private opportunity access.
- const query={$and:[{account_id:{$in:[account.id,account.dataverse_id].filter(Boolean)}},match('title')]};
- const page=await base44.entities.Opportunity.filter(query,{...opts,sort:'title',fields:['title','account_id']});
+ const query={account_id:{$in:[account.id,account.dataverse_id].filter(Boolean)}};
+ const page=await searchRecordPage(base44.entities.Opportunity,query,['title'],search,{...opts,sort:'title',fields:['title','account_id']});
  return {...page,items:page.items.map(row=>({...row,name:row.title}))};
 }
 export async function ieLinkedProject(base44,user,input){

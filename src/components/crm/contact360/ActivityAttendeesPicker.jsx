@@ -1,6 +1,7 @@
 import React,{useEffect,useState} from 'react';
 import {useInfiniteQuery} from '@tanstack/react-query';
 import {base44} from '@/api/base44Client';
+import searchRecords from '@/components/search/searchRecords';
 import {useAuth} from '@/lib/AuthContext';
 import {Button} from '@/components/ui/button';
 import {Popover,PopoverTrigger,PopoverContent} from '@/components/ui/popover';
@@ -11,8 +12,7 @@ export default function ActivityAttendeesPicker({value,onChange,disabled}) {
  const [open,setOpen]=useState(false),[search,setSearch]=useState(''),[term,setTerm]=useState('');
  useEffect(()=>{const timer=setTimeout(()=>setTerm(search.trim()),250);return()=>clearTimeout(timer);},[search]);
  const query=useInfiniteQuery({queryKey:['activity-attendee-people',user?.id,user?.role,term],enabled:open&&!disabled,initialPageParam:null,retry:false,queryFn:({pageParam})=>{
-  const pattern=term.replace(/[.*+?^${}()|[\]\\]/g,'\\$&');
-  return base44.entities.Contact.filter({status:{$ne:'inactive'},...(term?{$or:[{full_name:{$regex:pattern,$options:'i'}},{email:{$regex:pattern,$options:'i'}}]}:{})},{sort:'full_name',limit:20,fields:['full_name','email','company_name'],...(pageParam?{cursor:pageParam}:{})});
+  return searchRecords(base44.entities.Contact,{status:{$ne:'inactive'}},['full_name','email'],term,{sort:'full_name',limit:20,fields:['full_name','email','company_name'],...(pageParam?{cursor:pageParam}:{})});
  },getNextPageParam:page=>page.has_more?page.next_cursor:undefined});
  const toggle=person=>onChange(value.some(item=>item.id===person.id)?value.filter(item=>item.id!==person.id):[...value,{id:person.id,name:person.full_name}]);
  return <div className="space-y-1 text-sm"><span id="activity-attendees-label">Attendees</span>

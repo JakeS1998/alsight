@@ -5,6 +5,7 @@ import { dataRequestError } from '../../shared/dataRequestError.ts';
 import {recordIds} from '../../shared/recordIds.ts';
 import {aseCurrentRatings} from '../../shared/aseCurrentRatings.ts';
 import {projectValueAggregate} from '../../shared/projectValueAggregate.ts';
+import {resolveSearchQuery} from '../../shared/searchFallback.ts';
 const signalCache = new Map();
 function cachedSignals(key,load) {
  const cached=signalCache.get(key);
@@ -28,7 +29,7 @@ export default async function(req: Request): Promise<Response> {
       if (typeof input.accountId !== 'string' || !/^[a-zA-Z0-9_-]{1,64}$/.test(input.accountId)) return Response.json({ error: 'Invalid account' }, { status: 400 });
       // Keep the built-in id predicate at the top level of the final query.
     }
-    if (filters.search) { const text = String(filters.search).slice(0, 120).replace(/[.*+?^${}()|[\]\\]/g, '\\$&'); clauses.push({ $or: ['name','company_number','address_city','public_body_identifier'].map(field => ({ [field]: { $regex: text, $options: 'i' } })) }); }
+    const search=String(filters.search || '').trim().slice(0,80);
     if (filters.relationship) clauses.push({ $or: [{ relationship_types: filters.relationship }, { account_type: filters.relationship }] });
     if (filters.organisation) clauses.push({ $or: [{ organisation_type: filters.organisation }, { company_type: filters.organisation }] });
     if (filters.region) clauses.push({ region: filters.region });
@@ -73,9 +74,11 @@ export default async function(req: Request): Promise<Response> {
     const groupedProjects = projects.rows.map(row => ({ ...row, accountKeys: [...new Set([row.client_account_id,row.account_id,...(links.get(row.id) || []),...(links.get(row.dataverse_id) || [])].filter(Boolean))] }));
     const projectKeys = [...new Set(groupedProjects.flatMap(row => row.accountKeys))];
     const opportunityKeys = opportunities.rows.map(row => row.account_id).filter(Boolean);
+    const makeQuery=async pattern=>{
+    const searchClauses=[...clauses,...(pattern ? [{$or:['name','company_number','address_city','public_body_identifier'].map(field=>({[field]:{$regex:pattern,$options:'i'}}))}] : [])];
     let matchingIds = null;
     if (filters.live || filters.opportunities) {
-      const identities = await base44.entities.Account.aggregate({ query: clauses.length ? { $and: clauses } : {}, groupBy: ['id','dataverse_id'], limit: 1000 });
+      const identities = await base44.entities.Account.aggregate({ query: searchClauses.length ? { $and: searchClauses } : {}, groupBy: ['id','dataverse_id'], limit: 1000 });
       if (identities.truncated) return Response.json({ error: 'Account relationship filters exceed the reporting limit. Narrow your organisation filters.' }, { status: 422 });
       matchingIds = identities.rows.filter(row => {
         const hasLive = [row.id,row.dataverse_id].some(key => projectKeys.includes(key));
@@ -84,11 +87,10 @@ export default async function(req: Request): Promise<Response> {
       }).map(row => row.id);
     }
     if (matchingIds && aseIds) matchingIds = matchingIds.filter(id=>filters.ase==='unassessed' ? !aseIds.includes(id) : aseIds.includes(id));
-    const query = { ...(clauses.length ? { $and: clauses } : {}), ...(matchingIds ? { id: { $in: matchingIds } } : aseIds ? {id:{[filters.ase==='unassessed' ? '$nin' : '$in']:aseIds}} : {}), ...(input.accountId ? { id: { $in: [input.accountId] } } : {}) };
-    const [page, total] = await Promise.all([
-      input.accountId ? base44.entities.Account.get(input.accountId).then(account => ({ items: account ? [account] : [], next_cursor: null, has_more: false })) : base44.entities.Account.filter(query, { ...(!query.id ? { sort: 'name' } : {}), limit: 30, ...(typeof input.cursor === 'string' ? { cursor: input.cursor } : {}) }),
-      base44.entities.Account.count(query),
-    ]);
+    return { ...(searchClauses.length ? { $and: searchClauses } : {}), ...(matchingIds ? { id: { $in: matchingIds } } : aseIds ? {id:{[filters.ase==='unassessed' ? '$nin' : '$in']:aseIds}} : {}) };
+    };
+    const {query,total,suggested}=await resolveSearchQuery(base44.entities.Account,search,makeQuery);
+    const page=await base44.entities.Account.filter(query,{...(!query.id ? {sort:'name'} : {}),limit:30,...(typeof input.cursor==='string' ? {cursor:input.cursor} : {})});
     const ownerIds = [...new Set(page.items.map(account => account.account_manager_aad_id).filter(Boolean))];
     const ownerRecordIds=recordIds(ownerIds);
     const owners = ownerIds.length ? await base44.entities.Contact.filter({ $or: [{ aad_id: { $in: ownerIds } }, { dataverse_id: { $in: ownerIds } }, ...(ownerRecordIds.length ? [{ id: { $in: ownerRecordIds } }] : [])] }, { limit: 100, fields: ['full_name','aad_id','dataverse_id'] }) : { items: [] };
@@ -103,6 +105,6 @@ export default async function(req: Request): Promise<Response> {
       const owner = owners.items.find(row => [row.id,row.aad_id,row.dataverse_id].includes(account.account_manager_aad_id));
       return { account, signals: { activeProjects: related.reduce((sum,row) => sum + row.count, 0), openOpportunities: open.reduce((sum,row) => sum + row.count, 0), ...(visibleMoney ? { liveValue: related.reduce((sum,row) => sum + (row.sum_estimated_value || 0), 0) } : {}), lastInteraction: recent, owner: owner?.full_name || (account.account_manager_aad_id ? 'Assigned owner' : 'Not assigned') } };
     });
-    return Response.json({ items, total, next_cursor: page.next_cursor, has_more: page.has_more });
+    return Response.json({ items, total, suggested, next_cursor: page.next_cursor, has_more: page.has_more });
   } catch (error) { return dataRequestError(error,'Unable to load accounts'); }
 }
