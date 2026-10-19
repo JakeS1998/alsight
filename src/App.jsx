@@ -18,6 +18,7 @@ const FinanceAdmin = lazy(() => import('@/pages/FinanceAdmin.jsx'));
 const PowerBICallback = lazy(() => import('@/pages/PowerBICallback.jsx'));
 const People = lazy(() => import('@/pages/People'));
 import PageLoadBoundary from '@/components/PageLoadBoundary';
+import PageLoadingSkeleton from '@/components/loading/PageLoadingSkeleton';
 import AccessDenied from '@/pages/AccessDenied';
 import StakeholderRoute from '@/components/StakeholderRoute';
 import OnboardingGate from '@/components/onboarding/OnboardingGate';
@@ -93,7 +94,7 @@ const AuthenticatedApp = () => {
 
   return (
     <PageLoadBoundary route={location.pathname}>
-      <Suspense fallback={<div className="flex min-h-[40vh] items-center justify-center" role="status">Loading page…</div>}>
+      <Suspense fallback={<PageLoadingSkeleton />}>
     <Routes>
       <Route path="/login" element={<Login />} />
       <Route path="/register" element={<Register />} />

@@ -19,6 +19,7 @@ import useWellbeingAnchor from '@/components/wellbeing/useWellbeingAnchor';
 import AdaptiveCommandBar from '@/components/adaptive/AdaptiveCommandBar';
 import AdaptiveFocusNav from '@/components/adaptive/AdaptiveFocusNav';
 import AdaptiveMetrics from '@/components/adaptive/AdaptiveMetrics';
+import AdaptiveWorkspaceSkeleton from '@/components/adaptive/AdaptiveWorkspaceSkeleton';
 
 export default function AdaptiveWorkspace({user}) {
  const [commandFeedback,setCommandFeedback]=useState(''),[metricView,setMetricView]=useState(null);
@@ -32,7 +33,7 @@ export default function AdaptiveWorkspace({user}) {
   </AdaptiveTodayHero>
   <AdaptiveFocusNav focus={focus} prefs={prefs} context={context} ready={!!data}/>
   <p id="adaptive-command-help" className={commandFeedback?'at-small my-3':'sr-only'} role="status">{commandFeedback||'Ask about loaded records or use layout commands such as pin projects and hide documents.'}</p>
-  {query.isPending&&<div className="at-loading" role="status"><span className="at-spinner"/><h2>Bringing your working day into focus.</h2><p>Reading your assigned work and accessible project records…</p></div>}
+  {query.isPending&&<AdaptiveWorkspaceSkeleton contentOnly/>}
   {query.error&&<div role="alert" className="at-empty"><h2>Your workspace could not be loaded.</h2><p>{query.error.message}</p><button className="at-btn" onClick={()=>query.refetch()}>Try again</button></div>}
   {data&&<><AdaptiveMetrics data={data} calendar={query.calendar} onSelect={setMetricView}/>
    <AdaptiveMetricDialog view={metricView} onClose={()=>setMetricView(null)} data={data} calendar={query.calendar} user={user} actions={ranked}/>

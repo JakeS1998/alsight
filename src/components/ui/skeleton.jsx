@@ -1,4 +1,5 @@
 import { cn } from "@/lib/utils"
+import '@/components/loading/skeleton.css'
 
 function Skeleton({
   className,
@@ -6,7 +7,8 @@ function Skeleton({
 }) {
   return (
     (<div
-      className={cn("animate-pulse rounded-md bg-primary/10", className)}
+      aria-hidden="true"
+      className={cn("skeleton-shimmer rounded-md bg-foreground/5", className)}
       {...props} />)
   );
 }

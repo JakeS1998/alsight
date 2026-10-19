@@ -1,4 +1,5 @@
 import React from 'react';
 import {Button} from '@/components/ui/button';
 import AccessDenied from '@/pages/AccessDenied';
-export default function IEQueryState({query,children}){if(query.isPending)return <p role="status" className="py-12 text-center text-sm text-muted-foreground">Loading I&amp;E…</p>;if(query.error?.status===403)return <AccessDenied/>;if(query.error)return <div role="alert" className="rounded-panel border border-destructive/30 bg-card p-6"><p className="text-sm text-destructive">{query.error.message}</p><Button variant="outline" className="mt-3" onClick={()=>query.refetch()}>Try again</Button></div>;return children;}
+import PageContentSkeleton from '@/components/loading/PageContentSkeleton';
+export default function IEQueryState({query,children}){if(query.isPending)return <PageContentSkeleton header={false} cards={6} label="Loading I&E workspace"/>;if(query.error?.status===403)return <AccessDenied/>;if(query.error)return <div role="alert" className="rounded-panel border border-destructive/30 bg-card p-6"><p className="text-sm text-destructive">{query.error.message}</p><Button variant="outline" className="mt-3" onClick={()=>query.refetch()}>Try again</Button></div>;return children;}
