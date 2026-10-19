@@ -15,6 +15,7 @@ import RegisterSortHeading from '@/components/delivery/RegisterSortHeading';
 import RegisterStatusDropdown from '@/components/delivery/RegisterStatusDropdown';
 import RecordUpdatedAt from '@/components/RecordUpdatedAt';
 import { useAuth } from '@/lib/AuthContext';
+import useDeletion from '@/components/deletion/useDeletion';
 
 const emptyForm = (columns) => Object.fromEntries(columns.map((c) => [c.key, c.type === "boolean" ? false : ""]));
 
@@ -30,7 +31,9 @@ const coerce = (columns, form) => {
 export function RegisterList({ title, description, entityName, projectId, project, columns, tableColumns, sortBy = "-created_date", addLabel = "Add", preparePayload = value => value, onChanged, paginated = false, sortable = false }) {
   const { user } = useAuth();
   const canUpdateStatus = ['admin', 'director', 'bdm', 'bsm'].includes(user?.role) && ['ProjectAction', 'ProjectDecision', 'ProjectRisk'].includes(entityName);
-  const [rows, setRows] = useState([]);
+  const deletion = useDeletion(entityName);
+  const [loadedRows, setRows] = useState([]);
+  const rows = deletion.visible(loadedRows);
   const [loading, setLoading] = useState(true);
   const [open, setOpen] = useState(false);
   const [editing, setEditing] = useState(null);
@@ -92,9 +95,13 @@ export function RegisterList({ title, description, entityName, projectId, projec
     }
   };
 
-  const remove = async (id) => {
-    try { await base44.entities[entityName].delete(id); if (entityName === 'ProjectAction') window.dispatchEvent(new Event('alsight-tasks-changed')); await load(); onChanged?.(); }
-    catch (e) { setError(e.message || 'Unable to delete register entry.'); }
+  const remove = id => {
+    const row = rows.find(item => item.id === id);
+    deletion.request({ id, label: `${title.toLowerCase()} entry “${row?.title || row?.name || row?.description || row?.risk_description || 'Untitled entry'}”`, onDelete: async () => {
+      await base44.entities[entityName].delete(id);
+      if (entityName === 'ProjectAction') window.dispatchEvent(new Event('alsight-tasks-changed'));
+      await load(); await onChanged?.();
+    } });
   };
 
   const renderInput = (col) => {

@@ -31,6 +31,7 @@ import singleTaskFees from '@/components/delivery/singleTaskFees';
 import taskProposalTotal from '@/components/delivery/taskProposalTotal';
 import refreshProjectReportingValue from '@/components/delivery/refreshProjectReportingValue';
 import { requiredClientContingency, isClientContingency } from '@/components/delivery/clientContingency';
+import useDeletion from '@/components/deletion/useDeletion';
 
 const BASIS = [
   { value: "fixed", label: "Fixed" },
@@ -63,6 +64,7 @@ const normalizeFeeItems = (lines) => requiredClientContingency(lines).map(line =
 const parseItems = (s) => { try { return normalizeFeeItems(JSON.parse(s) || []); } catch { return []; } };
 
 export function FeeProposalSection({ projectId, project, onChanged, deliveryTeam, suppliers, legalDocs, dmas, children }) {
+  const deletion = useDeletion('FeeProposal');
   const [rows, setRows] = useState([]);
   const [pos, setPos] = useState([]);
   const [selectedId, setSelectedId] = useState(null);
@@ -122,7 +124,7 @@ export function FeeProposalSection({ projectId, project, onChanged, deliveryTeam
 
   useEffect(() => { load(); }, [load]);
 
-  const selected = rows.find((r) => r.id === selectedId) || rows[0];
+  const selected = deletion.isHidden(selectedId) ? undefined : rows.find((r) => r.id === selectedId) || rows[0];
   const selectProposal = (id) => {
     setSelectedId(id);
     const r = rows.find((x) => x.id === id);
@@ -142,7 +144,7 @@ export function FeeProposalSection({ projectId, project, onChanged, deliveryTeam
 
   const contractorBuild = useMemo(() => singleTask ? null : computeContractorBuildUp(deliveryTeam, ohpSurveysPct, ohpRiba57Pct, ohpSurveysType, ohpSurveysFixed), [singleTask, deliveryTeam, ohpSurveysPct, ohpRiba57Pct, ohpSurveysType, ohpSurveysFixed]);
   const liveSettings = frameworkFees.settings;
-  const automaticSettings = !loading && selectedId && agreement.route && !frameworkFees.loading && !frameworkFees.error && liveSettings?.bands?.length ? liveSettings : null;
+  const automaticSettings = !loading && selectedId && !deletion.isHidden(selectedId) && agreement.route && !frameworkFees.loading && !frameworkFees.error && liveSettings?.bands?.length ? liveSettings : null;
   const items = useMemo(() => automaticFrameworkFeeLines(requiredClientContingency(storedItems, singleTask), feeProposalTotals(supplierLines, [], contractorBuild).supplierFees, automaticSettings, singleTask), [storedItems, supplierLines, contractorBuild, automaticSettings, singleTask]);
   const totals = useMemo(() => feeProposalTotals(supplierLines, items, contractorBuild), [supplierLines, items, contractorBuild]);
   const fsfContractors = useMemo(() => singleTask ? taskFees.contractors : contractorFsfRows(deliveryTeam, contractorBuild), [singleTask, taskFees, deliveryTeam, contractorBuild]);
@@ -235,7 +237,7 @@ export function FeeProposalSection({ projectId, project, onChanged, deliveryTeam
     } finally { setSavingHeader(false); }
   };
 
-  const removeProposal = async (id) => { await base44.entities.FeeProposal.delete(id); await refreshProjectReportingValue(projectId,queryCache); load(); };
+  const removeProposal = id => deletion.request({ id, label: `fee proposal revision R${rows.find(row => row.id === id)?.revision_number || 1}`, description: 'This deletes the saved revision and its fee build-up. Project reporting values will be refreshed.', onDelete: async () => { await base44.entities.FeeProposal.delete(id); await refreshProjectReportingValue(projectId,queryCache); await load(); } });
 
   const doExport = async (includeInternal = false, includeRiba57 = true) => {
     if (!selected || (includeInternal && !fsf.allowed)) return;
@@ -264,7 +266,7 @@ export function FeeProposalSection({ projectId, project, onChanged, deliveryTeam
 
         {loading ? (
           <div className="flex justify-center py-6"><div className="h-6 w-6 animate-spin rounded-full border-4 border-slate-200 border-t-primary" /></div>
-        ) : rows.length === 0 ? (
+        ) : deletion.visible(rows).length === 0 ? (
           <div className="rounded-xl border border-dashed border-slate-300 bg-white py-8 text-center text-sm text-slate-500">No fee proposals yet. Add a revision to start building.</div>
         ) : (
           <div className="overflow-x-auto rounded-xl border border-slate-200 bg-white">
@@ -280,7 +282,7 @@ export function FeeProposalSection({ projectId, project, onChanged, deliveryTeam
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-100">
-                {rows.map((r) => (
+                {deletion.visible(rows).map((r) => (
                   <tr key={r.id} className={`hover:bg-slate-50 ${r.id === selectedId ? "bg-primary/5" : ""}`}>
                     <td className="px-3 py-2.5"><input type="radio" checked={r.id === selectedId} onChange={() => selectProposal(r.id)} className="h-4 w-4 accent-primary" /></td>
                     <td className="px-3 py-2.5 font-medium text-slate-700">R{r.revision_number || 1}</td>
@@ -289,7 +291,7 @@ export function FeeProposalSection({ projectId, project, onChanged, deliveryTeam
                     <td className="px-3 py-2.5">{formatCurrency(singleTask ? taskProposalTotal(r) : r.fee_value)}</td>
                     <td className="px-3 py-2.5 text-right whitespace-nowrap">
                       <button onClick={() => openEdit(r)} className="rounded p-1 text-slate-400 hover:bg-slate-100 hover:text-slate-700 text-xs">Edit</button>
-                      <button onClick={() => removeProposal(r.id)} className="rounded p-1 text-slate-400 hover:bg-rose-50 hover:text-rose-600"><Trash2 className="h-3.5 w-3.5" /></button>
+                      <button type="button" aria-label={`Delete fee proposal revision R${r.revision_number || 1}`} onClick={() => removeProposal(r.id)} className="rounded p-1 text-slate-400 hover:bg-rose-50 hover:text-rose-600"><Trash2 className="h-3.5 w-3.5" /></button>
                     </td>
                   </tr>
                 ))}

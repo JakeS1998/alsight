@@ -1,13 +1,14 @@
-import React,{useState,useEffect} from 'react';
+import React,{useEffect} from 'react';
 import {Button} from '@/components/ui/button';
 import PulseComposer from '@/components/alliance/PulseComposer';
 import PulseGroupManage from '@/components/alliance/PulseGroupManage';
 import PulsePost from '@/components/alliance/PulsePost';
 import allianceRequest,{allianceError} from '@/components/alliance/allianceClient';
+import useDeletion from '@/components/deletion/useDeletion';
 export default function AlliancePulse({data,user,onRefresh,onMore,loadingMore,hasMore,hashtag='',onClearHashtag,group,postId='',onLeftGroup}) {
-  const [error,setError]=useState(''),[removing,setRemoving]=useState(false);
-  const remove=async item=>{if(!window.confirm('Remove this Alliance update from Pulse and Stories?')) return;setRemoving(true);setError('');try{await allianceRequest('remove',{kind:'pulse',id:item.id});onRefresh();}catch(e){setError(allianceError(e));}finally{setRemoving(false);}};
-  const events=[...(data.pulse || []),...(data.milestones || []).map(p=>({id:`completion-${p.id}`,type:'Completion',title:`${p.name} · practical completion recorded`,summary:'The recorded practical completion date has been reached.',created_date:p.practical_completion_date,href:`/projects/${p.id}?tab=general`,system:true})),...(data.lessons || []).map(l=>({id:`knowledge-${l.id}`,type:'Knowledge',title:`Learning from ${l.project_name}`,summary:l.what_happened,created_date:l.created_date,href:l.href,author_name:l.author_name,system:true}))].sort((a,b)=>a.id===postId ? -1 : b.id===postId ? 1 : new Date(b.created_date)-new Date(a.created_date));
+  const error='',removing=false,deletion=useDeletion('AlliancePulseItem');
+  const remove=item=>deletion.request({id:item.id,label:`Alliance update “${item.title || item.summary || 'Untitled update'}”`,description:'This removes the update from both Pulse and Stories, including its comments and reactions.',onDelete:async()=>{await allianceRequest('remove',{kind:'pulse',id:item.id});await onRefresh();}});
+  const events=deletion.visible([...(data.pulse || []),...(data.milestones || []).map(p=>({id:`completion-${p.id}`,type:'Completion',title:`${p.name} · practical completion recorded`,summary:'The recorded practical completion date has been reached.',created_date:p.practical_completion_date,href:`/projects/${p.id}?tab=general`,system:true})),...(data.lessons || []).map(l=>({id:`knowledge-${l.id}`,type:'Knowledge',title:`Learning from ${l.project_name}`,summary:l.what_happened,created_date:l.created_date,href:l.href,author_name:l.author_name,system:true}))].sort((a,b)=>a.id===postId ? -1 : b.id===postId ? 1 : new Date(b.created_date)-new Date(a.created_date)));
   const focused=events.some(item=>item.id===postId);
   useEffect(()=>{if(postId && focused) document.getElementById(`pulse-post-${postId}`)?.scrollIntoView({block:'center'});},[postId,focused]);
   return <section aria-label="Alliance update feed" className="min-w-0 space-y-4">
