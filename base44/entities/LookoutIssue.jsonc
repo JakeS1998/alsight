@@ -114,6 +114,16 @@
                   "user_condition": {
                     "role": "finance"
                   }
+                },
+                {
+                  "user_condition": {
+                    "role": "sam"
+                  }
+                },
+                {
+                  "user_condition": {
+                    "role": "sam_director"
+                  }
                 }
               ]
             }
