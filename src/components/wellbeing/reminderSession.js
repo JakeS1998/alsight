@@ -11,11 +11,12 @@ export function createReminderSession(userId) {
    session.shownAt=Number(saved.shownAt)||0;
    session.postponed=saved.postponed||null;
    session.wrapDay=saved.wrapDay;
+   session.notification=saved.notification||null;
   }
  }catch{/* Keep reminders working when browser storage is unavailable. */}
  return session;
 }
 export function saveReminderSession(userId,session) {
- const {day,active,last,shownAt,postponed,wrapDay}=session;
- try{sessionStorage.setItem(key(userId),JSON.stringify({day,active,last,shownAt,postponed,wrapDay}));}catch{/* The live timer remains available. */}
+ const {day,active,last,shownAt,postponed,wrapDay,notification}=session;
+   try{sessionStorage.setItem(key(userId),JSON.stringify({day,active,last,shownAt,postponed,wrapDay,notification}));}catch{/* The live timer remains available. */}
 }
