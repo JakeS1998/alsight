@@ -1,0 +1,42 @@
+{
+  "name": "I&E department projects as engagements",
+  "description": "Creates an engagement for an I&E department project unless an engagement is already linked, preserving existing engagement work and ownership.",
+  "trigger": {
+    "config": {
+      "trigger_type": "entity",
+      "entity_name": "Project",
+      "events": [
+        "create",
+        "update"
+      ]
+    },
+    "condition": "${ (.trigger.data.department_id == \"881a8516-e30b-f111-8407-7ced8d390a61\" or .trigger.data.department_id == \"Insights & Engagement\") and .trigger.data.status != \"inactive\" }"
+  },
+  "definition": {
+    "document": {
+      "dsl": "1.0.0",
+      "name": "ie_project_engagement_mapping",
+      "version": "1.0",
+      "namespace": "base44"
+    },
+    "do": [
+      {
+        "map_engagement": {
+          "call": "invoke_backend_function",
+          "with": {
+            "function_name": "manageIEEngagements",
+            "args": {
+              "action": "mapDepartmentProjects",
+              "project_id": "${ .trigger.entity_id }"
+            }
+          },
+          "then": "end",
+          "x-base44": {
+            "title": "Include project in engagements",
+            "description": "Keep existing linked engagements"
+          }
+        }
+      }
+    ]
+  }
+}

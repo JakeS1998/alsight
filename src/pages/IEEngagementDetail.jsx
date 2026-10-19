@@ -19,19 +19,20 @@ import IEEngagementForm from '@/components/ie/IEEngagementForm';
 export default function IEEngagementDetail(){
  const {engagementId}=useParams(),{user}=useAuth(),[editing,setEditing]=useState(false);
  const [search,setSearch]=useSearchParams();
- const activeTab=IE_WORK_TABS.includes(search.get('tab'))?search.get('tab'):'overview';
  const query=useQuery({queryKey:['ie-detail',engagementId,user.id,user.role],queryFn:()=>ieCall('detail',{id:engagementId}),retry:false});
  const item=query.data?.item;
+ const showDocuments=item?.origin!=='project_department'||/^PROJ/i.test(query.data?.project?.project_number||'');
+ const activeTab=IE_WORK_TABS.includes(search.get('tab'))&&(search.get('tab')!=='documents'||showDocuments)?search.get('tab'):'overview';
  const selectTab=tab=>{const next=new URLSearchParams(search);if(tab==='overview')next.delete('tab');else next.set('tab',tab);setSearch(next,{replace:true,preventScrollReset:true});};
  return <IEQueryState query={query}>{item&&<Tabs className="project-workspace ie-engagement-workspace" value={activeTab} onValueChange={selectTab}>
   <main className="ws-main">
    <ProjectStickyHeader className="ws-sticky-header">
     <IEEngagementHeader item={item} canEdit={query.data.canEdit} onEdit={()=>setEditing(true)}/>
-    <IEEngagementNav/>
+    <IEEngagementNav showDocuments={showDocuments}/>
    </ProjectStickyHeader>
    <TabsContent value="overview" className="ws-content"><IEOverview data={query.data} onEdit={()=>setEditing(true)}/></TabsContent>
    <TabsContent value="timeline" className="ws-content"><IEEngagementTimeline item={item}/></TabsContent>
-   <IEWorkingTabs engagement={item} canEdit={query.data.canEdit}/>
+   <IEWorkingTabs engagement={item} canEdit={query.data.canEdit} project={query.data.project} showDocuments={showDocuments}/>
    <TabsContent value="activity" className="ws-content"><IERecentChanges events={query.data.events}/></TabsContent>
   </main>
   {editing&&<IEEngagementForm item={item} onClose={()=>setEditing(false)}/>}

@@ -11,6 +11,8 @@ import {ieBackfillFinance} from '../../shared/ieFinanceWorkbook.ts';
 import {ieRegionalProjects} from '../../shared/ieRegionalProjects.ts';
 import {ieTodayFeed} from '../../shared/ieTodayFeed.ts';
 import {ieDepartmentProjects,ieDepartmentIds} from '../../shared/ieDepartmentProjects.ts';
+import {ieMapDepartmentProjects} from '../../shared/ieMapDepartmentProjects.ts';
+import {ieProjectContext,ieProjectDocuments} from '../../shared/ieProjectDocuments.ts';
 export default async function(req){
  try{
   const base44=createClientFromRequest(req);let user=await base44.auth.me();
@@ -19,6 +21,8 @@ export default async function(req){
   const input=await req.json();if(!input||typeof input!=='object'||Array.isArray(input))ieError('Invalid request.');
   user=await ieRegionalProjects(base44,user);
   const db=base44.asServiceRole.entities,action=input.action;
+  if(action==='mapDepartmentProjects')return Response.json(await ieMapDepartmentProjects(base44,user,input));
+  if(action==='projectDocuments')return Response.json(await ieProjectDocuments(base44,user,input));
   if(['departmentProjects','departmentProject'].includes(action))return Response.json(await ieDepartmentProjects(base44,user,input));
   if(action==='todayFeed')return Response.json(await ieTodayFeed(base44,user,input));
   if(action==='commercialFinance')return Response.json(await ieCommercialFinance(base44,user));
@@ -51,8 +55,8 @@ export default async function(req){
   if(action==='detail'){
    const item=await ieRecord(base44,user,input.id);
    const events=await db.IEEvent.filter({engagement_id:item.id},{sort:'-occurred_at',limit:10});
-   const [project,opportunity,account]=await Promise.all([item.project_id?base44.entities.Project.get(item.project_id).catch(()=>null):null,item.opportunity_id?base44.entities.Opportunity.get(item.opportunity_id).catch(()=>null):null,base44.entities.Account.get(item.client_id).catch(()=>null)]);
-   return Response.json({item,events:events.items,canEdit:ieEditable(user,item),links:{client:!!account,project:!!project||user.role==='sam_director',opportunity:!!opportunity}});
+   const [project,opportunity,account]=await Promise.all([ieProjectContext(base44,item),item.opportunity_id?base44.entities.Opportunity.get(item.opportunity_id).catch(()=>null):null,item.client_id?base44.entities.Account.get(item.client_id).catch(()=>null):null]);
+   return Response.json({item:{...item,project_number:project?.project_number||''},project,events:events.items,canEdit:ieEditable(user,item),links:{client:!!account,project:!!project||user.role==='sam_director',opportunity:!!opportunity}});
   }
   if(action==='linkedProject')return Response.json(await ieLinkedProject(base44,user,input));
   if(action==='projects'){
