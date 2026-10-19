@@ -16,7 +16,7 @@ import IEQueryState from '@/components/ie/IEQueryState';
 import IEOverview from '@/components/ie/IEOverview';
 import IERecentChanges from '@/components/ie/IERecentChanges';
 import IEEngagementForm from '@/components/ie/IEEngagementForm';
-import IEProjectHeader from '@/components/ie/IEProjectHeader';
+
 import IETaskWorkspace from '@/components/ie/IETaskWorkspace';
 import '@/components/ie/ie-project-tasks.css';
 export default function IEEngagementDetail(){
@@ -32,12 +32,10 @@ export default function IEEngagementDetail(){
   return()=>cancelAnimationFrame(frame);
  },[item?.id,activeTab,hash]);
  const selectTab=tab=>{const next=new URLSearchParams(search);if(tab==='overview')next.delete('tab');else next.set('tab',tab);setSearch(next,{replace:true,preventScrollReset:true});};
- const taskSurface=!['legal','finance','documents'].includes(activeTab);
- const Header=taskSurface?IEProjectHeader:IEEngagementHeader;
- return <IEQueryState query={query}>{item&&<Tabs className={`project-workspace ie-engagement-workspace ${taskSurface?'ie-project-task-shell':''}`} value={activeTab} onValueChange={selectTab}>
+ return <IEQueryState query={query}>{item&&<Tabs className="project-workspace ie-engagement-workspace" value={activeTab} onValueChange={selectTab}>
   <main className="ws-main">
    <ProjectStickyHeader className="ws-sticky-header">
-    <Header item={item} canEdit={query.data.canEdit} onEdit={()=>setEditing(true)}/>
+    <IEEngagementHeader item={item} canEdit={query.data.canEdit} onEdit={()=>setEditing(true)}/>
     <IEEngagementNav showDocuments={showDocuments} showLegal={showLegal}/>
    </ProjectStickyHeader>
    <TabsContent value="overview" className="ws-content"><IEOverview data={query.data} onEdit={()=>setEditing(true)}/></TabsContent>
