@@ -35,7 +35,7 @@ export default function AdaptiveWorkspace({user}) {
   <p id="adaptive-command-help" className={commandFeedback?'at-small my-3':'sr-only'} role="status">{commandFeedback||'Ask about loaded records or use layout commands such as pin projects and hide documents.'}</p>
   {query.isPending&&<AdaptiveWorkspaceSkeleton contentOnly/>}
   {query.error&&<div role="alert" className="at-empty"><h2>Your workspace could not be loaded.</h2><p>{query.error.message}</p><button className="at-btn" onClick={()=>query.refetch()}>Try again</button></div>}
-  {data&&<><AdaptiveMetrics data={data} calendar={query.calendar} onSelect={setMetricView}/>
+  {data&&<><AdaptiveMetrics data={data} calendar={query.calendar} onSelect={setMetricView} actions={ranked}/>
    <AdaptiveMetricDialog view={metricView} onClose={()=>setMetricView(null)} data={data} calendar={query.calendar} user={user} actions={ranked}/>
    <HomeContextNote data={data} time={time} calendar={query.calendar}/>
    {data.warnings.length>0&&<details className="at-source-warning"><summary>Some sources are unavailable ({data.warnings.length}). This briefing is partial.</summary>{data.warnings.map(w=><p key={w}>{w}</p>)}</details>}

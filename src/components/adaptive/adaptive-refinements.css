@@ -1,14 +1,24 @@
 .adaptive-today button.at-metric{text-align:left;font:inherit;color:inherit}.adaptive-today button.at-metric:hover{border-color:var(--at-orange)}
 .adaptive-today .at-metrics{grid-template-columns:repeat(3,minmax(0,1fr));grid-template-rows:repeat(2,minmax(96px,1fr));align-items:stretch}
 .adaptive-today .at-metrics .at-metric:last-child{grid-column:auto}
-.adaptive-today .at-metrics .at-metric[data-tone=attention]{grid-column:1;grid-row:1 / span 2;flex-direction:column;align-items:flex-start;justify-content:center;gap:14px;padding:20px;background:var(--at-surface);border-color:hsl(var(--primary)/.55)}
-.adaptive-today .at-metrics .at-metric[data-tone=attention] strong{font-size:40px;line-height:1.1}
-.adaptive-today .at-metrics .at-metric[data-tone=attention] .at-metric-label{font-size:14px;margin-top:7px}
-.adaptive-today .at-metrics .at-metric[data-tone=attention] small{font-size:10px;margin-top:7px}
+.adaptive-today .at-metrics .at-metric[data-tone=attention]{grid-column:1;grid-row:1 / span 2;flex-direction:column;align-items:stretch;justify-content:flex-start;gap:16px;padding:24px;background:var(--at-surface);border-color:hsl(var(--primary)/.55)}
+.adaptive-today .at-metrics .at-metric[data-tone=attention] strong{font-size:60px;line-height:1.05;letter-spacing:-1px;font-weight:800}
+.adaptive-today .at-metrics .at-metric[data-tone=attention] .at-metric-label{font-size:20px;margin-top:10px;line-height:1.35;font-weight:700}
+.adaptive-today .at-metrics .at-metric[data-tone=attention] small{font-size:13px;margin-top:8px}
+.adaptive-today .at-attention-summary{display:flex;align-items:flex-start;justify-content:space-between;gap:16px;width:100%;padding:0;border:0;background:transparent;color:inherit;text-align:left}
+.adaptive-today .at-attention-items{list-style:none;margin:0;padding:0;max-height:256px;overflow-y:auto;overscroll-behavior:contain;border-top:1px solid var(--at-line)}
+.adaptive-today .at-attention-items li{border-bottom:1px solid var(--at-line)}
+.adaptive-today .at-attention-items li:last-child{border-bottom:0}
+.adaptive-today .at-attention-item{display:flex;align-items:flex-start;justify-content:space-between;gap:12px;padding:12px 0;overflow-wrap:anywhere}
+.adaptive-today .at-attention-title{display:block;font-size:14px;font-weight:700;line-height:1.5}
+.adaptive-today .at-attention-project{display:block;margin-bottom:3px;font-size:12px;font-weight:600}
+.adaptive-today .at-attention-detail{display:block;margin-top:3px;font-size:12px;line-height:1.6;color:var(--at-muted)}
+.adaptive-today .at-attention-source{display:block;margin-top:5px;font-size:11px;color:var(--at-muted)}
+.adaptive-today .at-attention-footnote{font-size:11px;line-height:1.6;color:var(--at-muted)}
 @media(max-width:640px){
- .adaptive-today .at-metrics{gap:7px;grid-template-rows:repeat(2,minmax(116px,1fr))}
+ .adaptive-today .at-metrics{grid-template-columns:repeat(2,minmax(0,1fr));gap:7px;grid-template-rows:none;grid-auto-rows:minmax(96px,auto)}
  .adaptive-today .at-metrics .at-metric{flex-direction:column;align-items:flex-start;justify-content:center;padding:10px;gap:8px;overflow-wrap:anywhere}
- .adaptive-today .at-metrics .at-metric[data-tone=attention]{padding:12px;gap:14px}
+ .adaptive-today .at-metrics .at-metric[data-tone=attention]{grid-column:1 / -1;grid-row:auto;padding:16px;gap:14px}
  .adaptive-today .at-metrics .at-metric[data-tone=attention] strong{font-size:36px}
  .adaptive-today .at-metrics .at-metric[data-tone=attention] .at-metric-label{font-size:12px}
  .adaptive-today .at-metrics .at-metric[data-tone=attention] small{font-size:9px}
