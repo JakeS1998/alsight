@@ -2,4 +2,5 @@ import React from 'react';
 import { Outlet } from 'react-router-dom';
 import AccessDenied from '@/pages/AccessDenied';
 import { useAuth } from '@/lib/AuthContext';
-export default function FinanceRoute(){const {user}=useAuth();return ['admin','finance','director','regional_director','bdm','bsm'].includes(user?.role)?<Outlet/>:<AccessDenied/>;}
+import {STAFF_WORKSPACE_ROLES} from '@/lib/portal';
+export default function FinanceRoute(){const {user}=useAuth();return STAFF_WORKSPACE_ROLES.includes(user?.role)?<Outlet/>:<AccessDenied/>;}

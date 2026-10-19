@@ -2,7 +2,7 @@ import React, { useState, useRef } from 'react';
 import useStickyHeight from '@/components/projects/useStickyHeight';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '@/lib/AuthContext';
-import { INTERNAL_ROLES } from '@/lib/portal';
+import { INTERNAL_ROLES, STAFF_WORKSPACE_ROLES } from '@/lib/portal';
 import Logo from '@/components/Logo';
 import NotificationCenter from '@/components/NotificationCenter';
 import UserMenu from '@/components/UserMenu';
@@ -19,17 +19,17 @@ import mobileNavigationItems from '@/components/navigation/mobileNavigationItems
 
 const ALL_ROLES = ['admin', 'director', 'regional_director', 'bsm', 'finance', 'bdm', 'client', 'supplier', 'project_manager'];
 const NAV_ITEMS = [
-  { label: 'Today', path: '/today', icon: House, roles: INTERNAL_ROLES.concat(['client', 'supplier']) },
-  { label: 'Alliance360', path: '/portfolio-overview', icon: LayoutDashboard, roles: INTERNAL_ROLES },
-  { label: 'Network', path: '/accounts', icon: Building2, roles: ALL_ROLES.filter(role => role !== 'supplier') },
+  { label: 'Today', path: '/today', icon: House, roles: STAFF_WORKSPACE_ROLES.concat(['client', 'supplier']) },
+  { label: 'Alliance360', path: '/portfolio-overview', icon: LayoutDashboard, roles: STAFF_WORKSPACE_ROLES },
+  { label: 'Network', path: '/accounts', icon: Building2, roles: [...STAFF_WORKSPACE_ROLES, 'client', 'project_manager'] },
   { label: 'I & E', path: '/insights-engagement', icon: InsightsEngagementIcon, roles: IE_ROLES },
   { label: 'Opportunities', path: '/crm/opportunities', icon: BriefcaseBusiness, roles: INTERNAL_ROLES },
   { label: 'Projects', path: '/projects', icon: FolderKanban, roles: ALL_ROLES.concat(['sam_director']) },
 
-  { label: 'Commercial', path: '/finance', icon: ChartNoAxesCombined, roles: ['admin', 'finance', 'director', 'regional_director', 'bdm', 'bsm'] },
+  { label: 'Commercial', path: '/finance', icon: ChartNoAxesCombined, roles: STAFF_WORKSPACE_ROLES },
   { label: 'Approvals', path: '/approvals', icon: ClipboardCheck, roles: ALL_ROLES.concat(['framework_stakeholder']) },
   { label: 'Framework', path: '/framework-reports', icon: UKLFIcon, roles: INTERNAL_ROLES.concat(['framework_stakeholder']) },
-  { label: 'Insider', path: '/pulse', icon: MessagesSquare, roles: INTERNAL_ROLES },
+  { label: 'Insider', path: '/pulse', icon: MessagesSquare, roles: STAFF_WORKSPACE_ROLES },
   { label: 'My Account', path: '/account', icon: UserCircle, roles: ['client'] },
   { label: 'Contacts', path: '/contacts', icon: Users, roles: ['admin'] },
   { label: 'Help', path: '/help', icon: CircleHelp, roles: ALL_ROLES.concat(['framework_stakeholder']) },
@@ -49,7 +49,7 @@ export default function PortalHeader() {
   const primaryItems = mobileNavigationItems(role);
   const nav = (compact = false, excluded = []) => items.filter(item => !excluded.includes(item.path)).map(item => {
     const Icon = item.icon;
-    if(item.path==='/accounts') return <RelationshipNavigation key="relationships" compact={compact} showPeople={INTERNAL_ROLES.includes(role)} onNavigate={()=>setMenuOpen(false)}/>;
+    if(item.path==='/accounts') return <RelationshipNavigation key="relationships" compact={compact} showPeople={STAFF_WORKSPACE_ROLES.includes(role)} onNavigate={()=>setMenuOpen(false)}/>;
     const active = item.path === '/crm/opportunities' ? (location.pathname.startsWith('/crm') || location.pathname.startsWith('/opportunities/')) : item.path === '/today' ? location.pathname === '/today' : location.pathname === item.path || location.pathname.startsWith(`${item.path}/`);
     return <Link key={item.path} to={item.path} onClick={() => setMenuOpen(false)} aria-current={active ? 'page' : undefined} data-active={active} data-outstanding={item.path === '/approvals' && approvalSummary.data?.pending > 0} className={`portal-nav-item ${['/today', '/portfolio-overview'].includes(item.path) ? 'font-bold' : ''} ${compact ? 'w-full' : ''}`}>{Icon === UKLFIcon ? <UKLFIcon darkBackground /> : <Icon className="h-4 w-4 shrink-0" />}{item.path === '/portfolio-overview' ? <span>Alliance<span className="text-primary">360</span></span> : item.label}{item.path==='/approvals' && approvalSummary.data?.pending>0 && <span className="rounded-full bg-primary px-1.5 py-0.5 text-[10px] font-bold text-primary-foreground">{approvalSummary.data.pending}</span>}</Link>;
   });

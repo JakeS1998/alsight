@@ -1,5 +1,5 @@
 import {withPulseAuthorNames} from './pulseAuthorNames.ts';
-export const internalRoles=['admin','director','regional_director','bsm','finance','bdm'];
+export const internalRoles=['admin','director','regional_director','bsm','finance','bdm','sam','sam_director'];
 export const themes=['Health & wellbeing','Community','Place','Inclusion','Sustainability','Social value'];
 export const stages=['','Scope','Fee','Prepare','Design','Programme','Act','Decide','De-risk','Build','Handover'];
 export const pulseTypes=['Company Update','Project Update','Recognition','Lessons Learned','Social','Project milestone','Team recognition','Project win','Impact','Knowledge','Team news','New project','Completion','Client success'];

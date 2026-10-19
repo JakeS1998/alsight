@@ -31,6 +31,7 @@ export const ROLE_BADGE_CLASS = {
 
 // Internal staff roles (can delegate)
 export const INTERNAL_ROLES = ["admin", "director", "regional_director", "bsm", "finance", "bdm"];
+export const STAFF_WORKSPACE_ROLES = [...INTERNAL_ROLES, "sam", "sam_director"];
 
 // Roles that see everything
 export const FULL_ACCESS_ROLES = ["admin", "director", "bsm", "finance"];

@@ -4,7 +4,7 @@ import { base44 } from '@/api/base44Client';
 import { useAuth } from '@/lib/AuthContext';
 import { filterAll } from '@/components/data/loadAll';
 import useDashboardDirectory from '@/components/dashboard/useDashboardDirectory';
-import { INTERNAL_ROLES } from '@/lib/portal';
+import { STAFF_WORKSPACE_ROLES } from '@/lib/portal';
 import projectScope from '@/components/projects/projectScope';
 import usePortfolioExtras from '@/components/dashboard/usePortfolioExtras';
 import { buildPortfolio,selectPipelineProjects } from '@/components/dashboard/portfolioMetrics';
@@ -13,7 +13,7 @@ export default function useDashboardData(filters = {}) {
   const { user } = useAuth();
   const [revision, setRevision] = useState(0);
   const role = user?.role || 'client';
-  const internal = INTERNAL_ROLES.includes(role);
+  const internal = STAFF_WORKSPACE_ROLES.includes(role);
   const scopeKey = JSON.stringify([user?.id, role, user?.staff_aad_id, user?.data, user?.region, user?.delegate_of, revision]);
   const key = JSON.stringify([scopeKey, filters]);
   const directory = useDashboardDirectory(user, scopeKey);

@@ -10,7 +10,7 @@ export default async function(req) {
     const base44 = createClientFromRequest(req);
     const user = await base44.auth.me();
     if (!user) return Response.json({ error: 'Unauthorized' }, { status: 401 });
-    if (!['admin','director','regional_director','bsm','finance','bdm','client','supplier'].includes(user.role)) return Response.json({ error: 'Forbidden' }, { status: 403 });
+    if (!['admin','director','regional_director','bsm','finance','bdm','sam','sam_director','client','supplier'].includes(user.role)) return Response.json({ error: 'Forbidden' }, { status: 403 });
     const input = await req.json();
     if (!Array.isArray(input.projectIds) || input.projectIds.length > 2000 || input.projectIds.some(id => typeof id !== 'string' || id.length > 100)) return Response.json({ error: 'Invalid portfolio selection' }, { status: 400 });
     const contractIds = input.contractProjectIds ?? input.projectIds;
