@@ -242,6 +242,16 @@
         },
         {
           "user_condition": {
+            "role": "sam"
+          }
+        },
+        {
+          "user_condition": {
+            "role": "sam_director"
+          }
+        },
+        {
+          "user_condition": {
             "role": "project_manager"
           }
         }
