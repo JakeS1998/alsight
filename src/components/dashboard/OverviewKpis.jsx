@@ -1,16 +1,15 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
-import { FolderKanban, Layers, FileText, PoundSterling, AlertTriangle, ArrowRight } from 'lucide-react';
+import { FolderKanban, Layers, FileText, PoundSterling, ArrowRight } from 'lucide-react';
 import formatOverviewNumber from '@/components/dashboard/formatOverviewNumber';
 import OverviewAttentionKpi from '@/components/dashboard/OverviewAttentionKpi';
 export default function OverviewKpis({ metrics, businessContext, onRisk, attentionProjects = [] }) {
-  const businessValues=businessContext ? [formatOverviewNumber(businessContext.projects, false),formatOverviewNumber(businessContext.value),formatOverviewNumber(businessContext.contractValue),formatOverviewNumber(businessContext.feeValue),formatOverviewNumber(businessContext.atRisk, false)] : [];
+  const businessValues=businessContext ? [formatOverviewNumber(businessContext.projects, false),formatOverviewNumber(businessContext.value),formatOverviewNumber(businessContext.contractValue),formatOverviewNumber(businessContext.feeValue)] : [];
   const rows = [
     ['Live pipeline projects',formatOverviewNumber(metrics.live, false),`Marked live · ${formatOverviewNumber(metrics.onHoldProjects || 0, false)} others on hold`,FolderKanban,'bg-chart-4/15 text-chart-2','/projects','Number of active projects marked live, regardless of completion dates or completion status. On-hold projects are shown separately and are not included in this figure.'],
     ['Live pipeline project value',formatOverviewNumber(metrics.value),`Excl. VAT · ${formatOverviewNumber(metrics.onHoldValue || 0)} separately on hold`,Layers,'bg-primary/10 text-primary','/projects','Total project value for active projects marked live, regardless of completion dates or completion status. Uses the latest submitted client proposal, or the project estimate when no submitted proposal is available. This is project value, not Alliance fee income.'],
     ['Call Off Value',formatOverviewNumber(metrics.contractValue),`${metrics.callOffFinancialYear} · executed DMA / DPA`,FileText,'bg-chart-4/15 text-chart-2',null,'Total project value excluding VAT for active projects with a DMA or DPA executed in the current financial year, from 1 April to 31 March, based on execution date. Each project is counted once, using its submitted client proposal or project estimate, whether or not it is marked live. Agreements without an execution date are excluded. Executed agreements marked inactive still qualify. The selected-view and Alliance totals use the same financial year.'],
     ['Current proposed fees',formatOverviewNumber(metrics.feeValue),'Pipeline projects · one proposal per project',PoundSterling,'bg-destructive/10 text-destructive',null,'Sum of the recorded fee values for pipeline projects, using the proposal marked current or the latest revision. This is proposed fees, not the full project value or payments received.'],
-    ['Pipeline projects needing attention',formatOverviewNumber(metrics.atRisk, false),`${formatOverviewNumber(metrics.highRisk, false)} high priority · overdue actions or delays`,AlertTriangle,'bg-destructive/10 text-destructive','risk','Number of pipeline projects with overdue unfinished actions, an overdue forecast completion, or a forecast later than the original completion date. Each project counts once, even if it has several flags.']
   ];
   return <div className="overview-kpis">
     <div className="overview-kpi-primary">
