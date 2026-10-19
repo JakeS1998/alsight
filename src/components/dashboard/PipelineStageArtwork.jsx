@@ -1,5 +1,6 @@
 import React from 'react';
 import { Image } from '@/components/ui/image';
+import '@/components/metrics/kpi-illustrations.css';
 
 const artwork = {
   PIPELINE: 'e9b868f02',
@@ -10,8 +11,8 @@ const artwork = {
   'RIBA 5–7': '4291a16fa',
 };
 
-export default function PipelineStageArtwork({ stage, className }) {
+export default function PipelineStageArtwork({ stage, dark = false }) {
   const image = artwork[stage];
   if (!image) return null;
-  return <Image src={`https://media.base44.com/images/public/6ab62433a194f918c54c8249/${image}_generated_image.png`} alt="" aria-hidden="true" fittingType="fit" className={`shrink-0 mix-blend-multiply grayscale contrast-125 brightness-110 ${className || ''}`} />;
+  return <span className="alsight-kpi-art" aria-hidden="true"><Image src={`https://media.base44.com/images/public/6ab62433a194f918c54c8249/${image}_generated_image.png`} alt="" fittingType="fill" focalPointX={0.8} focalPointY={0.6} loading="lazy" className="alsight-kpi-drawing" style={dark ? { filter: 'invert(1)', mixBlendMode: 'screen' } : undefined} /></span>;
 }
