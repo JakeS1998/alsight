@@ -31,6 +31,6 @@ export default function Calendar() {
       {calendar.cursor && <div className="border-t border-border p-4 text-center"><Button variant="outline" disabled={calendar.loading} onClick={calendar.loadMore}>Load more events</Button></div>}
       {!canEdit && <p className="p-5 text-sm text-muted-foreground">This calendar is read-only.</p>}
     </section>}
-    {connection.connected && calendar.selected && <CalendarEventDialog key={calendar.selected.id || 'new'} event={calendar.selected} week={week} onClose={() => calendar.setSelected(null)} onSaved={() => { calendar.setSelected(null); calendar.refresh(); }} />}
+    {connection.connected && calendar.selected && <CalendarEventDialog key={calendar.selected.id || 'new'} event={calendar.selected} week={week} onDeleted={calendar.refresh} onClose={() => calendar.setSelected(null)} onSaved={() => { calendar.setSelected(null); calendar.refresh(); }} />}
   </div>;
 }

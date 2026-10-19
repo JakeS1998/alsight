@@ -6,7 +6,7 @@ import CalendarEventFields from '@/components/outlook/CalendarEventFields';
 import calendarRequest from '@/components/outlook/calendarClient';
 import { emptyEvent, eventForm, eventPayload } from '@/components/outlook/calendarDates';
 import useDeletion from '@/components/deletion/useDeletion';
-export default function CalendarEventDialog({ event, week, onClose, onSaved, initialForm }) {
+export default function CalendarEventDialog({ event, week, onClose, onSaved, onDeleted, initialForm }) {
   const [form, setForm] = useState(() => event?.id ? { ...eventForm(event), onlineMeetingLocked: !!event.isOnlineMeeting } : { ...emptyEvent(week), ...initialForm });
   const [busy, setBusy] = useState(false), [error, setError] = useState('');
   const deletion = useDeletion('OutlookEvent');
@@ -20,7 +20,7 @@ export default function CalendarEventDialog({ event, week, onClose, onSaved, ini
     catch (err) { setError(err.message); }
     finally { setBusy(false); }
   };
-  const remove = () => deletion.request({ id: event.id, label: `Outlook event “${event.subject || 'Untitled event'}”`, description: `This deletes ${['occurrence','exception'].includes(event.type) ? 'this occurrence only' : 'this event'} from Outlook. If this is a meeting, attendees will receive a cancellation after the undo period.`, onStaged: onClose, onDelete: async () => { await calendarRequest('delete', { id: event.id }); await onSaved(); } });
+  const remove = () => deletion.request({ id: event.id, label: `Outlook event “${event.subject || 'Untitled event'}”`, description: `This deletes ${['occurrence','exception'].includes(event.type) ? 'this occurrence only' : 'this event'} from Outlook. If this is a meeting, attendees will receive a cancellation after the undo period.`, onStaged: onClose, onDelete: async () => { await calendarRequest('delete', { id: event.id }); await onDeleted?.(); } });
   return <Dialog open onOpenChange={open => { if (!open && !busy) onClose(); }}><DialogContent className="max-h-[90vh] overflow-y-auto sm:max-w-xl">
     <DialogHeader><DialogTitle>{event?.id ? 'Edit Outlook event' : 'New Outlook event'}</DialogTitle><DialogDescription>Changes save directly to your own Outlook calendar.</DialogDescription></DialogHeader>
     {['occurrence', 'exception'].includes(event?.type) && <p className="rounded-lg bg-muted p-3 text-sm">You are editing this occurrence only. Manage the complete recurring series in Outlook.</p>}
