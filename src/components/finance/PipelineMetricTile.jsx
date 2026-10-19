@@ -9,7 +9,7 @@ export default function PipelineMetricTile({ card, index }) {
   const Icon = icons[index] || FileText;
   const display = typeof amount === 'number' ? amount.toLocaleString('en-GB') : compactPipelineValue(amount);
   return <div className="pipeline-metric alsight-illustrated-kpi" title={detail}>
-    <KpiIllustration label={label} variant="finance"/>
+    <KpiIllustration label={label} variant={['finance','contracts','calculations','reports'][index]}/>
     <div className="pipeline-metric-body"><p className="pipeline-metric-label">{label}</p><p className="pipeline-metric-value" title={String(amount)}>{display}</p><p className="pipeline-metric-caption">{captions[index] || detail}</p><span className="sr-only">{detail}</span></div>
   </div>;
 }
