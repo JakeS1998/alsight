@@ -1,6 +1,7 @@
 import base44 from "@base44/vite-plugin"
 import react from '@vitejs/plugin-react'
 import { defineConfig } from 'vite'
+import actionControlsTransform from './src/components/actions/actionControlsTransform.js'
 
 // https://vite.dev/config/
 export default defineConfig({
@@ -14,6 +15,6 @@ export default defineConfig({
       analyticsTracker: true,
       visualEditAgent: true
     }),
-    react(),
+    react({ babel: { plugins: [actionControlsTransform] } }),
   ]
 });

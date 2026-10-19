@@ -10,13 +10,24 @@ export default function actionControlsTransform({ types: t }) {
         },
         exit(path, state) {
           state.actionControls?.forEach((identifier, tag) => {
-            const component = tag === 'button' ? 'ActionButton' : 'ActionForm';
+            const component = tag === 'button' ? 'ActionButton' : tag === 'form' ? 'ActionForm' : 'actionResults';
             path.unshiftContainer('body', t.importDeclaration(
-              [t.importDefaultSpecifier(identifier)],
+              [tag === 'capture' ? t.importSpecifier(identifier, t.identifier('captureActionResult')) : t.importDefaultSpecifier(identifier)],
               t.stringLiteral(`@/components/actions/${component}`)
             ));
           });
         }
+      },
+      JSXAttribute(path, state) {
+        if (!state.actionControls || !['onClick', 'onSubmit'].includes(path.node.name.name)) return;
+        const handler = path.get('value.expression');
+        if (!handler?.isArrowFunctionExpression() && !handler?.isFunctionExpression()) return;
+        handler.traverse({ CallExpression(call) {
+          if (call.getFunctionParent() !== handler) return;
+          if (!state.actionControls.has('capture')) state.actionControls.set('capture', path.scope.generateUidIdentifier('captureActionResult'));
+          call.replaceWith(t.callExpression(t.cloneNode(state.actionControls.get('capture')), [call.node]));
+          call.skip();
+        } });
       },
       JSXElement(path, state) {
         if (!state.actionControls) return;

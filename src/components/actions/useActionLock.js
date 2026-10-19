@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
+import { collectActionResults } from '@/components/actions/actionResults';
 
 export default function useActionLock() {
   const locked = useRef(false), mounted = useRef(true), frames = useRef([]);
@@ -12,16 +13,17 @@ export default function useActionLock() {
     if (locked.current) return;
     locked.current = true;
     setEngaged(true);
-    let result;
+    let waiting = false;
     try {
-      result = callback();
-      if (result && typeof result.then === 'function') {
+      const { result, results } = collectActionResults(callback);
+      if (results.length) {
+        waiting = true;
         setPending(true);
-        return Promise.resolve(result).finally(release);
+        return Promise.allSettled(results).then(() => result).finally(release);
       }
       return result;
     } finally {
-      if (!result || typeof result.then !== 'function') {
+      if (!waiting) {
         frames.current.forEach(cancelAnimationFrame);
         frames.current = [requestAnimationFrame(() => {
           frames.current = [requestAnimationFrame(release)];
