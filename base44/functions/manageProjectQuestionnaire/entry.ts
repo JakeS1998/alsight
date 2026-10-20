@@ -1,5 +1,5 @@
 import {createClientFromRequest} from 'npm:@base44/sdk@0.8.52';
-// Load, save, approval snapshots and PDF exports use the shared combined design-team and contractor-security section.
+// Shared questionnaire includes separate CDM and Building Regulations Principal Designer fields.
 import {questionnaireVersion,questionnaireSections,questionnaireFields,missingQuestionnaireFields,questionnaireDefaults} from '../../shared/projectQuestionnaireTemplate.ts';
 import {pqRoles,withPQWriteLock} from '../../shared/pqApprovalCommon.ts';
 import {pqRoundActions,pqProjectActions,pqRoundAction,pqProjectAction} from '../../shared/pqApprovalActions.ts';
