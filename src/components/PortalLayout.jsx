@@ -31,7 +31,7 @@ export default function PortalLayout() {
   }, [pathname, user?.id]);
   return <WellbeingProvider key={user?.id} user={user}><div className="portal-shell flex min-h-screen flex-col bg-secondary">
     <PortalHeader />
-    <main className="portal-main w-full flex-1"><PageLoadBoundary route={pathname}><KpiIllustrationProvider key={pathname}><Suspense fallback={<PageLoadingSkeleton />}><Outlet /></Suspense></KpiIllustrationProvider></PageLoadBoundary></main>
+    <main className="portal-main w-full flex-1"><PageLoadBoundary route={pathname}><KpiIllustrationProvider key={pathname === '/commercial/po-tool' ? '/commercial' : pathname}><Suspense fallback={<PageLoadingSkeleton />}><Outlet /></Suspense></KpiIllustrationProvider></PageLoadBoundary></main>
     <PortalFooter />
     {user?.id && <PageFeedbackWidget key={user.id} user={user} route={pathname} />}
     {user?.id && internalMessagingRoles.includes(user.role) && <DirectMessagesWidget key={user.id} user={user} />}
