@@ -19,7 +19,7 @@
           "then": "end",
           "x-base44": {
             "title": "Prepare The Lookout",
-            "description": "Recorded ALSight data and saved department submissions"
+            "description": "Recorded ALS Hub data and saved department submissions"
           }
         }
       }

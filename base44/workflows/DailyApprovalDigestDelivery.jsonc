@@ -1,6 +1,6 @@
 {
   "name": "Daily Approval Reminder Email",
-  "description": "Prepares each registered approval user's private digest, sends the existing ALSight template through the backend email service, and records successful sending without repeating completed deliveries.",
+  "description": "Prepares each registered approval user's private digest, sends the existing ALS Hub template through the backend email service, and records successful sending without repeating completed deliveries.",
   "trigger": {
     "config": {
       "trigger_type": "entity",
@@ -67,7 +67,7 @@
           "then": "end",
           "x-base44": {
             "title": "Send and record approval summary",
-            "description": "Recheck eligibility, claim delivery, send the ALSight template and record success"
+            "description": "Recheck eligibility, claim delivery, send the ALS Hub template and record success"
           }
         }
       }

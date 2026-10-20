@@ -25,7 +25,7 @@ export default async function(req) {
       const issuer = await db.User.get(packet.issued_by_id);
       const [namedRecipient, namedIssuer] = await withPortalUserNames(db, [recipient, issuer]);
       const message = riskApprovalInvitationMessage({ ...packet, issued_by_name: namedIssuer.full_name || packet.issued_by_name }, { ...step, name: namedRecipient.full_name || step.name }, partyLabels[step.party], link);
-      await base44.asServiceRole.integrations.Core.SendEmail({ to: step.email, from_name: 'ALSight', ...message });
+      await base44.asServiceRole.integrations.Core.SendEmail({ to: step.email, from_name: 'ALS Hub', ...message });
       await db.RiskApprovalPacket.updateMany({ id: packet.id, current_index: packet.current_index, notification_status: 'sending' }, { $set: { notification_status: 'sent', notification_index: packet.current_index, notification_at: new Date().toISOString() } });
       return Response.json({ sent: true });
     } catch (error) {

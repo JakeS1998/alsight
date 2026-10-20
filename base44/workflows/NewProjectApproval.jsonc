@@ -1,5 +1,5 @@
 {
-  "description": "New ALSight projects enter approval. If project numbering is busy, two durable waits allow up to three intake attempts. Dataverse bulk imports call the same intake directly.",
+  "description": "New ALS Hub projects enter approval. If project numbering is busy, two durable waits allow up to three intake attempts. Dataverse bulk imports call the same intake directly.",
   "trigger": {
     "condition": null,
     "config": {

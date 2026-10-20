@@ -19,7 +19,7 @@ export default async function(req: Request): Promise<Response> {
       const message = uklfDigestMessage(summary, now, activity);
       await base44.asServiceRole.integrations.Core.SendEmail({
         to: user.email,
-        from_name: 'ALSight · UK Leisure Framework',
+        from_name: 'ALS Hub · UK Leisure Framework',
         ...message,
         subject: `[TEST] ${message.subject}`,
       });
@@ -40,7 +40,7 @@ export default async function(req: Request): Promise<Response> {
       const claim = await db.UKLFDigestDelivery.updateMany({ id: delivery.id, status: 'pending' }, { $set: { status: 'sending' } });
       if (!claim.updated) { skipped++; continue; }
       try {
-        await base44.asServiceRole.integrations.Core.SendEmail({ to: recipient.email, from_name: 'ALSight · UK Leisure Framework', ...message });
+        await base44.asServiceRole.integrations.Core.SendEmail({ to: recipient.email, from_name: 'ALS Hub · UK Leisure Framework', ...message });
         await db.UKLFDigestDelivery.update(delivery.id, { status: 'sent', sent_at: new Date().toISOString() });
         sent++;
       } catch (error) {

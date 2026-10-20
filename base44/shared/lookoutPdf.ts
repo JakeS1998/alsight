@@ -30,7 +30,7 @@ export async function makeLookoutPdf(issue, draft = false) {
   title(4,'LOOKING AHEAD · NEXT 14 DAYS');card('Events, deadlines, training & social activities',c.events.length?c.events.map(e=>`${e.date} | ${e.type} | ${e.title}`).join('\n'):'No upcoming entries recorded or submitted.');
   title(5,'PEOPLE & CULTURE');card('New starters, moves, anniversaries & recognition',c.people.length?c.people.join('\n'):'No people updates submitted or recognition recorded.');
   title(6,'VALUES IN ACTION');card('Alliance values in real work',c.values || 'No values-in-action example submitted.');
-  title(7,"WHAT'S NEW IN ALSIGHT");
+  title(7,"WHAT'S NEW IN ALS HUB");
   const col=(CW-12)/2, left=doc.splitTextToSize(text(c.released.join('\n')||'No releases submitted.'),col-24),right=doc.splitTextToSize(text(c.coming_soon.join('\n')||'No roadmap updates submitted.'),col-24);
   for(let i=0;i<Math.max(left.length,right.length);i+=30){const l=left.slice(i,i+30),r=right.slice(i,i+30),h=40+Math.max(l.length,r.length)*12;ensure(h+12);[l,r].forEach((rows,index)=>{const x=M+index*(col+12);doc.setDrawColor(...GREY);doc.roundedRect(x,y,col,h,5,5);doc.setFont('helvetica','bold');doc.setFontSize(10);doc.text(index?'Coming soon':'Released this week',x+12,y+18);doc.setFont('helvetica','normal');doc.setFontSize(9);if(rows.length)doc.text(rows,x+12,y+35,{lineHeightFactor:1.33});});y+=h+12;}
   title(8,'QUICK POLL');card(c.poll.question,c.poll.options.map((o,i)=>`${i+1}. ${o}`).join('\n')+'\nVote inside ALS Hub: https://alsight.base44.app/lookout/'+issue.id);

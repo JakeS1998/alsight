@@ -10,7 +10,7 @@ export default async function(req) {
   if(!input || typeof input!=='object' || Array.isArray(input))return Response.json({error:'Invalid feedback request.'},{status:400});
   if(['submit','own'].includes(input.action)){
    const page=feedbackPage(input.page_route);
-   if(!page)return Response.json({error:'Choose a recognised ALSight page.'},{status:400});
+   if(!page)return Response.json({error:'Choose a recognised ALS Hub page.'},{status:400});
    if(input.action==='own'){
     const result=await base44.entities.PageFeedback.filter({user_id:user.id,page_key:page.key},{sort:'-submitted_at',limit:1,fields:['submitted_at']});
     return Response.json({submitted_at:result.items[0]?.submitted_at||null});
