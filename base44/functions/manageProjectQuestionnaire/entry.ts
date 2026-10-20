@@ -1,4 +1,5 @@
 import {createClientFromRequest} from 'npm:@base44/sdk@0.8.52';
+// Load, save, approval snapshots and PDF exports use the current shared questionnaire sections.
 import {questionnaireVersion,questionnaireSections,questionnaireFields,missingQuestionnaireFields,questionnaireDefaults} from '../../shared/projectQuestionnaireTemplate.ts';
 import {pqRoles,withPQWriteLock} from '../../shared/pqApprovalCommon.ts';
 import {pqRoundActions,pqProjectActions,pqRoundAction,pqProjectAction} from '../../shared/pqApprovalActions.ts';
