@@ -30,6 +30,7 @@ export default async function(req: Request): Promise<Response> {
 
     const result = await base44.asServiceRole.integrations.Core.SendEmail({
       to: email,
+      from_name: 'ALS Hub',
       template_name: 'NewApprovalRequest',
       variables: {
         document_title: escapeHtml(approval.document_title || 'Approval document'),

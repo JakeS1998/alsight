@@ -10,7 +10,7 @@ export async function pqRecipientAction(base44,user,round,input){
   if(await db.PQApprovalChallenge.count({round_id:round.id,user_id:user.id,sent_at:{$gte:new Date(Date.now()-86400000).toISOString()}})>=10)fail('Daily verification-code limit reached.',429);
   const random=new Uint32Array(1);crypto.getRandomValues(random);const code=String(100000+random[0]%900000),salt=crypto.randomUUID(),now=new Date();
   const challenge=await db.PQApprovalChallenge.create({round_id:round.id,user_id:user.id,step_index:round.current_index,code_hash:`${salt}:${await hash(`${salt}:${code}`)}`,sent_at:now.toISOString(),expires_at:new Date(now.getTime()+600000).toISOString(),attempts:0,used:false});
-  try{await base44.asServiceRole.integrations.Core.SendEmail({to:step.email,template_name:'PQApprovalVerification',variables:{code}});}catch(error){await db.PQApprovalChallenge.update(challenge.id,{used:true});throw error;}
+  try{await base44.asServiceRole.integrations.Core.SendEmail({to:step.email,from_name:'ALS Hub',template_name:'PQApprovalVerification',variables:{code}});}catch(error){await db.PQApprovalChallenge.update(challenge.id,{used:true});throw error;}
   return {challenge_id:challenge.id};
  }
  if(!['approve','reject'].includes(input.decision)||typeof input.comment!=='string'||input.comment.length>1000)fail('Choose a decision and use no more than 1,000 characters for comments.');

@@ -8,6 +8,7 @@ export async function deliverApprovalDigest(base44, delivery, recipient, report)
     console.info('Approval digest: submitting email', { delivery_id: delivery.id });
     const result = await base44.asServiceRole.integrations.Core.SendEmail({
       to: recipient.email,
+      from_name: 'ALS Hub',
       template_name: 'DailyApprovalDigest',
       variables: report.variables,
     });
