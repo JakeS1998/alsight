@@ -25,14 +25,14 @@ export async function decideFlowReview(base44, user, context, table, settings, i
   const decision = { reviewed_by: user.id, reviewed_at: new Date().toISOString() };
   if (input.decision === 'reject') {
     await base44.entities.DataverseSyncReview.update(review.id, { ...decision, status: 'rejected', error: '' });
-    return { notice: 'Rejected. The ALSight placeholder is unchanged.' };
+    return { notice: 'Rejected. The ALS Hub placeholder is unchanged.' };
   }
   const row = await readReviewSource(context, table, settings, review);
   if (typeof input.etag !== 'string' || !/^W\/"[0-9]+"$/.test(input.etag) || row['@odata.etag'] !== input.etag) { const error = new Error('The source changed or was not previewed. Reload the comparison before approving.'); error.status = 412; throw error; }
   const target = await checkedReviewTarget(base44, table, review, input.targetId, row), spec = flowSpecs[table], identity = spec.identityField || 'dataverse_id';
-  if (typeof input.localUpdatedAt !== 'string' || input.localUpdatedAt !== target.updated_date) { const error = new Error('The ALSight record changed since the comparison. Reload before approving.'); error.status = 412; throw error; }
+  if (typeof input.localUpdatedAt !== 'string' || input.localUpdatedAt !== target.updated_date) { const error = new Error('The ALS Hub record changed since the comparison. Reload before approving.'); error.status = 412; throw error; }
   const linked = table === 'users' ? await base44.entities.User.filter({ [identity]: review.source_id }) : (await base44.entities[spec.entity].filter({ [identity]: review.source_id }, { limit: 2, fields: [spec.required] })).items;
-  if (linked.some(record => record.id !== target.id)) throw new Error('This source record is already linked to another ALSight record.');
+  if (linked.some(record => record.id !== target.id)) throw new Error('This source record is already linked to another ALS Hub record.');
   const resolved = (await resolveFlowStaffReferences(base44, table, [mappedFlowValues(table, settings, row)], context))[0];
   if (resolved.error) throw new Error(resolved.error);
   const account = accountFlowValues(table, resolved.value, target, !settings.dataverseOnly || settings.columnPlans?.account_type === 'base44_only');

@@ -26,6 +26,6 @@ export default function ProjectFrameworkReport({ project }) {
     ['Zero RIDDOR incidents', report.zero_riddor], ['Local spend', report.local_spend != null ? formatCurrency(report.local_spend) : null],
     ['Apprenticeships', report.apprenticeships],
   ].filter(([, value]) => value !== null && value !== undefined && value !== '');
-  return <section key={report.id} className="rounded-xl border border-slate-200 bg-white p-5"><h3 className="mb-1 font-semibold text-slate-900">Framework reporting · {report.framework_ref}</h3><p className="mb-4 text-xs text-slate-500">Workbook figures are shown separately; ALSight project values take precedence.</p><dl className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">{fields.map(([label, value]) => <div key={label}><dt className="text-xs text-slate-500">{label}</dt><dd className="text-sm font-medium text-slate-800">{value}</dd></div>)}</dl></section>;
+  return <section key={report.id} className="rounded-xl border border-slate-200 bg-white p-5"><h3 className="mb-1 font-semibold text-slate-900">Framework reporting · {report.framework_ref}</h3><p className="mb-4 text-xs text-slate-500">Workbook figures are shown separately; ALS Hub project values take precedence.</p><dl className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">{fields.map(([label, value]) => <div key={label}><dt className="text-xs text-slate-500">{label}</dt><dd className="text-sm font-medium text-slate-800">{value}</dd></div>)}</dl></section>;
   })}</div>;
 }

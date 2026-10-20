@@ -1,5 +1,5 @@
 import {sourceFetch} from './aseSourceCommon.ts';
-const ua='ALSight-ASE/1.0 (+https://alsight.base44.app)';
+const ua='ALS-Hub-ASE/1.0 (+https://alsight.base44.app)';
 export async function gazetteRobotsPolicy() {
   const response=await sourceFetch('https://www.thegazette.co.uk/robots.txt',{headers:{'User-Agent':ua}},500000);
   if(!response.ok) {const error=new Error(`Gazette robots policy unavailable (HTTP ${response.status}); collection remains unknown.`);error.status=response.status;error.retryAfter=response.retryAfter;throw error;}

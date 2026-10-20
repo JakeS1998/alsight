@@ -26,14 +26,14 @@ export default function LoginLayout({ children }) {
             <p className="mt-7 text-sm font-medium tracking-wide text-white/85">Projects · Pipeline · Delivery · Insight</p>
           </div>
         </div>
-        <section aria-label="Sign in to ALSight" className="w-full max-w-[460px] self-center rounded-hero border border-border bg-card p-6 text-center shadow-lg sm:p-9 lg:justify-self-center">
+        <section aria-label="Sign in to ALS Hub" className="w-full max-w-[460px] self-center rounded-hero border border-border bg-card p-6 text-center shadow-lg sm:p-9 lg:justify-self-center">
           <div className="mb-8">
             <Logo className="mx-auto h-24 w-full max-w-[280px] sm:h-32 sm:max-w-[350px]" />
-            <h2 className="mt-3 font-heading text-2xl font-bold text-als-navy">Welcome to ALSight</h2>
+            <h2 className="mt-3 font-heading text-2xl font-bold text-als-navy">Welcome to ALS Hub</h2>
             <p className="mt-2 text-sm text-muted-foreground">Sign in to your project workspace.</p>
           </div>
           {children}
-          <p className="mt-7 text-center text-sm text-muted-foreground">Need access? Contact your ALSight administrator.</p>
+          <p className="mt-7 text-center text-sm text-muted-foreground">Need access? Contact your ALS Hub administrator.</p>
         </section>
       </div>
       <p className="relative z-10 px-5 pb-6 text-xs text-white/75 sm:px-10 lg:absolute lg:bottom-6 lg:left-[8vw] lg:p-0">{FEATURED_PROJECT_NAME} · Alliance Leisure Project</p>

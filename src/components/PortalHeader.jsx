@@ -53,7 +53,7 @@ export default function PortalHeader() {
   });
   return <><header ref={headerRef} className="sticky top-0 z-40 bg-als-navy text-white shadow-sm">
     <div className="portal-topbar">
-      <Link to={['sam','sam_director'].includes(role) ? '/insights-engagement' : role === 'framework_stakeholder' ? '/framework' : '/today'} aria-label="ALSight home" onClick={() => setMenuOpen(false)} className="portal-logo"><Logo variant="header" className="portal-logo-image" /></Link>
+      <Link to={['sam','sam_director'].includes(role) ? '/insights-engagement' : role === 'framework_stakeholder' ? '/framework' : '/today'} aria-label="ALS Hub home" onClick={() => setMenuOpen(false)} className="portal-logo"><Logo variant="header" className="portal-logo-image" /></Link>
       <nav aria-label="Main navigation" className="portal-navigation hidden min-w-0 items-center lg:flex">{nav()}</nav>
       <div className="portal-utilities">
         <PortalSearch />

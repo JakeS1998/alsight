@@ -38,6 +38,6 @@ export async function createHandoverBundle(base44, pack, appId) {
       manifest.push({ category: item.key, name: file.name, version: file.version || '', included: true, path: name, bytes: size, sha256: Array.from(digest, byte => byte.toString(16).padStart(2, '0')).join('') });
     }
   }
-  files.push({ name: 'manifest.json', bytes: new TextEncoder().encode(JSON.stringify({ ...pack, bundledFiles: manifest, bundleNote: 'Snapshot of saved data at export. External links are references only. Superseded documents are retained in ALSight but not copied into this bundle.' }, null, 2)) });
+  files.push({ name: 'manifest.json', bytes: new TextEncoder().encode(JSON.stringify({ ...pack, bundledFiles: manifest, bundleNote: 'Snapshot of saved data at export. External links are references only. Superseded documents are retained in ALS Hub but not copied into this bundle.' }, null, 2)) });
   return createHandoverZip(files);
 }

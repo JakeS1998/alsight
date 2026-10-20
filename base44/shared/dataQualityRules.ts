@@ -12,7 +12,7 @@ export const checks = [
   { key: 'client', label: 'Live project without client', description: 'Live projects with no client/account link and no client name.' },
   { key: 'jct', label: 'Construction without JCT', description: 'Unfinished projects in RIBA 5–7 or with a commenced construction contract, without an active linked JCT.' },
   { key: 'duplicates', label: 'Duplicate contact groups', description: 'Potential duplicates sharing an exact primary email address. Review before merging; no automatic changes.' },
-  { key: 'dataverse', label: 'Missing Dataverse ID', description: 'Projects, contacts, accounts, legal documents, DMAs, JCTs and warranties without a Dataverse ID. Native ALSight records may legitimately lack one.' },
+  { key: 'dataverse', label: 'Missing Dataverse ID', description: 'Projects, contacts, accounts, legal documents, DMAs, JCTs and warranties without a Dataverse ID. Native ALS Hub records may legitimately lack one.' },
   { key: 'fees', label: 'Incomplete fee proposals', description: 'Current/latest proposals missing a fee value, fee basis or valid line items (description, RIBA stage and amount). Zero amounts are valid.' },
   { key: 'supplier', label: 'Missing supplier proposals', description: 'Delivery team members without a linked fee proposal document; counted per affected project.' },
 ];

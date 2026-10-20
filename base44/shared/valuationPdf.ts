@@ -53,7 +53,7 @@ function statusNote(doc: jsPDF, status: string): void {
 
 function drawFooter(doc: jsPDF, preparedBy: string, page: number, pages: number): void {
   doc.setFont('helvetica', 'normal'); doc.setFontSize(7); doc.setTextColor(120, 120, 120);
-  doc.text(`${preparedBy || 'ALSight'} | ${page} / ${pages}`, M, doc.internal.pageSize.getHeight() - 20);
+  doc.text(`${preparedBy || 'ALS Hub'} | ${page} / ${pages}`, M, doc.internal.pageSize.getHeight() - 20);
   doc.setTextColor(...BLACK);
 }
 
@@ -86,7 +86,7 @@ function drawIssueRecord(doc: jsPDF, data: any, y: number): void {
     `Executed contract: ${issue.contract_reference}`,
     `Authority clause / appointment: ${issue.authority_clause}`,
     `Issue reference: ${issue.issue_reference}`,
-    'Contractual authority confirmed by the issuer for this document; not independently verified by ALSight.',
+    'Contractual authority confirmed by the issuer for this document; not independently verified by ALS Hub.',
     'Recorded PDF issue does not constitute service on the contractor.'
   ] : ['DRAFT - NOT ISSUED', 'No formal authorisation or issue has been recorded for this preview.'];
   const wrapped = lines.flatMap(line => doc.splitTextToSize(line, CW));

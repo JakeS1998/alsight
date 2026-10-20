@@ -18,9 +18,9 @@ export default function HomeAgenda({ tasks, reminders, calendar, roleAgenda, rol
     {calendar.loading && <p role="status" className="mb-3 text-xs text-muted-foreground">Loading today’s Outlook events…</p>}
     {calendar.error && <p role="alert" className="mb-3 text-xs text-destructive">{calendar.error.message} {calendar.error.code === 'OUTLOOK_NOT_CONNECTED' ? <Link to="/account-settings" className="underline">Reconnect Outlook</Link> : <button onClick={() => calendar.refresh()} className="underline">Try again</button>}</p>}
     {!calendar.loading && !calendar.error && !calendar.rows.length && <p className="mb-3 text-xs text-muted-foreground">No Outlook events scheduled today.</p>}
-    {(tasks.loading || reminders.loading) && <p role="status" className="mb-3 text-xs text-muted-foreground">Loading your ALSight agenda…</p>}
-    {(tasks.error || reminders.error) && <p role="alert" className="mb-3 text-xs text-destructive">Some ALSight tasks or follow-ups could not be loaded.</p>}
-    {!tasks.loading && !tasks.error && !tasks.total && !reminders.loading && !reminders.error && !reminders.due.length && <p className="mb-3 text-xs text-muted-foreground">No outstanding ALSight tasks or follow-ups due today.</p>}
+    {(tasks.loading || reminders.loading) && <p role="status" className="mb-3 text-xs text-muted-foreground">Loading your ALS Hub agenda…</p>}
+    {(tasks.error || reminders.error) && <p role="alert" className="mb-3 text-xs text-destructive">Some ALS Hub tasks or follow-ups could not be loaded.</p>}
+    {!tasks.loading && !tasks.error && !tasks.total && !reminders.loading && !reminders.error && !reminders.due.length && <p className="mb-3 text-xs text-muted-foreground">No outstanding ALS Hub tasks or follow-ups due today.</p>}
     <ul className="space-y-2">{rows.map(row => <HomeAgendaRow key={row.key} row={row} onFollowup={onFollowup} onDone={onDone} onTaskDone={onTaskDone} />)}</ul>
     {calendar.more && <button disabled={calendar.loadingMore} onClick={() => calendar.loadMore()} className="mt-3 block text-xs font-semibold text-chart-2 disabled:opacity-50">{calendar.loadingMore ? 'Loading…' : 'Load more Outlook events'}</button>}
     {tasks.more && <button disabled={tasks.loadingMore} onClick={() => tasks.loadMore()} className="mt-3 text-xs font-semibold text-chart-2 disabled:opacity-50">{tasks.loadingMore ? 'Loading…' : 'Load more assigned tasks'}</button>}

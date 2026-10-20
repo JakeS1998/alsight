@@ -15,7 +15,7 @@ export async function recipientAction(base44, user, packet, input) {
     const now = new Date(); const challengeId = crypto.randomUUID();
     const challenge = await db.RiskApprovalChallenge.create({ packet_id: packet.id, user_id: user.id, step_index: packet.current_index, code_hash: await hash(`${challengeId}:${code}`), session_hash: challengeId, sent_at: now.toISOString(), expires_at: new Date(now.getTime() + 600000).toISOString(), attempts: 0, used: false });
     try {
-      await base44.asServiceRole.integrations.Core.SendEmail({ to: step.email, from_name: 'ALSight', ...riskApprovalVerificationMessage(packet, code) });
+      await base44.asServiceRole.integrations.Core.SendEmail({ to: step.email, from_name: 'ALS Hub', ...riskApprovalVerificationMessage(packet, code) });
     } catch (error) { await db.RiskApprovalChallenge.update(challenge.id, { used: true }); throw error; }
     return { challenge_id: challenge.id };
   }

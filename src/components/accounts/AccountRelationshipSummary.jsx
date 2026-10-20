@@ -13,7 +13,7 @@ export default function AccountRelationshipSummary({ account, signals, loading, 
       {signals.liveValue != null && <div><dt>Live project value</dt><dd>{formatCurrency(signals.liveValue)}</dd></div>}
       <div><dt>Last interaction</dt><dd>{signals.lastInteraction ? formatDate(signals.lastInteraction) : 'Not recorded'}</dd></div>
     </dl>}
-  {!loading && !error && signals?.lastInteraction && Date.now()-Date.parse(signals.lastInteraction)>=21*86400000 && <div className="mt-4"><AlsightAttention title="Relationship interaction record is older than 21 days" explanation="The last meaningful interaction recorded in the accessible ALSight information is not recent. Review the relationship history or add an interaction record; no instruction to contact the organisation is implied." actions={[{label:'Review interactions',to:`/accounts/${account.id}?tab=activity`}]}/></div>}
+  {!loading && !error && signals?.lastInteraction && Date.now()-Date.parse(signals.lastInteraction)>=21*86400000 && <div className="mt-4"><AlsightAttention title="Relationship interaction record is older than 21 days" explanation="The last meaningful interaction recorded in the accessible ALS Hub information is not recent. Review the relationship history or add an interaction record; no instruction to contact the organisation is implied." actions={[{label:'Review interactions',to:`/accounts/${account.id}?tab=activity`}]}/></div>}
   <nav className="mt-4 flex flex-wrap gap-3 text-xs font-medium" aria-label="Connected relationship records">{[['View projects','projects'],['View contacts','contacts'],['Review interactions','activity']].map(([label,tab])=><Link className="underline" key={tab} to={`/accounts/${account.id}?tab=${tab}`}>{label}</Link>)}</nav>
   </section>;
 }

@@ -9,7 +9,7 @@ export default function FrameworkVisualSummary({ data }) {
   return <section className="space-y-4" aria-label="UKLF visual reporting">
     <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
       <div className="rounded-xl border border-slate-200 bg-white p-5"><p className="text-sm text-slate-500">Framework projects</p><p className="mt-1 text-3xl font-bold text-als-navy">{total}</p></div>
-      <div className="rounded-xl border border-slate-200 bg-white p-5"><p className="text-sm text-slate-500">Linked to ALSight</p><p className="mt-1 text-3xl font-bold text-als-navy">{data.linked || 0}</p></div>
+      <div className="rounded-xl border border-slate-200 bg-white p-5"><p className="text-sm text-slate-500">Linked to ALS Hub</p><p className="mt-1 text-3xl font-bold text-als-navy">{data.linked || 0}</p></div>
       <div className="rounded-xl border border-slate-200 bg-white p-5"><p className="text-sm text-slate-500">Outcome records</p><p className="mt-1 text-3xl font-bold text-als-navy">{data.outcomes || 0}</p></div>
     </div>
     <div className="grid gap-4 lg:grid-cols-2">

@@ -40,7 +40,7 @@ export function validateMapping(table, inspected, mappings) {
       for (const option of source.options) {
         const value = values[option.value];
         const fixedChoice = item.local === 'status' || (table === 'accounts' && item.local === 'account_type');
-        if (typeof value !== 'string' || (fixedChoice && spec.enums?.[item.local] && !spec.enums[item.local].includes(value))) throw new Error(`“${option.label}” must map to an existing ${item.local.replaceAll('_', ' ')} value to preserve ALSight classification.`);
+        if (typeof value !== 'string' || (fixedChoice && spec.enums?.[item.local] && !spec.enums[item.local].includes(value))) throw new Error(`“${option.label}” must map to an existing ${item.local.replaceAll('_', ' ')} value to preserve ALS Hub classification.`);
         values[option.value] = value;
       }
       if (!source.options.length) throw new Error('Dataverse did not return choices for this field.');

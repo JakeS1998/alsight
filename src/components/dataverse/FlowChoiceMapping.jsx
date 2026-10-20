@@ -6,7 +6,7 @@ export default function FlowChoiceMapping({ source, choices, values = {}, onChan
   const matched = matchFlowChoices(source.options, choices, values);
   return <div className="space-y-2 rounded-md bg-muted p-3 sm:col-span-3">
     <p className="text-xs font-medium">Choices from the selected Dataverse column</p>
-    <p className="text-xs text-muted-foreground">Dropdown options come directly from Dataverse. Each choice maps automatically to its label or an existing matching ALSight value; saved selections are kept. Reload column options to pick up Dataverse changes.</p>
+    <p className="text-xs text-muted-foreground">Dropdown options come directly from Dataverse. Each choice maps automatically to its label or an existing matching ALS Hub value; saved selections are kept. Reload column options to pick up Dataverse changes.</p>
     {source.options.map(option => {
       const hasMatch = Object.hasOwn(matched, option.value);
       const automatic = hasMatch && normalisedChoice(matched[option.value]) === normalisedChoice(option.label);

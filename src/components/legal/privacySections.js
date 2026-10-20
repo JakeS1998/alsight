@@ -1,7 +1,7 @@
 export default [
  {heading:'1. About this policy and who is responsible',paragraphs:[
- 'This policy explains how personal information is handled in connection with ALSight, a project, commercial, legal and stakeholder management portal. It covers visitors, authorised users, and people whose information is included in project or business records.',
- 'The organisation operating ALSight determines how information is used for operating the portal. Where an organisation supplies information for its own projects, it may be the controller of that information and the portal operator may act on its instructions. The respective responsibilities depend on the relevant agreement. Your ALSight administrator or the organisation that invited you can identify the responsible controller and direct a privacy enquiry. The operator’s full legal identity and direct contact details remain to be confirmed for this draft.'
+ 'This policy explains how personal information is handled in connection with ALS Hub, a project, commercial, legal and stakeholder management portal. It covers visitors, authorised users, and people whose information is included in project or business records.',
+ 'The organisation operating ALS Hub determines how information is used for operating the portal. Where an organisation supplies information for its own projects, it may be the controller of that information and the portal operator may act on its instructions. The respective responsibilities depend on the relevant agreement. Your ALS Hub administrator or the organisation that invited you can identify the responsible controller and direct a privacy enquiry. The operator’s full legal identity and direct contact details remain to be confirmed for this draft.'
  ]},
  {heading:'2. Information we handle',paragraphs:[
  'Information may include your name, business email, job title, organisation, assigned roles, profile information and account identifiers; business contact details; project assignments, tasks, meeting records and correspondence; and information in uploaded documents, contracts, approvals, invoices, risk registers and commercial records.',
@@ -17,7 +17,7 @@ export default [
  'If special-category information is necessary, an additional lawful condition must be established before it is processed. The portal is not intended as a general repository for medical information, criminal-offence data or unrelated sensitive records.'
  ]},
  {heading:'5. AI-assisted features and business assessments',paragraphs:[
- 'ALSight includes AI-assisted drafting and insight features and business assessment tools such as the All Seeing Eye. Relevant prompts, selected records or submitted files may be processed by the AI service providers used to deliver a feature. Only submit information you are permitted to share for that purpose.',
+ 'ALS Hub includes AI-assisted drafting and insight features and business assessment tools such as the All Seeing Eye. Relevant prompts, selected records or submitted files may be processed by the AI service providers used to deliver a feature. Only submit information you are permitted to share for that purpose.',
  'Generated output and assessment indicators can be incomplete or inaccurate. They support human review and should not be treated as independently verified facts or used as the sole basis for decisions with legal or similarly significant effects on an individual. Business risk signals are not statements of personal misconduct. You can raise concerns about incorrect personal information or identity matching with the responsible controller.'
  ]},
  {heading:'6. Who may receive information',paragraphs:[
@@ -38,11 +38,11 @@ export default [
  ]},
  {heading:'10. Your data protection rights',paragraphs:[
  'Subject to applicable law and relevant exceptions, you may request access to your personal information, correction, erasure, restriction of processing or portability, and object to certain processing. Where processing relies on consent, you may withdraw it without affecting earlier lawful processing. Rights concerning solely automated decisions may also apply.',
- 'Contact your ALSight administrator or the organisation that provided your access and ask for the responsible privacy contact. Explain the information and right concerned; identity verification may be required. Requests are normally answered within one month under UK law, subject to lawful extensions. Some records may need to be retained or redacted to protect legal obligations or other people’s rights.',
+ 'Contact your ALS Hub administrator or the organisation that provided your access and ask for the responsible privacy contact. Explain the information and right concerned; identity verification may be required. Requests are normally answered within one month under UK law, subject to lawful extensions. Some records may need to be retained or redacted to protect legal obligations or other people’s rights.',
  'You may complain to the UK Information Commissioner’s Office at https://ico.org.uk, or to the relevant supervisory authority in your jurisdiction. You do not have to contact us first, although we welcome the opportunity to address a concern.'
  ]},
  {heading:'11. Children and changes to this policy',paragraphs:[
- 'ALSight is intended for authorised business users, not for use by children. If you believe a child’s information has been submitted inappropriately, notify the responsible organisation.',
+ 'ALS Hub is intended for authorised business users, not for use by children. If you believe a child’s information has been submitted inappropriately, notify the responsible organisation.',
  'This policy may be updated when the service or processing arrangements change. The date and version will be updated, and material changes should be communicated through appropriate channels. This publicly accessible document is currently a draft for review.'
  ]}
 ];

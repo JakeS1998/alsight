@@ -33,7 +33,7 @@ export default function TodayPlanner({ user, tasks }) {
   };
   const saved = async details => { await reminders.refresh(); setNotice(details); };
   return <section aria-label="Your day planner" className="space-y-3">
-    {notice && <div role="status" className="rounded-lg border border-border bg-card p-3 text-sm"><p className="text-success">{typeof notice==='string'?notice:'Follow-up saved in ALSight.'}</p>{typeof notice!=='string'&&<SubmissionSummary rows={[[ 'Follow-up',notice.subject],['Remind me at',new Date(notice.remind_at).toLocaleString('en-GB')]]}/>}</div>}
+    {notice && <div role="status" className="rounded-lg border border-border bg-card p-3 text-sm"><p className="text-success">{typeof notice==='string'?notice:'Follow-up saved in ALS Hub.'}</p>{typeof notice!=='string'&&<SubmissionSummary rows={[[ 'Follow-up',notice.subject],['Remind me at',new Date(notice.remind_at).toLocaleString('en-GB')]]}/>}</div>}
     {error && <p role="alert" className="rounded-lg border border-border bg-card p-3 text-sm text-destructive">{error}</p>}
     <div className="grid items-start gap-4 xl:grid-cols-[minmax(0,1.7fr)_minmax(0,1fr)]"><HomeAgenda tasks={tasks} reminders={reminders} calendar={calendar} roleAgenda={roleAgenda} role={user.role} onFollowup={schedule} onDone={done} onTaskDone={completeTask} busy={busy} /><HomePlannerFollowups user={user} reminders={reminders} onFollowup={schedule} onDone={done} busy={busy} /></div>
     {draft !== null && <HomeFollowupForm key={`${draft.contactId || ''}:${draft.subject}`} user={user} initial={draft.subject} contactId={draft.contactId} onClose={() => setDraft(null)} onSaved={saved} />}

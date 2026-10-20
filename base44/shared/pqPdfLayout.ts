@@ -31,7 +31,7 @@ export function pqPdfLayout(reference){
  };
  const finish=()=>{
   const count=doc.getNumberOfPages();
-  for(let page=1;page<=count;page++){doc.setPage(page);doc.setDrawColor(150,158,167);doc.setLineWidth(0.4);doc.line(margin,height-34,width-margin,height-34);doc.setTextColor(95,117,134);doc.setFont('helvetica','normal');doc.setFontSize(8);doc.text('UK Leisure Framework | PQ | ALSight digital export',margin,height-21);doc.text(`${page} / ${count}`,width-margin,height-21,{align:'right'});}
+  for(let page=1;page<=count;page++){doc.setPage(page);doc.setDrawColor(150,158,167);doc.setLineWidth(0.4);doc.line(margin,height-34,width-margin,height-34);doc.setTextColor(95,117,134);doc.setFont('helvetica','normal');doc.setFontSize(8);doc.text('UK Leisure Framework | PQ | ALS Hub digital export',margin,height-21);doc.text(`${page} / ${count}`,width-margin,height-21,{align:'right'});}
   return new Uint8Array(doc.output('arraybuffer'));
  };
  return {text,section,field,table,checklist,finish};

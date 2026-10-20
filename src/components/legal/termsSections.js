@@ -1,10 +1,10 @@
 export default [
  {heading:'1. Scope and status of these terms',paragraphs:[
- 'These draft Terms and Conditions of Service describe the proposed rules for accessing and using ALSight, a business portal supporting projects, stakeholder relationships, commercial records, legal workflows and related insights. “Operator” means the organisation providing and administering the service; its full legal identity must be confirmed before these terms are adopted.',
+ 'These draft Terms and Conditions of Service describe the proposed rules for accessing and using ALS Hub, a business portal supporting projects, stakeholder relationships, commercial records, legal workflows and related insights. “Operator” means the organisation providing and administering the service; its full legal identity must be confirmed before these terms are adopted.',
  'These terms do not replace a signed project agreement, construction contract, appointment, framework agreement, data processing agreement or other separately agreed contract. If there is a conflict, that agreement takes precedence for its subject matter. This published draft is not represented as a final executed agreement. Once finalised and appropriately presented, continued authorised use is subject to the applicable terms and any agreement with your organisation.'
  ]},
  {heading:'2. Authorised access and account security',paragraphs:[
- 'Access to working areas of ALSight is limited to authorised users. Public legal pages do not grant access to project records. You must provide accurate account information, use only your own authorised account, safeguard credentials and promptly notify an administrator of suspected compromise.',
+ 'Access to working areas of ALS Hub is limited to authorised users. Public legal pages do not grant access to project records. You must provide accurate account information, use only your own authorised account, safeguard credentials and promptly notify an administrator of suspected compromise.',
  'Your permissions depend on your role, organisation and project relationships. An invitation or account does not entitle you to every record. You must not circumvent permissions, impersonate others, share credentials or continue using access after authorisation has ended.'
  ]},
  {heading:'3. Acceptable use',paragraphs:[
@@ -13,7 +13,7 @@ export default [
  ]},
  {heading:'4. Your content and confidentiality',paragraphs:[
  'You and your organisation retain the rights you hold in submitted material. You grant the operator and its service providers only the rights needed to host, process, display and transmit that material to deliver the service and meet applicable obligations. You warrant that you have the necessary authority for that use.',
- 'Treat non-public information obtained through ALSight as confidential. Share it only with authorised recipients for a legitimate purpose. Downloaded files, meeting links and exported records remain subject to confidentiality and access restrictions. The ability to export a record does not make it public.'
+ 'Treat non-public information obtained through ALS Hub as confidential. Share it only with authorised recipients for a legitimate purpose. Downloaded files, meeting links and exported records remain subject to confidentiality and access restrictions. The ability to export a record does not make it public.'
  ]},
  {heading:'5. Record accuracy, approvals and contractual effect',paragraphs:[
  'Users are responsible for reviewing entries and keeping material information accurate. Imported and synchronised information may be incomplete, delayed or inconsistent with source systems. Resolve discrepancies with the responsible project team and consult authoritative source documents before relying on a record.',
@@ -28,7 +28,7 @@ export default [
  'Only connect accounts you are authorised to use. You are responsible for checking what is shared and for ensuring the intended recipients are appropriate. The operator does not control independent providers or guarantee that their data is complete, current or uninterrupted.'
  ]},
  {heading:'8. Intellectual property',paragraphs:[
- 'Rights in the service, its design, software and branding remain with their respective owners. Subject to authorisation, you receive a limited, non-exclusive right to use ALSight for its intended business purposes. These terms do not transfer ownership of the service or grant a right to resell it.',
+ 'Rights in the service, its design, software and branding remain with their respective owners. Subject to authorisation, you receive a limited, non-exclusive right to use ALS Hub for its intended business purposes. These terms do not transfer ownership of the service or grant a right to resell it.',
  'You must not copy, distribute or exploit protected material beyond your permissions, or remove ownership notices. This does not restrict rights permitted by applicable law or ownership of your organisation’s own records.'
  ]},
  {heading:'9. Availability and changes',paragraphs:[
@@ -45,14 +45,14 @@ export default [
  'Nothing in these terms excludes or limits liability for fraud, fraudulent misrepresentation, death or personal injury caused by negligence, or any other liability that cannot lawfully be excluded or limited. Mandatory statutory rights remain unaffected.'
  ]},
  {heading:'12. Privacy',paragraphs:[
- 'Personal information is handled as described in the ALSight Privacy Policy, available at /privacy-policy, and any relevant organisational privacy notice or data processing agreement. These terms do not themselves constitute consent for optional tracking or unrelated processing.'
+ 'Personal information is handled as described in the ALS Hub Privacy Policy, available at /privacy-policy, and any relevant organisational privacy notice or data processing agreement. These terms do not themselves constitute consent for optional tracking or unrelated processing.'
  ]},
  {heading:'13. Governing law and disputes',paragraphs:[
  'The proposed governing law for this draft is the law of England and Wales, with disputes subject to the courts of England and Wales, unless an applicable written agreement provides otherwise. This proposed jurisdiction must be confirmed before the terms are finalised and does not override mandatory protections or jurisdiction rules.',
- 'Raise service concerns with your ALSight administrator or the organisation providing access in the first instance. The parties should seek to resolve disputes constructively, without preventing urgent court relief or exercise of statutory rights.'
+ 'Raise service concerns with your ALS Hub administrator or the organisation providing access in the first instance. The parties should seek to resolve disputes constructively, without preventing urgent court relief or exercise of statutory rights.'
  ]},
  {heading:'14. Contact and updates',paragraphs:[
- 'For questions about these terms, contact your ALSight administrator or the organisation that invited you. A direct operator contact and legal identity must be added when this draft is finalised.',
+ 'For questions about these terms, contact your ALS Hub administrator or the organisation that invited you. A direct operator contact and legal identity must be added when this draft is finalised.',
  'Revised terms should identify their version and commencement date and be communicated through an appropriate process. Material changes must not be applied retrospectively to override an existing agreement without a lawful basis. If part of a final agreement is unenforceable, the remaining provisions continue to the extent permitted by law.'
  ]}
 ];

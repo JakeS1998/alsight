@@ -16,7 +16,7 @@ export async function supplierProfessionalIndemnity(db,account,now=new Date()) {
 }
 export function professionalIndemnityCheck(snapshot) {
  if(!snapshot)return null;
- return {key:professionalIndemnityKey,component:'esg',slot:'professional_indemnity',label:'Professional indemnity insurance',source:'ALSight supplier insurance',score:null,state:!snapshot.available ? 'UNAVAILABLE' : snapshot.deduction ? 'ADVERSE' : 'CLEAR',confidence:snapshot.available ? 'High' : 'Low',verified:snapshot.available,reason:snapshot.reason,checked_at:snapshot.checked_at,source_reference:snapshot.source_reference,cover_amount:snapshot.cover_amount,score_deduction:snapshot.deduction,score_cap:snapshot.cap,policy_count:snapshot.policy_count,rule_version:snapshot.rule_version,overall_score_adjustment:true};
+ return {key:professionalIndemnityKey,component:'esg',slot:'professional_indemnity',label:'Professional indemnity insurance',source:'ALS Hub supplier insurance',score:null,state:!snapshot.available ? 'UNAVAILABLE' : snapshot.deduction ? 'ADVERSE' : 'CLEAR',confidence:snapshot.available ? 'High' : 'Low',verified:snapshot.available,reason:snapshot.reason,checked_at:snapshot.checked_at,source_reference:snapshot.source_reference,cover_amount:snapshot.cover_amount,score_deduction:snapshot.deduction,score_cap:snapshot.cap,policy_count:snapshot.policy_count,rule_version:snapshot.rule_version,overall_score_adjustment:true};
 }
 export function insuranceAdjustedScore(score,insurance) {
  if(!Number.isFinite(score))return null;

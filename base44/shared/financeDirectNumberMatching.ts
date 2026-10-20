@@ -9,7 +9,7 @@ export async function directFinanceNumberMatches(base44,rows){
   const number=mainProjectNumber(code);if(!numbers.includes(number))continue;
   const candidates=page.items.filter(project=>project.project_number===number);if(!candidates.length)continue;
   const unique=candidates.length===1?candidates[0]:null;
-  matches.set(code,{project_id:unique?.id||'',project_name:unique?.name||'',project_code:unique?.project_number||'',status:unique?'automatic':'ambiguous',matching_method:'number',candidates:candidates.slice(0,3),linked_by:'Exact ALSight project number (suffix ignored)'});
+  matches.set(code,{project_id:unique?.id||'',project_name:unique?.name||'',project_code:unique?.project_number||'',status:unique?'automatic':'ambiguous',matching_method:'number',candidates:candidates.slice(0,3),linked_by:'Exact ALS Hub project number (suffix ignored)'});
  }
  return matches;
 }

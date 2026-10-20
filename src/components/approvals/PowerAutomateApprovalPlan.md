@@ -4,8 +4,8 @@ Saved: 8 October 2026. Intended next session: 9 October 2026.
 Status: approval-centre foundation implemented on 8 October 2026; external delivery and decision/write-back flows remain inactive.
 
 ## User requirements
-- A document's drafted-date change in Dataverse should start an approval in ALSight without waiting for the regular Dataverse synchronisation schedule.
-- Users review and decide the approval inside ALSight, not through native Microsoft Approvals.
+- A document's drafted-date change in Dataverse should start an approval in ALS Hub without waiting for the regular Dataverse synchronisation schedule.
+- Users review and decide the approval inside ALS Hub, not through native Microsoft Approvals.
 - Power Automate should write the approval result back to the original Dataverse row.
 - Use Power Automate rather than manually registering a Dataverse webhook.
 - Confirmed scope on 8 October 2026: Legal Documents, DMA agreements and Warranties, all three included.
@@ -14,11 +14,11 @@ Status: approval-centre foundation implemented on 8 October 2026; external deliv
 ## Proposed round trip
 1. A Power Automate Dataverse row-modified trigger watches the selected document table and drafted-date column.
 2. Check for an actual date change, not merely the column appearing in an update; prevent repeated requests for the same event/version.
-3. Send an authenticated request to a narrow ALSight receiver containing the source table, document GUID, change/version identification, and required approval context.
-4. ALSight creates the document approval, assigns the authorised approver, and provides an in-app review and decision flow.
-5. ALSight sends the completed decision to a separate authenticated Power Automate flow.
+3. Send an authenticated request to a narrow ALS Hub receiver containing the source table, document GUID, change/version identification, and required approval context.
+4. ALS Hub creates the document approval, assigns the authorised approver, and provides an in-app review and decision flow.
+5. ALS Hub sends the completed decision to a separate authenticated Power Automate flow.
 6. That flow checks the request/version still applies and writes the result, approver, decision date, and comments to the original Dataverse row.
-7. Keep the ALSight display consistent with confirmed Dataverse results.
+7. Keep the ALS Hub display consistent with confirmed Dataverse results.
 
 ## Required safeguards
 - Authenticate incoming requests and outgoing callbacks; store credentials securely, never in frontend code or this document.
@@ -46,4 +46,4 @@ Implemented foundation: ApprovalAccess entity with administrator-only grants; Ap
 
 Not yet implemented: authenticated Power Automate receiver, document-version capture, reviewer decision controls, actual-change detection, idempotent ingestion, callbacks, delivery acknowledgements/retries, or external Power Automate configuration. The inbox explicitly identifies this stage and does not claim Dataverse write-back is live. Existing manageRiskApprovals supports risk-register approvals and remains unchanged. Confirm the first document table, approver routing and fixed-version review requirements before building the next stage; request missing integration secrets before writing secret-dependent functions.
 
-Use https://alsight.base44.app/functions/<functionName> for an ALSight receiver URL registered in Power Automate, after the actual function is created. No endpoint name or external flow URL has been selected yet.
+Use https://alsight.base44.app/functions/<functionName> for an ALS Hub receiver URL registered in Power Automate, after the actual function is created. No endpoint name or external flow URL has been selected yet.

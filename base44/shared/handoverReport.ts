@@ -8,7 +8,7 @@ export function createHandoverReport(pack) {
     const lines = doc.splitTextToSize(String(value ?? '').replace(/[\u2013\u2014]/g, '-'), 175);
     for (const line of lines) { if (y > 275) { doc.addPage(); y = 20; } doc.text(line, 17, y); y += size * 0.45 + 2; }
   };
-  text('ALSight | Project handover pack', 18, true);
+  text('ALS Hub | Project handover pack', 18, true);
   text(`${pack.project.number} - ${pack.project.name}`, 13, true);
   text(`Client: ${pack.project.client || 'Not recorded'} | PC: ${pack.project.pcDate || 'Not recorded'}`);
   text(`Started: ${pack.startedAt} by ${pack.startedBy}`);
@@ -40,6 +40,6 @@ export function createHandoverReport(pack) {
   }
   text('Change history', 12, true);
   for (const event of pack.audit) { text(`${event.at} | ${event.actor} | ${event.action} | ${event.key || ''}`, 8); if (event.detail) text(event.detail, 7); }
-  for (let page = 1; page <= doc.getNumberOfPages(); page++) { doc.setPage(page); doc.setFontSize(8); doc.text(`ALSight handover | ${page}/${doc.getNumberOfPages()}`, 17, 289); }
+  for (let page = 1; page <= doc.getNumberOfPages(); page++) { doc.setPage(page); doc.setFontSize(8); doc.text(`ALS Hub handover | ${page}/${doc.getNumberOfPages()}`, 17, 289); }
   return new Uint8Array(doc.output('arraybuffer'));
 }

@@ -111,7 +111,7 @@ export async function directCheck(db, key, offset = 0, includeItems = false) {
       if (remaining >= rows.length) { remaining -= rows.length; continue; }
       const picked = rows.slice(remaining, remaining + 50 - items.length);
       remaining = 0;
-      items.push(...await recordIssues(db, source.entity, picked, key === 'dataverse' ? 'No Dataverse ID — verify whether this is a native ALSight record' : key === 'client' ? 'No client/account link or client name' : `No ${ { postcode: 'site postcode', bdm: 'BDM assignment', bsm: 'BSM assignment' }[key] }`));
+      items.push(...await recordIssues(db, source.entity, picked, key === 'dataverse' ? 'No Dataverse ID — verify whether this is a native ALS Hub record' : key === 'client' ? 'No client/account link or client name' : `No ${ { postcode: 'site postcode', bdm: 'BDM assignment', bsm: 'BSM assignment' }[key] }`));
       if (items.length >= 50) break;
     }
   }

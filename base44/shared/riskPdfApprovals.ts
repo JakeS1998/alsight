@@ -3,7 +3,7 @@ export function appendRiskPdfApprovals(doc, context, summary) {
   let y;
   const page = () => {
     doc.addPage(); doc.setFillColor(21,20,66); doc.rect(0,0,width,42,'F');
-    doc.setTextColor(255); doc.setFont('helvetica','bold'); doc.setFontSize(15); doc.text('ALSight - Risk register approval records',margin,27);
+    doc.setTextColor(255); doc.setFont('helvetica','bold'); doc.setFontSize(15); doc.text('ALS Hub - Risk register approval records',margin,27);
     doc.setTextColor(21,20,66); y = 65;
   };
   const text = (value, bold = false) => {

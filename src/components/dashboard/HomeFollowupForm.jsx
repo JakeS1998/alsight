@@ -16,7 +16,7 @@ export default function HomeFollowupForm({ user, initial, contactId, onClose, on
   };
   return <Dialog open onOpenChange={open => { if (!open && !busy) onClose(); }}><DialogContent>
     <DialogTitle>Schedule a follow-up</DialogTitle>
-    <DialogDescription>This saves a personal ALSight reminder. Outlook is a mock preview for now; no calendar invitation will be sent.</DialogDescription>
+    <DialogDescription>This saves a personal ALS Hub reminder. Outlook is a mock preview for now; no calendar invitation will be sent.</DialogDescription>
     <form onSubmit={save} className="space-y-4">
       <label className="block text-sm font-semibold">What needs following up?<Input required maxLength={200} value={subject} onChange={event => setSubject(event.target.value)} className="mt-1" /></label>
       <label className="block text-sm font-semibold">When? <span className="font-normal text-muted-foreground">(your device’s local time)</span><Input required type="datetime-local" value={when} onChange={event => setWhen(event.target.value)} className="mt-1" /></label>

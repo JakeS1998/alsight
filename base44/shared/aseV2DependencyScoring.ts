@@ -1,7 +1,7 @@
 import {dependencyScore} from './aseV2Calculation.ts';
 import {v2UnavailableCheck} from './aseV2ExternalChecks.ts';
 export function scoreAllianceContractExposure(exposure,turnover,configuration,now=new Date()) {
-  const check=v2UnavailableCheck('dependency','exposure','Alliance Contract Exposure','ALSight','No usable contract exposure and annual-turnover evidence available.');
+  const check=v2UnavailableCheck('dependency','exposure','Alliance Contract Exposure','ALS Hub','No usable contract exposure and annual-turnover evidence available.');
   const amount=exposure.total_contract_value,age=(now.getTime()-Date.parse(turnover.period_end))/86400000;
   const available=['available','incomplete'].includes(exposure.status) && exposure.included_count>0 && Number.isFinite(amount) && amount>0 && turnover.status==='available' && Number.isFinite(turnover.value) && turnover.value>0 && turnover.currency==='GBP' && Number.isFinite(age) && age>=0;
   const estimated=!!(exposure.proposal_proxy_count || exposure.programme_proxy_count),incomplete=(exposure.excluded_count || 0)>0;

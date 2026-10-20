@@ -28,7 +28,7 @@ export async function frameworkWorkspace(base44,user,body) {
   const [record,project]=await Promise.all([source.get(body.reportId),base44.entities.Project.get(body.projectId)]);
   if(!withinScope(record) || !project || project.procurement_route===false)return Response.json({error:'Select an accessible Framework project.'},{status:400});
   if(record.project_id)return Response.json({error:'This record is already linked. Refresh the workspace.'},{status:409});
-  const duplicate=await source.count({project_id:project.id});if(duplicate)return Response.json({error:'That ALSight project is already linked to a Framework record.'},{status:409});
+  const duplicate=await source.count({project_id:project.id});if(duplicate)return Response.json({error:'That ALS Hub project is already linked to a Framework record.'},{status:409});
   await source.update(body.reportId,{project_id:project.id,project_number:project.project_number || ''});invalidateScopedRead('framework:');return Response.json({linked:true});
  }
  if(body.workspaceAction==='summary') {

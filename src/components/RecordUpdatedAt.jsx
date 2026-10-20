@@ -5,7 +5,7 @@ export default function RecordUpdatedAt({ record, className = '', label = true }
   const utcValue = typeof value === 'string' && value.includes('T') && !/(Z|[+-]\d{2}:?\d{2})$/i.test(value) ? `${value}Z` : value;
   const date = utcValue ? new Date(utcValue) : null;
   const valid = date && Number.isFinite(date.getTime());
-  return <span className={`block text-xs font-normal text-muted-foreground ${className}`} title="Last saved in ALSight, including synchronised updates">
+  return <span className={`block text-xs font-normal text-muted-foreground ${className}`} title="Last saved in ALS Hub, including synchronised updates">
     {label && 'Last updated: '}{valid ? <time dateTime={date.toISOString()}>{format.format(date)}</time> : 'Not recorded'}
   </span>;
 }

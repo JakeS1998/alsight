@@ -14,10 +14,10 @@ export async function readReviewSource(context, table, settings, review) {
   return await flowRequest(context.environment, context.token, `${settings.entitySet}(${review.source_id})?$select=${flowSelection(settings, table)}`);
 }
 export async function checkedReviewTarget(base44, table, review, targetId, row) {
-  if (typeof targetId !== 'string' || !targetId || targetId.length > 100) throw new Error('Choose an existing ALSight record.');
+  if (typeof targetId !== 'string' || !targetId || targetId.length > 100) throw new Error('Choose an existing ALS Hub record.');
   const spec = flowSpecs[table], identity = spec.identityField || 'dataverse_id';
   const target = await base44.entities[spec.entity].get(targetId);
-  if (!target || (target[identity] && target[identity].toLowerCase() !== review.source_id.toLowerCase())) throw new Error('This ALSight record is already linked to a different Dataverse record.');
+  if (!target || (target[identity] && target[identity].toLowerCase() !== review.source_id.toLowerCase())) throw new Error('This ALS Hub record is already linked to a different Dataverse record.');
   if (table === 'users' && (!normalisedEmail(row.internalemailaddress) || normalisedEmail(target.email) !== normalisedEmail(row.internalemailaddress))) throw new Error('System users may only link to an existing portal user with the exact same email.');
   return target;
 }

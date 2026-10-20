@@ -15,7 +15,7 @@ export default function useDataverseUser() {
       const result = await dataverseUserRequest(action);
       if (action === 'begin') { window.location.assign(result.authorization_url); return; }
       cache.setQueryData(queryKey, result);
-      setNotice(action === 'check' ? 'Your Dataverse user access is confirmed.' : 'Your Dataverse account has been disconnected from ALSight.');
+      setNotice(action === 'check' ? 'Your Dataverse user access is confirmed.' : 'Your Dataverse account has been disconnected from ALS Hub.');
     } catch (failure) { setError(failure.message); }
     finally { setBusy(''); }
   }

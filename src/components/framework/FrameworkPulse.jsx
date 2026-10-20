@@ -4,7 +4,7 @@ import {Layers,Link2,BarChart3} from 'lucide-react';
 import FrameworkCommercialFigures from '@/components/framework/FrameworkCommercialFigures';
 import FrameworkPulseGraphic from '@/components/framework/FrameworkPulseGraphic';
 export default function FrameworkPulse({data}) {
- const items=[['Framework Projects',data.total,Layers],['Linked to ALSight',data.linked,Link2],['Outcomes Recorded',data.outcomes,BarChart3]];
+ const items=[['Framework Projects',data.total,Layers],['Linked to ALS Hub',data.linked,Link2],['Outcomes Recorded',data.outcomes,BarChart3]];
  return <section className="rounded-panel border border-border bg-card p-5 shadow-sm sm:p-6 lg:p-4">
   <header className="mb-6 flex flex-wrap items-center justify-between gap-4 lg:mb-3 lg:gap-2">
    <h2 className="flex items-center gap-2 text-base font-semibold"><Layers className="h-5 w-5"/>Framework360</h2>

@@ -124,7 +124,7 @@ export default function Register() {
     <AuthLayout
       icon={UserPlus}
       title="Set up your account"
-      subtitle="Use the email address from your ALSight invitation"
+      subtitle="Use the email address from your ALS Hub invitation"
       footer={
         <>
           Already have an account?{" "}

@@ -24,7 +24,7 @@ export async function decideDocumentApproval(base44,user,input) {
  const response=retry ? request.response : input.response,comments=retry ? request.decision_comments : input.comments.trim(),decidedAt=retry ? request.decided_at : now;
  try {
   const values={...requesters.get(project.id),response,decision_comments:comments,decided_by_id:user.id,decided_by_name:(user.full_name || user.email).slice(0,200),decided_at:decidedAt};
-  if(!retry){await db.update(request.id,values);await approvalAudit(base44,request,user,'Decision recorded',{comment:comments,integration_result:demo ? 'Demo: ALSight only' : 'Integration pending'});}
+  if(!retry){await db.update(request.id,values);await approvalAudit(base44,request,user,'Decision recorded',{comment:comments,integration_result:demo ? 'Demo: ALS Hub only' : 'Integration pending'});}
   if(!demo)await writeDocumentDecision(base44,user,request,{...values,decided_at:decidedAt},document);
   const status=statusOf(response);
   await approvalAudit(base44,request,user,retry ? 'Decision retry confirmed' : response,{new_status:status,comment:comments,integration_result:demo ? 'Demo: Dataverse unchanged' : 'Confirmed in Dataverse'});

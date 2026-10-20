@@ -7,7 +7,7 @@ const diagrams = [
 ];
 export default function HelpPathway() {
   return <div className="space-y-5">
-    <section className="rounded-xl border border-border bg-card p-5"><h2 className="font-heading text-xl font-bold text-als-navy">ALSight Project Pathway</h2><p className="mt-2 text-sm leading-relaxed text-muted-foreground">Ten connected stages bring commercial, legal, design and delivery information together, from opportunity through to handover. The stages are a connected journey, not ten isolated tasks; actions, decisions and risks continue throughout delivery.</p>
+    <section className="rounded-xl border border-border bg-card p-5"><h2 className="font-heading text-xl font-bold text-als-navy">ALS Hub Project Pathway</h2><p className="mt-2 text-sm leading-relaxed text-muted-foreground">Ten connected stages bring commercial, legal, design and delivery information together, from opportunity through to handover. The stages are a connected journey, not ten isolated tasks; actions, decisions and risks continue throughout delivery.</p>
       <InteractivePathway />
     </section>
     <section className="rounded-xl border border-border bg-card p-5"><h2 className="font-heading text-lg font-bold">Readiness, roles and RIBA</h2><div className="mt-3 space-y-3 text-sm leading-relaxed text-muted-foreground">

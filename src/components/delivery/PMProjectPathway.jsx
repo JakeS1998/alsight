@@ -21,7 +21,7 @@ export default function PMProjectPathway({ project }) {
     <DeliveryJourneySummary riba={projectStage(project)} project={project} delivery={data.delivery} feeProposals={data.feeProposals} jcts={data.jcts} />
     <p className="text-xs text-muted-foreground">Read-only project manager view · Contractor commercial information only. Use Valuations to manage contractor valuations.</p>
     <div className="grid min-w-0 gap-4 lg:grid-cols-[12rem_minmax(0,1fr)]">
-      <aside className="rounded-xl border border-border bg-card p-2 lg:self-start"><p className="px-3 py-2 text-[10px] font-bold uppercase tracking-wider text-muted-foreground">Pathway steps</p><nav aria-label="ALSight Project Pathway steps" className="flex gap-1 overflow-x-auto lg:flex-col">{stages.map(stage => <JourneyStageButton key={stage.id} stage={stage} active={stage.id === selected} onSelect={setSelected} />)}</nav></aside>
+      <aside className="rounded-xl border border-border bg-card p-2 lg:self-start"><p className="px-3 py-2 text-[10px] font-bold uppercase tracking-wider text-muted-foreground">Pathway steps</p><nav aria-label="ALS Hub Project Pathway steps" className="flex gap-1 overflow-x-auto lg:flex-col">{stages.map(stage => <JourneyStageButton key={stage.id} stage={stage} active={stage.id === selected} onSelect={setSelected} />)}</nav></aside>
       <main className="min-w-0"><PMPathwayStage key={selected} stage={stages[selected-1]} data={data} project={project} /></main>
     </div>
   </div>;

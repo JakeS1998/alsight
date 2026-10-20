@@ -19,7 +19,7 @@ export async function readRiskWorkbook(bytes) {
 export const riskHeaders = ['Ref', 'Description', 'Cause', 'Status', 'Impact', 'Probability rating', 'Impact rating', 'Risk index', 'Control strategy', 'Owner', 'Comments'];
 export const riskValues = row => [row.reference || '', row.title || '', row.cause || '', row.status === 'closed' ? 'Closed / eliminated' : 'Active', row.impact_description || '', row.probability_rating ?? '', row.impact_rating ?? '', row.risk_index ?? '', row.mitigation || '', row.owner || '', row.comments || ''];
 export async function createRiskWorkbook(context, rows) {
-  const workbook = new ExcelJS.Workbook(); workbook.creator = 'ALSight'; workbook.created = new Date();
+  const workbook = new ExcelJS.Workbook(); workbook.creator = 'ALS Hub'; workbook.created = new Date();
   const sheet = workbook.addWorksheet('Risk register', { views: [{ state: 'frozen', ySplit: 6 }], pageSetup: { paperSize: 8, orientation: 'landscape', fitToPage: true, fitToWidth: 1, fitToHeight: 0, printTitlesRow: '1:6' } });
   sheet.columns = [10,48,40,20,40,15,15,14,48,20,48].map(width => ({ width }));
   [context.projectName, 'Project risk register', `Client: ${context.clientName}`, `Contractor: ${context.contractor}`, `Exported: ${context.date}`].forEach((value, i) => { sheet.mergeCells(i + 1, 1, i + 1, 11); sheet.getCell(i + 1, 1).value = value; });

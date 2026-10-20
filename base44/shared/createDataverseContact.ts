@@ -5,7 +5,7 @@ import { flowSelection, mappedFlowValues } from './dataverseFlowValues.ts';
 import { addFlowWriteValue } from './dataverseWritePayload.ts';
 
 export async function createDataverseContact(base44, user, config, input) {
-  if (!flowSpecs.contacts.writeRoles.includes(user.role)) { const error = new Error('Your ALSight role cannot create contacts.'); error.status = 403; throw error; }
+  if (!flowSpecs.contacts.writeRoles.includes(user.role)) { const error = new Error('Your ALS Hub role cannot create contacts.'); error.status = 403; throw error; }
   if (!isGuid(input.requestId)) throw new Error('Reopen the form before adding this person.');
   const values = {};
   for (const field of ['first_name', 'last_name', 'email', 'job_title', 'company_name']) {
@@ -54,6 +54,6 @@ export async function createDataverseContact(base44, user, config, input) {
   const mapped = mappedFlowValues('contacts', settings, source);
   const result = await base44.entities.Contact.upsert([{ ...mapped, full_name: mapped.full_name || [mapped.first_name, mapped.last_name].filter(Boolean).join(' '), dataverse_id: input.requestId, status: 'active' }], { key: 'dataverse_id' });
   const person = result.records[0];
-  if (!person?.id) throw new Error('Created in Dataverse, but ALSight could not refresh the contact. Retry this same form to finish without creating a duplicate.');
-  return { person, notice: 'Created in Dataverse under your connected account and added to ALSight.' };
+  if (!person?.id) throw new Error('Created in Dataverse, but ALS Hub could not refresh the contact. Retry this same form to finish without creating a duplicate.');
+  return { person, notice: 'Created in Dataverse under your connected account and added to ALS Hub.' };
 }

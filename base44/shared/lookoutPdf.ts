@@ -4,7 +4,7 @@ const NAVY=[21,19,90], ORANGE=[247,148,29], GREY=[217,217,220], MID=[181,184,192
 export async function makeLookoutPdf(issue, draft = false) {
   const doc = new jsPDF({unit:'pt',format:'a4'}), W=595.28, H=841.89, M=36, CW=W-2*M;
   const response = await fetch(lookoutLogo,{signal:AbortSignal.timeout(10000)});
-  if (!response.ok) throw new Error('Unable to load the ALSight logo.');
+  if (!response.ok) throw new Error('Unable to load the ALS Hub logo.');
   const logo = new Uint8Array(await response.arrayBuffer());
   let y=0;
   const text = value => String(value ?? '').replace(/[\u2013\u2014]/g,'-').replace(/\u2022/g,'-');
@@ -33,7 +33,7 @@ export async function makeLookoutPdf(issue, draft = false) {
   title(7,"WHAT'S NEW IN ALSIGHT");
   const col=(CW-12)/2, left=doc.splitTextToSize(text(c.released.join('\n')||'No releases submitted.'),col-24),right=doc.splitTextToSize(text(c.coming_soon.join('\n')||'No roadmap updates submitted.'),col-24);
   for(let i=0;i<Math.max(left.length,right.length);i+=30){const l=left.slice(i,i+30),r=right.slice(i,i+30),h=40+Math.max(l.length,r.length)*12;ensure(h+12);[l,r].forEach((rows,index)=>{const x=M+index*(col+12);doc.setDrawColor(...GREY);doc.roundedRect(x,y,col,h,5,5);doc.setFont('helvetica','bold');doc.setFontSize(10);doc.text(index?'Coming soon':'Released this week',x+12,y+18);doc.setFont('helvetica','normal');doc.setFontSize(9);if(rows.length)doc.text(rows,x+12,y+35,{lineHeightFactor:1.33});});y+=h+12;}
-  title(8,'QUICK POLL');card(c.poll.question,c.poll.options.map((o,i)=>`${i+1}. ${o}`).join('\n')+'\nVote inside ALSight: https://alsight.base44.app/lookout/'+issue.id);
+  title(8,'QUICK POLL');card(c.poll.question,c.poll.options.map((o,i)=>`${i+1}. ${o}`).join('\n')+'\nVote inside ALS Hub: https://alsight.base44.app/lookout/'+issue.id);
   doc.link(M,y-70,CW,60,{url:'https://alsight.base44.app/lookout/'+issue.id});card('About this issue',c.notes);
   const pages=doc.getNumberOfPages();for(let i=1;i<=pages;i++){doc.setPage(i);doc.setDrawColor(...GREY);doc.line(M,H-35,W-M,H-35);doc.setFont('helvetica','normal');doc.setFontSize(8);doc.setTextColor(...NAVY);doc.text('Projects | People | Information Connected',M,H-20);doc.text(`${draft?'DRAFT · ADMIN REVIEW  |  ':''}${i} / ${pages}`,W-M,H-20,{align:'right'});}
   return new Uint8Array(doc.output('arraybuffer'));

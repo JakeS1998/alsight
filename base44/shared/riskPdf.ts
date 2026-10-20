@@ -8,7 +8,7 @@ export function createRiskPdf(context, rows, approvals = null) {
   const ratioTotal = ratios.reduce((sum, ratio) => sum + ratio, 0);
   const widths = ratios.map(n => n / ratioTotal * (width - margin * 2)); let y;
   const heading = () => {
-    doc.setFillColor(21,20,66); doc.rect(0,0,width,42,'F'); doc.setTextColor(255); doc.setFont('helvetica','bold'); doc.setFontSize(15); doc.text(`ALSight · Project risk register${approvals ? ' · Certified export' : ''}`,margin,27);
+    doc.setFillColor(21,20,66); doc.rect(0,0,width,42,'F'); doc.setTextColor(255); doc.setFont('helvetica','bold'); doc.setFontSize(15); doc.text(`ALS Hub · Project risk register${approvals ? ' · Certified export' : ''}`,margin,27);
     doc.setTextColor(21,20,66); doc.setFontSize(11); doc.text(doc.splitTextToSize(context.projectName, width - margin*2), margin,61);
     doc.setFont('helvetica','normal'); doc.setFontSize(8); doc.text(`Client: ${context.clientName} | Contractor: ${context.contractor}`,margin,87); doc.text(`Exported: ${context.date}`,margin,100);
     let x = margin; y = 115; doc.setFont('helvetica','bold'); doc.setFontSize(7);
@@ -27,6 +27,6 @@ export function createRiskPdf(context, rows, approvals = null) {
     }
   });
   if (approvals) appendRiskPdfApprovals(doc, context, approvals);
-  for (let page=1;page<=doc.getNumberOfPages();page++) { doc.setPage(page); doc.setFont('helvetica','normal'); doc.setFontSize(8); doc.text(`ALSight | ${page} / ${doc.getNumberOfPages()}`,margin,height-18); }
+  for (let page=1;page<=doc.getNumberOfPages();page++) { doc.setPage(page); doc.setFont('helvetica','normal'); doc.setFontSize(8); doc.text(`ALS Hub | ${page} / ${doc.getNumberOfPages()}`,margin,height-18); }
   return new Uint8Array(doc.output('arraybuffer'));
 }

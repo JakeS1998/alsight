@@ -1,4 +1,4 @@
-export const lookoutLogo = 'https://media.base44.com/images/public/6ab62433a194f918c54c8249/7f98df654_ALSight_brand_aligned_transparent.png';
+export const lookoutLogo = 'https://media.base44.com/images/public/6ab62433a194f918c54c8249/03627802c_image.png';
 export function ukParts(now = new Date()) {
   return Object.fromEntries(new Intl.DateTimeFormat('en-GB', { timeZone: 'Europe/London', year: 'numeric', month: '2-digit', day: '2-digit', weekday: 'short', hour: '2-digit', hourCycle: 'h23' }).formatToParts(now).map(p => [p.type,p.value]));
 }

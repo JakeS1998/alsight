@@ -3,7 +3,7 @@ import ApprovalTimestamp from '@/components/approvals/ApprovalTimestamp.jsx';
 import ApprovalReviewDialog from '@/components/approvals/ApprovalReviewDialog.jsx';
 import {Button} from '@/components/ui/button';
 const labels={pending:'Awaiting approval',approved:'Approved',rejected:'Rejected',further_review_required:'Further Review Required',superseded:'Superseded'};
-const writebacks={awaiting_connection:'Decision recorded in ALSight. Dataverse write-back is not connected.',pending:'Dataverse write-back pending.',confirmed:'Result confirmed in Dataverse.',error:'Dataverse write-back needs attention.'};
+const writebacks={awaiting_connection:'Decision recorded in ALS Hub. Dataverse write-back is not connected.',pending:'Dataverse write-back pending.',confirmed:'Result confirmed in Dataverse.',error:'Dataverse write-back needs attention.'};
 export default function ApprovalRequestCard({request}) {
   const [open,setOpen]=useState(false);
   const url=request.document_url && /^https:\/\//i.test(request.document_url) ? request.document_url : null;
@@ -12,7 +12,7 @@ export default function ApprovalRequestCard({request}) {
     <p className="mt-2 text-sm text-muted-foreground">{request.source_table==='dma' ? 'Development agreement' : request.source_table==='warranties' ? 'Warranty' : 'Legal document'}</p>
     <ApprovalTimestamp value={request.drafted_date} label="Drafted" />
     <ApprovalTimestamp value={request.created_date} label="Requested" />
-    {request.is_demo && <p className="mt-2 text-xs text-muted-foreground">Demo responses are saved in ALSight only. Source documents and Dataverse remain unchanged.</p>}
+    {request.is_demo && <p className="mt-2 text-xs text-muted-foreground">Demo responses are saved in ALS Hub only. Source documents and Dataverse remain unchanged.</p>}
     {url && <a href={url} target="_blank" rel="noopener noreferrer" className="mt-3 inline-block text-sm font-semibold underline">Open document</a>}
     {request.decision_comments && <p className="mt-3 whitespace-pre-wrap text-sm">{request.decision_comments}</p>}
     {request.decided_at && <div className="mt-3 text-xs text-muted-foreground"><p>{request.decided_by_name}</p><ApprovalTimestamp value={request.decided_at} label="Decision recorded" /></div>}

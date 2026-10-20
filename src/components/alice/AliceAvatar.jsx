@@ -4,7 +4,7 @@ import { Image } from '@/components/ui/image';
 export default function AliceAvatar() {
   return <span className="alice-bot alice-avatar" aria-hidden="true">
     <span className="alice-avatar-crop">
-      <Image src="https://media.base44.com/images/public/6ab62433a194f918c54c8249/8b9efea62_ALSight_brand_aligned_compact.png" fittingType="fit" alt="" className="alice-avatar-logo" />
+      <Image src="https://media.base44.com/images/public/6ab62433a194f918c54c8249/03627802c_image.png" fittingType="fit" alt="" className="alice-avatar-logo" />
     </span>
   </span>;
 }
