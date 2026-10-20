@@ -1,6 +1,7 @@
 import React from 'react';
 import AccessDenied from '@/pages/AccessDenied';
 import isAccessDenied from '@/lib/isAccessDenied';
+import PageLoadError from '@/components/loading/PageLoadError';
 
 export default class PageLoadBoundary extends React.Component {
   state = { failed: false, retry: 0 };
@@ -13,11 +14,7 @@ export default class PageLoadBoundary extends React.Component {
 
   render() {
     if (this.state.failed && isAccessDenied(this.state.error)) return <AccessDenied />;
-    if (this.state.failed) return <div role="alert" className="mx-auto max-w-lg px-5 py-20 text-center">
-      <h2 className="text-lg font-semibold text-foreground">This page couldn't load</h2>
-      <p className="mt-2 text-sm text-muted-foreground">Reload the page to download the latest version and try again.</p>
-      <button type="button" onClick={() => window.location.reload()} className="mt-5 rounded-lg bg-primary px-4 py-2 text-sm font-medium text-primary-foreground">Try again</button>
-    </div>;
+    if (this.state.failed) return <PageLoadError onRetry={() => window.location.reload()} />;
     return <React.Fragment key={this.state.retry}>{this.props.children}</React.Fragment>;
   }
 }

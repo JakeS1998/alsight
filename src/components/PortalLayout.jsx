@@ -3,6 +3,7 @@ import { Outlet, useLocation } from 'react-router-dom';
 import PortalHeader from '@/components/PortalHeader';
 import PortalFooter from '@/components/PortalFooter';
 import PageLoadingSkeleton from '@/components/loading/PageLoadingSkeleton';
+import PageLoadBoundary from '@/components/PageLoadBoundary';
 import KpiIllustrationProvider from '@/components/metrics/KpiIllustrationProvider';
 import PageFeedbackWidget from '@/components/feedback/PageFeedbackWidget';
 import DirectMessagesWidget from '@/components/messaging/DirectMessagesWidget';
@@ -30,7 +31,7 @@ export default function PortalLayout() {
   }, [pathname, user?.id]);
   return <WellbeingProvider key={user?.id} user={user}><div className="portal-shell flex min-h-screen flex-col bg-secondary">
     <PortalHeader />
-    <main className="portal-main w-full flex-1"><KpiIllustrationProvider key={pathname}><Suspense fallback={<PageLoadingSkeleton />}><Outlet /></Suspense></KpiIllustrationProvider></main>
+    <main className="portal-main w-full flex-1"><PageLoadBoundary route={pathname}><KpiIllustrationProvider key={pathname}><Suspense fallback={<PageLoadingSkeleton />}><Outlet /></Suspense></KpiIllustrationProvider></PageLoadBoundary></main>
     <PortalFooter />
     {user?.id && <PageFeedbackWidget key={user.id} user={user} route={pathname} />}
     {user?.id && internalMessagingRoles.includes(user.role) && <DirectMessagesWidget key={user.id} user={user} />}
