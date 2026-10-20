@@ -1,5 +1,5 @@
 import {createClientFromRequest} from 'npm:@base44/sdk@0.8.52';
-// Shared questionnaire includes separate CDM and Building Regulations Principal Designer fields.
+// Shared questionnaire section 6: Proposed Design Team, including contractor security and both Principal Designer roles.
 import {questionnaireVersion,questionnaireSections,questionnaireFields,missingQuestionnaireFields,questionnaireDefaults} from '../../shared/projectQuestionnaireTemplate.ts';
 import {pqRoles,withPQWriteLock} from '../../shared/pqApprovalCommon.ts';
 import {pqRoundActions,pqProjectActions,pqRoundAction,pqProjectAction} from '../../shared/pqApprovalActions.ts';
