@@ -35,6 +35,10 @@
   .portal-profile > [type="button"] > span > span:first-child { max-width: 80px; font-size: 12px; }
 }
 @media (min-width: 1280px) and (max-width: 1439px) { .portal-nav-item { padding-inline: 8px; font-size: 13px; } }
+@media (min-width: 1440px) {
+  .portal-topbar .portal-logo { flex-basis: 240px; width: 240px; }
+  .portal-topbar .portal-logo-image { width: 240px; height: 64px; }
+}
 @media (max-width: 1023px) {
   .portal-topbar .portal-logo { flex-basis: 112px; width: 112px; }
   .portal-topbar .portal-logo-image { width: 112px; }
