@@ -1,4 +1,5 @@
-import React from 'react';
+import React, { Suspense } from 'react';
+import PageLoadingSkeleton from '@/components/loading/PageLoadingSkeleton';
 import { Outlet } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import { useAuth } from '@/lib/AuthContext';
@@ -15,6 +16,6 @@ export default function CommercialLayout() {
   return <div className="finance-briefing">
     <CommercialPageHeader status={status.data} user={user} />
     <CommercialNavigation />
-    <Outlet context={{ status }} />
+    <Suspense fallback={<PageLoadingSkeleton />}><Outlet context={{ status }} /></Suspense>
   </div>;
 }

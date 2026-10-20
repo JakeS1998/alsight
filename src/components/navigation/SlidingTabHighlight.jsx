@@ -4,6 +4,15 @@ import '@/components/navigation/sliding-tabs.css';
 export default function SlidingTabHighlight() {
   const ref = useRef(null);
   const [box, setBox] = useState(null);
+  const [animate, setAnimate] = useState(false);
+  useLayoutEffect(() => {
+    if (!box || animate) return;
+    let secondFrame;
+    const firstFrame = requestAnimationFrame(() => {
+      secondFrame = requestAnimationFrame(() => setAnimate(true));
+    });
+    return () => { cancelAnimationFrame(firstFrame); cancelAnimationFrame(secondFrame); };
+  }, [!!box, animate]);
   useLayoutEffect(() => {
     const list = ref.current.parentElement;
     let mounted = true;
@@ -24,5 +33,5 @@ export default function SlidingTabHighlight() {
     document.fonts.ready.then(() => { if (mounted) update(); });
     return () => { mounted = false; resize.disconnect(); changes.disconnect(); };
   }, []);
-  return <span ref={ref} aria-hidden="true" className="sliding-tab-highlight" data-positioned={!!box} style={box ? { width: box.width, height: box.height, transform: `translate(${box.x}px, ${box.y}px)` } : undefined}/>;
+  return <span ref={ref} aria-hidden="true" className="sliding-tab-highlight" data-positioned={!!box} style={box ? { width: box.width, height: box.height, transform: `translate(${box.x}px, ${box.y}px)`, ...(!animate ? { transition: 'none' } : {}) } : undefined}/>;
 }

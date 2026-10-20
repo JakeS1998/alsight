@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { startTransition } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { ChartNoAxesCombined, ClipboardList } from 'lucide-react';
 import SlidingTabHighlight from '@/components/navigation/SlidingTabHighlight';
@@ -12,7 +12,7 @@ export default function CommercialNavigation() {
   const navigate = useNavigate();
   return <nav aria-label="Commercial views" className="commercial-tabs sliding-tab-list">
     <SlidingTabHighlight />
-    {items.map(({ label, path, icon: Icon }) => <button key={path} type="button" aria-pressed={pathname === path} onClick={() => navigate(path)}>
+    {items.map(({ label, path, icon: Icon }) => <button key={path} type="button" aria-pressed={pathname === path} onClick={() => startTransition(() => navigate(path))}>
       <span className="sliding-tab-label"><Icon size={16} aria-hidden="true" />{label}</span>
     </button>)}
   </nav>;
