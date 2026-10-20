@@ -1,7 +1,7 @@
 import React from "react";
 import { Image } from "@/components/ui/image";
 
-const FULL_LOGO = "https://media.base44.com/images/public/6ab62433a194f918c54c8249/03627802c_image.png";
+const FULL_LOGO = "https://media.base44.com/images/public/6ab62433a194f918c54c8249/1bd12e65c_image.png";
 const COMPACT_LOGO = FULL_LOGO;
 const HEADER_LOGO = FULL_LOGO;
 

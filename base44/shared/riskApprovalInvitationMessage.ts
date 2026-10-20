@@ -6,7 +6,7 @@ export function riskApprovalInvitationMessage(packet, step, party, link) {
   const disclaimer = 'This is a recorded approval, not an Adobe-style digital signature.';
   const subject = `Risk register acceptance required — ${packet.reference}`;
   const text = `ALS Hub | Risk register acceptance\n\nYou are the ${party} reviewer for ${packet.project_name}.\n\n${packet.issued_by_name} issued the locked register ${packet.reference} on ${date}.\n\nReview risk register: ${link}\n\n${instructions}\n\n${decision}\n\n${disclaimer}`;
-  const logo = 'https://media.base44.com/images/public/6ab62433a194f918c54c8249/03627802c_image.png';
+  const logo = 'https://media.base44.com/images/public/6ab62433a194f918c54c8249/1bd12e65c_image.png';
   const rows = [['Project', packet.project_name], ['Register reference', packet.reference], ['Your review role', party], ['Issued by', packet.issued_by_name], ['Issued on', date]];
   const html = `<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"></head>
 <body style="margin:0;padding:0;background:#f4f5f8;font-family:Arial,Helvetica,sans-serif;color:#161442;">
