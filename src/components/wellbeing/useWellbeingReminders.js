@@ -33,7 +33,8 @@ export default function useWellbeingReminders(calendar,pathname) {
    if(blocked)return;
    if(v.notification||now-s.quiet<8000||now-s.shownAt<minimumSpacing[v.settings.frequency]*60000)return;
    const interval=reminderIntervals[v.settings.frequency],categories=v.settings.categories;
-   const due=Object.keys(interval).filter(key=>categories[key]&&s.active-(s.last[key]||0)>=interval[key]*60000).sort((a,b)=>(s.active-(s.last[b]||0))/interval[b]-(s.active-(s.last[a]||0))/interval[a]);
+   // Show the reminder due earliest so frequent eye nudges cannot keep overtaking hydration.
+   const due=Object.keys(interval).filter(key=>categories[key]&&s.active-(s.last[key]||0)>=interval[key]*60000).sort((a,b)=>((s.last[a]||0)+interval[a]*60000)-((s.last[b]||0)+interval[b]*60000));
    let wrapShown=s.wrapDay===s.day;try{wrapShown=wrapShown||localStorage.getItem(`alsight-wrap-nudge:${userId}`)===s.day;}catch{/* The in-memory flag remains available. */}
    const deferred=s.postponed&&now>=s.postponed.until&&categories[s.postponed.kind]?s.postponed.kind:null;
    const kind=deferred||(hours.checklistAvailable&&categories.wrap&&!wrapShown&&s.active>=60000?'wrap':due[0]);
