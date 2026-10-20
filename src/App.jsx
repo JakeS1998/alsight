@@ -17,6 +17,7 @@ import PeopleRoute from '@/components/relationships/PeopleRoute';
 import FinanceRoute from '@/components/finance/FinanceRoute.jsx';
 const FinanceDashboard = lazy(() => import('@/pages/FinanceDashboard.jsx'));
 const POTool = lazy(() => import('@/pages/POTool'));
+const CommercialLayout = lazy(() => import('@/components/finance/CommercialLayout'));
 const FinanceAdmin = lazy(() => import('@/pages/FinanceAdmin.jsx'));
 const PowerBICallback = lazy(() => import('@/pages/PowerBICallback.jsx'));
 const People = lazy(() => import('@/pages/People'));
@@ -138,7 +139,7 @@ const AuthenticatedApp = () => {
           <Route path="/today" element={<AdaptiveTodayPage />} />
           <Route path="/today-legacy" element={['sam','sam_director'].includes(user?.role) ? <Navigate to="/insights-engagement" replace /> : <Home />} />
           <Route path="/alliance360" element={<PortfolioOverview />} />
-          <Route element={<FinanceRoute />}><Route path="/commercial" element={<FinanceDashboard />} /><Route path="/commercial/po-tool" element={<POTool />} /></Route>
+          <Route element={<FinanceRoute />}><Route element={<CommercialLayout />}><Route path="/commercial" element={<FinanceDashboard />} /><Route path="/commercial/po-tool" element={<POTool />} /></Route></Route>
           <Route path="/insider" element={<Pulse />} />
           <Route element={<IERoute />}>
             <Route path="/insights-engagement" element={<InsightsEngagement />} />
