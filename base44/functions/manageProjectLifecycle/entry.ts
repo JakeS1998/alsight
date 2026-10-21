@@ -4,6 +4,8 @@ import {writeFlowContext} from '../../shared/dataverseFlowWrite.ts';
 import {endingReasons,projectEndPlan} from '../../shared/projectEndPlan.ts';
 import {commitProjectEnd,mirrorProjectEnd} from '../../shared/projectEndTransaction.ts';
 import {commercialConversions} from '../../shared/commercialConversions.ts';
+import {projectCompletion} from '../../shared/projectCompletion.ts';
+import {completeProject} from '../../shared/completeProject.ts';
 export default async function(req){
  try{
   const base44=createClientFromRequest(req),user=await base44.auth.me();
@@ -13,10 +15,17 @@ export default async function(req){
   if(raw.length>8000)return Response.json({error:'Request too large.'},{status:400});
   const input=JSON.parse(raw);
   if(input.action==='metrics')return Response.json(await commercialConversions(base44,user));
-  if(!['preview','end'].includes(input.action))return Response.json({error:'Invalid project lifecycle action.'},{status:400});
-  if(!['admin','director','bdm'].includes(user.role))return Response.json({error:'Only project editors can end projects.'},{status:403});
+  if(!['preview','end','completionStatus','complete'].includes(input.action))return Response.json({error:'Invalid project lifecycle action.'},{status:400});
+  if(!['admin','director','bdm'].includes(user.role))return Response.json({error:'Only project editors can end or complete projects.'},{status:403});
+  if(typeof input.projectId!=='string'||!/^[a-zA-Z0-9_-]{1,100}$/.test(input.projectId))return Response.json({error:'Choose a project.'},{status:400});
+  if(input.action==='completionStatus'){
+   const project=await base44.entities.Project.get(input.projectId);
+   if(!project)return Response.json({error:'Project unavailable.'},{status:404});
+   return Response.json(await projectCompletion(base44,project));
+  }
   const config=await flowConfig(base44);
   const context=await writeFlowContext(base44,user,config,{table:'projects',recordId:input.projectId,action:'lifecycle'});
+  if(input.action==='complete')return Response.json(await completeProject(base44,user,context,input));
   const db=base44.asServiceRole.entities;
   const confirmed=(await db.ProjectClosure.filter({project_id:context.record.id,status:'confirmed'},{limit:1})).items[0];
   if(confirmed)return Response.json({ended:true,reason:confirmed.reason,endedAt:confirmed.ended_at,project:{...context.record,status:'inactive',live_project:false}});
