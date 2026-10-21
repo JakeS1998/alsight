@@ -23,15 +23,18 @@ export default function AdaptiveWorkspaceColumns({user,time,query,data,actions,r
    <div className="at-flow-mail"><OutlookEmailSummary user={user} time={time}/></div>
   </div>
   <div className="at-flow-day">
-   <div className="at-flow-diary">
-    {time.prominent&&<NextMeeting time={time} userId={user.id}/>}
-    <WorkingDayTimeline calendar={query.calendar} actions={actions} time={time}/>
-    {!time.prominent&&<NextMeeting time={time} userId={user.id}/>}
+   <div className="at-flow-diary-stack">
+    <div className="at-flow-diary">
+     {time.prominent&&<NextMeeting time={time} userId={user.id}/>}
+     <WorkingDayTimeline calendar={query.calendar} actions={actions} time={time}/>
+     {!time.prominent&&<NextMeeting time={time} userId={user.id}/>}
+    </div>
+    <div className="at-flow-intelligence"><ALSightIntelligencePanel intelligence={intelligence} hasRecords={hasRecords} time={time}/></div>
    </div>
    <div className="at-flow-briefing"><TimeAwareBriefing time={time} calendar={query.calendar} data={data} prefs={prefs}/><AdaptiveRoleContext context={context} data={data} calendar={query.calendar} since={prefs.since}/></div>
   </div>
   <div className="at-flow-alice">
-   <aside className="at-flow-assistant" aria-label="ALICE Intelligence"><div className="at-flow-recommendations"><IntelligentRecommendations actions={actions} intelligence={intelligence} prefs={prefs} time={time}/></div><div className="at-flow-intelligence"><ALSightIntelligencePanel intelligence={intelligence} hasRecords={hasRecords} time={time}/></div></aside>
+   <aside className="at-flow-assistant" aria-label="Recommendations"><div className="at-flow-recommendations"><IntelligentRecommendations actions={actions} intelligence={intelligence} prefs={prefs} time={time}/></div></aside>
    <div className="at-flow-followup">
     {(time.checklistAvailable||!!prefs.config.carryForward?.items?.length)&&<div className="at-flow-planning"><WrapUpChecklist time={time} prefs={prefs} actions={ranked} onComplete={query.complete}/><CarriedForwardPlan prefs={prefs}/></div>}
     <div className="at-flow-meetings"><MeetingIntelligence calendar={query.calendar} time={time} projects={data.projects} userId={user.id}/></div>
