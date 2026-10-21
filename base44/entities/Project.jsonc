@@ -110,6 +110,16 @@
     "approval_status": {
       "type": "string"
     },
+    "legal_status": {
+      "type": "string",
+      "enum": [
+        "",
+        "Not Applicable",
+        "Ongoing",
+        "Complete"
+      ],
+      "description": "Project legal status from Dataverse bss_legalstatus"
+    },
     "aa_executed_date": {
       "type": "string",
       "format": "date-time"

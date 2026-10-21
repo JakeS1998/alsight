@@ -124,6 +124,7 @@ export function ProjectGeneralTab({ project, accountMap, onProjectUpdated, singl
             ['Live Project', project.live_project ? 'Yes' : 'No'],
           ] },
           { title: 'Governance', fields: [
+            ['Legal Status', project.legal_status || '—'],
             [`${agreementNames(project.project_number).accessShort} Executed`, formatDate(project.aa_executed_date)],
             ['PQ Approval', formatDate(project.pq_approval_date)],
           ] },
