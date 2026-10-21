@@ -1,0 +1,12 @@
+.project-balance-report .finance-card { margin:0; padding:24px; border:1px solid hsl(var(--border)); border-radius:var(--panel-radius); background:hsl(var(--card)); box-shadow:var(--surface-shadow); animation:none; }
+.project-balance-report h2 { font-size:24px; font-weight:800; }
+.project-balance-report h3 { font-size:16px; font-weight:700; }
+.project-balance-report .finance-balance-panel { border:1px solid hsl(var(--border)); border-radius:var(--panel-radius); background:hsl(var(--card)); }
+.project-balance-report .finance-balance-summary { background:hsl(var(--muted)); }
+.project-balance-report .finance-balance-toggle > .sliding-tab-highlight { background:hsl(var(--als-navy)); }
+.project-balance-report .finance-balance-toggle > button[aria-pressed] { background:transparent; border-color:transparent; box-shadow:none; }
+.project-balance-report .finance-balance-toggle > button[aria-pressed=true] { color:hsl(var(--sidebar-foreground)); }
+.project-balance-report .finance-balance-toggle > button[aria-pressed=false] { color:hsl(var(--foreground)); }
+.project-balance-report table { border-collapse:collapse; font-size:12px; }
+.project-balance-report table th { background:hsl(var(--secondary)); }
+@media(max-width:767px) { .project-balance-report .finance-card { padding:16px; } }

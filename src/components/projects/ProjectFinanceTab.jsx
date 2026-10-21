@@ -17,6 +17,8 @@ import useProjectOrderCashFlow from '@/components/projects/finance/useProjectOrd
 import useProjectClientContingency from '@/components/projects/finance/useProjectClientContingency';
 import useProjectRiskScores from '@/components/projects/finance/useProjectRiskScores';
 import riskScoreAllowance from '@/components/projects/finance/riskScoreAllowance';
+import FinanceBalances from '@/components/finance/FinanceBalances';
+import '@/components/projects/finance/project-balance-report.css';
 
 function Spinner() {
   return (
@@ -53,6 +55,7 @@ export function ProjectFinanceTab({ project }) {
       {contingency.error && <p role="alert" className="text-sm text-destructive">Unable to load Client contingency from the fee proposal.</p>}
       {riskScores.error && <p role="alert" className="text-sm text-destructive">Unable to calculate risk allowance: {riskScores.error.message}<button type="button" className="ml-2 underline" disabled={riskScores.isFetching} onClick={() => riskScores.refetch()}>Try again</button></p>}
       <CommercialSummary summary={summary} health={health} projectId={project.id} />
+      {syncedOrders.enabled && <div className="project-balance-report"><FinanceBalances key={project.id} project={project}/></div>}
 
       <ProjectCashFlow entries={orderCashFlow.data?.entries || []} powerBI
         loading={syncedOrders.enabled && orderCashFlow.isPending}

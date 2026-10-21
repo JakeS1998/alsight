@@ -22,6 +22,7 @@ import {commercialRoles,commercialAccessScope} from '../../shared/commercialAcce
 import {readPowerBIBalanceTrend} from '../../shared/powerBIBalanceTrend.ts';
 import {scopedReadCache} from '../../shared/scopedReadCache.ts';
 import {financeReportingReads} from '../../shared/financeReportingReads.ts';
+import {projectBalanceScope} from '../../shared/projectBalanceScope.ts';
 export default async function(req){
  try{
   const base44=createClientFromRequest(req),user=await base44.auth.me();
@@ -47,7 +48,8 @@ export default async function(req){
   const importedPowerBI=await powerBIOrderState(base44),powerBI=publishedPowerBIState(importedPowerBI);
   const state=powerBI;
 
-  const scope=await commercialAccessScope(base44,user,state);
+  const accessScope=await commercialAccessScope(base44,user,state);
+  const scope=['balanceSummary','balanceInvoices','balanceTrend'].includes(input.action)?await projectBalanceScope(base44,state,input,accessScope):accessScope;
   const reporting=financeReportingReads(scope.client,JSON.stringify([user.id,user.role,state?.namespace,state?.active_generation,state?.last_completed_at,scope.projectIds,input.action==='forecast'?input.refreshKey:null]));
   if(input.action==='pipeline')return Response.json(await commercialPipelineSummary(reporting));
   if(input.action==='balanceTrend')return Response.json(await readPowerBIBalanceTrend(base44,state,input,scope));
