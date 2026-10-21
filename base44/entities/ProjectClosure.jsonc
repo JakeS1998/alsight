@@ -1,0 +1,86 @@
+{
+  "name": "ProjectClosure",
+  "type": "object",
+  "properties": {
+    "project_id": {
+      "type": "string"
+    },
+    "dataverse_id": {
+      "type": "string"
+    },
+    "reason": {
+      "type": "string",
+      "enum": [
+        "Budget",
+        "Political",
+        "Insurance",
+        "Planning",
+        "Cabinet",
+        "Community",
+        "Other"
+      ]
+    },
+    "notes": {
+      "type": "string",
+      "maxLength": 2000
+    },
+    "ended_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "ended_by": {
+      "type": "string"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "pending",
+        "confirmed"
+      ]
+    },
+    "record_count": {
+      "type": "integer"
+    },
+    "table_counts": {
+      "type": "object",
+      "additionalProperties": true
+    }
+  },
+  "required": [
+    "project_id",
+    "dataverse_id",
+    "reason",
+    "status",
+    "ended_at",
+    "ended_by"
+  ],
+  "rls": {
+    "read": {
+      "$or": [
+        {
+          "created_by_id": "{{user.id}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    },
+    "create": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "update": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "delete": {
+      "user_condition": {
+        "role": "admin"
+      }
+    }
+  }
+}

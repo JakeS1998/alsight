@@ -15,6 +15,7 @@ import useProjectDocuments from '@/components/projects/useProjectDocuments';
 import ProjectDocumentLoadState from '@/components/projects/ProjectDocumentLoadState';
 import { Tabs, TabsContent } from "@/components/ui/tabs";
 import { ProjectGeneralTab } from "@/components/projects/ProjectGeneralTab";
+import ProjectDangerZone from '@/components/projects/ProjectDangerZone';
 
 import ProjectWorkspaceHeader from '@/components/projects/ProjectWorkspaceHeader';
 import ProjectStickyHeader from '@/components/projects/ProjectStickyHeader';
@@ -118,6 +119,7 @@ export default function ProjectDetail({ embedded = false, embeddedProjectId, sup
           {!INTERNAL_ROLES.includes(user?.role) && <ProjectPurpose key={project.id} project={project} onUpdated={updated=>setProject(current=>({...current,...updated}))} />}
           <DataverseRecordEdit table="projects" record={project} onUpdated={setProject}><ProjectGeneralTab project={project} singleTask={frameworkAgreementRoute(legalDocs, dmas, project.project_number).route === 'single_task'} accountMap={accountMap} legalDocs={legalDocs} jcts={jcts} onProjectUpdated={updated => setProject(current => ({ ...current, ...updated }))} /></DataverseRecordEdit>
           {INTERNAL_ROLES.includes(user?.role) && <ProjectLessons key={project.id} project={project} />}
+          <ProjectDangerZone project={project} onUpdated={updated=>setProject(current=>({...current,...updated}))}/>
         </TabsContent>
         <TabsContent value="timeline" className="ws-content mt-6 space-y-6">
           {INTERNAL_ROLES.includes(user?.role) && <ProjectChanges key={project.id} project={project} legalDocs={legalDocs} dmas={dmas} jcts={jcts} />}
