@@ -55,7 +55,6 @@ export function ProjectFinanceTab({ project }) {
       {contingency.error && <p role="alert" className="text-sm text-destructive">Unable to load Client contingency from the fee proposal.</p>}
       {riskScores.error && <p role="alert" className="text-sm text-destructive">Unable to calculate risk allowance: {riskScores.error.message}<button type="button" className="ml-2 underline" disabled={riskScores.isFetching} onClick={() => riskScores.refetch()}>Try again</button></p>}
       <CommercialSummary summary={summary} health={health} projectId={project.id} />
-      {syncedOrders.enabled && <div className="project-balance-report"><FinanceBalances key={project.id} project={project}/></div>}
 
       <ProjectCashFlow entries={orderCashFlow.data?.entries || []} powerBI
         loading={syncedOrders.enabled && orderCashFlow.isPending}
@@ -64,7 +63,9 @@ export function ProjectFinanceTab({ project }) {
         forecast={orderCashFlow.data?.forecast}
         missingDates={orderCashFlow.data?.missingDates || 0} missingValues={orderCashFlow.data?.missingValues || 0} />
 
-      <ValuationPosition project={project} valuations={fin.valuations || []} />
+        {syncedOrders.enabled && <div className="project-balance-report"><FinanceBalances key={project.id} project={project}/></div>}
+        
+        <ValuationPosition project={project} valuations={fin.valuations || []} />
 
       {syncedOrders.enabled && syncedOrders.error && <p role="alert" className="rounded-panel border border-border bg-card p-4 text-sm text-destructive">Synced purchase orders could not be loaded: {syncedOrders.error.message}<button type="button" className="ml-2 underline" onClick={()=>syncedOrders.refetch()}>Try again</button></p>}
       {syncedOrders.data && <ProjectSyncedPurchaseOrders project={project} orders={syncedOrders}/>}
