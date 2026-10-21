@@ -67,10 +67,16 @@ export function ProjectFinanceTab({ project }) {
         
         <ValuationPosition project={project} valuations={fin.valuations || []} />
 
-      {syncedOrders.enabled && syncedOrders.error && <p role="alert" className="rounded-panel border border-border bg-card p-4 text-sm text-destructive">Synced purchase orders could not be loaded: {syncedOrders.error.message}<button type="button" className="ml-2 underline" onClick={()=>syncedOrders.refetch()}>Try again</button></p>}
-      {syncedOrders.data && <ProjectSyncedPurchaseOrders project={project} orders={syncedOrders}/>}
-      {salesOrders.error && <p role="alert" className="text-sm text-destructive">Power BI sales orders could not be loaded: {salesOrders.error.message}<button type="button" className="ml-2 underline" onClick={()=>salesOrders.refetch()}>Try again</button></p>}
-      {salesOrders.data && <ProjectSyncedPurchaseOrders project={project} orders={salesOrders} type="SO"/>}
+      <div className="grid items-start gap-6 lg:grid-cols-2">
+        <div className="min-w-0">
+          {syncedOrders.enabled && syncedOrders.error && <p role="alert" className="rounded-panel border border-border bg-card p-4 text-sm text-destructive">Synced purchase orders could not be loaded: {syncedOrders.error.message}<button type="button" className="ml-2 underline" onClick={()=>syncedOrders.refetch()}>Try again</button></p>}
+          {syncedOrders.data && <ProjectSyncedPurchaseOrders project={project} orders={syncedOrders}/>}
+        </div>
+        <div className="min-w-0">
+          {salesOrders.error && <p role="alert" className="text-sm text-destructive">Power BI sales orders could not be loaded: {salesOrders.error.message}<button type="button" className="ml-2 underline" onClick={()=>salesOrders.refetch()}>Try again</button></p>}
+          {salesOrders.data && <ProjectSyncedPurchaseOrders project={project} orders={salesOrders} type="SO"/>}
+        </div>
+      </div>
 
       <VariationsSummary project={project} decisions={fin.decisions || []} />
 
