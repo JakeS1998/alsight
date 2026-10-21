@@ -19,7 +19,7 @@ export function uklfDigestMessage(summary, now, activity) {
   const gaps = activity.missingValues ? `${activity.missingValues} project(s) with executed DMAs have no linked call-off value and are excluded from the value total.` : '';
   const footer = 'Portfolio totals are a snapshot as at the date above; monthly highlights cover the named reporting month. Scheduled digests report the previous completed month; test digests show the current month to date.';
   const text = `ALS Hub | UK Leisure Framework\n${subject}\nAs at ${date}\n\nMONTHLY HIGHLIGHTS\n${highlights.map(([label, amount]) => `${label}: ${amount}`).join('\n')}\n\nPORTFOLIO OVERVIEW\n${rows.map(([label, amount]) => `${label}: ${amount}`).join('\n')}\n\n${method}\n${gaps}\n${footer}`;
-  const logo = 'https://media.base44.com/images/public/6ab62433a194f918c54c8249/e066d7a31_image.png';
+  const logo = 'https://media.base44.com/images/public/6ab62433a194f918c54c8249/eff97c3bd_ALSHubWhite.png';
   const html = `<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"></head>
 <body style="margin:0;padding:0;background:#f4f5f8;font-family:Arial,Helvetica,sans-serif;color:#161442;">
 <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="background:#f4f5f8;"><tr><td align="center" style="padding:24px 12px;">

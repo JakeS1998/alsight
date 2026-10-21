@@ -2,7 +2,7 @@ export function riskApprovalVerificationMessage(packet, code) {
   const escape = value => String(value ?? '').replace(/[&<>"']/g, character => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[character]));
   const subject = `ALS Hub verification code — ${packet.reference}`;
   const text = `Your risk-register verification code is ${code}. It expires in 10 minutes. This code verifies your review of ${packet.reference} for ${packet.project_name}; it is not a portal login code. Do not share it.`;
-  const logo = 'https://media.base44.com/images/public/6ab62433a194f918c54c8249/e066d7a31_image.png';
+  const logo = 'https://media.base44.com/images/public/6ab62433a194f918c54c8249/eff97c3bd_ALSHubWhite.png';
   const html = `<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"></head>
 <body style="margin:0;padding:0;background:#f4f5f8;font-family:Arial,Helvetica,sans-serif;color:#161442;">
 <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="background:#f4f5f8;"><tr><td align="center" style="padding:24px 12px;">
