@@ -14,7 +14,7 @@ export default function ExperianSandbox() {
   const fields=report ? [['Sample company',report.companyName],['Sample registration',report.sampleRegistration],['Commercial Delphi score',report.creditScore],['Experian risk band',report.riskBand],['Credit limit',report.creditLimit ? `${report.creditLimit}${report.currency ? ` ${report.currency}` : ''}` : report.creditLimit],['CCJs in last 12 months',report.ccjsLast12Months],['Accounts date',report.accountsDate]] : [];
   return <section className="rounded-lg border border-border bg-card p-4">
     <div className="flex flex-wrap items-center gap-2"><h3 className="font-semibold">Experian Commercial Credit</h3><span className="rounded-md bg-primary/15 px-2 py-1 text-xs font-semibold">Sandbox only</span></div>
-    <p className="mt-2 text-xs text-muted-foreground">Administrator connection check using Experian’s fixed sample company, 99999999. This is not a report on this organisation. Results are not saved as evidence and never change ASE scores, ratings or assessments.</p>
+    <p className="mt-2 text-xs text-muted-foreground">Administrator connection check using Experian’s fixed sample company, 99999999. This is not a report on this organisation. Results are not saved as evidence and never change Compass scores, ratings or assessments.</p>
     <Button className="mt-3" size="sm" variant="outline" disabled={sample.isPending} onClick={()=>sample.mutate()}>{sample.isPending ? 'Connecting to Experian sandbox…' : 'Load sandbox sample'}</Button>
     {sample.isPending && <p role="status" className="mt-2 text-xs text-muted-foreground">Authenticating securely and retrieving test data…</p>}
     {sample.error && <p role="alert" className="mt-3 text-sm text-destructive">{aseError(sample.error)}</p>}

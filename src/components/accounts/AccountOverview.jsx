@@ -17,7 +17,7 @@ export default function AccountOverview({ account, contacts, projects, signals, 
   const showCompaniesHouse = hasCompanyRegistry(account) && aseRoles.includes(user?.role);
   return <div className="account-overview-grid">
     <div className="account-main-column">
-      {INTERNAL_ROLES.includes(user?.role) && <section className="account-panel account-assessment-panel" aria-label="All Seeing Eye assessment"><ASERating account={account} expanded /></section>}
+      {INTERNAL_ROLES.includes(user?.role) && <section className="account-panel account-assessment-panel" aria-label="Compass assessment"><ASERating account={account} expanded /></section>}
       {showCompaniesHouse && <div className="account-commercial-row"><ASECommercialConcentration key={account.id} account={account} card/></div>}
     </div>
     <div className="account-summary-column">

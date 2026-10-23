@@ -21,7 +21,7 @@ export default [
  ]},
  {heading:'6. AI output, assessments and professional judgement',paragraphs:[
  'AI-assisted drafts, summaries, recommendations and business risk assessments are decision-support tools. They may contain errors or omissions and are not legal, financial, tax, procurement or regulatory advice. Verify relevant facts and seek suitably qualified advice where necessary.',
- 'All Seeing Eye indicators and public-register checks are contextual business information, not guarantees of compliance, solvency or future performance. A missing or ambiguous result must not be treated as proof of wrongdoing or as proof that a business is clear of risk. Do not base a decision with legal or similarly significant effects on an individual solely on an automated output.'
+ 'Compass indicators and public-register checks are contextual business information, not guarantees of compliance, solvency or future performance. A missing or ambiguous result must not be treated as proof of wrongdoing or as proof that a business is clear of risk. Do not base a decision with legal or similarly significant effects on an individual solely on an automated output.'
  ]},
  {heading:'7. Connected services',paragraphs:[
  'Features may connect to third-party systems such as Microsoft Dataverse, Power BI, Outlook and Teams, or obtain evidence from public and commercial sources. Third-party services have their own terms and privacy arrangements, and availability and functionality may change.',

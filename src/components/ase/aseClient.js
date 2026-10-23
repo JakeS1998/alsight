@@ -13,4 +13,4 @@ export function invalidateASE(cache) {
   cache.setQueryData(['accounts-revision'],Date.now());
   cache.invalidateQueries({queryKey:['accounts-view']});
 }
-export const aseError = error => allSeeingEyeText(error?.response?.data?.error || error?.message || 'All Seeing Eye operation failed.');
+export const aseError = error => allSeeingEyeText(error?.response?.data?.error || error?.message || 'Compass operation failed.');

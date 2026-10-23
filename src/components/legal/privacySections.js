@@ -17,7 +17,7 @@ export default [
  'If special-category information is necessary, an additional lawful condition must be established before it is processed. The portal is not intended as a general repository for medical information, criminal-offence data or unrelated sensitive records.'
  ]},
  {heading:'5. AI-assisted features and business assessments',paragraphs:[
- 'ALS Hub includes AI-assisted drafting and insight features and business assessment tools such as the All Seeing Eye. Relevant prompts, selected records or submitted files may be processed by the AI service providers used to deliver a feature. Only submit information you are permitted to share for that purpose.',
+ 'ALS Hub includes AI-assisted drafting and insight features and business assessment tools such as the Compass. Relevant prompts, selected records or submitted files may be processed by the AI service providers used to deliver a feature. Only submit information you are permitted to share for that purpose.',
  'Generated output and assessment indicators can be incomplete or inaccurate. They support human review and should not be treated as independently verified facts or used as the sole basis for decisions with legal or similarly significant effects on an individual. Business risk signals are not statements of personal misconduct. You can raise concerns about incorrect personal information or identity matching with the responsible controller.'
  ]},
  {heading:'6. Who may receive information',paragraphs:[
