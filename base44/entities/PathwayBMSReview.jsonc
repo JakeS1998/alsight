@@ -1,0 +1,111 @@
+{
+  "name": "PathwayBMSReview",
+  "type": "object",
+  "properties": {
+    "project_id": {
+      "type": "string"
+    },
+    "requirement_key": {
+      "type": "string"
+    },
+    "catalog_version": {
+      "type": "string"
+    },
+    "stage": {
+      "type": "integer",
+      "minimum": 1,
+      "maximum": 10
+    },
+    "procedure": {
+      "type": "string"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "outstanding",
+        "complete",
+        "not_applicable"
+      ]
+    },
+    "reason": {
+      "type": "string",
+      "maxLength": 2000
+    },
+    "evidence_reference": {
+      "type": "string",
+      "maxLength": 2000
+    },
+    "evidence_url": {
+      "type": "string",
+      "maxLength": 2000
+    },
+    "approver": {
+      "type": "string",
+      "maxLength": 250
+    },
+    "approval_date": {
+      "type": "string"
+    },
+    "linked_entity": {
+      "type": "string",
+      "enum": [
+        "",
+        "ProjectAction",
+        "ProjectDecision"
+      ]
+    },
+    "linked_id": {
+      "type": "string"
+    },
+    "revision": {
+      "type": "integer",
+      "minimum": 1
+    },
+    "recorded_by": {
+      "type": "string"
+    },
+    "recorded_by_name": {
+      "type": "string"
+    },
+    "recorded_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "history": {
+      "type": "array",
+      "maxItems": 200,
+      "items": {
+        "type": "object",
+        "additionalProperties": true
+      }
+    }
+  },
+  "required": [
+    "project_id",
+    "requirement_key",
+    "status",
+    "revision"
+  ],
+  "rls": {
+    "read": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "create": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "update": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "delete": {
+      "user_condition": {
+        "role": "admin"
+      }
+    }
+  }
+}

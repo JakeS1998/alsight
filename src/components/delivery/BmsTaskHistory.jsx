@@ -1,0 +1,5 @@
+import React from 'react';
+export default function BmsTaskHistory({review}) {
+ if(!review)return null;
+ return <details className="mt-3 text-xs"><summary className="cursor-pointer text-muted-foreground">Review history</summary><ol className="mt-2 space-y-2">{[...(review.history||[])].reverse().map((event,index)=><li key={index} className="border-l border-border pl-2"><p>{event.recorded_by_name} · {new Date(event.recorded_at).toLocaleString('en-GB')} · {event.status.replaceAll('_',' ')}</p>{event.evidence_reference&&<p className="text-muted-foreground">{event.evidence_reference}</p>}{event.reason&&<p className="text-muted-foreground">Not applicable: {event.reason}</p>}{event.linked_id&&<p className="text-muted-foreground">Linked existing {event.linked_entity==='ProjectDecision'?'decision':'action'} {event.linked_id}</p>}</li>)}</ol></details>;
+}
