@@ -16,6 +16,7 @@ import bmsPathwayEvidence from '@/components/delivery/bmsPathwayEvidence';
 import bmsPathwayProgress from '@/components/delivery/bmsPathwayProgress';
 import BmsTaskList from '@/components/delivery/BmsTaskList';
 import useBmsDeliverySnapshot from '@/components/delivery/useBmsDeliverySnapshot';
+import PathwayWorkContext from '@/components/delivery/PathwayWorkContext';
 export default function DeliveryJourney({ project, delivery, feeProposals, legalDocs, dmas, jcts, warranties, suppliers, accountMap, pdBrDecision, children }) {
   const { user } = useAuth();
   const { registers, error, loading } = useJourneyRegisters(project.id);
@@ -33,8 +34,10 @@ export default function DeliveryJourney({ project, delivery, feeProposals, legal
   const [selected, setSelected] = useState(() => stages.some(stage => stage.id === saved) ? saved : defaultStage);
   const [visited, setVisited] = useState(() => new Set([selected, 2]));
   const onSelect = id => { setSelected(id); setVisited(previous => new Set([...previous, id])); localStorage.setItem(key, String(id)); };
+  const [workRequest,setWorkRequest]=useState(null);
+  const work={request:workRequest,handled:()=>setWorkRequest(null),open:task=>{setWorkRequest({...task,projectId:project.id});onSelect(task.meetingKind||!task.gate?6:7);}};
   const panels = React.Children.toArray(children);
-  return <DeliveryCollapseContext.Provider value={null}><div className="min-w-0 w-full space-y-4">
+  return <PathwayWorkContext.Provider value={work}><DeliveryCollapseContext.Provider value={null}><div className="min-w-0 w-full space-y-4">
     <PathwayInsight stages={stages} loading={loading || (bms.enabled && bms.isPending)} error={error || (bms.enabled && bms.error)} onSelect={onSelect} />
     <DeliveryJourneySummary riba={riba} project={project} delivery={delivery || {}} feeProposals={feeProposals} jcts={jcts} />
     <div className="grid min-w-0 gap-4 lg:grid-cols-[12rem_minmax(0,1fr)]">
@@ -42,5 +45,5 @@ export default function DeliveryJourney({ project, delivery, feeProposals, legal
       <main aria-label={`ALS Hub Project Pathway · Step ${selected}: ${stages[selected - 1].label}`} className="min-w-0 [&_section>div]:space-y-4"><JourneyProgressBreakdown stage={stages[selected - 1]}>{bms.enabled && <BmsTaskList stage={stages[selected - 1]} projectId={project.id} canEdit={bms.data?.canEdit} onSave={bms.save} onSelect={onSelect} loading={bms.isPending} error={bms.error} retry={bms.refetch}/>}</JourneyProgressBreakdown>{panels.map((panel, index) => visited.has(index + 1) && <div key={index} hidden={selected !== index + 1}>{panel}</div>)}</main>
     </div>
     {INTERNAL_ROLES.includes(user?.role) && <ProjectLessons key={`${project.id}-${selected}`} project={project} stage={stages[selected - 1].label} onChanged={bms.enabled ? bms.refetch : undefined} />}
-  </div></DeliveryCollapseContext.Provider>;
+  </div></DeliveryCollapseContext.Provider></PathwayWorkContext.Provider>;
 }

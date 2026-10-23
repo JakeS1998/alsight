@@ -10,8 +10,8 @@ export default function useBmsPathway(projectId) {
  const query=useQuery({queryKey:key,enabled,queryFn:()=>bmsRequest({action:'read',projectId}),staleTime:30000,refetchOnWindowFocus:false,retry:1});
  useEffect(()=>{
   if(!enabled)return;
-  const refresh=event=>{if(!event.data?.project_id||event.data.project_id===projectId)client.invalidateQueries({queryKey:key});};
-  const unsubscribes=['ProjectAction','ProjectDecision','ProjectDelivery','HandoverApplicabilityDecision','Warranty'].map(entity=>base44.entities[entity].subscribe(refresh));
+  const refresh=()=>client.invalidateQueries({queryKey:key});
+  const unsubscribes=['ProjectAction','ProjectDecision','ProjectDelivery','HandoverApplicabilityDecision','Warranty','CRMActivity'].map(entity=>base44.entities[entity].subscribe(event=>{if(entity==='Warranty'||!event.data?.project_id||event.data.project_id===projectId)refresh();}));
   return ()=>unsubscribes.forEach(unsubscribe=>unsubscribe());
  },[enabled,projectId,user?.id,user?.role,client]);
  const save=async(task,values)=>{

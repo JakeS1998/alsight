@@ -1,4 +1,5 @@
-import React, { useEffect, useState, useCallback } from "react";
+import React, { useEffect, useState, useCallback, useContext } from "react";
+import PathwayWorkContext from '@/components/delivery/PathwayWorkContext';
 import { base44 } from "@/api/base44Client";
 import { filterAll } from "@/components/data/loadAll";
 import { Button } from "@/components/ui/button";
@@ -30,6 +31,7 @@ const coerce = (columns, form) => {
 
 export function RegisterList({ title, description, entityName, projectId, project, columns, tableColumns, sortBy = "-created_date", addLabel = "Add", preparePayload = value => value, onChanged, paginated = false, sortable = false }) {
   const { user } = useAuth();
+  const work=useContext(PathwayWorkContext);
   const canUpdateStatus = ['admin', 'director', 'bdm', 'bsm'].includes(user?.role) && ['ProjectAction', 'ProjectDecision', 'ProjectRisk'].includes(entityName);
   const deletion = useDeletion(entityName);
   const [loadedRows, setRows] = useState([]);
@@ -69,6 +71,20 @@ export function RegisterList({ title, description, entityName, projectId, projec
     setForm(next);
     setOpen(true);
   };
+
+  useEffect(()=>{
+    const request=work?.request;
+    if(!request||request.meetingKind||request.projectId!==projectId||entityName!==(request.linked?.entity||(request.gate?'ProjectDecision':'ProjectAction')))return;
+    let live=true;
+    (async()=>{try{
+      const title=entityName==='ProjectDecision'?'decision_title':'action';
+      const row=request.linked?await base44.entities[entityName].get(request.linked.id):(await base44.entities[entityName].filter({project_id:projectId,[title]:request.label},{limit:1})).items[0];
+      if(!live)return;
+      if(row)openEdit(row);else{setEditing(null);setForm({...emptyForm(columns),[title]:request.label,status:'open',...(entityName==='ProjectAction'?{comments:`${request.procedure}: ${request.detail||'Record the activity, evidence and follow-up here.'}`}:{})});setOpen(true);}
+      work.handled();
+    }catch(error){if(live){setError(error.message);work.handled();}}})();
+    return()=>{live=false;};
+  },[work?.request,projectId,entityName]);
 
   const save = async (e) => {
     e.preventDefault();

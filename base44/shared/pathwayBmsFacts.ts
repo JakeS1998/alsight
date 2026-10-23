@@ -1,4 +1,5 @@
 import {loadHandover} from './handoverDataset.ts';
+import {pathwayWorkFacts} from './pathwayWorkFacts.ts';
 export async function pathwayBmsFacts(base44,project) {
  // The caller has already verified internal role and user-scoped access to this project.
  const db=base44.asServiceRole.entities;
@@ -12,6 +13,7 @@ export async function pathwayBmsFacts(base44,project) {
   delivery.handover_started_at?loadHandover(base44,project,delivery):null,
   pq?.approval_round_id?db.PQApprovalRound.get(pq.approval_round_id):null,
  ]);
+ const work=await pathwayWorkFacts(base44,project);
  const pqApproved=!!(pq?.status==='submitted'&&round?.status==='approved'&&round.questionnaire_id===pq.id&&pq.revision===round.questionnaire_revision+1&&round.steps?.length&&round.current_index===round.steps.length&&round.steps.every(step=>step.status==='approved'&&step.verification_method==='email_otp'));
- return {lessons,hasDigitalPQ:!!pq?.approval_round_id,pqApproved,pqReference:round?.reference||'',handoverReady:pack?.ready===true,handoverStarted:!!pack,deliveryUpdatedAt:delivery.updated_date||null,handoverItems:pack?Object.fromEntries(pack.items.map(item=>[item.key,{status:item.status,gap:item.gap,link:item.link,reason:item.decision?.reason}])):{}};
+ return {...work,lessons,hasDigitalPQ:!!pq?.approval_round_id,pqApproved,pqReference:round?.reference||'',handoverReady:pack?.ready===true,handoverStarted:!!pack,deliveryUpdatedAt:delivery.updated_date||null,handoverItems:pack?Object.fromEntries(pack.items.map(item=>[item.key,{status:item.status,gap:item.gap,link:item.link,reason:item.decision?.reason}])):{}};
 }

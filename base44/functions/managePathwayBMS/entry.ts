@@ -3,6 +3,7 @@ import { pathwayBmsCatalog, pathwayBmsVersion } from '../../shared/pathwayBmsCat
 import { bmsFail, bmsLinkedRecord, readBmsReviews, bmsExistingMatches } from '../../shared/pathwayBmsRecords.ts';
 import { saveBmsReview } from '../../shared/pathwayBmsSave.ts';
 import { pathwayBmsFacts } from '../../shared/pathwayBmsFacts.ts';
+import { pathwayWorkFacts } from '../../shared/pathwayWorkFacts.ts';
 export default async function(req) {
  try {
   const base44=createClientFromRequest(req),user=await base44.auth.me();
@@ -14,6 +15,7 @@ export default async function(req) {
   if(typeof input.projectId!=='string'||!/^[a-zA-Z0-9_-]{1,100}$/.test(input.projectId))bmsFail('Choose a project.');
   const project=await base44.entities.Project.get(input.projectId);
   if(!project)bmsFail('Project unavailable.',404);
+  if(input.action==='operations')return Response.json(await pathwayWorkFacts(base44,project));
   if(input.action==='search') {
    const task=pathwayBmsCatalog.find(t=>t.key===input.requirementKey);
    if(!task||task.source)bmsFail('Choose a requirement without an existing source.');

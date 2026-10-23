@@ -21,6 +21,7 @@ import { savedConstructionValues } from '@/components/delivery/constructionAutom
 import FrameworkPathwayKpis from '@/components/framework/FrameworkPathwayKpis';
 import PSOSignoffGateways from '@/components/delivery/PSOSignoffGateways';
 import PDbrApplicability from '@/components/delivery/PDbrApplicability';
+import ProjectMeetings from '@/components/projects/ProjectMeetings';
 
 const DELIVERY_DEFAULT = {
   funding_route: "", scope_summary: "", client_objectives: "", initial_constraints: "",
@@ -151,7 +152,7 @@ export function ProjectDeliveryTab({ project, legalDocs, dmas, jcts, warranties,
       <PreConstructionReadiness onImported={loadDelivery} pdBrReview={pdBrReview} deliveryTeam={deliveryTeam} suppliers={suppliers} accountMap={accountMap} project={project} legalDocs={legalDocs} dmas={dmas} jcts={jcts} warranties={warranties} feeProposals={feeProposals} delivery={delivery} setField={setField} onSave={saveDelivery} saving={savingDelivery} />
       <DesignTeam pdBrDecision={pdBrReview.decision} legalDocs={legalDocs} jcts={jcts} warranties={warranties} accountMap={accountMap} deliveryTeam={deliveryTeam} suppliers={suppliers}><PDbrApplicability review={pdBrReview}/></DesignTeam>
       <ProgrammeMilestones project={project} feeProposals={feeProposals} jcts={jcts} delivery={delivery} />
-      <FormSection title="06 · Act"><RegisterList title="Action" description="The simple action log BDMs use every day" entityName="ProjectAction" projectId={projectId} project={project} columns={ACTION_COLS} tableColumns={ACTION_TABLE} sortBy="-due_date" addLabel="Add action" /></FormSection>
+      <FormSection title="06 · Act"><ProjectMeetings project={project}/><RegisterList title="Action" description="The simple action log BDMs use every day" entityName="ProjectAction" projectId={projectId} project={project} columns={ACTION_COLS} tableColumns={ACTION_TABLE} sortBy="-due_date" addLabel="Add action" /></FormSection>
       <FormSection title="07 · Decide"><RegisterList title="Decision" description="Lightweight decision & client-approval register" entityName="ProjectDecision" projectId={projectId} project={project} columns={DECISION_COLS} tableColumns={DECISION_TABLE} sortBy="-date_requested" addLabel="Add decision" /></FormSection>
       <ProjectRiskRegister project={project} delivery={delivery} accountMap={accountMap} />
       <DeliveryConstruction project={project} delivery={delivery} setField={setField} onSave={saveDelivery} saving={savingDelivery} />

@@ -1,9 +1,12 @@
-import { useInfiniteQuery } from '@tanstack/react-query';
+import {useEffect} from 'react';
+import { useInfiniteQuery,useQueryClient } from '@tanstack/react-query';
 import { base44 } from '@/api/base44Client';
 import organisationQueryPolicy from '@/components/data/organisationQueryPolicy';
 
 const entities = ['LegalDocument', 'DMA', 'JCT', 'Warranty'];
 export default function useProjectDocuments(project, user) {
+  const cache=useQueryClient();
+  useEffect(()=>{if(!project?.id||!user?.id)return;return base44.entities.Warranty.subscribe(event=>{if(!event.data?.project_id||[project.id,project.dataverse_id].includes(event.data.project_id))cache.invalidateQueries({queryKey:['project-documents',project.id]});});},[cache,project?.id,project?.dataverse_id,user?.id]);
   const supplier = user?.role === 'supplier';
   const accountId = user?.account_id || user?.data?.account_id;
   const ids = [project?.id, project?.dataverse_id].filter(Boolean);
