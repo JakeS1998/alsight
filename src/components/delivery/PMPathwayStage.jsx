@@ -2,7 +2,6 @@ import React from 'react';
 import PMPathwayFees from '@/components/delivery/PMPathwayFees';
 import PMPathwayRegister from '@/components/delivery/PMPathwayRegister';
 import { ProgrammeMilestones } from '@/components/delivery/ProgrammeMilestones';
-import JourneyProgressBreakdown from '@/components/delivery/JourneyProgressBreakdown';
 import { savedConstructionValues } from '@/components/delivery/constructionAutomation';
 import { formatCurrency } from '@/lib/portal';
 import LADScheduleSummary from '@/components/delivery/LADScheduleSummary';
@@ -16,7 +15,6 @@ export default function PMPathwayStage({ stage, data, project }) {
   const construction = stage.id === 9 ? { ...data.delivery, ...savedConstructionValues(project, data.delivery) } : data.delivery;
   return <section className="space-y-4 rounded-xl border border-border bg-card p-4">
     <h3 className="text-sm font-semibold">{String(stage.id).padStart(2,'0')} · {stage.label}</h3>
-    <JourneyProgressBreakdown stage={stage} />
     {fields[stage.id] && <dl className="grid gap-4 sm:grid-cols-2">{fields[stage.id].map(([key,label]) => <div key={key}><dt className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">{label}</dt><dd className="mt-1 whitespace-pre-wrap text-sm">{['contract_sum','current_valuation','lad_rate','lad_exposure_amount'].includes(key) ? construction[key] == null ? 'Not recorded' : formatCurrency(construction[key]) : typeof construction[key] === 'boolean' ? construction[key] ? 'Yes' : 'No' : String(construction[key] || 'Not recorded').replaceAll('_',' ')}</dd></div>)}</dl>}
     {stage.id === 9 && <LADScheduleSummary delivery={construction} />}
     {stage.id === 2 && <PMPathwayFees data={data} project={project} />}

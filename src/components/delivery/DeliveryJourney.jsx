@@ -6,7 +6,6 @@ import deliveryJourneyProgress from '@/components/delivery/deliveryJourneyProgre
 import useJourneyRegisters from '@/components/delivery/useJourneyRegisters';
 import JourneyStageButton from '@/components/delivery/JourneyStageButton';
 import DeliveryJourneySummary from '@/components/delivery/DeliveryJourneySummary';
-import JourneyProgressBreakdown from '@/components/delivery/JourneyProgressBreakdown';
 import PathwayInsight from '@/components/alice/PathwayInsight';
 import ProjectLessons from '@/components/alliance/ProjectLessons';
 import {INTERNAL_ROLES} from '@/lib/portal';
@@ -14,7 +13,6 @@ import useFrameworkPathwayKpis from '@/components/framework/useFrameworkPathwayK
 import useBmsPathway from '@/components/delivery/useBmsPathway';
 import bmsPathwayEvidence from '@/components/delivery/bmsPathwayEvidence';
 import bmsPathwayProgress from '@/components/delivery/bmsPathwayProgress';
-import BmsTaskList from '@/components/delivery/BmsTaskList';
 import useBmsDeliverySnapshot from '@/components/delivery/useBmsDeliverySnapshot';
 import PathwayWorkContext from '@/components/delivery/PathwayWorkContext';
 export default function DeliveryJourney({ project, delivery, feeProposals, legalDocs, dmas, jcts, warranties, suppliers, accountMap, pdBrDecision, children }) {
@@ -42,7 +40,7 @@ export default function DeliveryJourney({ project, delivery, feeProposals, legal
     <DeliveryJourneySummary riba={riba} project={project} delivery={delivery || {}} feeProposals={feeProposals} jcts={jcts} />
     <div className="grid min-w-0 gap-4 lg:grid-cols-[12rem_minmax(0,1fr)]">
       <aside className="min-w-0 rounded-xl border border-border bg-card p-2 lg:sticky lg:top-[calc(var(--portal-header-height,4rem)+1rem+var(--project-header-height,0px)+var(--delivery-summary-height,5rem))] lg:max-h-[calc(100dvh-var(--portal-header-height,4rem)-2rem-var(--project-header-height,0px)-var(--delivery-summary-height,5rem))] lg:self-start lg:overflow-y-auto"><p className="hidden px-3 py-2 text-[10px] font-bold uppercase tracking-wider text-muted-foreground lg:block">Pathway steps</p><nav aria-label="ALS Hub Project Pathway steps" className="flex gap-1 overflow-x-auto lg:flex-col lg:overflow-visible">{stages.map(stage => <JourneyStageButton key={stage.id} stage={stage} active={selected === stage.id} onSelect={onSelect} />)}</nav><p className="px-3 py-2 text-[10px] text-muted-foreground">{loading || (bms.enabled && bms.isPending) ? 'Checking requirements…' : error || (bms.enabled && bms.error) ? 'Requirement progress unavailable.' : 'Progress uses applicable tasks and recorded approval evidence.'}</p></aside>
-      <main aria-label={`ALS Hub Project Pathway · Step ${selected}: ${stages[selected - 1].label}`} className="min-w-0 [&_section>div]:space-y-4"><JourneyProgressBreakdown stage={stages[selected - 1]}>{bms.enabled && <BmsTaskList stage={stages[selected - 1]} projectId={project.id} canEdit={bms.data?.canEdit} onSave={bms.save} onSelect={onSelect} loading={bms.isPending} error={bms.error} retry={bms.refetch}/>}</JourneyProgressBreakdown>{panels.map((panel, index) => visited.has(index + 1) && <div key={index} hidden={selected !== index + 1}>{panel}</div>)}</main>
+      <main aria-label={`ALS Hub Project Pathway · Step ${selected}: ${stages[selected - 1].label}`} className="min-w-0 [&_section>div]:space-y-4">{panels.map((panel, index) => visited.has(index + 1) && <div key={index} hidden={selected !== index + 1}>{panel}</div>)}</main>
     </div>
     {INTERNAL_ROLES.includes(user?.role) && <ProjectLessons key={`${project.id}-${selected}`} project={project} stage={stages[selected - 1].label} onChanged={bms.enabled ? bms.refetch : undefined} />}
   </div></DeliveryCollapseContext.Provider></PathwayWorkContext.Provider>;
