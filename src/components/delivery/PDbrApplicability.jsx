@@ -12,13 +12,13 @@ export default function PDbrApplicability({ review }) {
   useEffect(() => { setStatus(decision?.applicability || 'required'); setReason(decision?.reason || ''); }, [decision?.id]);
   const save = async event => {
     event.preventDefault(); setSaving(true); setFeedback(''); setSaveError('');
-    try { await saveDecision(status, reason); setFeedback('Applicability saved. Prepare and Design progress updated.'); }
+    try { await saveDecision(status, reason); setFeedback('Applicability saved. Design progress updated.'); }
     catch (err) { setSaveError(err?.message || 'Unable to save applicability.'); }
     finally { setSaving(false); }
   };
   return <section aria-label="PD BR appointment applicability" className="rounded-xl border border-border bg-card p-4">
     <h4 className="text-sm font-semibold text-foreground">Appointments · PD BR applicability</h4>
-    <p className="mt-1 text-xs text-muted-foreground">Legal can record whether Principal Designer Building Regulations applies to this project. Not applicable excludes it from Prepare and Design checks; it does not mark an appointment as signed.</p>
+    <p className="mt-1 text-xs text-muted-foreground">Legal can record whether Principal Designer Building Regulations applies to this project. Not applicable excludes it from the Design appointment check; it does not mark an appointment as signed.</p>
     {isPending ? <p role="status" className="mt-3 text-xs text-muted-foreground">Checking legal decision…</p> : error ? <p role="alert" className="mt-3 text-xs text-destructive">Unable to load applicability. <button type="button" className="underline" onClick={() => refetch()}>Retry</button></p> : <>
       <p className="mt-3 text-sm font-medium">Current: {decision?.applicability === 'not_applicable' ? 'Not applicable' : 'Required'}{!decision && ' (no legal decision recorded)'}</p>
       {decision && <div className="mt-1 text-xs text-muted-foreground"><p className="whitespace-pre-wrap">{decision.reason}</p><p className="mt-1">Recorded by {decision.recorded_by_name} · {formatDate(decision.created_date)}</p></div>}

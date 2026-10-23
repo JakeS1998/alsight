@@ -7,7 +7,7 @@ import agreementNames from '@/components/projects/agreementNames';
 import SharePointSourceControls from '@/components/delivery/SharePointSourceControls';
 import PsoApprovalSource from '@/components/delivery/PsoApprovalSource';
 
-export default function PSOSignoffGateways({ project, delivery, setField, onSave, saving, onImported }) {
+export default function PSOSignoffGateways({ project, delivery, setField, onSave, saving, onImported, gatewayKeys, showSource = true }) {
  const names = agreementNames(project.project_number);
  const gateways = [{ key:'pq', label:'Project Questionnaire (PQ)' },{ key:'aa', label:`${names.access} (${names.accessShort})` },{ key:'aa_variations', label:`${names.accessShort} Variations` },{ key:'dma', label:names.developmentShort }];
  const locked = delivery.pso_workbook_fields || [];
@@ -19,8 +19,8 @@ export default function PSOSignoffGateways({ project, delivery, setField, onSave
    </div>
    <Button type="button" size="sm" onClick={onSave} disabled={saving || locked.length === 8}>{saving && <Loader2 className="h-4 w-4 animate-spin" />}Save PSO</Button>
   </div>
-  <SharePointSourceControls key={project.id} project={project} onImported={onImported} />
-  <div className="grid gap-3 sm:grid-cols-2">{gateways.map(g => {
+  {showSource && <SharePointSourceControls key={project.id} project={project} onImported={onImported} />}
+  <div className="grid gap-3 sm:grid-cols-2">{gateways.filter(g => !gatewayKeys || gatewayKeys.includes(g.key)).map(g => {
    const approverField = `pso_${g.key}_approved_by`, dateField = `pso_${g.key}_date`;
    const approverLocked = locked.includes(approverField), dateLocked = locked.includes(dateField), received = !!delivery[dateField];
    return <div key={g.key} className="rounded-lg border border-border p-3">

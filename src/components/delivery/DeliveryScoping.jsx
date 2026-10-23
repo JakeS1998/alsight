@@ -8,7 +8,7 @@ import { formatCurrency } from "@/lib/portal";
 
 
 
-export function DeliveryScoping({ project, accountMap, bdmName, delivery, setField, onSave, saving }) {
+export function DeliveryScoping({ project, accountMap, bdmName, delivery, setField, onSave, saving, children }) {
   return (
     <FormSection title="01 · Scope" description="Existing project info is shown read-only; supplementary scoping fields are editable">
       <div className="space-y-5">
@@ -29,6 +29,7 @@ export function DeliveryScoping({ project, accountMap, bdmName, delivery, setFie
           </Button>
         </div>
       </div>
+      {children}
     </FormSection>
   );
 }

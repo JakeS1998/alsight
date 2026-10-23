@@ -57,7 +57,7 @@ export const pathwayBmsCatalog = [
  task('warranties',10,'Handover warranties complete',7,{ source:'warranties' }),
  task('training',10,'Supplier training completed and signed off',7,{ source:'training' }),
  task('assets',10,'Asset information complete',7,{ source:'assets' }),
- task('handover_checklist',10,'Handover checklist reviewed and complete',7,{ source:'handover_checklist',conditional:true }),
+ task('handover_checklist',10,'Handover checklist reviewed and complete',7,{ source:'handover_checklist' }),
  task('handover_meeting',10,'Client handover meeting held',7,{ aliases:['Client handover meeting','Handover meeting completed'] }),
  task('client_handover',10,'Official client handover complete',7,{ source:'client_handover' }),
  task('uklf',10,'UKLF framework record and KPIs complete',7,{ source:'uklf',framework:true,conditional:true }),

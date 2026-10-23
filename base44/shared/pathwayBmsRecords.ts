@@ -16,11 +16,17 @@ export async function readBmsReviews(db, projectId) {
 export async function bmsExistingMatches(base44, projectId, reviews) {
  const manual = pathwayBmsCatalog.filter(task=>!task.source);
  const aliases = manual.flatMap(task=>[task.label,...(task.aliases||[])]);
- const regex = `^\\s*(?:${aliases.map(escapeRegex).join('|')})[.!]?\\s*$`;
- const matches = {};
- await Promise.all(['ProjectAction','ProjectDecision'].map(async entity => {
+ const matches = {}, jobs=[];
+ for(const entity of ['ProjectAction','ProjectDecision']) {
   const title=entity==='ProjectAction'?'action':'decision_title',ids=reviews.filter(r=>r.linked_entity===entity&&r.linked_id).map(r=>r.linked_id);
-  const page=await base44.entities[entity].filter({project_id:projectId,$or:[{[title]:{$regex:regex,$options:'i'}},...(ids.length?[{id:{$in:ids}}]:[])]},{sort:'-updated_date',limit:100});
+  for(let offset=0;offset<aliases.length;offset+=8){
+   const regex=`^\\s*(?:${aliases.slice(offset,offset+8).map(escapeRegex).join('|')})[.!]?\\s*$`;
+   jobs.push({entity,title,query:{project_id:projectId,[title]:{$regex:regex,$options:'i'}}});
+  }
+  if(ids.length)jobs.push({entity,title,query:{project_id:projectId,id:{$in:ids}}});
+ }
+ for(let offset=0;offset<jobs.length;offset+=6)await Promise.all(jobs.slice(offset,offset+6).map(async ({entity,title,query})=>{
+  const page=await base44.entities[entity].filter(query,{sort:'-updated_date',limit:100});
   for(const row of page.items){
    const explicit=reviews.find(r=>r.linked_entity===entity&&r.linked_id===row.id);
    const task=explicit ? manual.find(t=>t.key===explicit.requirement_key) : manual.find(t=>(entity==='ProjectDecision'||!t.gate)&&[t.label,...(t.aliases||[])].some(alias=>normal(alias)===normal(row[title])));

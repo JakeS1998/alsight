@@ -14,7 +14,7 @@ const APPT_ROLES = [
   { label: "Architect", type: "appointment_architect", optional: true },
 ];
 
-export function DesignTeam({ legalDocs, jcts, warranties, accountMap, deliveryTeam = [], suppliers = [], pdBrDecision }) {
+export function DesignTeam({ legalDocs, jcts, warranties, accountMap, deliveryTeam = [], suppliers = [], pdBrDecision, children }) {
   const cards = useMemo(() => {
     const out = [];
     APPT_ROLES.forEach((role) => {
@@ -56,10 +56,11 @@ export function DesignTeam({ legalDocs, jcts, warranties, accountMap, deliveryTe
   }, [legalDocs, jcts, warranties, accountMap, deliveryTeam, suppliers, pdBrDecision]);
 
   return (
-    <FormSection title="04 · Design" completed={cards.filter(card => !card.untracked && !card.optional).every(card => card.signed || card.po)} description="Reuses your appointment documents — no duplicate data entry">
+    <FormSection title="04 · Design" description="Reuses your appointment documents — no duplicate data entry. Appointment status alone does not approve a BMS design gateway.">
       <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
         {cards.map((c) => <ChecklistHover key={c.label} title={c.label} details={c.details}><div className="h-full"><DesignTeamCard {...c} /></div></ChecklistHover>)}
       </div>
+      {children}
     </FormSection>
   );
 }

@@ -31,11 +31,7 @@ export function PreConstructionReadiness({ project, legalDocs, dmas, jcts, warra
     const mk = (label, done, partial, extra) => ({ label: label === 'Access Agreement' ? names.access : label === 'DMA' ? names.developmentShort : label, status: done ? "done" : partial ? "partial" : "pending", extra, details: details[label] });
     return [
       mk("Access Agreement", aa?.executed === "yes", !!aa),
-      mk("Fee Proposal", feeAccepted, feeAny),
-      mk("Appointments", appts.done, appts.completed > 0, `${appts.completed}/${appts.total}`),
-      mk("PCSA", pcsa?.executed === "yes", !!pcsa),
       mk("DMA", dma?.executed === "yes", !!dma),
-      mk("Programme (RIBA)", programme.recorded, false),
       mk("Contractor identified", contractor, false),
     ];
   }, [project, legalDocs, dmas, jcts, warranties, feeProposals, deliveryTeam, suppliers, accountMap, pdBrDecision]);
@@ -44,7 +40,7 @@ export function PreConstructionReadiness({ project, legalDocs, dmas, jcts, warra
   const pct = Math.round((doneCount / items.length) * 100);
 
   return (
-    <FormSection title="03 · Prepare" completed={doneCount === items.length} description="Consolidated readiness view pulled from your existing legal, finance and delivery records">
+    <FormSection title="03 · Prepare" description="Agreement readiness from existing records. Fees belong in Fee, appointments in Design, and milestone dates in Programme.">
       <div className="space-y-5">
         <div className="flex items-center gap-4">
           <div className="relative h-16 w-16 shrink-0">
@@ -55,7 +51,7 @@ export function PreConstructionReadiness({ project, legalDocs, dmas, jcts, warra
             <div className="absolute inset-0 flex items-center justify-center text-sm font-semibold text-slate-900">{pct}%</div>
           </div>
           <div>
-            <p className="text-sm font-semibold text-slate-900">Project ready to proceed</p>
+            <p className="text-sm font-semibold text-slate-900">Agreement records</p>
             <p className="text-xs text-slate-500">{doneCount} of {items.length} readiness items complete</p>
           </div>
         </div>
@@ -64,9 +60,7 @@ export function PreConstructionReadiness({ project, legalDocs, dmas, jcts, warra
           {items.map((it) => <ReadinessItem key={it.label} {...it} />)}
         </div>
 
-        {pdBrReview && <PDbrApplicability review={pdBrReview} />}
-
-        <PSOSignoffGateways project={project} delivery={delivery} setField={setField} onSave={onSave} saving={saving} onImported={onImported} />
+        <PSOSignoffGateways gatewayKeys={['aa','aa_variations','dma']} project={project} delivery={delivery} setField={setField} onSave={onSave} saving={saving} onImported={onImported} />
       </div>
     </FormSection>
   );
