@@ -2,14 +2,18 @@ import { preConstructionAppointments } from '@/components/delivery/preConstructi
 import contractorAppointment, { savedDeliveryTeam } from '@/components/delivery/contractorAppointment';
 import ribaProgrammeEvidence from '@/components/delivery/ribaProgrammeEvidence';
 const dated = value => !!value && Number.isFinite(Date.parse(value)) && Date.parse(value) <= Date.now();
-export default function bmsPathwayEvidence({project,delivery={},feeProposals=[],legalDocs=[],dmas=[],jcts=[],warranties=[],registers={},suppliers=[],accountMap={},pdBrDecision,uklfComplete=false}) {
+export default function bmsPathwayEvidence({project,delivery={},feeProposals=[],legalDocs=[],dmas=[],jcts=[],warranties=[],registers={},suppliers=[],accountMap={},pdBrDecision,uklfComplete=false,facts={}}) {
  const aa=legalDocs.find(d=>d.document_type==='access_agreement');
  const appointment=contractorAppointment({deliveryTeam:savedDeliveryTeam(delivery),suppliers,accountMap,legalDocs});
  const fee=feeProposals.find(f=>f.is_current)||feeProposals[0];
  const result=(done,detail='',url='')=>({done:!!done,detail,url});
  const pso=key=>result(!!delivery[`pso_${key}_approved_by`]?.trim()&&dated(delivery[`pso_${key}_date`]),`PSO: ${delivery[`pso_${key}_approved_by`]||'approver outstanding'} · ${delivery[`pso_${key}_date`]||'date outstanding'}`,project.link_to_pso);
  const pack=key=>delivery.handover_items?.find(item=>item.key===key);
- const handover=(field,key)=>result(delivery[field]==='complete'||pack(key)?.review_status==='complete',pack(key)?.notes||delivery[`${field}_notes`]||'Uses existing close-out / handover evidence.',pack(key)?.link);
+ const handover=(field,key)=>{
+  const assessed=facts.handoverItems?.[key];
+  if(assessed)return {...result(assessed.status==='complete'||assessed.status==='not_applicable',assessed.gap||assessed.reason||'Existing handover evidence reviewed.',assessed.link),notApplicable:assessed.status==='not_applicable',reason:assessed.reason};
+  return result(delivery[field]==='complete',delivery[`${field}_notes`]||'Uses existing close-out evidence; the full handover checklist remains a separate review.',pack(key)?.link);
+ };
  const appts=preConstructionAppointments(legalDocs,pdBrDecision);
  const variation=legalDocs.find(d=>/variation/i.test(d.document_type||'')&&/access|agreement/i.test(d.document_type||''));
  return {
@@ -18,7 +22,7 @@ export default function bmsPathwayEvidence({project,delivery={},feeProposals=[],
   funding:result(delivery.funding_route?.trim()&&Number(project.estimated_value)>0,'Existing funding route and indicative project value; not a funding approval.'),
   site_visit:result(delivery.site_visit_completed,'Initial visit recorded in Scope.'),feasibility:result(delivery.feasibility_status==='complete','Existing feasibility status; does not override the other Scope checks.'),
   pso_pq:pso('pq'),pso_aa:pso('aa'),pso_dma:pso('dma'),
-  pq_approved:result(dated(project.pq_approval_date),'Project PQ approval date from the existing approved project record.',project.link_to_project_questionnaire),
+  pq_approved:result(facts.hasDigitalPQ?facts.pqApproved:dated(project.pq_approval_date),facts.hasDigitalPQ?`Current digital PQ approval: ${facts.pqReference||'outstanding'}`:'Project PQ approval date from the existing approved project record.',project.link_to_project_questionnaire),
   fee_recorded:result(fee,'Existing current fee proposal.'),fee_accepted:result(fee?.status==='accepted','Uses the current proposal acceptance status, not an issue date.'),
   aa_executed:result(aa?.executed==='yes',aa?.document_id,aa?.link_to_file),dma_executed:result(dmas.some(d=>d.executed==='yes'),dmas[0]?.document_id,dmas[0]?.link_to_file),
   agreement_variation:result(variation?.executed==='yes'&&pso('aa_variations').done,variation?.document_id,variation?.link_to_file),
@@ -31,9 +35,9 @@ export default function bmsPathwayEvidence({project,delivery={},feeProposals=[],
   jct:result(jcts.some(j=>j.executed==='yes'),'Uses executed contract status, not its milestone date.',jcts.find(j=>j.executed==='yes')?.link_to_file),
   progress_meetings:result(dated(delivery.last_progress_meeting),delivery.last_progress_meeting?'Latest recorded meeting: '+delivery.last_progress_meeting:'Record the latest progress meeting in Build.'),
   pc:result(dated(delivery.pc_achieved||project.practical_completion_date),'Practical completion date must have been reached. This does not approve a stage report.'),
-  final_account:result(delivery.final_account_status==='closed'||pack('final_account')?.review_status==='complete','Existing final-account close-out / handover record.'),
+  final_account:result(delivery.final_account_status==='closed','Uses the final account closed status. A completed handover status record does not mean that the account is settled.'),
   om:handover('om_manuals','om'),hs:handover('hs_file','hs'),warranties:handover('warranties_status','warranties'),training:handover('training','training'),assets:handover('asset_info','assets'),
-  handover_checklist:result(delivery.handover_items?.length&&delivery.handover_items.every(item=>item.review_status==='complete'),'Uses the existing handover checklist. Automatic/unreviewed items are not assumed complete.'),
-  client_handover:result(delivery.client_handover==='complete','Existing official client handover status.'),uklf:result(uklfComplete,'Existing UKLF framework record/KPI completion.'),lessons:result(delivery.lessons_learned?.trim(),'Uses the existing lessons learned field in Handover.'),
+  handover_checklist:{...result(facts.handoverReady,'Uses existing handover readiness, including evidence and authorised applicability. No separate checklist is created.'),pending:!!(delivery.handover_started_at&&facts.deliveryUpdatedAt&&delivery.updated_date&&facts.deliveryUpdatedAt!==delivery.updated_date)},
+  client_handover:result(delivery.client_handover==='complete','Existing official client handover status.'),uklf:result(uklfComplete,'Existing UKLF framework record/KPI completion.'),lessons:result(delivery.lessons_learned?.trim()||facts.lessons>0,'Uses existing project lessons or the saved lessons learned field; no duplicate lesson is required.'),
  };
 }

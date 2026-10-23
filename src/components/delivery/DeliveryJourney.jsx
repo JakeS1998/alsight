@@ -22,7 +22,7 @@ export default function DeliveryJourney({ project, delivery, feeProposals, legal
   const uklf=useFrameworkPathwayKpis(project);
   const bms = useBmsPathway(project.id);
   const snapshot = useBmsDeliverySnapshot(project.id, delivery);
-  const inputs = { uklfComplete:uklf.complete, project, delivery: snapshot, feeProposals, legalDocs, dmas, jcts, warranties, registers, suppliers, accountMap, pdBrDecision };
+  const inputs = { uklfComplete:uklf.complete, project, delivery: snapshot, feeProposals, legalDocs, dmas, jcts, warranties, registers, suppliers, accountMap, pdBrDecision, facts:bms.data?.facts };
   const originalStages = deliveryJourneyProgress(inputs);
   const stages = bms.enabled ? bmsPathwayProgress(originalStages, bms.data?.catalog, bms.data?.reviews, bms.data?.matches, bmsPathwayEvidence(inputs), project) : originalStages;
   const riba = projectStage(project);
@@ -41,6 +41,6 @@ export default function DeliveryJourney({ project, delivery, feeProposals, legal
       <aside className="min-w-0 rounded-xl border border-border bg-card p-2 lg:sticky lg:top-[calc(var(--portal-header-height,4rem)+1rem+var(--project-header-height,0px)+var(--delivery-summary-height,5rem))] lg:max-h-[calc(100dvh-var(--portal-header-height,4rem)-2rem-var(--project-header-height,0px)-var(--delivery-summary-height,5rem))] lg:self-start lg:overflow-y-auto"><p className="hidden px-3 py-2 text-[10px] font-bold uppercase tracking-wider text-muted-foreground lg:block">Pathway steps</p><nav aria-label="ALS Hub Project Pathway steps" className="flex gap-1 overflow-x-auto lg:flex-col lg:overflow-visible">{stages.map(stage => <JourneyStageButton key={stage.id} stage={stage} active={selected === stage.id} onSelect={onSelect} />)}</nav><p className="px-3 py-2 text-[10px] text-muted-foreground">{loading || (bms.enabled && bms.isPending) ? 'Checking requirements…' : error || (bms.enabled && bms.error) ? 'Requirement progress unavailable.' : 'Progress uses applicable tasks and recorded approval evidence.'}</p></aside>
       <main aria-label={`ALS Hub Project Pathway · Step ${selected}: ${stages[selected - 1].label}`} className="min-w-0 [&_section>div]:space-y-4"><JourneyProgressBreakdown stage={stages[selected - 1]}>{bms.enabled && <BmsTaskList stage={stages[selected - 1]} projectId={project.id} canEdit={bms.data?.canEdit} onSave={bms.save} onSelect={onSelect} loading={bms.isPending} error={bms.error} retry={bms.refetch}/>}</JourneyProgressBreakdown>{panels.map((panel, index) => visited.has(index + 1) && <div key={index} hidden={selected !== index + 1}>{panel}</div>)}</main>
     </div>
-    {INTERNAL_ROLES.includes(user?.role) && <ProjectLessons key={`${project.id}-${selected}`} project={project} stage={stages[selected - 1].label} />}
+    {INTERNAL_ROLES.includes(user?.role) && <ProjectLessons key={`${project.id}-${selected}`} project={project} stage={stages[selected - 1].label} onChanged={bms.enabled ? bms.refetch : undefined} />}
   </div></DeliveryCollapseContext.Provider>;
 }

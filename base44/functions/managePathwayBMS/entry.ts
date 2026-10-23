@@ -2,6 +2,7 @@ import { createClientFromRequest } from 'npm:@base44/sdk@0.8.54';
 import { pathwayBmsCatalog, pathwayBmsVersion } from '../../shared/pathwayBmsCatalog.ts';
 import { bmsFail, bmsLinkedRecord, readBmsReviews, bmsExistingMatches } from '../../shared/pathwayBmsRecords.ts';
 import { saveBmsReview } from '../../shared/pathwayBmsSave.ts';
+import { pathwayBmsFacts } from '../../shared/pathwayBmsFacts.ts';
 export default async function(req) {
  try {
   const base44=createClientFromRequest(req),user=await base44.auth.me();
@@ -27,7 +28,7 @@ export default async function(req) {
   if(input.action==='save')return Response.json({review:await saveBmsReview(base44,user,project,input)});
   if(input.action!=='read')bmsFail('Choose read, search or save.');
   const reviews=await readBmsReviews(base44.asServiceRole.entities,project.id);
-  const matches=await bmsExistingMatches(base44,project.id,reviews);
-  return Response.json({catalog:pathwayBmsCatalog,version:pathwayBmsVersion,reviews,matches,canEdit:['admin','director','bdm','bsm'].includes(user.role),canAssessGates:['admin','director'].includes(user.role)});
+  const [matches,facts]=await Promise.all([bmsExistingMatches(base44,project.id,reviews),pathwayBmsFacts(base44,project)]);
+  return Response.json({catalog:pathwayBmsCatalog,version:pathwayBmsVersion,reviews,matches,facts,canEdit:['admin','director','bdm','bsm'].includes(user.role),canAssessGates:['admin','director'].includes(user.role)});
  }catch(error){return Response.json({error:error.message},{status:error.status||500});}
 }

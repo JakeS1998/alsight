@@ -11,7 +11,7 @@ export default function useBmsPathway(projectId) {
  useEffect(()=>{
   if(!enabled)return;
   const refresh=event=>{if(!event.data?.project_id||event.data.project_id===projectId)client.invalidateQueries({queryKey:key});};
-  const unsubscribes=['ProjectAction','ProjectDecision'].map(entity=>base44.entities[entity].subscribe(refresh));
+  const unsubscribes=['ProjectAction','ProjectDecision','ProjectDelivery','HandoverApplicabilityDecision','Warranty'].map(entity=>base44.entities[entity].subscribe(refresh));
   return ()=>unsubscribes.forEach(unsubscribe=>unsubscribe());
  },[enabled,projectId,user?.id,user?.role,client]);
  const save=async(task,values)=>{
