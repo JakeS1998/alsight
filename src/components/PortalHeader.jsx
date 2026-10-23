@@ -16,6 +16,7 @@ import useApprovalSummary from '@/components/approvals/useApprovalSummary';
 import { LayoutDashboard, FolderKanban, Building2, UserCircle, Users, BriefcaseBusiness, CircleHelp, House, MessagesSquare, ClipboardCheck, ChartNoAxesCombined } from 'lucide-react';
 import MobileBottomNavigation from '@/components/navigation/MobileBottomNavigation';
 import mobileNavigationItems from '@/components/navigation/mobileNavigationItems';
+import OverflowNavigation from '@/components/navigation/OverflowNavigation';
 
 const NAV_ITEMS = [
   { label: 'Today', path: '/today', icon: House, roles: WORKSPACE_ACCESS.today },
@@ -54,7 +55,7 @@ export default function PortalHeader() {
   return <><header ref={headerRef} className="sticky top-0 z-40 bg-als-navy text-white shadow-sm">
     <div className="portal-topbar">
       <Link to={['sam','sam_director'].includes(role) ? '/insights-engagement' : role === 'framework_stakeholder' ? '/framework' : '/today'} aria-label="ALS Hub home" onClick={() => setMenuOpen(false)} className="portal-logo"><Logo variant="header" className="portal-logo-image" /></Link>
-      <nav aria-label="Main navigation" className="portal-navigation hidden min-w-0 items-center lg:flex">{nav()}</nav>
+      <OverflowNavigation>{nav()}</OverflowNavigation>
       <div className="portal-utilities">
         <PortalSearch />
         {INTERNAL_ROLES.includes(role) && <NotificationCenter user={user} />}
