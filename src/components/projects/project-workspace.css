@@ -15,6 +15,7 @@
 .project-workspace .ws-sticky-header > :not([hidden]) ~ :not([hidden]) { margin-top: 0; }
 @media (min-width: 1024px) {
   .project-workspace .ws-sticky-header { transition: gap 240ms ease; }
+  .project-workspace .ws-sticky-header::before { content: ""; position: absolute; bottom: 100%; left: 50%; width: 100vw; height: calc(var(--portal-page-header-gap, 16px) + 1px); transform: translateX(-50%); background: var(--ws-canvas); pointer-events: none; }
   .project-workspace .ws-sticky-header .ws-hero { transition: min-height 240ms ease; }
   .project-workspace .ws-sticky-header .ws-herotext { transition: padding 240ms ease; }
   .project-workspace .ws-sticky-header .ws-title { transition: font-size 240ms ease, margin 240ms ease; }
