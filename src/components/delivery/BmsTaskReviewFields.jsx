@@ -1,0 +1,10 @@
+import React from 'react';
+const input='mt-1 block w-full rounded-md border border-input bg-background px-3 py-2 text-xs';
+export default function BmsTaskReviewFields({task,value,setValue,canAssessGates}) {
+ const set=(key,next)=>setValue(previous=>({...previous,[key]:next}));
+ return <div className="grid gap-3 sm:grid-cols-2"><label>Status<select className={input} value={value.status} onChange={e=>set('status',e.target.value)}><option value="outstanding">{task.source?'Use existing source':'Outstanding'}</option>{!task.source&&!value.linked_id&&<option value="complete">Evidence recorded</option>}{task.conditional&&(!task.gate||canAssessGates)&&<option value="not_applicable">Not applicable</option>}</select></label>
+ {value.status==='not_applicable'?<label className="sm:col-span-2">Applicability reason (required)<textarea required minLength={10} maxLength={2000} value={value.reason} onChange={e=>set('reason',e.target.value)} rows={2} className={input}/></label>:<>
+ {!task.source&&<><label className="sm:col-span-2">Evidence reference {value.status==='complete'?'(required)':'/ review notes'}<textarea required={value.status==='complete'} maxLength={2000} value={value.evidence_reference} onChange={e=>set('evidence_reference',e.target.value)} rows={2} className={input}/></label><label className="sm:col-span-2">Evidence link (optional)<input type="url" pattern="https://.*" maxLength={2000} value={value.evidence_url} onChange={e=>set('evidence_url',e.target.value)} placeholder="https://" className={input}/></label>
+ {task.gate&&<><label>Recorded approver (not a new approval)<input required={value.status==='complete'} maxLength={250} value={value.approver} onChange={e=>set('approver',e.target.value)} className={input}/></label><label>Approval date<input type="date" required={value.status==='complete'} max={new Date().toISOString().slice(0,10)} value={value.approval_date} onChange={e=>set('approval_date',e.target.value)} className={input}/></label></>}</>}
+ </>}</div>;
+}
