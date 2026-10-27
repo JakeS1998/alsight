@@ -8,7 +8,7 @@ import LookoutPublication from '@/components/lookout/LookoutPublication';
 import lookoutRequest,{downloadLookout} from '@/components/lookout/lookoutClient';
 export default function Lookout() {
   const {issueId}=useParams(),{user}=useAuth(),[busy,setBusy]=useState(false),[error,setError]=useState('');
-  const enabled=!!user && canViewWorkspace(user.role,'insider');
+  const enabled=!!user && canViewWorkspace(user,'insider');
   const query=useQuery({queryKey:['lookout','issue',issueId,user?.id],enabled,queryFn:()=>lookoutRequest('get',{id:issueId}),staleTime:30000});
   if(user && !enabled) return <AccessDenied/>;
   const pdf=async()=>{setBusy(true);setError('');try{await downloadLookout(query.data.issue);}catch(e){setError(e.message);}finally{setBusy(false);}};

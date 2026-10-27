@@ -39,6 +39,50 @@
         }
       }
     },
+    "page_access": {
+      "type": "object",
+      "description": "Administrator-managed page overrides. Missing keys follow role defaults; these settings never grant record or action permissions.",
+      "additionalProperties": false,
+      "properties": {
+        "today": {
+          "type": "boolean"
+        },
+        "alliance360": {
+          "type": "boolean"
+        },
+        "network": {
+          "type": "boolean"
+        },
+        "ie": {
+          "type": "boolean"
+        },
+        "opportunities": {
+          "type": "boolean"
+        },
+        "projects": {
+          "type": "boolean"
+        },
+        "commercial": {
+          "type": "boolean"
+        },
+        "approvals": {
+          "type": "boolean"
+        },
+        "framework": {
+          "type": "boolean"
+        },
+        "insider": {
+          "type": "boolean"
+        }
+      },
+      "rls": {
+        "update": {
+          "user_condition": {
+            "collaborator_role": "editor"
+          }
+        }
+      }
+    },
     "account_id": {
       "type": "string",
       "description": "Dataverse GUID of account this user belongs to"

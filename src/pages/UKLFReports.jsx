@@ -3,7 +3,7 @@ import useListState from '@/components/navigation/useListState';
 import {useQuery} from '@tanstack/react-query';
 import {base44} from '@/api/base44Client';
 import {useAuth} from '@/lib/AuthContext';
-import {INTERNAL_ROLES} from '@/lib/portal';
+import {canViewWorkspace} from '@/components/navigation/workspaceAccess';
 import FrameworkPulse from '@/components/framework/FrameworkPulse';
 import FrameworkAttention from '@/components/framework/FrameworkAttention';
 import FrameworkRecentActivity from '@/components/framework/FrameworkRecentActivity';
@@ -13,7 +13,7 @@ import FrameworkWorkspaceExplorer from '@/components/framework/FrameworkWorkspac
 import FrameworkWorkspaceHeader from '@/components/framework/FrameworkWorkspaceHeader';
 import organisationQueryPolicy from '@/components/data/organisationQueryPolicy';
 export default function UKLFReports() {
- const {user}=useAuth(),allowed=INTERNAL_ROLES.includes(user?.role) || user?.role==='framework_stakeholder';
+ const {user}=useAuth(),allowed=canViewWorkspace(user,'framework');
  const [search,setSearch]=useListState('search',''),[term,setTerm]=useListState('term',''),[filters,setFilters]=useListState('filters',{}),[days,setDays]=useListState('days',30);
  useEffect(()=>{const timer=setTimeout(()=>setTerm(search.trim()),400);return()=>clearTimeout(timer);},[search]);
  const query=useQuery({queryKey:['framework-workspace','summary',user?.id,user?.role,days,'complete-delivery-outcomes-v2'],enabled:allowed,queryFn:async()=>{const {data}=await base44.functions.invoke('getStakeholderFrameworkReport',{workspaceAction:'summary',days});if(data.error)throw new Error(data.error);return data;},...organisationQueryPolicy,retry:false,staleTime:60000,refetchOnMount:'always',refetchOnWindowFocus:true});

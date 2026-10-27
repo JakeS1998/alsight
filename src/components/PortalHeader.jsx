@@ -9,7 +9,7 @@ import UserMenu from '@/components/UserMenu';
 import PortalSearch from '@/components/search/PortalSearch';
 import UKLFIcon from '@/components/framework/UKLFIcon';
 import InsightsEngagementIcon from '@/components/InsightsEngagementIcon';
-import {WORKSPACE_ACCESS} from '@/components/navigation/workspaceAccess';
+import {WORKSPACE_ACCESS,canViewPage,canViewWorkspace,workspaceForPath,portalHomePath} from '@/components/navigation/workspaceAccess';
 import RelationshipNavigation from '@/components/relationships/RelationshipNavigation';
 import useApprovalAccess from '@/components/approvals/useApprovalAccess';
 import useApprovalSummary from '@/components/approvals/useApprovalSummary';
@@ -43,18 +43,18 @@ export default function PortalHeader() {
   const role = user?.role || 'client';
   const approvalAccess = useApprovalAccess();
   const approvalSummary = useApprovalSummary();
-  const items = NAV_ITEMS.filter(item => item.roles.includes(role) && !['/account','/contacts','/help'].includes(item.path) && (item.path !== '/approvals' || approvalAccess.enabled));
+  const items = NAV_ITEMS.filter(item => !['/account','/contacts','/help'].includes(item.path) && canViewPage(user,workspaceForPath(item.path,user),approvalAccess.enabled));
   const signOut = () => { setMenuOpen(false); logout(false); navigate('/login'); };
-  const primaryItems = mobileNavigationItems(role);
+  const primaryItems = mobileNavigationItems(user);
   const nav = (compact = false, excluded = []) => items.filter(item => !excluded.includes(item.path)).map(item => {
     const Icon = item.icon;
-    if(item.path==='/accounts') return <RelationshipNavigation key="relationships" compact={compact} showPeople={STAFF_WORKSPACE_ROLES.includes(role)} onNavigate={()=>setMenuOpen(false)}/>;
+    if(item.path==='/accounts') return <RelationshipNavigation key="relationships" compact={compact} showPeople={canViewWorkspace(user,'people')} onNavigate={()=>setMenuOpen(false)}/>;
     const active = item.path === '/opportunities' ? (location.pathname.startsWith('/crm') || location.pathname === '/opportunities' || location.pathname.startsWith('/opportunities/')) : item.path === '/today' ? ['/', '/today', '/today-legacy'].includes(location.pathname) : location.pathname === item.path || location.pathname.startsWith(`${item.path}/`);
     return <Link key={item.path} to={item.path} onClick={() => setMenuOpen(false)} aria-current={active ? 'page' : undefined} data-active={active} data-outstanding={item.path === '/approvals' && approvalSummary.data?.pending > 0} className={`portal-nav-item ${['/today', '/alliance360'].includes(item.path) ? 'font-bold' : ''} ${compact ? 'w-full' : ''}`}>{Icon === UKLFIcon ? <UKLFIcon darkBackground /> : <Icon className="h-4 w-4 shrink-0" />}{item.path === '/alliance360' ? <span>Alliance<span className="text-primary">360</span></span> : item.label}{item.path==='/approvals' && approvalSummary.data?.pending>0 && <span className="rounded-full bg-primary px-1.5 py-0.5 text-[10px] font-bold text-primary-foreground">{approvalSummary.data.pending}</span>}</Link>;
   });
   return <><header ref={headerRef} className="sticky top-0 z-40 bg-als-navy text-white shadow-sm">
     <div className="portal-topbar">
-      <Link to={['sam','sam_director'].includes(role) ? '/insights-engagement' : role === 'framework_stakeholder' ? '/framework' : '/today'} aria-label="ALS Hub home" onClick={() => setMenuOpen(false)} className="portal-logo"><Logo variant="header" className="portal-logo-image" /></Link>
+      <Link to={portalHomePath(user)} aria-label="ALS Hub home" onClick={() => setMenuOpen(false)} className="portal-logo"><Logo variant="header" className="portal-logo-image" /></Link>
       <OverflowNavigation>{nav()}</OverflowNavigation>
       <div className="portal-utilities">
         <PortalSearch />

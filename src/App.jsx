@@ -10,6 +10,7 @@ import ScrollToTop from './components/ScrollToTop';
 import DeletionFeedback from '@/components/deletion/DeletionFeedback';
 import ProtectedRoute from '@/components/ProtectedRoute';
 import LegacyPageRedirect from '@/components/navigation/LegacyPageRedirect';
+import {portalHomePath} from '@/components/navigation/workspaceAccess';
 const PortalLayout = lazy(() => import('@/components/PortalLayout'));
 import AdminContactsRoute from '@/components/contacts/AdminContactsRoute';
 import CRMRoute from '@/components/crm/CRMRoute';
@@ -124,7 +125,7 @@ const AuthenticatedApp = () => {
       <Route element={<ProtectedRoute unauthenticatedElement={<Navigate to="/login" replace />} />}>
         <Route element={<OnboardingGate />}>
         <Route element={<PortalLayout />}>
-          <Route path="/" element={useStakeholderView ? <Navigate to="/framework" replace /> : ['sam','sam_director'].includes(user?.role) ? <Navigate to="/insights-engagement" replace /> : <AdaptiveTodayPage />} />
+          <Route path="/" element={<Navigate to={portalHomePath(user)} replace />} />
           <Route path="/access-denied" element={<AccessDenied />} />
           <Route path="/framework" element={<FrameworkReports />} />
           <Route path="/framework/:reportId" element={<FrameworkProjectDetail />} />
