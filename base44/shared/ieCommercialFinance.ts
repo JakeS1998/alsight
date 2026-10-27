@@ -1,9 +1,9 @@
 import {ieScope,ieError} from './ieAccess.ts';
-import {ieHeadlineAction} from './ieHeadlineActions.ts';
+import {ieHeadlineTotals} from './ieHeadlineTotals.ts';
 import {ieFinanceKeys} from './ieFinanceFields.ts';
-export async function ieCommercialFinance(base44,user){
+export async function ieCommercialFinance(base44,user,query=ieScope(user)){
  const db=base44.asServiceRole.entities;
- const [headlines,engagements]=await Promise.all([ieHeadlineAction(base44,user,{action:'headlines'}),db.IEEngagement.filter(ieScope(user),{distinct:'id',limit:1000})]);
+ const [headlines,engagements]=await Promise.all([ieHeadlineTotals(db,query),db.IEEngagement.filter(query,{distinct:'id',limit:1000})]);
  if(engagements.has_more)ieError('The I&E commercial reporting limit was reached.');
  const result=engagements.items.length?await db.IEFinance.aggregate({query:{engagement_id:{$in:engagements.items}},sum:ieFinanceKeys}):{rows:[]};
  if(result.truncated)ieError('The I&E finance reporting limit was reached.');

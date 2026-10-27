@@ -1,5 +1,6 @@
 import {ieScope,ieError,ieText} from './ieAccess.ts';
 import {ieServiceValue} from './ieServiceValue.ts';
+import {ieHeadlineTotals} from './ieHeadlineTotals.ts';
 export async function ieHeadlineAction(base44,user,input){
  const db=base44.asServiceRole.entities;
  if(input.action==='backfillServiceValues'){
@@ -13,13 +14,5 @@ export async function ieHeadlineAction(base44,user,input){
   if(updates.length)await db.IEEngagement.bulkUpdate(updates);
   return {updated:updates.length,has_more:page.has_more,next_cursor:page.next_cursor};
  }
- const result=await db.IEEngagement.aggregate({query:ieScope(user),groupBy:['status','service_value_source'],sum:'service_value',limit:100});
- if(result.truncated)ieError('The I&E headline reporting limit was reached.');
- let total=0,active=0,value=0,withValue=0;
- for(const row of result.rows){
-  total+=row.count;
-  if(['planned','live'].includes(row.status))active+=row.count;
-  if(['workbook','finance'].includes(row.service_value_source)){withValue+=row.count;value+=Number(row.sum_service_value)||0;}
- }
- return {total,active,serviceValue:withValue?Math.round(value*100)/100:null,withValue,refreshedAt:new Date().toISOString()};
+ return ieHeadlineTotals(db,ieScope(user));
 }

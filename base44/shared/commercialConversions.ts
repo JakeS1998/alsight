@@ -1,7 +1,6 @@
-import {commercialAccessScope,commercialRoles} from './commercialAccessScope.ts';
+import {commercialBusinessScope} from './commercialBusinessScope.ts';
 export async function commercialConversions(base44,user){
- if(!commercialRoles.includes(user.role)){const error=new Error('Commercial reporting access required.');error.status=403;throw error;}
- const scope=await commercialAccessScope(base44,user,null);
+ const scope=commercialBusinessScope(base44,user);
  const projects=scope.client.entities.Project,db=base44.asServiceRole.entities;
  const closureQuery={status:'confirmed',...(scope.restricted?{project_id:{$in:scope.projectIds}}:{})};
  const opportunity=scope.restricted?base44.entities.Opportunity:db.Opportunity;

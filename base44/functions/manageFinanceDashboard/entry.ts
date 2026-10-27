@@ -19,6 +19,8 @@ import {readPowerBIOrderFinance} from '../../shared/powerBIOrderReads.ts';
 import {readProjectNumberMappings,saveProjectNumberMapping} from '../../shared/financeProjectNumberMapping.ts';
 import {readPowerBIBalances} from '../../shared/powerBIBalances.ts';
 import {commercialRoles,commercialAccessScope} from '../../shared/commercialAccessScope.ts';
+import {commercialBusinessScope} from '../../shared/commercialBusinessScope.ts';
+import {ieCommercialFinance} from '../../shared/ieCommercialFinance.ts';
 import {readPowerBIBalanceTrend} from '../../shared/powerBIBalanceTrend.ts';
 import {scopedReadCache} from '../../shared/scopedReadCache.ts';
 import {financeReportingReads} from '../../shared/financeReportingReads.ts';
@@ -31,10 +33,11 @@ export default async function(req){
   if(req.method!=='POST')return Response.json({error:'Method not allowed.'},{status:405});
   const raw=await req.text();if(raw.length>20000)throw new Error('Request too large.');const input=JSON.parse(raw);
   if(!commercialRoles.includes(user.role))return Response.json({error:'Commercial reporting access required.'},{status:403});
-  const actions=['balanceTrend','balanceSummary','balanceInvoices','recalculatePOHeaders','pipeline','projectOrders','projectOrderDetail','projectOrderCashFlow','applyNameLinks','applyCodeLinks','transactions','dvMappingStatus','dvSaveMapping','forecast','dvContinue','dvStart','dvBatch','dvDetail','dvDiscover','dvInspect','status','configure','preview','confirm','summary','list','numberMappings','mapNumber','mappings','projects','map','orders','poDetail','configureInvoices','invoices'];
+  const actions=['commercialFinance','balanceTrend','balanceSummary','balanceInvoices','recalculatePOHeaders','pipeline','projectOrders','projectOrderDetail','projectOrderCashFlow','applyNameLinks','applyCodeLinks','transactions','dvMappingStatus','dvSaveMapping','forecast','dvContinue','dvStart','dvBatch','dvDetail','dvDiscover','dvInspect','status','configure','preview','confirm','summary','list','numberMappings','mapNumber','mappings','projects','map','orders','poDetail','configureInvoices','invoices'];
   if(!actions.includes(input.action))throw new Error('Invalid finance operation.');
   const admin=['recalculatePOHeaders','applyNameLinks','applyCodeLinks','dvMappingStatus','dvSaveMapping','dvContinue','dvStart','dvBatch','dvDiscover','dvInspect','configure','preview','confirm','numberMappings','mapNumber','mappings','projects','map','configureInvoices'];
   if(admin.includes(input.action)&&user.role!=='admin')return Response.json({error:'Administrator access required.'},{status:403});
+  if(input.action==='commercialFinance')return Response.json(await ieCommercialFinance(base44,user,{}));
   if(input.action==='recalculatePOHeaders')return Response.json(await recalculateBlankPOHeaders(base44));
   if(input.action==='dvMappingStatus')return Response.json(await financeMappingStatus(base44));
   if(input.action==='dvSaveMapping')return Response.json(await saveFinanceFieldMapping(base44,user,input));
@@ -48,9 +51,13 @@ export default async function(req){
   const importedPowerBI=await powerBIOrderState(base44),powerBI=publishedPowerBIState(importedPowerBI);
   const state=powerBI;
 
-  const accessScope=await commercialAccessScope(base44,user,state);
+  // Choose the scope on the server, never from a caller-supplied scope flag.
+  // Named-project balances and all directory/transaction/detail operations keep
+  // their existing assignment filters and Project RLS.
+  const companyWide=['summary','pipeline','forecast','balanceSummary','balanceInvoices','balanceTrend'].includes(input.action)&&input.projectId===undefined;
+  const accessScope=companyWide?commercialBusinessScope(base44,user):await commercialAccessScope(base44,user,state);
   const scope=['balanceSummary','balanceInvoices','balanceTrend'].includes(input.action)?await projectBalanceScope(base44,state,input,accessScope):accessScope;
-  const reporting=financeReportingReads(scope.client,JSON.stringify([user.id,user.role,state?.namespace,state?.active_generation,state?.last_completed_at,scope.projectIds,input.action==='forecast'?input.refreshKey:null]));
+  const reporting=financeReportingReads(scope.client,JSON.stringify(['company-context-v1',companyWide?'company':'assigned',user.id,user.role,state?.namespace,state?.active_generation,state?.last_completed_at,scope.projectIds,input.action==='forecast'?input.refreshKey:null]));
   if(input.action==='pipeline')return Response.json(await commercialPipelineSummary(reporting));
   if(input.action==='balanceTrend')return Response.json(await readPowerBIBalanceTrend(base44,state,input,scope));
   

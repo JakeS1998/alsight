@@ -8,7 +8,7 @@ export default function CommercialPageHeader({ status, user }) {
   Project pipeline, Power BI purchase-order commitments and client invoices (sales orders).
   {status?.confirmed && <span className="mt-4 block text-xs text-sidebar-foreground/65">
    {status?.source==='powerbi'?'Power BI semantic-model PO/SO snapshot':'Dataverse snapshot'}{completedAt ? ` · Last completed sync: ${new Date(completedAt).toLocaleString('en-GB')}` : ''}
-   <span className="mt-1 block">Your existing access rules apply to all figures and records. Sales orders represent client invoices, not evidence of payment.</span>
+   <span className="mt-1 block">Business context and headline reporting are company-wide. The transaction browser and bottom project directory retain your existing BDM and project access filters. Sales orders represent client invoices, not evidence of payment.</span>
   </span>}
  </>;
  const actions = null;
