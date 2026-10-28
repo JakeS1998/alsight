@@ -1,0 +1,5 @@
+import React from 'react';
+import { YES_NO_FIELDS, inputClass } from '@/components/framework/frameworkKpiFields';
+export default function FrameworkWideKpiFields({form,set,disabled}) {
+ return <fieldset disabled={disabled} className="space-y-4"><legend className="sr-only">Framework-wide KPI review</legend><div className="grid gap-4 md:grid-cols-2">{YES_NO_FIELDS.map(([key,label])=><label key={key} className="text-sm">{label}<select className={inputClass} value={form[key] || ''} onChange={event=>set(key,event.target.value)}><option value="">Not recorded</option><option value="Y">Yes</option><option value="N">No</option></select></label>)}</div><label className="block text-sm">Framework-wide review date<input type="date" className={inputClass} value={form.high_level_review_date || ''} onChange={event=>set('high_level_review_date',event.target.value)}/></label><label className="block text-sm">Evidence / review reference<textarea maxLength={4000} className={inputClass} value={form.high_level_evidence || ''} onChange={event=>set('high_level_evidence',event.target.value)}/></label></fieldset>;
+}

@@ -3,7 +3,7 @@ import { base44 } from '@/api/base44Client';
 import {useQueryClient} from '@tanstack/react-query';
 import FrameworkKpiFormFields from '@/components/framework/FrameworkKpiFormFields';
 import FrameworkPopulationImpact from '@/components/framework/FrameworkPopulationImpact';
-import {SOCIAL_FIELDS,NUMBER_FIELDS,DATE_FIELDS,YES_NO_FIELDS} from '@/components/framework/frameworkKpiFields';
+import {SOCIAL_FIELDS,NUMBER_FIELDS,DATE_FIELDS} from '@/components/framework/frameworkKpiFields';
 
 export default function UKLFKPIEditor({ report, defaults = {}, onSaved, onCancel, frameworkContext = false }) {
   const [form,setForm]=useState(()=>{const values={...defaults,...report};for(const [key,value] of Object.entries(defaults))if(values[key]==null || values[key]==='')values[key]=value;for(const [key] of DATE_FIELDS)values[key]=String(values[key] || '').slice(0,10);return values;});
@@ -20,7 +20,7 @@ export default function UKLFKPIEditor({ report, defaults = {}, onSaved, onCancel
         frameworkContext,
         kpis: Object.fromEntries([
           ...[...NUMBER_FIELDS.map(([key])=>key),...SOCIAL_FIELDS.flatMap(([actual,target])=>[actual,target])].map(key=>[key,form[key]==null || form[key]==='' ? null : Number(form[key])]),
-          ...[...DATE_FIELDS.map(([key])=>key),...YES_NO_FIELDS.map(([key])=>key),'high_level_evidence',...SOCIAL_FIELDS.map(([, , ,key])=>key).filter(Boolean)].map(key=>[key,form[key] || '']),
+          ...[...DATE_FIELDS.map(([key])=>key),...SOCIAL_FIELDS.map(([, , ,key])=>key).filter(Boolean)].map(key=>[key,form[key] || '']),
         ]),
       });
       if(data.error)throw new Error(data.error);

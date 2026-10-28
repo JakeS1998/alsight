@@ -1,7 +1,7 @@
 export const kpiYesNo=['management_information_on_time','supplier_insurance_confirmed','supplier_questionnaire_current','schedule14_insurance_confirmed'];
 export const kpiMoney=['local_spend','local_spend_target','welsh_spend','welsh_spend_target','contract_sum','completion_value','calloff_value','access_fee'];
 export const kpiCounts=['school_visits','school_visits_target','apprenticeships','apprenticeships_target','consultation_events','consultation_events_target','jobs_created','jobs_created_target','riddor_incidents','riddor_reporting_year'];
-export const kpiText=['pq_date','aa_signed','calloff_date','high_level_review_date','high_level_evidence','contractual_completion_date','actual_completion_date','local_spend_postcodes','welsh_spend_postcodes'];
+export const kpiText=['pq_date','aa_signed','calloff_date','contractual_completion_date','actual_completion_date','local_spend_postcodes','welsh_spend_postcodes'];
 export const kpiReadFields=[...kpiYesNo,...kpiMoney,...kpiCounts,...kpiText,'time_category','cost_category','completion_delay_days','budget_variance_pct','population_impact','population_source_url','population_source_year','population_source_note','population_checked_at','kpis_complete'];
 export const validDate=value=>typeof value==='string' && /^\d{4}-\d{2}-\d{2}$/.test(value) && Number.isFinite(Date.parse(value));
 export function derivedKpis(row) {
@@ -13,9 +13,7 @@ export function derivedKpis(row) {
 export function frameworkKpiCompletion(row) {
  if(!row)return {complete:false,missing:['Linked UKLF record']};
  const missing=[];
- for(const key of kpiYesNo)if(!['Y','N'].includes(row[key]))missing.push(key.replaceAll('_',' '));
- if(!validDate(row.high_level_review_date))missing.push('High-level KPI review date');
- if(!String(row.high_level_evidence || '').trim())missing.push('High-level KPI evidence');
+ // Framework-wide ALS reviews are maintained separately and never gate a project's completion.
  for(const key of [...kpiMoney,...kpiCounts])if(!Number.isFinite(row[key]) || row[key]<0)missing.push(key==='access_fee' ? 'UKLF fee' : key.replaceAll('_',' '));
  if(!(row.contract_sum>0))missing.push('Positive contract sum');
  for(const key of ['pq_date','aa_signed','calloff_date','contractual_completion_date','actual_completion_date'])if(!validDate(row[key]))missing.push(key.replaceAll('_',' '));

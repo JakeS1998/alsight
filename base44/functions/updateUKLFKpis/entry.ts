@@ -28,11 +28,7 @@ export default async function(req: Request): Promise<Response> {
       const result=await researchFrameworkPopulation(base44,project,existing);changes=result.changes || {};warning=result.warning;
     } else {
       if(!kpis || typeof kpis!=='object' || Array.isArray(kpis))return Response.json({error:'Invalid KPI submission'},{status:400});
-      for(const field of kpiYesNo) {
-        if(!Object.hasOwn(kpis,field))continue;
-        if(!OUTCOMES.includes(kpis[field]))return Response.json({error:'Choose Yes, No or Not recorded'},{status:400});
-        changes[field]=kpis[field];
-      }
+      if([...kpiYesNo,'high_level_review_date','high_level_evidence'].some(field=>Object.hasOwn(kpis,field)))return Response.json({error:'Maintain these reviews in Framework-wide KPIs, not against a project.'},{status:400});
       for(const field of [...kpiMoney,...kpiCounts]) {
         if(!Object.hasOwn(kpis,field))continue;
         const value=kpis[field];
