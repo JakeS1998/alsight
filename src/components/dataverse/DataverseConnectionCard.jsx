@@ -19,7 +19,7 @@ export default function DataverseConnectionCard() {
         <Button disabled={Boolean(busy)} onClick={() => run('begin')}>{busy === 'begin' && <Loader2 className="animate-spin" />}{connection?.connected ? 'Reconnect Microsoft account' : 'Connect Microsoft account'}</Button>
         {connection?.connected && <><Button variant="outline" disabled={Boolean(busy)} onClick={() => run('check')}>{busy === 'check' && <Loader2 className="animate-spin" />}Check my access</Button><Button variant="outline" disabled={Boolean(busy)} onClick={() => run('disconnect')}>{busy === 'disconnect' && <Loader2 className="animate-spin" />}Disconnect</Button></>}
       </div>
-      <p className="text-xs text-muted-foreground">Sign-in opens on Microsoft and returns to the published ALS Hub app. IT must first enable delegated consent and register the Web return address shown in Admin. Shared synchronisation uses Jake’s account; your write-back uses only your own connected account.</p>
+      <p className="text-xs text-muted-foreground">Sign-in returns to the published ALS Hub app. In Microsoft Entra, IT must allow this exact Web redirect URI on the existing application registration: <code className="break-all text-foreground">https://als-hub.base44.app/dataverse-callback</code>. Networx sends through your own Dataverse mailbox, never the shared synchronisation account.</p>
     </>}
     {!['sam','sam_director'].includes(user?.role) && <Link to="/dataverse" className="inline-flex text-sm font-semibold text-primary underline-offset-4 hover:underline">Open Dataverse write-back workspace</Link>}
     {error && <p role="alert" className="text-sm text-destructive">{error}</p>}

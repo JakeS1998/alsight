@@ -1,0 +1,13 @@
+import React from 'react';
+import { Button } from '@/components/ui/button';
+const filters = {0:'All email',1:'Replies to tracked email',2:'Email from leads, contacts and accounts',3:'Email from email-enabled records',4:'No automatic tracking'};
+export default function NetworxMailboxReadiness({mailbox,busy,onEnable,onRefresh}) {
+  return <section className="space-y-3 rounded-panel border border-border bg-muted p-4 text-sm" aria-label="Dataverse mailbox readiness">
+    <p className="font-semibold">From: {mailbox.name}{mailbox.sender && ` · ${mailbox.sender}`}</p>
+    <dl className="grid gap-2 sm:grid-cols-2"><div><dt className="text-muted-foreground">Mailbox approval</dt><dd>{mailbox.approved ? 'Approved' : 'Not confirmed'}</dd></div><div><dt className="text-muted-foreground">Outgoing / incoming sync</dt><dd>{mailbox.outgoing ? 'Ready' : 'Not ready'} / {mailbox.incoming ? 'Ready' : 'Not ready'}</dd></div><div><dt className="text-muted-foreground">Email correlation</dt><dd>{mailbox.correlation ? 'Enabled' : 'Not enabled'}</dd></div><div><dt className="text-muted-foreground">My Dynamics tracking filter</dt><dd>{filters[mailbox.filter] || 'Not confirmed'}</dd></div></dl>
+    {mailbox.issues.length>0 && <ul className="list-disc space-y-1 pl-5 text-muted-foreground">{mailbox.issues.map(issue=><li key={issue}>{issue}</li>)}</ul>}
+    {!mailbox.tracking && <div className="space-y-2"><p className="text-xs text-muted-foreground">This changes only my Dynamics incoming filter to replies to tracked email, replacing the current filter above. It does not import my whole inbox or change anyone else’s settings.</p><Button type="button" size="sm" variant="outline" disabled={Boolean(busy)} onClick={onEnable}>{busy==='tracking' ? 'Enabling tracked replies…' : 'Track replies only'}</Button></div>}
+    {!mailbox.ready && <div className="flex flex-wrap items-center gap-3"><Button type="button" size="sm" variant="outline" disabled={Boolean(busy)} onClick={onRefresh}>Recheck mailbox</Button>{mailbox.mailboxUrl && <a href={mailbox.mailboxUrl} target="_blank" rel="noopener noreferrer" className="text-sm underline">Open my mailbox in Dynamics</a>}</div>}
+    <p className="text-xs text-muted-foreground">Replies are matched by Microsoft to the original tracked email and its Regarding record. Exchange synchronization is asynchronous: keep the reply in the inbox, allow time for sync, then refresh Networx.</p>
+  </section>;
+}

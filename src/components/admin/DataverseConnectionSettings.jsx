@@ -33,7 +33,7 @@ export default function DataverseConnectionSettings() {
     {notice && <p className="text-sm text-muted-foreground" role="status">{notice}</p>}
     <div className="space-y-2 border-t border-border pt-4 text-sm text-muted-foreground">
       <p>IT must add the Dynamics CRM delegated <strong>user_impersonation</strong> permission to the existing Microsoft app registration and grant the necessary consent. Each user needs access to this environment, the appropriate licence and security roles.</p>
-      <p>Under Authentication, add a <strong>Web</strong> redirect URI: <code className="break-all text-foreground">https://alsight.base44.app/dataverse-callback</code>. The existing tenant ID, client ID and client secret are still used securely. Rotating the client secret requires users to reconnect.</p>
+      <p>Under Authentication, add a <strong>Web</strong> redirect URI: <code className="break-all text-foreground">https://als-hub.base44.app/dataverse-callback</code>. The existing tenant ID, client ID and client secret are still used securely. Rotating the client secret requires users to reconnect.</p>
       <p>Use the shared data flow controls below to confirm Jake’s read connection and map projects and contacts against live metadata. Approval routing, row-change events and email notifications are not part of this data flow.</p>
     </div>
   </section>;
