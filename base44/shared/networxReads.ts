@@ -2,6 +2,7 @@ import { flowRequest } from './dataverseFlowApi.ts';
 import { networxQuery } from './networxQueries.ts';
 import { networxStatuses } from './networxStatuses.ts';
 import { decodeNetworxCursor, encodeNetworxCursor } from './networxCursor.ts';
+import { networxActivityMetadata, networxMeetingLink } from './networxActivityMetadata.ts';
 const label = (row, field) => row[`${field}@OData.Community.Display.V1.FormattedValue`] || '';
 const options = {headers:{Prefer:'odata.include-annotations="OData.Community.Display.V1.FormattedValue"'}};
 function activityRow(row, note = false) {
@@ -15,7 +16,8 @@ export async function readNetworxActivities(context, input) {
     const row = page.value?.[0];
     if (!row) return {state:'not_found', message:'This activity is no longer available to your Dataverse account.'};
     const [item] = await networxStatuses(context,[activityRow(row,note)]);
-    return {state:'ready', item:{...item, body:(note ? row.notetext : row.description) || '', participants:(row.activitypointer_activity_parties || []).map(p=>({name:label(p,'_partyid_value') || p.addressused || 'Unnamed participant', role:label(p,'participationtypemask')}))}};
+    const metadata=input.kind==='appointment' ? networxActivityMetadata(row.description) : null;
+    return {state:'ready', item:{...item, joinUrl:networxMeetingLink(metadata?.joinUrl,true),outlookUrl:networxMeetingLink(metadata?.webLink),body:(note ? row.notetext : row.description) || '', participants:(row.activitypointer_activity_parties || []).map(p=>({name:label(p,'_partyid_value') || p.addressused || 'Unnamed participant', role:label(p,'participationtypemask')}))}};
   }
   // Retain only native continuation addresses and unread IDs, not private content.
   // Re-read buffered IDs under today's permissions and relationship links on every page.

@@ -14,5 +14,6 @@ export default function NetworxActivityDetail({ entity, recordId, row, user }) {
     {item.participants?.length > 0 && <ul className="space-y-1 text-xs text-muted-foreground" aria-label="Activity participants">{item.participants.map((person,index)=><li key={index}>{person.role ? `${person.role}: ` : ''}{person.name}</li>)}</ul>}
     {body ? <p className="whitespace-pre-wrap break-words">{body}</p> : <p className="text-muted-foreground">No additional description recorded.</p>}
     {item.filename && <p className="break-words text-xs text-muted-foreground">Attached document: {item.filename}</p>}
+    {(item.joinUrl || item.outlookUrl) && <div className="flex flex-wrap gap-2">{item.joinUrl && <Button asChild size="sm"><a href={item.joinUrl} target="_blank" rel="noopener noreferrer">Join Teams meeting</a></Button>}{item.outlookUrl && <Button asChild size="sm" variant="outline"><a href={item.outlookUrl} target="_blank" rel="noopener noreferrer">Open in Outlook</a></Button>}</div>}
   </div>;
 }

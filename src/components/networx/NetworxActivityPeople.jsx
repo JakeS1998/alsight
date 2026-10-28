@@ -1,0 +1,9 @@
+import React from 'react';
+import {X} from 'lucide-react';
+import {Button} from '@/components/ui/button';
+import NetworxEmailRecipients from '@/components/networx/NetworxEmailRecipients';
+export default function NetworxActivityPeople({entity,recordId,recipients,people,setPeople,call}) {
+ const limit=call ? 1 : 20;
+ const add=person=>{if(person)setPeople(previous=>previous.length<limit && !previous.some(row=>row.entity===person.entity && row.id===person.id) ? [...previous,person] : previous);};
+ return <section className="space-y-3"><fieldset disabled={people.length>=limit}><NetworxEmailRecipients entity={entity} recordId={recordId} initial={recipients} label={call ? 'Person (optional)' : 'Add attendees'} required={false} onSelect={add} clearOnSelect activityLabel={call ? 'call' : 'meeting'}/></fieldset>{people.length>0 && <ul className="space-y-2" aria-label="Selected participants">{people.map(person=><li key={`${person.entity}:${person.id}`} className="flex items-center justify-between gap-3 rounded-md border border-border p-2 text-sm"><span className="min-w-0 break-words">{person.name}<span className="block text-xs text-muted-foreground">{person.address}</span></span><Button type="button" variant="ghost" size="icon" aria-label={`Remove ${person.name}`} onClick={()=>setPeople(previous=>previous.filter(row=>row.entity!==person.entity || row.id!==person.id))}><X/></Button></li>)}</ul>}<p className="text-xs text-muted-foreground">{call ? 'The call is always linked to this relationship, even if no person is selected.' : `${people.length} of 20 attendees selected. Invitations are sent when you create the meeting.`}</p></section>;
+}
