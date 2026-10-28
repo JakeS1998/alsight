@@ -1,0 +1,44 @@
+import { flowRequest } from './dataverseFlowApi.ts';
+import { networxQuery } from './networxQueries.ts';
+import { networxStatuses } from './networxStatuses.ts';
+import { decodeNetworxCursor, encodeNetworxCursor } from './networxCursor.ts';
+const label = (row, field) => row[`${field}@OData.Community.Display.V1.FormattedValue`] || '';
+const options = {headers:{Prefer:'odata.include-annotations="OData.Community.Display.V1.FormattedValue"'}};
+function activityRow(row, note = false) {
+  return {id:note ? row.annotationid : row.activityid, kind:note ? 'annotation' : row.activitytypecode, subject:row.subject || (note ? 'Untitled note' : 'Untitled activity'), updated:new Date(row.modifiedon).toISOString(), created:row.createdon, occurred:note ? row.createdon : row.actualstart || row.scheduledstart || row.createdon, end:note ? null : row.actualend || row.scheduledend || null, status:note ? '' : label(row,'statuscode'), owner:label(row,note ? '_createdby_value' : '_ownerid_value'), filename:note && row.isdocument ? row.filename || 'Attached document' : null};
+}
+export async function readNetworxActivities(context, input) {
+  const {environment, token, sourceId} = context;
+  if (input.action === 'detail') {
+    const note = input.kind === 'annotation';
+    const page = await flowRequest(environment,token,networxQuery(sourceId,input,note),options);
+    const row = page.value?.[0];
+    if (!row) return {state:'not_found', message:'This activity is no longer available to your Dataverse account.'};
+    const [item] = await networxStatuses(context,[activityRow(row,note)]);
+    return {state:'ready', item:{...item, body:(note ? row.notetext : row.description) || '', participants:(row.activitypointer_activity_parties || []).map(p=>({name:label(p,'_partyid_value') || p.addressused || 'Unnamed participant', role:label(p,'participationtypemask')}))}};
+  }
+  // Retain only native continuation addresses and unread IDs, not private content.
+  // Re-read buffered IDs under today's permissions and relationship links on every page.
+  const streams = input.cursor ? await decodeNetworxCursor(context,input.cursor) : [false,true].map(note=>({note,pendingIds:[],next:networxQuery(sourceId,input,note)}));
+  await Promise.all(streams.map(async stream=>{
+    const buffered = stream.pendingIds.length > 0;
+    stream.rows = [];
+    if (!buffered && !stream.next) return;
+    const path = buffered ? networxQuery(sourceId,input,stream.note,stream.pendingIds) : stream.next;
+    const page = await flowRequest(environment,token,path,{headers:{Prefer:`odata.maxpagesize=${buffered ? 50 : 20},odata.include-annotations="OData.Community.Display.V1.FormattedValue"`}});
+    stream.rows = (page.value || []).map(row=>activityRow(row,stream.note));
+    if (!buffered) stream.next = page['@odata.nextLink'] || null;
+    // Each source must offer at least 20 candidates (or be exhausted) so that
+    // older notes cannot jump ahead of an unfetched page of newer activities.
+    while (stream.rows.length < 20 && stream.next) {
+      const next = await flowRequest(environment,token,stream.next,{headers:{Prefer:'odata.maxpagesize=20,odata.include-annotations="OData.Community.Display.V1.FormattedValue"'}});
+      stream.rows.push(...(next.value || []).map(row=>activityRow(row,stream.note)));
+      stream.next = next['@odata.nextLink'] || null;
+    }
+  }));
+  const rows = streams.flatMap(stream=>stream.rows).sort((a,b)=>Date.parse(b.updated)-Date.parse(a.updated) || b.id.localeCompare(a.id) || b.kind.localeCompare(a.kind));
+  const items = rows.slice(0,20), consumed = new Set(items.map(row=>`${row.kind}:${row.id}`));
+  const state = streams.map(stream=>({note:stream.note,next:stream.next,pendingIds:stream.rows.filter(row=>!consumed.has(`${row.kind}:${row.id}`)).map(row=>row.id)}));
+  const hasMore = state.some(stream=>stream.pendingIds.length || stream.next);
+  return {state:'ready',items:await networxStatuses(context,items),nextCursor:hasMore ? await encodeNetworxCursor(context,state) : null};
+}

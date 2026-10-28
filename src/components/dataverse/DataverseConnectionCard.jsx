@@ -3,8 +3,10 @@ import { Link } from 'react-router-dom';
 import { Loader2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import useDataverseUser from '@/components/dataverse/useDataverseUser';
+import { useAuth } from '@/lib/AuthContext';
 
 export default function DataverseConnectionCard() {
+  const { user } = useAuth();
   const { connection, loading, loadError, reload, busy, error, notice, run } = useDataverseUser();
   return <section className="space-y-4 rounded-xl border border-border bg-card p-6">
     <header><h2 className="text-base font-semibold">Your Dataverse account</h2><p className="mt-1 text-sm text-muted-foreground">Connect your work Microsoft account. Dataverse uses your individual permissions, not a shared application user.</p></header>
@@ -19,7 +21,7 @@ export default function DataverseConnectionCard() {
       </div>
       <p className="text-xs text-muted-foreground">Sign-in opens on Microsoft and returns to the published ALS Hub app. IT must first enable delegated consent and register the Web return address shown in Admin. Shared synchronisation uses Jake’s account; your write-back uses only your own connected account.</p>
     </>}
-    <Link to="/dataverse" className="inline-flex text-sm font-semibold text-primary underline-offset-4 hover:underline">Open Dataverse write-back workspace</Link>
+    {!['sam','sam_director'].includes(user?.role) && <Link to="/dataverse" className="inline-flex text-sm font-semibold text-primary underline-offset-4 hover:underline">Open Dataverse write-back workspace</Link>}
     {error && <p role="alert" className="text-sm text-destructive">{error}</p>}
     {notice && <p role="status" className="text-sm text-muted-foreground">{notice}</p>}
   </section>;

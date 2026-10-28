@@ -3,7 +3,7 @@ import { dataverseEnvironment } from './dataverseConnection.ts';
 import { dataverseRequest } from './dataverseRequest.ts';
 
 export const dataverseRedirectUri = 'https://alsight.base44.app/dataverse-callback';
-export const dataverseRoles = ['admin', 'director', 'regional_director', 'bsm', 'bdm', 'finance'];
+export const dataverseRoles = ['admin', 'director', 'regional_director', 'bsm', 'bdm', 'finance', 'sam', 'sam_director'];
 const base64url = bytes => btoa(String.fromCharCode(...bytes)).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
 const decode = value => Uint8Array.from(atob(value.replace(/-/g, '+').replace(/_/g, '/')), c => c.charCodeAt(0));
 const text = new TextEncoder();

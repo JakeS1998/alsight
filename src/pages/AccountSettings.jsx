@@ -38,7 +38,7 @@ export default function AccountSettings() {
     <WellbeingPreferences />
     <OutlookConnectionCard />
     {['admin', 'director', 'regional_director', 'bsm', 'bdm', 'finance'].includes(user?.role) && <TeamsConnectionCard />}
-    {['admin', 'director', 'regional_director', 'bsm', 'bdm', 'finance'].includes(user?.role) && <DataverseConnectionCard />}
+    {['admin', 'director', 'regional_director', 'bsm', 'bdm', 'finance', 'sam', 'sam_director'].includes(user?.role) && <DataverseConnectionCard />}
     <form onSubmit={submit} className="space-y-4 rounded-xl border border-border bg-card p-6">
       <h2 className="text-base font-semibold">Change password</h2>
       <div className="space-y-1.5"><Label htmlFor="current-password">Current password</Label><Input id="current-password" type="password" autoComplete="current-password" value={currentPassword} onChange={e => setCurrentPassword(e.target.value)} required /></div>
