@@ -1,6 +1,7 @@
 import { flowRequest } from './dataverseFlowApi.ts';
 import { networxMailbox } from './networxMailbox.ts';
 import { resolveNetworxRecipient } from './networxRecipients.ts';
+import recipientTypes from './networxRecipientTypes.ts';
 import { networxAttachmentRecords, sameNetworxAttachments } from './networxAttachments.ts';
 const escape = value=>value.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;');
 const fail = message=>Object.assign(new Error(message),{status:409});
@@ -26,7 +27,7 @@ export async function sendNetworxEmail(context, input) {
     [`regardingobjectid_${entity}@odata.bind`]:`/${entity==='account' ? 'accounts' : 'contacts'}(${sourceId})`,
     email_activity_parties:[
       {'partyid_systemuser@odata.bind':`/systemusers(${principalId})`,participationtypemask:1,addressused:mailbox.sender},
-      {[`partyid_${recipient.entity}@odata.bind`]:`/${recipient.entity==='account' ? 'accounts' : 'contacts'}(${recipient.id})`,participationtypemask:2,addressused:recipient.address}
+      {[`partyid_${recipient.entity}@odata.bind`]:`/${recipientTypes[recipient.entity].set}(${recipient.id})`,participationtypemask:2,addressused:recipient.address}
     ]
   };
   let email = existing;
