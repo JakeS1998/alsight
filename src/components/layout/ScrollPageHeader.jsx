@@ -1,7 +1,7 @@
 import React, {useLayoutEffect, useRef, useState} from 'react';
 import {createPortal} from 'react-dom';
 import {Image} from '@/components/ui/image';
-export default function ScrollPageHeader({children,title,image,imageAlt='',actions}) {
+export default function ScrollPageHeader({children,title,image,imageAlt='',actions,minimizeOnScroll=false}) {
  const ref=useRef(null),[position,setPosition]=useState(null);
  useLayoutEffect(()=>{
   const element=ref.current;
@@ -11,14 +11,15 @@ export default function ScrollPageHeader({children,title,image,imageAlt='',actio
    const styles=window.getComputedStyle(element);
    const gap=parseFloat(styles.getPropertyValue('--portal-page-header-gap'))||16;
    const top=(parseFloat(styles.getPropertyValue('--portal-header-height'))||64)+gap;
-   compact=window.matchMedia('(min-width: 1024px)').matches&&rect.bottom<top-(compact?0:32);
+   const edge=minimizeOnScroll ? rect.top : rect.bottom;
+   compact=window.matchMedia('(min-width: 1024px)').matches&&edge<top-(compact?0:32);
    setPosition(compact?{top,left:rect.left,width:rect.width,gap}:null);
   };
   const schedule=()=>{cancelAnimationFrame(frame);frame=requestAnimationFrame(update);};
   const observer=new ResizeObserver(schedule);observer.observe(element);
   update();window.addEventListener('scroll',schedule,{passive:true});window.addEventListener('resize',schedule);
   return()=>{cancelAnimationFrame(frame);observer.disconnect();window.removeEventListener('scroll',schedule);window.removeEventListener('resize',schedule);};
- },[]);
+ },[minimizeOnScroll]);
  return <div ref={ref} className="min-w-0">{children}{position&&createPortal(
   <div className="pointer-events-none fixed inset-x-0 z-30 bg-background" style={{top:position.top-position.gap,paddingTop:position.gap}}>
    <div aria-hidden="true" className="absolute inset-x-0 top-full h-6" style={{background:'linear-gradient(to bottom, hsl(var(--background)), hsl(var(--background) / 0))'}}/>
