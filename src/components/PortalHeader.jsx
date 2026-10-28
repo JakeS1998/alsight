@@ -21,7 +21,7 @@ import OverflowNavigation from '@/components/navigation/OverflowNavigation';
 const NAV_ITEMS = [
   { label: 'Today', path: '/today', icon: House, roles: WORKSPACE_ACCESS.today },
   { label: 'Alliance360', path: '/alliance360', icon: LayoutDashboard, roles: WORKSPACE_ACCESS.alliance360 },
-  { label: 'Network', path: '/accounts', icon: Building2, roles: WORKSPACE_ACCESS.network },
+  { label: 'Relationships', path: '/accounts', icon: Building2, roles: WORKSPACE_ACCESS.network },
   { label: 'I & E', path: '/insights-engagement', icon: InsightsEngagementIcon, roles: WORKSPACE_ACCESS.ie },
   { label: 'Opportunities', path: '/opportunities', icon: BriefcaseBusiness, roles: WORKSPACE_ACCESS.opportunities },
   { label: 'Projects', path: '/projects', icon: FolderKanban, roles: WORKSPACE_ACCESS.projects },

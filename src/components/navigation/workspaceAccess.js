@@ -20,7 +20,7 @@ export const WORKSPACE_ACCESS={
 export const PORTAL_PAGES=[
  {key:'today',label:'Today',path:'/today'},
  {key:'alliance360',label:'Alliance360',path:'/alliance360'},
- {key:'network',label:'Network',path:'/suppliers'},
+ {key:'network',label:'Relationships',path:'/suppliers'},
  {key:'ie',label:'I & E',path:'/insights-engagement'},
  {key:'opportunities',label:'Opportunities',path:'/opportunities'},
  {key:'projects',label:'Projects',path:'/projects'},

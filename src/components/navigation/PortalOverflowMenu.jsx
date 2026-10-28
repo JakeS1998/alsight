@@ -11,7 +11,7 @@ export default function PortalOverflowMenu({items}) {
  return <DropdownMenu><DropdownMenuTrigger className="portal-nav-item" data-active={active} aria-label="More navigation options">More<ChevronDown className="h-4 w-4"/></DropdownMenuTrigger>
   <DropdownMenuContent align="end" className="max-h-[calc(100dvh-6rem)] min-w-52 overflow-y-auto">
    {items.map(item=>item.type===RelationshipNavigation?<DropdownMenuSub key={item.key}>
-    <DropdownMenuSubTrigger className={networkActive?'bg-muted font-semibold':''}><Building2/>Network</DropdownMenuSubTrigger>
+    <DropdownMenuSubTrigger className={networkActive?'bg-muted font-semibold':''}><Building2/>Relationships</DropdownMenuSubTrigger>
     <DropdownMenuSubContent>
      <DropdownMenuItem asChild><Link to="/suppliers" onClick={item.props.onNavigate}><Building2/>Suppliers</Link></DropdownMenuItem>
      <DropdownMenuItem asChild><Link to="/clients" onClick={item.props.onNavigate}><Building2/>Clients</Link></DropdownMenuItem>
