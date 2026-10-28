@@ -112,6 +112,20 @@
 .account-hero-identifiers a { text-decoration: underline; text-underline-offset: 3px; }
 .account-sticky-header { position: sticky; top: var(--portal-header-height,64px); z-index: 20; padding-block: 12px; background: hsl(var(--background)); }
 .account-tabs { display: flex; flex-wrap: wrap; width: 100%; height: auto; justify-content: flex-start; gap: 6px; }
+@media (min-width: 1024px) {
+  .account-profile { overflow-anchor: none; }
+  .account-profile .account-sticky-header::after { content: ''; position: absolute; top: 100%; inset-inline: 0; height: 20px; background: linear-gradient(to bottom,hsl(var(--background)),hsl(var(--background) / 0)); pointer-events: none; }
+  .account-profile .account-sticky-header[data-compact="true"] > a,
+  .account-profile .account-sticky-header[data-compact="true"] .account-hero-copy > p,
+  .account-profile .account-sticky-header[data-compact="true"] .account-badges,
+  .account-profile .account-sticky-header[data-compact="true"] .account-hero-updated,
+  .account-profile .account-sticky-header[data-compact="true"] .account-hero-identifiers { display: none; }
+  .account-profile .account-sticky-header[data-compact="true"] .account-hero { min-height: 76px; }
+  .account-profile .account-sticky-header[data-compact="true"] .account-hero-copy { max-width: 100%; padding: 18px 28px; }
+  .account-profile .account-sticky-header[data-compact="true"] .account-hero h1 { font-size: 24px; line-height: 1.25; }
+  .account-profile .account-sticky-header[data-compact="true"] .account-heading-icon { width: 36px; height: 36px; }
+  .account-profile .account-sticky-header[data-compact="true"] .account-heading-icon svg { width: 22px; height: 22px; }
+}
 .account-overview-grid { display: grid; grid-template-columns: minmax(0,1.4fr) minmax(0,1fr) minmax(0,1fr); gap: 20px; }
 .account-panel { min-width: 0; padding: 24px; border: 1px solid hsl(var(--border)); border-radius: var(--panel-radius); background: hsl(var(--card)); }
 .account-panel h2 { margin-bottom: 18px; font-size: 17px; font-weight: 750; }

@@ -15,6 +15,7 @@ import TabsTrigger from '@/components/navigation/SlidingTabTrigger';
 import SlidingTabHighlight from '@/components/navigation/SlidingTabHighlight';
 import { useQueryClient } from '@tanstack/react-query';
 import AccountHeader from '@/components/accounts/AccountHeader';
+import ProjectStickyHeader from '@/components/projects/ProjectStickyHeader';
 import RecordUpdatedAt from '@/components/RecordUpdatedAt';
 import DocumentDates from '@/components/documents/DocumentDates';
 import DataverseRecordEdit from '@/components/dataverse/DataverseRecordEdit';
@@ -127,13 +128,13 @@ export default function AccountDetail() {
 
   return (
     <Tabs value={['overview','contacts','projects','opportunities','financials','activity','documents','insurance'].includes(params.get('tab')) ? params.get('tab') : 'overview'} onValueChange={tab=>setParams(current=>{const next=new URLSearchParams(current);next.set('tab',tab);return next;},{replace:true})} className="account-profile space-y-6">
-      <div className="account-sticky-header">
+      <ProjectStickyHeader className="account-sticky-header" spaced={false}>
         <AccountHeader account={account} owner={summary.isPending ? 'Loading…' : signals?.owner || (account.account_manager_aad_id ? 'Assigned owner' : 'Not assigned')} actions={<AccountClassification account={account} user={user} onSaved={updated => setAccount(current => ({ ...current,...updated }))} />} />
         <TabsList className="account-tabs sliding-tab-list sliding-network-tabs mt-4" aria-label="Relationship sections">
           <SlidingTabHighlight/>
           {['Overview','Contacts','Projects',...(['admin','director','regional_director','bsm','finance','bdm'].includes(user?.role) ? ['Opportunities'] : []),...(['admin','director','regional_director','bsm','finance','bdm','client'].includes(user?.role) ? ['Financials'] : []),'Activity','Documents','Insurance'].map(title => <TabsTrigger key={title} value={title.toLowerCase()}>{title==='Contacts' ? 'People' : title==='Activity' ? 'Networx' : title}</TabsTrigger>)}
         </TabsList>
-      </div>
+      </ProjectStickyHeader>
       <TabsContent value="overview" className="space-y-4"><DataverseRecordEdit table="accounts" record={account} onUpdated={setAccount}><AccountOverview account={summaryRow?.account ? {...account,_ase:summaryRow.account._ase} : account} contacts={contacts} projects={projects} signals={signals} user={user} summaryLoading={summary.isPending} summaryError={summary.error} onSummaryRetry={()=>summary.refetch()} onAccountEnriched={updated=>setAccount(current=>({...current,...updated}))} /></DataverseRecordEdit></TabsContent>
       <TabsContent value="insurance"><AccountInsurance account={account}/></TabsContent>
       <TabsContent value="contacts" className="space-y-6">
