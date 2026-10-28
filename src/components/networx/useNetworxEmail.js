@@ -3,10 +3,10 @@ import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { useAuth } from '@/lib/AuthContext';
 import networxEmailClient from '@/components/networx/networxEmailClient';
 import prepareNetworxAttachment from '@/components/networx/prepareNetworxAttachment';
-export default function useNetworxEmail({entity,recordId,onBusyChange}) {
+export default function useNetworxEmail({entity,recordId,onBusyChange,replyToId}) {
   const {user} = useAuth(), cache = useQueryClient();
-  const queryKey = ['networx-email',user?.id,entity,recordId];
-  const query = useQuery({queryKey,queryFn:()=>networxEmailClient({action:'prepare',entity,recordId}),retry:false,staleTime:0,gcTime:0,refetchOnWindowFocus:false});
+  const queryKey = ['networx-email',user?.id,entity,recordId,replyToId || 'new'];
+  const query = useQuery({queryKey,queryFn:()=>networxEmailClient({action:replyToId ? 'prepare_reply' : 'prepare',entity,recordId,...(replyToId ? {replyToId} : {})}),retry:false,staleTime:0,gcTime:0,refetchOnWindowFocus:false});
   const [emailId] = useState(()=>crypto.randomUUID());
   const [attachments,setAttachments]=useState([]);
   const [busy,setBusy] = useState(''), [error,setError] = useState(''), [result,setResult] = useState(null);
@@ -35,10 +35,10 @@ export default function useNetworxEmail({entity,recordId,onBusyChange}) {
     const form = new FormData(event.currentTarget), [kind,id] = String(form.get('recipient') || '').split(':');
     setError('');setWorking('send');
     try {
-      const data = await networxEmailClient({action:'send',entity,recordId,emailId,recipient:{entity:kind,id},subject:form.get('subject'),body:form.get('body'),attachments:attachments.map(({id,filename,body})=>({id,filename,body}))});
+      const data = await networxEmailClient({action:'send',entity,recordId,emailId,...(replyToId ? {replyToId,replyRecipientKey:form.get('replyRecipient')} : {recipient:{entity:kind,id}}),subject:form.get('subject'),body:form.get('body'),attachments:attachments.map(({id,filename,body})=>({id,filename,body}))});
       if (!data.accepted) throw new Error(data.message || 'The email has not been accepted for sending.');
       setResult(data);
-      await cache.invalidateQueries({queryKey:['networx-activities',user?.id]});
+      await Promise.all([cache.invalidateQueries({queryKey:['networx-activities',user?.id]}),cache.invalidateQueries({queryKey:['networx-email-thread',user?.id]})]);
     } catch (failure) {setError(`${failure.message} If an email appeared in the timeline, review its status before retrying. Retrying this unchanged form reuses the same email reference.`);}
     finally {setWorking('');}
   }

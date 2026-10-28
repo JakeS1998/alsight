@@ -1,0 +1,4 @@
+import React from 'react';
+export default function NetworxReplyRecipient({reply}) {
+ return <div className="space-y-2"><label htmlFor="networx-reply-recipient" className="block text-sm font-medium">Reply to</label><select id="networx-reply-recipient" name="replyRecipient" required defaultValue={reply.recipients[0]?.key || ''} className="h-9 w-full rounded-md border border-input bg-card px-3 text-sm">{reply.recipients.map(person=><option key={person.key} value={person.key}>{person.name}{person.address && person.name!==person.address ? ` · ${person.address}` : ''}</option>)}</select><p className="text-xs text-muted-foreground">Linked to the original email conversation.</p></div>;
+}

@@ -4,6 +4,7 @@ import networxEmailInput from '../../shared/networxEmailInput.ts';
 import { networxMailbox, enableNetworxReplyTracking } from '../../shared/networxMailbox.ts';
 import { networxRecipients } from '../../shared/networxRecipients.ts';
 import { sendNetworxEmail } from '../../shared/networxSendEmail.ts';
+import {networxReplySource,networxReplyPreparation} from '../../shared/networxEmailReply.ts';
 export default async function(req) {
   const headers = {'Cache-Control':'no-store'};
   try {
@@ -15,6 +16,7 @@ export default async function(req) {
     const context = await networxContext(createClientFromRequest(req),input);
     if (context.state) return Response.json(context,{headers});
     if (input.action==='send') return Response.json(await sendNetworxEmail(context,input),{headers});
+    if(input.action==='prepare_reply'){const [mailbox,source]=await Promise.all([networxMailbox(context),networxReplySource(context,input.replyToId)]);return Response.json(networxReplyPreparation(context,source,mailbox),{headers});}
     if (input.action==='enable_tracking') return Response.json({state:'ready',mailbox:await enableNetworxReplyTracking(context)},{headers});
     if (input.action==='recipients') return Response.json({state:'ready',recipients:await networxRecipients(context,input.search || '')},{headers});
     const [mailbox,recipients] = await Promise.all([networxMailbox(context),networxRecipients(context)]);

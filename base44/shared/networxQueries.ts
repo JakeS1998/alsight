@@ -2,8 +2,9 @@ import { isGuid } from './dataverseFlowFields.ts';
 export const networxTypes = ['email', 'appointment', 'phonecall', 'task'];
 export function validateNetworxInput(input) {
   if (!input || !['account','contact'].includes(input.entity) || typeof input.recordId !== 'string' || !/^[a-zA-Z0-9_-]{1,100}$/.test(input.recordId)) return 'Choose a client, supplier or person.';
-  if (!['list','detail'].includes(input.action || 'list')) return 'Invalid activity operation.';
+  if (!['list','detail','thread'].includes(input.action || 'list')) return 'Invalid activity operation.';
   if (input.action === 'detail' && (!isGuid(input.activityId) || ![...networxTypes,'annotation'].includes(input.kind))) return 'Choose a valid activity.';
+  if (input.action === 'thread' && !isGuid(input.activityId)) return 'Choose a valid email conversation.';
   const cursor = input.cursor;
   if (cursor != null && (typeof cursor !== 'string' || cursor.length > 150000 || !/^[a-zA-Z0-9_-]{16}\.[a-zA-Z0-9_-]+$/.test(cursor))) return 'Invalid activity page. Refresh the timeline.';
   return null;

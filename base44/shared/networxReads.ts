@@ -3,13 +3,12 @@ import { networxQuery } from './networxQueries.ts';
 import { networxStatuses } from './networxStatuses.ts';
 import { decodeNetworxCursor, encodeNetworxCursor } from './networxCursor.ts';
 import { networxActivityMetadata, networxMeetingLink } from './networxActivityMetadata.ts';
-const label = (row, field) => row[`${field}@OData.Community.Display.V1.FormattedValue`] || '';
+import {networxActivityRow as activityRow,networxRowLabel as label} from './networxActivityRow.ts';
+import networxEmailThreadRead from './networxEmailThreadRead.ts';
 const options = {headers:{Prefer:'odata.include-annotations="OData.Community.Display.V1.FormattedValue"'}};
-function activityRow(row, note = false) {
-  return {id:note ? row.annotationid : row.activityid, kind:note ? 'annotation' : row.activitytypecode, subject:row.subject || (note ? 'Untitled note' : 'Untitled activity'), updated:new Date(row.modifiedon).toISOString(), created:row.createdon, occurred:note ? row.createdon : row.actualstart || row.scheduledstart || row.createdon, end:note ? null : row.actualend || row.scheduledend || null, status:note ? '' : label(row,'statuscode'), owner:label(row,note ? '_createdby_value' : '_ownerid_value'), filename:note && row.isdocument ? row.filename || 'Attached document' : null};
-}
 export async function readNetworxActivities(context, input) {
   const {environment, token, sourceId} = context;
+  if (input.action==='thread') return networxEmailThreadRead(context,input);
   if (input.action === 'detail') {
     const note = input.kind === 'annotation';
     const page = await flowRequest(environment,token,networxQuery(sourceId,input,note),options);
@@ -22,6 +21,7 @@ export async function readNetworxActivities(context, input) {
   // Retain only native continuation addresses and unread IDs, not private content.
   // Re-read buffered IDs under today's permissions and relationship links on every page.
   const streams = input.cursor ? await decodeNetworxCursor(context,input.cursor) : [false,true].map(note=>({note,pendingIds:[],next:networxQuery(sourceId,input,note)}));
+  if(!Array.isArray(streams))throw Object.assign(new Error('Refresh the activity timeline before loading more.'),{status:400});
   await Promise.all(streams.map(async stream=>{
     const buffered = stream.pendingIds.length > 0;
     stream.rows = [];

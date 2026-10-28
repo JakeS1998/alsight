@@ -1,6 +1,6 @@
 import {isGuid} from './dataverseFlowFields.ts';
 import {networxScope} from './networxQueries.ts';
-export const networxEmailFields='activityid,subject,description,modifiedon,createdon,actualstart,actualend,scheduledstart,scheduledend,_ownerid_value,statuscode,directioncode,conversationindex,conversationtrackingid,_parentactivityid_value';
+export const networxEmailFields='activityid,subject,modifiedon,createdon,actualstart,actualend,scheduledstart,scheduledend,_ownerid_value,statuscode,directioncode,conversationindex,conversationtrackingid,_parentactivityid_value';
 export const networxEmailScope=context=>networxScope(context.sourceId,false,context.entity).replaceAll('activitypointer_activity_parties','email_activity_parties');
 export function networxConversationRoot(index) {
  if(typeof index!=='string' || index.length>2048 || !/^[A-Za-z0-9+/]+=*$/.test(index))return null;
