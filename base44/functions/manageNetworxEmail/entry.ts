@@ -8,6 +8,7 @@ export default async function(req) {
   const headers = {'Cache-Control':'no-store'};
   try {
     if (req.method!=='POST') return Response.json({error:'Method not allowed.'},{status:405,headers});
+    if(Number(req.headers.get('content-length') || 0)>15*1024*1024)return Response.json({error:'Email attachments exceed the request limit.'},{status:413,headers});
     const input = await req.json().catch(()=>null);
     const invalid = networxEmailInput(input);
     if (invalid) return Response.json({error:invalid},{status:400,headers});

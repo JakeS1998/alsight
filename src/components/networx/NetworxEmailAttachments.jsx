@@ -1,0 +1,7 @@
+import React from 'react';
+import { Paperclip, X } from 'lucide-react';
+import { Input } from '@/components/ui/input';
+import { Button } from '@/components/ui/button';
+export default function NetworxEmailAttachments({files,onAdd,onRemove,busy}) {
+ return <section className="space-y-2"><label htmlFor="networx-email-attachments" className="flex items-center gap-2 text-sm font-medium"><Paperclip className="h-4 w-4"/>Attachments</label><Input id="networx-email-attachments" type="file" multiple accept=".pdf,.docx,.xlsx,.pptx,.png,.jpg,.jpeg,.gif,.webp,.txt,.csv" onChange={event=>{onAdd(Array.from(event.target.files || []));event.target.value='';}} disabled={busy || files.length>=5}/><p className="text-xs text-muted-foreground">Up to 5 documents or images, 5 MB each and 10 MB total (stored privately). Copies are attached to the tracked Dataverse email when sent.</p>{files.length>0 && <ul className="space-y-2">{files.map(file=><li key={file.id} className="flex items-center justify-between gap-3 rounded-md border border-border p-2 text-sm"><span className="min-w-0 break-all">{file.filename} <span className="text-muted-foreground">({(file.size/1024/1024).toFixed(2)} MB)</span></span><Button type="button" variant="ghost" size="icon" aria-label={`Remove ${file.filename}`} disabled={busy} onClick={()=>onRemove(file.id)}><X/></Button></li>)}</ul>}</section>;
+}
