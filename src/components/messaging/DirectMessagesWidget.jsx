@@ -15,6 +15,7 @@ export default function DirectMessagesWidget({user}) {
  const [open,setOpen]=useState(false),[minimized,setMinimized]=useState(false),[peer,setPeer]=useState(null),[directory,setDirectory]=useState(false),cache=useQueryClient();
  const [aliceSelected,setAliceSelected]=useState(false);
  const teamEnabled=internalMessagingRoles.includes(user.role);
+ useEffect(()=>{if(!teamEnabled)return;const start=()=>{setAliceSelected(false);setPeer(null);setDirectory(true);setOpen(true);setMinimized(false);};window.addEventListener('als-shortcut-new-message',start);return()=>window.removeEventListener('als-shortcut-new-message',start);},[teamEnabled]);
  const openAlice=()=>{setAliceSelected(true);setPeer(null);setDirectory(false);setOpen(true);setMinimized(false);};
  const backToInbox=()=>{setAliceSelected(false);setPeer(null);setDirectory(false);};
  const {requestPermission,notify}=useMessageNotifications(user.id);

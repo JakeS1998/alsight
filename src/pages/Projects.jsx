@@ -1,5 +1,6 @@
 import React, { useEffect, useState, useMemo } from "react";
 import useListState from '@/components/navigation/useListState';
+import useShortcutCreate from '@/components/shortcuts/useShortcutCreate';
 import useListFilterReset from '@/components/navigation/useListFilterReset';
 import PageContentSkeleton from '@/components/loading/PageContentSkeleton';
 import projectFullValue from '@/components/projects/projectFullValue';
@@ -50,6 +51,7 @@ export default function Projects() {
   const [contacts, setContacts] = useState([]);
   const [metadataLoading, setLoading] = useState(true);
   const [requestOpen, setRequestOpen] = useState(false);
+  useShortcutCreate('project',canRequest,()=>setRequestOpen(true));
   const [requestParams,setRequestParams]=useSearchParams();
   const resumeRequestId=requestParams.get('request');
   useEffect(()=>{if(resumeRequestId&&canRequest)setRequestOpen(true);},[resumeRequestId,canRequest]);

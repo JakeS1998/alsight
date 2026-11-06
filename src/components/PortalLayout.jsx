@@ -8,6 +8,7 @@ import PageLoadBoundary from '@/components/PageLoadBoundary';
 import KpiIllustrationProvider from '@/components/metrics/KpiIllustrationProvider';
 import PageFeedbackWidget from '@/components/feedback/PageFeedbackWidget';
 import DirectMessagesWidget from '@/components/messaging/DirectMessagesWidget';
+import PortalKeyboardShortcuts from '@/components/shortcuts/PortalKeyboardShortcuts';
 import { useAuth } from '@/lib/AuthContext';
 import usePortalDataRefresh from '@/components/data/usePortalDataRefresh';
 import WellbeingProvider from '@/components/wellbeing/WellbeingProvider';
@@ -31,6 +32,7 @@ export default function PortalLayout() {
     <PortalHeader />
     <main className="portal-main w-full flex-1"><PageLoadBoundary route={pathname}><KpiIllustrationProvider key={pathname === '/commercial/po-tool' ? '/commercial' : pathname}><Suspense fallback={<PageLoadingSkeleton />}><PortalPageAccess><Outlet /></PortalPageAccess></Suspense></KpiIllustrationProvider></PageLoadBoundary></main>
     <PortalFooter />
+    {user?.id && <PortalKeyboardShortcuts key={user.id} user={user}/>}
     {user?.id && <PageFeedbackWidget key={user.id} user={user} route={pathname} />}
     {user?.id && user.role !== 'framework_stakeholder' && <DirectMessagesWidget key={user.id} user={user} />}
     {user?.id && <GlobalWellbeingNotifications user={user}/>}

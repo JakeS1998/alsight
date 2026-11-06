@@ -10,6 +10,7 @@ export default function useExpandingSearch() {
     if (restoreFocus) trigger.current?.focus();
   }, []);
   useEffect(() => { close(); }, [pathname, close]);
+  useEffect(()=>{const show=()=>{setOpen(true);input.current?.focus({preventScroll:true});};window.addEventListener('als-shortcut-search',show);return()=>window.removeEventListener('als-shortcut-search',show);},[]);
   useLayoutEffect(() => {
     if (!open) return;
     input.current?.focus({ preventScroll: true });
