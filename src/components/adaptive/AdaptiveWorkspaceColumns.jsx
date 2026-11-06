@@ -1,5 +1,6 @@
 import React from 'react';
 import PriorityActions from '@/components/adaptive/PriorityActions';
+import TodayMeetingActions from '@/components/adaptive/TodayMeetingActions';
 import PersonalWorkspace from '@/components/adaptive/PersonalWorkspace';
 import NextMeeting from '@/components/adaptive/NextMeeting';
 import WorkingDayTimeline from '@/components/adaptive/WorkingDayTimeline';
@@ -19,6 +20,7 @@ export default function AdaptiveWorkspaceColumns({user,time,query,data,actions,r
  return <div className="at-flow-grid">
   <div className="at-flow-primary">
    <div className="at-flow-priorities"><PriorityActions actions={actions} prefs={prefs} onComplete={query.complete} onAsk={item=>askFromWorkspace(intelligence,'Why is this item appearing here? Explain its source, recorded responsibility and deadline without inferring urgency. Suggest a next step only.',widgetEvidence([item]),'Priority and awareness signals')} moreTasks={data.moreTasks} resting={time.resting} weekend={!time.workingDay}/></div>
+   <TodayMeetingActions user={user}/>
    <div className="at-flow-workspace"><PersonalWorkspace data={data} actions={actions} context={context} focus={focus} prefs={prefs} intelligence={intelligence}/></div>
    <div className="at-flow-mail"><OutlookEmailSummary user={user} time={time}/></div>
   </div>
