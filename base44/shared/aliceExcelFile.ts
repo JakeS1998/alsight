@@ -1,5 +1,3 @@
-import ExcelJS from 'npm:exceljs@4.4.0';
-
 export function parseAliceExcel(content) {
   let table;
   try { table = JSON.parse(content); } catch { return null; }
@@ -11,6 +9,7 @@ export function parseAliceExcel(content) {
 }
 
 export default async function aliceExcelFile(name, table) {
+  const { default: ExcelJS } = await import('npm:exceljs@4.4.0');
   const workbook = new ExcelJS.Workbook();
   workbook.creator = 'ALICE | ALS Hub';
   const sheet = workbook.addWorksheet(table.sheetName || 'Table', { views: [{ state: 'frozen', ySplit: 1 }] });

@@ -7,7 +7,8 @@ export default async function(req) {
     const base44 = createClientFromRequest(req);
     const user = await base44.auth.me().catch(error => error.status === 401 ? null : Promise.reject(error));
     if (!user) return Response.json({ error: 'Unauthorized' }, { status: 401 });
-    const { title, content, format = 'pdf' } = await req.json().catch(() => ({}));
+    const input = await req.json().catch(() => ({}));
+    const { title, content, format = 'pdf' } = input?.payload || input || {};
     if (typeof title !== 'string' || !title.trim() || title.length > 160 || typeof content !== 'string' || !content.trim() || content.length > 60000 || !['pdf', 'docx', 'txt', 'xlsx'].includes(format)) {
       return Response.json({ error: 'Provide title (1–160 characters), content (1–60000 characters), and format pdf, docx, txt or xlsx.' }, { status: 400 });
     }
