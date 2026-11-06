@@ -6,6 +6,7 @@ import { INTERNAL_ROLES, STAFF_WORKSPACE_ROLES } from '@/lib/portal';
 import Logo from '@/components/Logo';
 import NotificationCenter from '@/components/NotificationCenter';
 import UserMenu from '@/components/UserMenu';
+import HeaderClock from '@/components/navigation/HeaderClock';
 import PortalSearch from '@/components/search/PortalSearch';
 import UKLFIcon from '@/components/framework/UKLFIcon';
 import InsightsEngagementIcon from '@/components/InsightsEngagementIcon';
@@ -60,7 +61,7 @@ export default function PortalHeader() {
       <div className="portal-utilities">
         <PortalSearch />
         {INTERNAL_ROLES.includes(role) && <NotificationCenter user={user} />}
-        <div className="portal-profile hidden min-w-0 shrink-0 lg:block"><UserMenu user={user} onSignOut={signOut} /></div>
+        <div className="portal-profile hidden min-w-0 shrink-0 items-center gap-3 lg:flex"><UserMenu user={user} onSignOut={signOut} /><HeaderClock /></div>
 
       </div>
     </div>
