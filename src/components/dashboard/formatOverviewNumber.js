@@ -3,10 +3,10 @@ export default function formatOverviewNumber(value, currency = true) {
   const number = Number(value);
   if (!Number.isFinite(number)) return value;
   const magnitude = Math.abs(number);
-  const divisor = magnitude >= 1000000 ? 1000000 : magnitude >= 1000 ? 1000 : 1;
-  const suffix = divisor === 1000000 ? 'm' : divisor === 1000 ? 'k' : '';
+  const divisor = magnitude >= 1000000000 ? 1000000000 : magnitude >= 1000000 ? 1000000 : magnitude >= 1000 ? 1000 : 1;
+  const suffix = divisor === 1000000000 ? 'b' : divisor === 1000000 ? 'm' : divisor === 1000 ? 'k' : '';
   const formatted = (number / divisor).toLocaleString('en-GB', {
-    minimumFractionDigits: suffix ? 1 : 0,
+    minimumFractionDigits: suffix && suffix !== 'b' ? 1 : 0,
     maximumFractionDigits: suffix ? 1 : 0
   });
   return `${currency ? '£' : ''}${formatted}${suffix}`;
