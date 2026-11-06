@@ -13,7 +13,7 @@ import {WORKSPACE_ACCESS,canViewPage,canViewWorkspace,workspaceForPath,portalHom
 import RelationshipNavigation from '@/components/relationships/RelationshipNavigation';
 import useApprovalAccess from '@/components/approvals/useApprovalAccess';
 import useApprovalSummary from '@/components/approvals/useApprovalSummary';
-import { LayoutDashboard, FolderKanban, Building2, UserCircle, Users, BriefcaseBusiness, CircleHelp, House, MessagesSquare, ClipboardCheck, ChartNoAxesCombined } from 'lucide-react';
+import { LayoutDashboard, FolderKanban, Building2, UserCircle, Users, BriefcaseBusiness, CircleHelp, House, MessagesSquare, ClipboardCheck, ChartNoAxesCombined, Scale } from 'lucide-react';
 import MobileBottomNavigation from '@/components/navigation/MobileBottomNavigation';
 import mobileNavigationItems from '@/components/navigation/mobileNavigationItems';
 import OverflowNavigation from '@/components/navigation/OverflowNavigation';
@@ -26,7 +26,7 @@ const NAV_ITEMS = [
   { label: 'Opportunities', path: '/opportunities', icon: BriefcaseBusiness, roles: WORKSPACE_ACCESS.opportunities },
   { label: 'Projects', path: '/projects', icon: FolderKanban, roles: WORKSPACE_ACCESS.projects },
   { label: 'Commercial', path: '/commercial', icon: ChartNoAxesCombined, roles: WORKSPACE_ACCESS.commercial },
-  { label: 'BSS Hub', path: '/bss-hub', icon: BriefcaseBusiness, roles: WORKSPACE_ACCESS.bss },
+  { label: 'BSS Hub', path: '/bss-hub', icon: Scale, roles: WORKSPACE_ACCESS.bss },
   { label: 'Approvals', path: '/approvals', icon: ClipboardCheck, roles: WORKSPACE_ACCESS.approvals },
   { label: 'Framework', path: '/framework', icon: UKLFIcon, roles: WORKSPACE_ACCESS.framework },
   { label: 'Insider', path: '/insider', icon: MessagesSquare, roles: WORKSPACE_ACCESS.insider },
