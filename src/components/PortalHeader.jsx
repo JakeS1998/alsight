@@ -26,6 +26,7 @@ const NAV_ITEMS = [
   { label: 'Opportunities', path: '/opportunities', icon: BriefcaseBusiness, roles: WORKSPACE_ACCESS.opportunities },
   { label: 'Projects', path: '/projects', icon: FolderKanban, roles: WORKSPACE_ACCESS.projects },
   { label: 'Commercial', path: '/commercial', icon: ChartNoAxesCombined, roles: WORKSPACE_ACCESS.commercial },
+  { label: 'BSS Hub', path: '/bss-hub', icon: BriefcaseBusiness, roles: WORKSPACE_ACCESS.bss },
   { label: 'Approvals', path: '/approvals', icon: ClipboardCheck, roles: WORKSPACE_ACCESS.approvals },
   { label: 'Framework', path: '/framework', icon: UKLFIcon, roles: WORKSPACE_ACCESS.framework },
   { label: 'Insider', path: '/insider', icon: MessagesSquare, roles: WORKSPACE_ACCESS.insider },

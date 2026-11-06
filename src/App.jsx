@@ -72,6 +72,8 @@ const SAMProjectWorkspace = lazy(() => import('@/pages/SAMProjectWorkspace'));
 import IERoute from '@/components/ie/IERoute';
 const Lookout = lazy(() => import('@/pages/Lookout'));
 const LookoutAdmin = lazy(() => import('@/pages/LookoutAdmin'));
+const BSSHub = lazy(() => import('@/pages/BSSHub'));
+const Mfa = lazy(() => import('@/pages/Mfa'));
 const ApprovalCentre = lazy(() => import('@/pages/ApprovalCentre.jsx'));
 const ApprovalSetup = lazy(() => import('@/pages/ApprovalSetup.jsx'));
 const PrivacyPolicy = lazy(() => import('@/pages/PrivacyPolicy'));
@@ -113,6 +115,7 @@ const AuthenticatedApp = () => {
       <Route path="/register" element={<Register />} />
       <Route path="/forgot-password" element={<ForgotPassword />} />
       <Route path="/reset-password" element={<ResetPassword />} />
+      <Route path="/mfa" element={<Mfa />} />
       <Route path="/privacy-policy" element={<PrivacyPolicy />} />
       <Route path="/terms-of-service" element={<TermsOfService />} />
       <Route element={<ProtectedRoute unauthenticatedElement={<Navigate to={`/login?returnTo=${encodeURIComponent(location.pathname + location.search)}`} replace />} />}>
@@ -133,6 +136,7 @@ const AuthenticatedApp = () => {
           <Route path="/account-settings" element={<AccountSettings />} />
           <Route path="/dataverse" element={<DataverseWorkspace />} />
           <Route path="/calendar" element={<Calendar />} />
+          <Route path="/bss-hub" element={<BSSHub />} />
           <Route path="/approvals" element={<ApprovalCentre />} />
           <Route path="/help" element={<Help />} />
 

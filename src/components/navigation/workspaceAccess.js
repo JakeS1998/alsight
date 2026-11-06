@@ -10,6 +10,7 @@ export const WORKSPACE_ACCESS={
  opportunities:INTERNAL_ROLES,
  projects:[...portalRoles,'sam_director'],
  commercial:STAFF_WORKSPACE_ROLES,
+ bss:['admin','bsm'],
  approvals:[...portalRoles,'sam','sam_director','framework_stakeholder'],
  framework:[...INTERNAL_ROLES,'framework_stakeholder'],
  insider:STAFF_WORKSPACE_ROLES,
@@ -25,6 +26,7 @@ export const PORTAL_PAGES=[
  {key:'opportunities',label:'Opportunities',path:'/opportunities'},
  {key:'projects',label:'Projects',path:'/projects'},
  {key:'commercial',label:'Commercial',path:'/commercial'},
+ {key:'bss',label:'BSS Hub',path:'/bss-hub'},
  {key:'approvals',label:'Approvals',path:'/approvals'},
  {key:'framework',label:'Framework',path:'/framework'},
  {key:'insider',label:'Insider',path:'/insider'}
@@ -42,7 +44,7 @@ export function canViewPage(user,key,approvalEnabled=false){
 export function workspaceForPath(path,user){
  const root=path.split('/')[1];
  if(root==='projects'&&user?.role==='framework_stakeholder'&&path.split('/')[2])return 'framework';
- return ({today:'today','today-legacy':'today',alliance360:'alliance360',accounts:'network',suppliers:'network',clients:'network',people:'network',contacts:'network','insights-engagement':'ie',opportunities:'opportunities',crm:'opportunities',projects:'projects',documents:'projects',warranties:'projects',commercial:'commercial',approvals:'approvals',framework:'framework',insider:'insider',lookout:'insider'})[root];
+ return ({today:'today','today-legacy':'today',alliance360:'alliance360',accounts:'network',suppliers:'network',clients:'network',people:'network',contacts:'network','insights-engagement':'ie',opportunities:'opportunities',crm:'opportunities',projects:'projects',documents:'projects',warranties:'projects',commercial:'commercial','bss-hub':'bss',approvals:'approvals',framework:'framework',insider:'insider',lookout:'insider'})[root];
 }
 export function portalHomePath(user){
  const preferred=['sam','sam_director'].includes(user?.role)?'ie':user?.role==='framework_stakeholder'?'framework':'today';
