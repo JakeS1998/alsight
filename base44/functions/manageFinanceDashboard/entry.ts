@@ -52,8 +52,8 @@ export default async function(req){
   const state=powerBI;
 
   // Choose the scope on the server, never from a caller-supplied scope flag.
-  // Named-project balances and all directory/transaction/detail operations keep
-  // their existing assignment filters and Project RLS.
+  // Named-project balances resolve consolidated ledger codes after Project RLS;
+  // directory/transaction/detail operations retain their assignment filters.
   const companyWide=['summary','pipeline','forecast','balanceSummary','balanceInvoices','balanceTrend'].includes(input.action)&&input.projectId===undefined;
   const accessScope=companyWide?commercialBusinessScope(base44,user):await commercialAccessScope(base44,user,state);
   const scope=['balanceSummary','balanceInvoices','balanceTrend'].includes(input.action)?await projectBalanceScope(base44,state,input,accessScope):accessScope;
