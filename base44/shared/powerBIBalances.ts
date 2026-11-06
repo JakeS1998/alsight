@@ -7,12 +7,18 @@ export async function readPowerBIBalances(base44,user,state,input,scope){
  const token=await powerToken(base44);
  if(input.action==='balanceSummary'){
   const rows=await powerQuery(token,state.dataset_id,balanceSummaryDax(asOf,scope.codes));
-  const totals=['creditors','debtors'].map(kind=>{const groups=rows.filter(r=>r.Kind===kind),missing=groups.find(r=>r.Bucket==='Unknown balance')?.Invoices||0;return {kind,amount:missing?null:groups.reduce((n,r)=>n+(r.Amount||0),0),overdue:missing?null:groups.filter(r=>['1–30 days','31–60 days','61–90 days','90+ days'].includes(r.Bucket)).reduce((n,r)=>n+(r.Amount||0),0),missing,current_days:groups.reduce((n,r)=>n+(r.DatedInvoices||0),0)?groups.reduce((n,r)=>n+(r.DaysTotal||0),0)/groups.reduce((n,r)=>n+(r.DatedInvoices||0),0):null,historic_days:groups[0]?.HistoricDays??null};});
+  const totals=['creditors','debtors'].map(kind=>{
+   const coverage=rows.find(r=>r.Kind===kind&&r.Bucket==='Coverage'),groups=rows.filter(r=>r.Kind===kind&&r.Bucket!=='Coverage');
+   const missing=groups.find(r=>r.Bucket==='Unknown balance')?.Invoices||0,excluded=coverage?.Excluded||0,mapped=scope.codes===null||Boolean(scope.codes?.length),confirmed=mapped&&!missing&&!excluded;
+   const dated=groups.reduce((n,r)=>n+(r.DatedInvoices||0),0);
+   return {kind,amount:confirmed?groups.reduce((n,r)=>n+(r.Amount||0),0):null,overdue:confirmed?groups.filter(r=>['1–30 days','31–60 days','61–90 days','90+ days'].includes(r.Bucket)).reduce((n,r)=>n+(r.Amount||0),0):null,missing,excluded,mapped,recorded:coverage?.Recorded||0,outstanding_invoices:coverage?.Open||0,current_days:dated?groups.reduce((n,r)=>n+(r.DaysTotal||0),0)/dated:null,historic_days:coverage?.HistoricDays??null};
+  });
   return {rows,totals,as_of:asOf,read_at:new Date().toISOString(),scope:scope.restricted?'projects':'company'};
  }
- const kind=input.kind||'all',age=input.age||'all',search=String(input.search||'').trim();
+ const kind=input.kind||'all',age=input.age||'all',status=input.status||(input.projectId?'all':'outstanding'),search=String(input.search||'').trim();
+ if(!['all','paid','outstanding'].includes(status))throw new Error('Choose a valid invoice status.');
  if(!['all','creditors','debtors'].includes(kind)||!['all','overdue','Current','1–30 days','31–60 days','61–90 days','90+ days','No due date'].includes(age)||search.length>120)throw new Error('Invalid outstanding invoice filter.');
  if(input.after&&(!Number.isSafeInteger(input.after.key)||input.after.key<0||!Number.isInteger(input.after.days)||input.after.days< -1||input.after.days>100000))throw new Error('Invalid invoice page.');
- const rows=await powerQuery(token,state.dataset_id,balanceInvoiceDax(asOf,{kind,age,search,after:input.after},scope.codes)),items=rows.slice(0,50),last=items.at(-1);
+ const rows=await powerQuery(token,state.dataset_id,balanceInvoiceDax(asOf,{kind,age,status,search,after:input.after},scope.codes)),items=rows.slice(0,50),last=items.at(-1);
  return {items,has_more:rows.length>50,next:rows.length>50?{key:last.Key,days:last.Days}:null,as_of:asOf};
 }
