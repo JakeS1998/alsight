@@ -1,8 +1,10 @@
 import { jsPDF } from 'npm:jspdf@4.2.1';
+import aliceExcelFile, { parseAliceExcel } from './aliceExcelFile.ts';
 import { Document, Packer, Paragraph, TextRun, HeadingLevel } from 'npm:docx@9.5.1';
 
 export async function aliceDocumentFile(title, content, format) {
   const name = title.replace(/[^a-zA-Z0-9 _-]/g, '').trim().slice(0, 80) || 'ALICE document';
+  if (format === 'xlsx') return aliceExcelFile(name, parseAliceExcel(content));
   if (format === 'txt') return new File([`${title}\n\n${content}`], `${name}.txt`, { type: 'text/plain;charset=utf-8' });
   if (format === 'docx') {
     const children = [new Paragraph({ text: title, heading: HeadingLevel.TITLE }), ...content.split('\n').map(line => {
