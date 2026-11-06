@@ -1,4 +1,5 @@
 import {withProjectNumberLease} from './projectNumberLease.ts';
+import {reconcileLeasedProjectCounter} from './projectCounterReconciliation.ts';
 import {projectApprovalWriteContext,writeProjectApproval} from './projectApprovalDataverse.ts';
 export const projectRejectionReasons=['Duplicate','No Sharepoint Folder','No PCS','No PSO','Other (Comments Added)'];
 export async function decideProjectApproval(base44,user,input) {
@@ -25,6 +26,7 @@ export async function decideProjectApproval(base44,user,input) {
     request=await db.ProjectApproval.update(request.id,{assigned_number:number,assigned_project_number:formatted});
     await db.ProjectNumberCounter.update(counter.id,{pending_request_id:'',pending_number:0});
    }
+   if(request.response==='Approve')await reconcileLeasedProjectCounter(base44,user,await assertLease(),assertLease);
    const values={approval_status:request.response==='Approve' ? 'Approved' : 'Rejected',...(request.response==='Approve' ? {project_number:request.assigned_project_number} : {})};
    await assertLease();await writeProjectApproval(context,values);await assertLease();
    await db.Project.update(project.id,values);

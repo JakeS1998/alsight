@@ -17,10 +17,26 @@
               "begin": true
             }
           },
-          "then": "end",
+          "then": "reconcile_project_counter",
           "x-base44": {
             "title": "Check for Dataverse changes",
             "description": "Start or resume a protected sync pass"
+          }
+        }
+      },
+      {
+        "reconcile_project_counter": {
+          "call": "invoke_backend_function",
+          "with": {
+            "function_name": "syncProjectNumberCounter",
+            "args": {
+              "action": "sync"
+            }
+          },
+          "then": "end",
+          "x-base44": {
+            "title": "Synchronise project counters",
+            "description": "Reconcile Dataverse and Hub numbering every 15 minutes"
           }
         }
       }

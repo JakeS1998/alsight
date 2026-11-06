@@ -1,5 +1,6 @@
 import {projectCounter} from './projectApprovalIntake.ts';
 import {withProjectNumberLease} from './projectNumberLease.ts';
+import {reconcileLeasedProjectCounter} from './projectCounterReconciliation.ts';
 export async function projectNumberAdmin(base44,user,input) {
  if(user.role!=='admin')throw new Error('Administrator access required.');
  const db=base44.asServiceRole.entities;
@@ -10,10 +11,11 @@ export async function projectNumberAdmin(base44,user,input) {
  if(!Number.isSafeInteger(input.lastUsed) || input.lastUsed<0 || input.lastUsed>999999999 || !Number.isSafeInteger(input.expectedLastUsed) || typeof input.reason!=='string' || !input.reason.trim() || input.reason.length>1000)throw new Error('Enter a valid whole-number counter and a reason for the change.');
  return withProjectNumberLease(base44,async(row,assertLease)=>{
   if(row.last_used!==input.expectedLastUsed)throw new Error('The counter changed while you were editing. Reload it before saving.');
-  if(row.last_used===input.lastUsed)return {notice:'The counter is unchanged.'};
+  if(row.last_used===input.lastUsed){await reconcileLeasedProjectCounter(base44,user,row,assertLease);return {notice:'The counter is unchanged and has been checked against Dataverse.'};}
   await assertLease();
   await db.ProjectNumberChange.create({previous_number:row.last_used,last_used:input.lastUsed,reason:input.reason.trim(),changed_by_id:user.id,changed_by_name:user.full_name || user.email,changed_at:new Date().toISOString()});
   await db.ProjectNumberCounter.update(row.id,{last_used:input.lastUsed,changed_by:user.id,changed_at:new Date().toISOString()});
-  return {notice:'Counter updated. Existing project numbers are unchanged; duplicate numbers will be blocked.'};
+  await reconcileLeasedProjectCounter(base44,user,await assertLease(),assertLease);
+  return {notice:'Counter updated and synchronised with Dataverse. Existing project numbers are unchanged; duplicate numbers will be blocked.'};
  });
 }

@@ -3,10 +3,12 @@ import {withProjectNumberLease} from './projectNumberLease.ts';
 const select='bss_projectnumbercounterid,bss_name,bss_lastnumberused';
 const valid=value=>Number.isSafeInteger(value)&&value>=0&&value<=999999999;
 export async function reconcileProjectCounter(base44,user,preview=false) {
- // This operation alone may write the counter through the configured automation account;
- // other shared Dataverse data flows remain read-only.
- const {environment,token}=await sharedFlowContext(base44,await flowConfig(base44));
- return withProjectNumberLease(base44,async(counter,assertLease)=>{
+ return withProjectNumberLease(base44,(counter,assertLease)=>reconcileLeasedProjectCounter(base44,user,counter,assertLease,preview));
+}
+export async function reconcileLeasedProjectCounter(base44,user,counter,assertLease,preview=false) {
+  // Reuse the caller's numbering lock for immediate writes; never acquire it twice.
+  // Other shared Dataverse data flows remain read-only.
+  const {environment,token}=await sharedFlowContext(base44,await flowConfig(base44));
   const page=await flowRequest(environment,token,`bss_projectnumbercounters?$select=${select}&$top=2`);
   if(page['@odata.nextLink']||page.value?.length!==1)throw new Error('Exactly one Dataverse project-number counter is required. No counters were changed.');
   const remote=page.value[0],id=remote.bss_projectnumbercounterid;
@@ -32,5 +34,4 @@ export async function reconcileProjectCounter(base44,user,preview=false) {
   const saved=await db.ProjectNumberCounter.updateMany({id:counter.id,last_used:local,lease_token:fresh.lease_token,lease_until:{$gt:now}},{$set:{last_used:target,dataverse_synced_number:target,dataverse_counter_id:id,dataverse_counter_environment:environment,dataverse_checked_at:now,...(local!==target?{changed_by:'dataverse_counter_sync',changed_at:now}:{})}});
   if(!saved.updated)throw new Error('The project counter lock changed. Retry the check.');
   return {...result,ok:true,checkedAt:now};
- });
 }
