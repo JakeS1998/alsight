@@ -14,14 +14,17 @@ import aliceAccessKey from '@/components/alice/aliceAccessKey';
 import {useLocation} from 'react-router-dom';
 import FrameworkAliceChat from '@/components/framework/FrameworkAliceChat';
 import AliceWhatsAppButton from '@/components/alice/AliceWhatsAppButton';
+import AliceConversationHistory from '@/components/alice/AliceConversationHistory';
 import '@/components/alice/alice-workspace.css';
 const AGENT = 'alice';
-export default function AliceWidget() {
+export default function AliceWidget({ embedded = false, active = false, onActivate, onBack }) {
   const { user } = useAuth();
   const frameworkContext=useLocation().pathname.startsWith('/framework');
   const storageKey = aliceAccessKey(user);
   const { guide, start, cancel, next, back, confirm } = useAliceGuide(user);
-  const [open, setOpen] = useState(false);
+  const [localOpen, setLocalOpen] = useState(false);
+  const open = embedded ? active : localOpen;
+  const setOpen = value => { if (embedded) { if (value) onActivate(); else onBack(); } else setLocalOpen(value); };
 
   const [conversation, setConversation] = useState(null);
   const [messages, setMessages] = useState([]);
@@ -49,11 +52,11 @@ export default function AliceWidget() {
     const restore = async () => {
       setRestoring(true);
       try {
-        const saved = sessionStorage.getItem(storageKey);
+        const saved = localStorage.getItem(storageKey) || sessionStorage.getItem(storageKey);
         if (!saved) return;
         const existing = await base44.agents.getConversation(saved);
         if (alive) { setConversation(existing); setMessages(existing.messages || []); }
-      } catch { sessionStorage.removeItem(storageKey); }
+      } catch { localStorage.removeItem(storageKey); sessionStorage.removeItem(storageKey); }
       finally { if (alive) setRestoring(false); }
     };
     restore(); return () => { alive = false; };
@@ -86,9 +89,9 @@ export default function AliceWidget() {
     pendingAssistantCount.current = messages.filter(m => m.role === 'assistant' && m.content).length;
     setBusy(true); setError(''); setDraftMode(draft); setText('');
     try {
-      const chat = conversation || await base44.agents.createConversation({ agent_name: AGENT, metadata: { name: 'ALICE conversation' } });
+      const chat = conversation || await base44.agents.createConversation({ agent_name: AGENT, metadata: { name: value.trim().slice(0, 80) } });
       if (currentSession !== session.current) return;
-      if (!conversation) { setConversation(chat); sessionStorage.setItem(storageKey, chat.id); }
+      if (!conversation) { setConversation(chat); localStorage.setItem(storageKey, chat.id); }
       const activeContact = document.querySelector('[data-alice-contact-id]');
       const pageContext = activeContact ? `\nCurrent contact ID: ${activeContact.dataset.aliceContactId}\nCurrent contact name: ${activeContact.dataset.aliceContactName}` : '';
       const content = `${draft ? 'DRAFT FIELD' : 'QUESTION'} | Current page: ${window.location.pathname}${pageContext}\n${value.trim()}`;
@@ -100,6 +103,7 @@ export default function AliceWidget() {
   const endChat = () => {
     clearPendingLaunch();
     session.current += 1;
+    localStorage.removeItem(storageKey);
     sessionStorage.removeItem(storageKey);
     setConversation(null);
     setMessages([]);
@@ -110,6 +114,17 @@ export default function AliceWidget() {
     setDraftMode(false);
     pendingAssistantCount.current = 0;
     cancel();
+  };
+  const resumeChat = async id => {
+    if (id === conversation?.id) return true;
+    setRestoring(true); setError('');
+    try {
+      const chat = await base44.agents.getConversation(id);
+      if (!chat || chat.agent_name !== AGENT) throw new Error('This ALICE chat is unavailable.');
+      endChat(); setConversation(chat); setMessages(chat.messages || []); localStorage.setItem(storageKey, chat.id);
+      return true;
+    } catch (e) { setError(e.message || 'Unable to open this chat.'); return false; }
+    finally { setRestoring(false); }
   };
   const draft = () => {
     const el = field.current;
@@ -126,10 +141,11 @@ export default function AliceWidget() {
     el.dispatchEvent(new Event('change', { bubbles: true }));
     el.focus(); setDraftMode(false); setOpen(false);
   };
-  return <div data-alice-widget className="fixed bottom-4 right-4 z-50 sm:bottom-6 sm:right-6">
-    {open && <section role="dialog" aria-label="Chat with ALICE" className={`alice-chat mb-3 ${guide?.type === 'valuation' && guide.step > 0 ? 'alice-chat-expanded' : ''}`}>
-      <header className="alice-head"><AliceAvatar /><div className="alice-identity"><strong>ALICE</strong><p>Alliance Leisure Intelligence &amp; Construction Expert</p></div>{(conversation || messages.length > 0 || guide) && <button type="button" onClick={endChat} disabled={restoring || guide?.saving} className="disabled:opacity-50">End chat</button>}<button type="button" aria-label="Close ALICE" onClick={() => setOpen(false)} className="alice-close">×</button></header>
+  return <div data-alice-widget className={embedded ? (open ? 'flex min-h-0 flex-1 flex-col' : 'hidden') : 'fixed bottom-4 right-4 z-50 sm:bottom-6 sm:right-6'}>
+    {open && <section role="dialog" aria-label="Chat with ALICE" className={`alice-chat ${embedded ? 'alice-chat-embedded' : 'mb-3'} ${guide?.type === 'valuation' && guide.step > 0 ? 'alice-chat-expanded' : ''}`}>
+      <header className="alice-head"><AliceAvatar /><div className="alice-identity"><strong>ALICE</strong><p>Alliance Leisure Intelligence &amp; Construction Expert</p></div>{!frameworkContext && <button type="button" onClick={endChat} disabled={busy || restoring || guide?.saving} className="disabled:opacity-50">New chat</button>}{!embedded && <button type="button" aria-label="Close ALICE" onClick={() => setOpen(false)} className="alice-close">×</button>}</header>
       <AliceWhatsAppButton />
+      {!frameworkContext && <AliceConversationHistory userId={user?.id} conversationId={conversation?.id} disabled={busy || restoring || guide?.saving} onSelect={resumeChat}/>}
       {frameworkContext ? <FrameworkAliceChat/> : guide ? <AliceGuidedChat guide={guide} onNext={next} onBack={back} onConfirm={confirm} onCancel={cancel} /> : <>
         {!messages.length && !busy ? <AliceWelcome role={user?.role} disabled={restoring} onStart={start} /> : <>
           <button type="button" onClick={() => setShowTasks(v => !v)} aria-expanded={showTasks} className="alice-taskbar">{showTasks ? 'Hide tasks' : 'Start a task'}</button>
@@ -140,6 +156,6 @@ export default function AliceWidget() {
         <div className="alice-composer"><form onSubmit={e => { e.preventDefault(); send(text); }} className="flex gap-2"><AliceSuggestionInput aria-label="Message ALICE" value={text} onValueChange={setText} placement="top" suggestionsDisabled={busy || restoring} placeholder="Ask about a project, risk, opportunity…" className="min-w-0 flex-1 rounded-xl border border-input bg-background px-4 py-3 text-sm" /><button aria-label="Send message" type="submit" disabled={busy || restoring || !text.trim()} className="rounded-xl bg-assistant px-4 text-white disabled:opacity-50"><Send className="h-4 w-4" /></button></form><button type="button" onClick={draft} disabled={busy || restoring} className="mt-2 text-xs text-muted-foreground hover:text-foreground">Help fill selected text field</button></div>
       </>}
     </section>}
-    <button type="button" onClick={() => setOpen(v => !v)} aria-expanded={open} aria-label="Open ALICE assistant" className="ml-auto flex h-11 w-[6.5rem] items-center justify-center gap-2 rounded-full bg-als-navy px-4 py-3 text-sm font-semibold text-white shadow-lg"><MessageCircle className="h-5 w-5" /> ALICE</button>
+    {!embedded && <button type="button" onClick={() => setOpen(v => !v)} aria-expanded={open} aria-label="Open ALICE assistant" className="ml-auto flex h-11 w-[6.5rem] items-center justify-center gap-2 rounded-full bg-als-navy px-4 py-3 text-sm font-semibold text-white shadow-lg"><MessageCircle className="h-5 w-5" /> ALICE</button>}
   </div>;
 }

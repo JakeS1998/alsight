@@ -8,10 +8,7 @@ import PageLoadBoundary from '@/components/PageLoadBoundary';
 import KpiIllustrationProvider from '@/components/metrics/KpiIllustrationProvider';
 import PageFeedbackWidget from '@/components/feedback/PageFeedbackWidget';
 import DirectMessagesWidget from '@/components/messaging/DirectMessagesWidget';
-import { internalMessagingRoles } from '@/components/messaging/messageClient';
 import { useAuth } from '@/lib/AuthContext';
-import AliceWidget from '@/components/alice/AliceWidget';
-import aliceAccessKey from '@/components/alice/aliceAccessKey';
 import usePortalDataRefresh from '@/components/data/usePortalDataRefresh';
 import WellbeingProvider from '@/components/wellbeing/WellbeingProvider';
 import GlobalWellbeingNotifications from '@/components/wellbeing/GlobalWellbeingNotifications';
@@ -35,8 +32,7 @@ export default function PortalLayout() {
     <main className="portal-main w-full flex-1"><PageLoadBoundary route={pathname}><KpiIllustrationProvider key={pathname === '/commercial/po-tool' ? '/commercial' : pathname}><Suspense fallback={<PageLoadingSkeleton />}><PortalPageAccess><Outlet /></PortalPageAccess></Suspense></KpiIllustrationProvider></PageLoadBoundary></main>
     <PortalFooter />
     {user?.id && <PageFeedbackWidget key={user.id} user={user} route={pathname} />}
-    {user?.id && internalMessagingRoles.includes(user.role) && <DirectMessagesWidget key={user.id} user={user} />}
-    {user?.id && user.role !== 'framework_stakeholder' && <AliceWidget key={aliceAccessKey(user)} />}
+    {user?.id && user.role !== 'framework_stakeholder' && <DirectMessagesWidget key={user.id} user={user} />}
     {user?.id && <GlobalWellbeingNotifications user={user}/>}
   </div></WellbeingProvider>;
 }
