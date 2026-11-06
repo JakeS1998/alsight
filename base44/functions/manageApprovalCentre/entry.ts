@@ -6,6 +6,7 @@ import {receiveDocumentApproval} from '../../shared/documentApprovalIntake.ts';
 import {syncDocumentApprovalPage} from '../../shared/documentApprovalSync.ts';
 import {approvalRoutingAdmin} from '../../shared/approvalRoutingAdmin.ts';
 import {refreshApprovalRequesters} from '../../shared/approvalProjectRequester.ts';
+import {microsoftApprovalRead} from '../../shared/microsoftApprovalReads.ts';
 const address=value=>typeof value==='string' ? value.trim().toLowerCase() : '';
 const validId=value=>typeof value==='string' && /^[a-zA-Z0-9_-]{1,100}$/.test(value);
 export default async function(req: Request): Promise<Response> {
@@ -44,6 +45,7 @@ export default async function(req: Request): Promise<Response> {
   const enabled=(await grants.count({email,enabled:true}))>0;
   if(input.action==='access')return Response.json({enabled});
   if(!enabled)return Response.json({error:'Approval access has not been granted, or has been revoked.'},{status:403});
+  if(['microsoftList','microsoftDetail'].includes(input.action))return Response.json(await microsoftApprovalRead(base44,user,input));
   if(['respond','retry','detail','history'].includes(input.action) && !validId(input.requestId))return Response.json({error:'Choose an approval.'},{status:400});
   if(input.action==='summary')return Response.json(await approvalSummary(base44,user));
   if(input.action==='options')return Response.json(await approvalOptions(base44,user));
