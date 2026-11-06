@@ -2,11 +2,11 @@ import React from 'react';
 import { Image } from '@/components/ui/image';
 import ScrollPageHeader from '@/components/layout/ScrollPageHeader';
 
-export default function WorkspacePageHeader({ title, description, eyebrow, image, imageAlt, actions, imageFocalPointY, imageAspectRatio, minimizeOnScroll=false }) {
+export default function WorkspacePageHeader({ title, description, eyebrow, image, imageAlt, actions, imageFocalPointY, imageAspectRatio, imageMaxWidth, minimizeOnScroll=false }) {
   const fade = 'linear-gradient(90deg, transparent 0%, rgb(0 0 0 / .4) 18%, rgb(0 0 0) 42%)';
   return <ScrollPageHeader title={title} image={image} imageAlt={imageAlt} actions={actions} imageAspectRatio={imageAspectRatio} minimizeOnScroll={minimizeOnScroll}>
     <header className="relative isolate flex min-h-[240px] items-center overflow-hidden rounded-hero bg-als-navy text-sidebar-foreground">
-      <div className="absolute inset-y-0 right-0 -z-20 w-[70%]" style={imageAspectRatio ? { width: `min(70%, ${240 * imageAspectRatio}px)`, maskImage: 'linear-gradient(90deg, transparent 0%, black 20%)', WebkitMaskImage: 'linear-gradient(90deg, transparent 0%, black 20%)' } : { maskImage: fade, WebkitMaskImage: fade }}>
+      <div className="absolute inset-y-0 right-0 -z-20 w-[70%]" style={imageAspectRatio ? { width: `min(70%, ${imageMaxWidth || `${240 * imageAspectRatio}px`})`, maskImage: 'linear-gradient(90deg, transparent 0%, black 20%)', WebkitMaskImage: 'linear-gradient(90deg, transparent 0%, black 20%)' } : { maskImage: fade, WebkitMaskImage: fade }}>
         <Image src={image} alt={imageAlt} className="h-full w-full object-cover" loading="eager" focalPointX={imageFocalPointY === undefined ? undefined : 0.5} focalPointY={imageFocalPointY} style={imageFocalPointY === undefined ? undefined : { objectPosition: `center ${imageFocalPointY * 100}%` }} />
       </div>
       <div className="absolute inset-0 -z-10" style={{ background: 'linear-gradient(90deg, hsl(var(--als-navy)) 20%, hsl(var(--als-navy) / .9) 42%, hsl(var(--als-navy) / .35) 72%, hsl(var(--als-navy) / .15) 100%)' }} />
