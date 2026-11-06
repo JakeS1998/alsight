@@ -5,6 +5,10 @@
     "name": {
       "type": "string"
     },
+    "full_name": {
+      "type": "string",
+      "description": "Client full name from Dataverse bss_fullname; separate from the account name and Companies House registered name."
+    },
     "account_type": {
       "type": "string",
       "enum": [
