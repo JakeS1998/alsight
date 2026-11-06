@@ -213,7 +213,8 @@ export const REGION_MAP = {
 
 export function regionName(guid) {
   if (!guid) return null;
-  return REGION_MAP[guid] || guid;
+  const value = String(guid).trim().replace(/[{}]/g, '').toLowerCase();
+  return REGION_MAP[value] || (/^[0-9a-f]{8}-[0-9a-f-]{27}$/.test(value) ? 'Name unavailable' : guid);
 }
 
 export const REGION_OPTIONS = Object.entries(REGION_MAP).map(([value, label]) => ({ value, label }));

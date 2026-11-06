@@ -6,6 +6,7 @@ import {recordIds} from '../../shared/recordIds.ts';
 import {aseCurrentRatings} from '../../shared/aseCurrentRatings.ts';
 import {projectValueAggregate} from '../../shared/projectValueAggregate.ts';
 import {resolveSearchQuery} from '../../shared/searchFallback.ts';
+import accountRegionNames from '../../shared/accountRegionNames.ts';
 const signalCache = new Map();
 function cachedSignals(key,load) {
  const cached=signalCache.get(key);
@@ -95,7 +96,8 @@ export default async function(req: Request): Promise<Response> {
     const ownerRecordIds=recordIds(ownerIds);
     const owners = ownerIds.length ? await base44.entities.Contact.filter({ $or: [{ aad_id: { $in: ownerIds } }, { dataverse_id: { $in: ownerIds } }, ...(ownerRecordIds.length ? [{ id: { $in: ownerRecordIds } }] : [])] }, { limit: 100, fields: ['full_name','aad_id','dataverse_id'] }) : { items: [] };
     const displayRatings=internal ? await aseCurrentRatings(base44.entities,page.items.map(a=>a.id)) : [];
-    const items = page.items.map(rawAccount => {
+    const namedAccounts = internal ? await accountRegionNames(base44, page.items) : page.items;
+    const items = namedAccounts.map(rawAccount => {
       const {ase_score,ase_reason,ase_assessed_at,...safeAccount}=rawAccount;
       const account = internal ? {...safeAccount,_ase:displayRatings.find(r=>r.account_id===rawAccount.id) || null} : safeAccount;
       const keys = [account.id,account.dataverse_id].filter(Boolean);

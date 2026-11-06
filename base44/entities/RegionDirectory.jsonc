@@ -1,0 +1,110 @@
+{
+  "name": "RegionDirectory",
+  "type": "object",
+  "properties": {
+    "dataverse_id": {
+      "type": "string"
+    },
+    "name": {
+      "type": "string"
+    },
+    "source_name": {
+      "type": "string"
+    },
+    "director_id": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "director_name": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "active": {
+      "type": "boolean"
+    },
+    "source": {
+      "type": "string"
+    },
+    "synced_at": {
+      "type": "string",
+      "format": "date-time"
+    }
+  },
+  "required": [
+    "dataverse_id",
+    "name",
+    "active",
+    "source",
+    "synced_at"
+  ],
+  "rls": {
+    "read": {
+      "$or": [
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        },
+        {
+          "user_condition": {
+            "role": "director"
+          }
+        },
+        {
+          "user_condition": {
+            "role": "regional_director"
+          }
+        },
+        {
+          "user_condition": {
+            "role": "bsm"
+          }
+        },
+        {
+          "user_condition": {
+            "role": "bdm"
+          }
+        },
+        {
+          "user_condition": {
+            "role": "finance"
+          }
+        },
+        {
+          "user_condition": {
+            "role": "sam"
+          }
+        },
+        {
+          "user_condition": {
+            "role": "sam_director"
+          }
+        },
+        {
+          "user_condition": {
+            "role": "project_manager"
+          }
+        }
+      ]
+    },
+    "create": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "update": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "delete": {
+      "user_condition": {
+        "role": "admin"
+      }
+    }
+  }
+}

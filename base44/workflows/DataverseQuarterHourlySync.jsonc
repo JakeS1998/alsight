@@ -33,10 +33,24 @@
               "action": "sync"
             }
           },
-          "then": "end",
+          "then": "refresh_regions",
           "x-base44": {
             "title": "Synchronise project counters",
             "description": "Reconcile Dataverse and Hub numbering every 15 minutes"
+          }
+        }
+      },
+      {
+        "refresh_regions": {
+          "call": "invoke_backend_function",
+          "with": {
+            "function_name": "refreshRegionDirectory",
+            "args": {}
+          },
+          "then": "end",
+          "x-base44": {
+            "title": "Refresh region names and directors",
+            "description": "Read verified Dataverse heads of department"
           }
         }
       }

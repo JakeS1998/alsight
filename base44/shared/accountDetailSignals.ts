@@ -1,6 +1,7 @@
 import {recordIds} from './recordIds.ts';
 import {aseCurrentRatings} from './aseCurrentRatings.ts';
 import {projectValueAggregate} from './projectValueAggregate.ts';
+import accountRegionNames from './accountRegionNames.ts';
 export async function accountDetailSignals(base44,accountId,internal,visibleMoney,portfolioReports=null) {
  const rawAccount=await base44.entities.Account.get(accountId);
  if(!rawAccount)return {items:[],total:0,next_cursor:null,has_more:false};
@@ -25,7 +26,7 @@ export async function accountDetailSignals(base44,accountId,internal,visibleMone
   internal ? aseCurrentRatings(base44.entities,[rawAccount.id]) : []
  ]);
  const {ase_score,ase_reason,ase_assessed_at,...safeAccount}=rawAccount;
- const account=internal ? {...safeAccount,_ase:ratings[0] || null} : safeAccount;
+ const account=internal ? {...(await accountRegionNames(base44,[safeAccount]))[0],_ase:ratings[0] || null} : safeAccount;
  const latest=[activity.items[0]?.occurred_at,conversation.items[0]?.occurred_at].filter(Boolean).sort().at(-1) || null;
  const total=projects.rows[0];
  return {items:[{account,signals:{activeProjects:total?.count || 0,openOpportunities,...(visibleMoney ? {liveValue:total?.sum_estimated_value || 0} : {}),lastInteraction:latest,owner:owners.items[0]?.full_name || (rawAccount.account_manager_aad_id ? 'Assigned owner' : 'Not assigned')}}],total:1,next_cursor:null,has_more:false};
