@@ -41,6 +41,21 @@
     "changed_at": {
       "type": "string",
       "format": "date-time"
+    },
+    "dataverse_synced_number": {
+      "type": "integer",
+      "minimum": 0,
+      "maximum": 999999999
+    },
+    "dataverse_counter_id": {
+      "type": "string"
+    },
+    "dataverse_counter_environment": {
+      "type": "string"
+    },
+    "dataverse_checked_at": {
+      "type": "string",
+      "format": "date-time"
     }
   },
   "required": [

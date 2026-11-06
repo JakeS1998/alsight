@@ -1,0 +1,47 @@
+{
+  "trigger": {
+    "condition": null,
+    "config": {
+      "trigger_type": "scheduled",
+      "events": [],
+      "schedule_mode": "recurring",
+      "cron_expression": "0 6 * * *",
+      "one_time_date": null,
+      "timezone": "Europe/London",
+      "interval_value": null,
+      "interval_unit": null,
+      "interval_anchor": null,
+      "ends_type": "never",
+      "ends_on_date": null,
+      "ends_after_count": null
+    }
+  },
+  "description": "At 06:00 London time, reconcile the ALS Hub project counter with Dataverse bss_projectnumbercounter. Propagate single-sided changes; preserve the higher number if both sides changed.",
+  "name": "Daily project counter reconciliation",
+  "definition": {
+    "document": {
+      "dsl": "1.0.0",
+      "name": "daily_project_counter_reconciliation",
+      "version": "1.0",
+      "namespace": "base44"
+    },
+    "do": [
+      {
+        "reconcile_counter": {
+          "call": "invoke_backend_function",
+          "with": {
+            "function_name": "syncProjectNumberCounter",
+            "args": {
+              "action": "sync"
+            }
+          },
+          "then": "end",
+          "x-base44": {
+            "title": "Reconcile project counters",
+            "description": "Check both systems and synchronise changes"
+          }
+        }
+      }
+    ]
+  }
+}
