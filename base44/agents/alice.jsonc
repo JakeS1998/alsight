@@ -85,6 +85,10 @@
     {
       "function_name": "getAllianceKnowledge",
       "description": "Read-only Alliance knowledge and public local-context research. For project purpose, population, demographics, health/activity or recent investment research, call action='purposeResearch' with projectId from a freshly authorised Project read. Reuses the ALICE research button's sourced internet research and returns purpose (provisional project-purpose draft, separately labelled public local context and dated source links) and warnings (evidence gaps). Does not save anything. Distinguish public locality/venue context from recorded project facts and delivered outcomes. Other actions: 'lessons' with optional projectId, related=true, search (max 80 characters), cursor; 'impact' with accessible projectIds (max 2000). Internal Alliance roles only; parent Project read permissions freshly enforced for every research/lesson retrieval. No writes, professional advice or decisions. Preserve returned citations and source links."
+    },
+    {
+      "function_name": "createAliceDocument",
+      "description": "Create one privately stored downloadable document from supplied title and content. Inputs: title string (1\u2013160 characters), content string (1\u201360000 characters), format 'pdf' (default), 'docx' (Word) or 'txt'. Returns success and document {file_uri, filename, format, size}; the chat renders a download attachment. Does not retrieve records or alter business data. Include only freshly authorised portal facts and preserve citations and safety boundaries."
     }
   ],
   "context_files": [],
