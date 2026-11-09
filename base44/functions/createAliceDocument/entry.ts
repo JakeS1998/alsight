@@ -12,7 +12,7 @@ export default async function(req) {
     if (typeof title !== 'string' || !title.trim() || title.length > 160 || typeof content !== 'string' || !content.trim() || content.length > 60000 || !['pdf', 'docx', 'txt', 'xlsx'].includes(format)) {
       return Response.json({ error: 'Provide title (1–160 characters), content (1–60000 characters), and format pdf, docx, txt or xlsx.' }, { status: 400 });
     }
-    if (format === 'xlsx' && !parseAliceExcel(content)) return Response.json({ error: 'For xlsx, content must be a JSON string containing headers (1–50 unique non-empty strings), rows (up to 1000 arrays matching the headers, with string/number/boolean/null cells), and optional valid Excel sheetName (up to 31 characters).' }, { status: 400 });
+    if (format === 'xlsx' && !parseAliceExcel(content)) return Response.json({ error: 'For xlsx, content must be a JSON string containing headers (1–50 unique non-empty strings), rows (up to 1000 arrays matching the headers, with string/number/boolean/null cells), and optional valid Excel sheetName (up to 31 characters). Optional summary/scope strings (max 4000 each), notes/sources arrays (max 30 strings, max 2000 characters each), and columnFormats matching headers (text, number, integer, gbp, percent, date) must also be valid.' }, { status: 400 });
     const file = await aliceDocumentFile(title.trim(), content, format);
     const { file_uri } = await base44.asServiceRole.integrations.Core.UploadPrivateFile({ file });
     return Response.json({ success: true, document: { file_uri, filename: file.name, format, size: file.size }, message: 'Document created. It is attached to this tool result for download in the chat.' });
