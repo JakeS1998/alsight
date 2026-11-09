@@ -13,6 +13,7 @@ import listVisiblePortalUsers from '@/components/data/portalUserDirectory';
 import { formatCurrency, formatDate, regionName } from "@/lib/portal";
 import { RequestDialog } from "@/components/projects/RequestDialog";
 import useProjectPage from '@/components/projects/useProjectPage';
+import useProjectDirectoryStaff from '@/components/projects/useProjectDirectoryStaff';
 import FrameworkVersionBadge from '@/components/projects/FrameworkVersionBadge';
 import ProjectViewControls from '@/components/projects/ProjectViewControls';
 import WorkspacePageHeader from '@/components/layout/WorkspacePageHeader';
@@ -121,12 +122,14 @@ export default function Projects() {
     return map;
   }, [accounts]);
 
-  const staffMap = useMemo(() => {
+  const fallbackStaffMap = useMemo(() => {
     const map = {};
-    contacts.forEach((c) => { map[c.id]=c.full_name; if (c.aad_id) map[c.aad_id] = c.full_name; });
-    users.forEach((u) => { if (!map[u.id]) map[u.id] = u.full_name || u.email; });
+    contacts.forEach((c) => { [c.id,c.aad_id,c.dataverse_id].filter(Boolean).forEach(id => { map[id] = c.full_name; }); });
+    users.forEach((u) => { [u.id,u.staff_aad_id,u.dataverse_systemuser_id].filter(Boolean).forEach(id => { if (!map[id]) map[id] = u.full_name || u.email; }); });
     return map;
   }, [contacts, users]);
+  const directoryStaff = useProjectDirectoryStaff(user, projects, projectPage.options, fallbackStaffMap);
+  const staffMap = directoryStaff.names;
 
   const bdmOptions = useMemo(() => {
     const ids = serverPaging ? projectPage.options?.bdm || [] : [...new Set(projects.map((p) => p.bdm_aad_id).filter(Boolean))];
@@ -224,6 +227,7 @@ export default function Projects() {
       )}
 
       {!serverPaging && (loading || projects.length === 0) && <div className="flex justify-end"><ProjectViewControls view={view} onViewChange={setView} density={density} onDensityChange={setDensity} /></div>}
+      {directoryStaff.error && <p role="alert" className="text-sm text-muted-foreground">Some assigned staff names could not be loaded. <button type="button" className="underline" onClick={() => directoryStaff.retry()}>Retry names</button></p>}
       {view !== 'map' && projectPage.error && <p role="alert" className="rounded-lg border border-destructive p-3 text-sm text-destructive">Unable to load projects. <button type="button" className="underline" onClick={() => setRefreshKey(k => k + 1)}>Try again</button></p>}
       {view === 'workspace' ? <ProjectsOperationalWorkspace user={user} projects={filtered} accountMap={accountMap} staffMap={staffMap} loading={loading} meeting={meeting} total={serverPaging ? projectPage.counts?.matching : filtered.length} filterKey={JSON.stringify([searchTerm,sortBy,bdmFilter,bsmFilter,regionFilter,statusFilter,extraFilters])} mapProps={{user,query:projectPage.mapQuery,sort:projectPage.mapSort,ready:projectPage.mapReady,scopeError:projectPage.scopeError,retryScope:projectPage.retryScope,serverPaging,refreshKey,portfolio:filtered,externalLoading:metadataLoading}} paging={serverPaging && (previousCursors.length || projectPage.next) ? {previousDisabled:!previousCursors.length || loading,nextDisabled:!projectPage.next || loading,previous:()=>{setCursor(previousCursors.at(-1));setPreviousCursors(v=>v.slice(0,-1));},next:()=>{setPreviousCursors(v=>[...v,cursor]);setCursor(projectPage.next);}} : null}/> : view === 'map' ? (
         <React.Suspense fallback={<div role="status" className="flex min-h-[400px] items-center justify-center text-sm text-muted-foreground">Loading map…</div>}>

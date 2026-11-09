@@ -2,13 +2,19 @@ import { createClientFromRequest } from 'npm:@base44/sdk@0.8.52';
 import { bdmRequestDefaults } from '../../shared/bdmRequestDefaults.ts';
 import { resolveStaffReportingLine } from '../../shared/staffReportingIdentity.ts';
 import { projectAssignedStaff } from '../../shared/projectAssignedStaff.ts';
+import projectStaffDirectory from '../../shared/projectStaffDirectory.ts';
 
 export default async function(req: Request): Promise<Response> {
   try {
     const base44 = createClientFromRequest(req);
     const user = await base44.auth.me();
     if (!user || !await base44.auth.isAuthenticated()) return Response.json({ error: 'Sign in required' }, { status: 401 });
-    const payload = await req.json();
+    const payload = await req.json().catch(() => ({}));
+    if (payload.action === 'staff_directory') {
+      if (user.role === 'supplier') return Response.json({ error: 'Staff names not available' }, { status: 403 });
+      if (!Array.isArray(payload.staffIds) || payload.staffIds.length > 100 || !payload.staffIds.every(id => typeof id === 'string' && /^[a-zA-Z0-9_-]{1,64}$/.test(id))) return Response.json({ error: 'Provide up to 100 staff identities' }, { status: 400 });
+      return Response.json(await projectStaffDirectory(base44, [...new Set(payload.staffIds)]));
+    }
     if (payload.action === 'request_defaults') {
       if (!['admin', 'director', 'bdm'].includes(user.role)) return Response.json({ error: 'Project request access required' }, { status: 403 });
       if (typeof payload.bdmId !== 'string' || !/^[a-zA-Z0-9_-]{1,64}$/.test(payload.bdmId)) return Response.json({ error: 'Invalid BDM' }, { status: 400 });
