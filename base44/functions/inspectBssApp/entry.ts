@@ -15,7 +15,17 @@ export default async function(req) {
     if (environment !== 'https://alslive.crm11.dynamics.com') return Response.json({ error: 'The connected environment does not match the BSS Hub app.' }, { status: 409 });
     const app = await flowRequest(environment, token, 'appmodules(e986c390-c4b0-f011-bbd3-6045bd0e7eeb)?$select=appmoduleid,appmoduleidunique,name,uniquename,description');
     const components = await flowRequest(environment, token, `appmodulecomponents?$select=componenttype,objectid&$filter=_appmoduleidunique_value eq ${app.appmoduleidunique}&$top=200`);
-    return Response.json({ app, components: components.value, has_more: Boolean(components['@odata.nextLink']), permission_scope: 'Read-only app inspection using Jake’s confirmed shared Dataverse connection, explicitly authorised by the builder; not a user login and not runtime permission delegation.' });
+    const resolved = [];
+    for (let offset = 0; offset < components.value.length; offset += 5) {
+      const batch = await Promise.all(components.value.slice(offset, offset + 5).map(async component => {
+        const paths = { 1: `EntityDefinitions(${component.objectid})?$select=LogicalName,EntitySetName,PrimaryNameAttribute,DisplayName`, 26: `savedqueries(${component.objectid})?$select=name,returnedtypecode,fetchxml,layoutxml`, 60: `systemforms(${component.objectid})?$select=name,objecttypecode,formxml`, 62: `sitemaps(${component.objectid})?$select=sitemapxml` };
+        if (!paths[component.componenttype]) return component;
+        const detail = await flowRequest(environment, token, paths[component.componenttype]).catch(error => ({ error: error.message }));
+        return { ...component, detail };
+      }));
+      resolved.push(...batch);
+    }
+    return Response.json({ app, components: resolved, has_more: Boolean(components['@odata.nextLink']), permission_scope: 'Read-only app inspection using Jake’s confirmed shared Dataverse connection, explicitly authorised by the builder; not a user login and not runtime permission delegation.' });
   } catch (error) {
     return Response.json({ error: error.message }, { status: error.status && error.status >= 400 && error.status < 500 ? error.status : 502 });
   }
