@@ -58,7 +58,7 @@ export default function PortalHeader() {
   });
   return <><header ref={headerRef} className={`sticky top-0 z-40 shadow-sm ${isContingency ? 'portal-contingency-header' : 'bg-als-navy text-white'}`}>
     <div className="portal-topbar">
-      <Link to={portalHomePath(user)} aria-label={isContingency ? 'ALS Hub home, Contingency area' : 'ALS Hub home'} onClick={() => setMenuOpen(false)} className="portal-logo"><Logo variant={isContingency ? 'full' : 'header'} className="portal-logo-image" />{isContingency && <span className="portal-contingency-wordmark">CONTINGENCY</span>}</Link>
+      <Link to={portalHomePath(user)} aria-label={isContingency ? 'ALS Hub home, Contingency area' : 'ALS Hub home'} onClick={() => setMenuOpen(false)} className="portal-logo"><Logo variant={isContingency ? 'contingency' : 'header'} className="portal-logo-image" />{isContingency && <span className="portal-contingency-wordmark">CONTINGENCY</span>}</Link>
       <OverflowNavigation>{nav()}</OverflowNavigation>
       <div className="portal-utilities">
         <PortalSearch />

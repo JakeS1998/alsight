@@ -3,14 +3,15 @@ import { Image } from "@/components/ui/image";
 
 const FULL_LOGO = "https://media.base44.com/images/public/6ab62433a194f918c54c8249/eaab54791_ALSHub.png";
 const COMPACT_LOGO = FULL_LOGO;
+const CONTINGENCY_LOGO = "https://base44.app/api/apps/6ab62433a194f918c54c8249/files/mp/public/6ab62433a194f918c54c8249/8ae50e39b_als-continuum-logo.png";
 const HEADER_LOGO = "https://media.base44.com/images/public/6ab62433a194f918c54c8249/eff97c3bd_ALSHubWhite.png";
 
 export default function Logo({ variant = "full", className = "h-20 w-64" }) {
   return (
     <Image
-      src={variant === "header" ? HEADER_LOGO : variant === "compact" ? COMPACT_LOGO : FULL_LOGO}
+      src={variant === "contingency" ? CONTINGENCY_LOGO : variant === "header" ? HEADER_LOGO : variant === "compact" ? COMPACT_LOGO : FULL_LOGO}
       fittingType="fit"
-      alt="ALS Hub"
+      alt={variant === "contingency" ? "ALS Continuum, Alliance Leisure Services" : "ALS Hub"}
       className={`object-contain ${className}`}
     />
   );
