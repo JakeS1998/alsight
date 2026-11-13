@@ -28,7 +28,7 @@ async function discoverFolders(b,u){return lease(b,async c=>{
   try{const folder=await resolveFolder(b,link,graph,host,project.project_number);
    await E.CODataset.create({...folder,kind:'sharepoint',label:`${project.name} — Legal folder`.slice(0,120),scope_ids:[],enabled:true,version:1,interval_minutes:c.policy?.rpo_minutes||60,retention_days:c.policy?.retention_days||365,state:{},mapping:{auto_project_legals:true,project_id:project.id,project_name:project.name,folder_url:link,approved_by:policy.approved_by,approved_at:policy.approved_at}});
    for(const d of sources)if(d.enabled)changes.push({id:d.id,enabled:false});added++;
-  }catch(e){for(const d of sources)if(d.enabled)changes.push({id:d.id,enabled:false});errors.push({project_id:project.id,project_name:project.name,error:safeError(e)});}
+  }catch(e){for(const d of sources)if(d.enabled)changes.push({id:d.id,enabled:false});errors.push({project_id:project.id,project_name:project.name,project_number:project.project_number||'',folder_url:link,failed_at:at,error:safeError(e)});}
  }));}
  if(changes.length)await E.CODataset.bulkUpdate(changes);
  const complete=!page.has_more,report=[...(policy.cursor?policy.errors||[]:[]),...errors].slice(-100);

@@ -22,7 +22,8 @@ export async function addSource(b,u,c,input){
   values={...source,kind:'dataverse',scope_ids:scope,label:String(input.label||input.table_key||input.logical_name).slice(0,120),mapping:{...source.mapping,...(estate?{estate_approval:{by:u.id,at:now()}}:{})}};
  }else if(input.kind==='sharepoint'){
   if(typeof input.folder_url!=='string'||!input.folder_url||input.folder_url.length>1500)fail('Enter the approved source folder link.');
-  values={...await resolveFolder(b,input.folder_url),kind:'sharepoint',scope_ids:[],label:String(input.label||'Approved SharePoint folder').slice(0,120)};
+  const folder=await resolveFolder(b,input.folder_url);
+  values={...folder,kind:'sharepoint',scope_ids:[],label:String(input.label||'Approved SharePoint folder').slice(0,120),mapping:{...folder.mapping,folder_url:input.folder_url}};
  }else fail('Choose Dataverse or SharePoint.');
  const source=await E.CODataset.create({...values,enabled:true,version:1,interval_minutes:interval,retention_days:c.policy?.retention_days||365,state:{}});
  await E.COConfig.update(c.id,{acceptance:{}});

@@ -1,0 +1,7 @@
+import React from 'react';
+export default function COSharePointFailureRows({items}){
+ return <div className="mt-3 overflow-x-auto"><table className="w-full text-left text-sm"><thead><tr className="border-b"><th className="p-3">Project / source</th><th className="p-3">SharePoint link</th><th className="p-3">Failure</th></tr></thead><tbody>{items.map(item=>{
+  let url='';try{const parsed=new URL(item.url);if(parsed.protocol==='https:'&&parsed.hostname.endsWith('.sharepoint.com'))url=parsed.href;}catch{}
+  return <tr key={item.id} className="border-b align-top"><td className="p-3"><strong>{item.project||item.source}</strong>{item.project_number&&<p className="mt-1 text-xs">{item.project_number}</p>}<p className="mt-1 text-xs text-muted-foreground">{item.stage}</p></td><td className="p-3"><p className="max-w-lg break-all">{url?<a href={url} target="_blank" rel="noopener noreferrer" className="underline">{item.url}</a>:item.url||'Link not recorded'}</p><p className="mt-1 text-xs text-muted-foreground">{item.link_basis}</p></td><td className="p-3"><p className="text-destructive">{item.error}</p>{item.failed_at&&<p className="mt-1 text-xs text-muted-foreground">{new Date(item.failed_at).toLocaleString('en-GB')}</p>}</td></tr>;
+ })}</tbody></table></div>;
+}
