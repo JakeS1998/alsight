@@ -1,0 +1,42 @@
+{
+  "name": "DMA concentration fallback on signing",
+  "description": "When a DMA becomes signed, queue its existing Schedule 5 concentration check only if its project has no current non-lost fee proposal. Recheck proposal availability before document extraction.",
+  "trigger": {
+    "config": {
+      "trigger_type": "entity",
+      "entity_name": "DMA",
+      "events": [
+        "create",
+        "update"
+      ]
+    },
+    "condition": "${ .trigger.data.executed == \"yes\" and (.trigger.old_data.executed // \"no\") != \"yes\" }"
+  },
+  "definition": {
+    "document": {
+      "dsl": "1.0.0",
+      "name": "dma_on_signing_concentration",
+      "version": "1.0",
+      "namespace": "base44"
+    },
+    "do": [
+      {
+        "queue_missing_proposal_check": {
+          "call": "invoke_backend_function",
+          "with": {
+            "function_name": "manageDMAConcentration",
+            "args": {
+              "action": "enqueueSigned",
+              "dmaId": "${ .trigger.entity_id }"
+            }
+          },
+          "then": "end",
+          "x-base44": {
+            "title": "Check fee proposal and queue signed DMA",
+            "description": "Skip existing proposals and duplicate queued checks"
+          }
+        }
+      }
+    ]
+  }
+}

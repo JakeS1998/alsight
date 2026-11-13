@@ -15,7 +15,12 @@ export async function dmaCheckStep(base44,user,input){
    const dma=await base44.entities.DMA.get(job.dma_id);if(dma.executed!=='yes')throw new Error('DMA is no longer marked executed.');
    const page=await base44.entities.Project.filter({$or:[{id:dma.project_id},{dataverse_id:dma.project_id}]},{limit:2});
    if(page.items.length!==1)throw new Error('DMA project is missing or ambiguous.');
-   const project=page.items[0],extraction=await extractProjectDMAFees(base44,user,project.id,dma.id);
+   const project=page.items[0],refs=[project.id,project.dataverse_id].filter(Boolean);
+   if(await db.FeeProposal.count({project_id:{$in:refs},is_current:true,status:{$ne:'lost'}})){
+    await db.DMACheckJob.update(job.id,{status:'completed',token:'',note:'Skipped DMA fallback because a current fee proposal is populated.'});
+    await kickDMACheck(base44);return {skipped:true,reason:'Current fee proposal populated.'};
+   }
+   const extraction=await extractProjectDMAFees(base44,user,project.id,dma.id);
    if(extraction.status==='processing')throw new Error('Another extraction is already processing this document; review before retrying.');
    if(extraction.status!=='ready')throw new Error(extraction.note || 'No usable Schedule 5 fee rows found.');
    const evidence=await readVigoDMAEvidence(base44,null,false,project.id);
