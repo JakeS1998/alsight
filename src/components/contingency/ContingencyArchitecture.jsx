@@ -1,0 +1,11 @@
+import React from 'react';
+import {ArrowDown,ArrowUp} from 'lucide-react';
+import {architecture} from '@/components/contingency/feasibilityData';
+export default function ContingencyArchitecture(){
+ const box=index=><div className="rounded-panel border border-contingency/30 bg-card p-4 text-center"><strong className="text-sm">{architecture[index][0]}</strong><p className="mt-1 text-sm">{architecture[index][1]}</p><p className="mt-1 text-xs text-muted-foreground">{architecture[index][2]}</p></div>;
+ return <section className="cc-panel"><h2>Base44-only architecture</h2><p className="mb-5 text-sm text-muted-foreground">Proposed architecture, not deployed. Employee access runs top-down; source replication feeds verified copies from below. Scheduled jobs invoke server functions, never the employee interface.</p><figure className="mx-auto max-w-3xl" aria-label="Employee access and scheduled Microsoft replication converge on Base44 records and private files">
+ {box(0)}<ArrowDown className="mx-auto my-2 h-5 w-5 text-contingency"/>{box(1)}<ArrowDown className="mx-auto my-2 h-5 w-5 text-contingency"/>{box(4)}<ArrowDown className="mx-auto my-2 h-5 w-5 text-contingency"/>
+ <div className="grid gap-3 sm:grid-cols-2">{box(2)}{box(3)}</div>
+ <ArrowUp className="mx-auto my-2 h-5 w-5 text-contingency"/><p className="mb-2 text-center text-xs text-muted-foreground">Verified incremental copies via authenticated backend functions</p>{box(5)}<ArrowUp className="mx-auto my-2 h-5 w-5 text-contingency"/>{box(6)}
+ <figcaption className="mt-3 text-center text-xs text-muted-foreground">Microsoft sources are needed for fresh synchronisation and recovery, not for access to complete pre-existing Base44 copies.</figcaption></figure><div className="mt-5 rounded-panel border border-destructive/30 bg-destructive/5 p-4 text-sm"><strong>Shared failure boundary:</strong> interface, password authentication, records, functions and private file delivery depend on Base44 availability. This is Microsoft-outage continuity, not Base44-outage independence.</div></section>;
+}

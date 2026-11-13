@@ -1,0 +1,4 @@
+import React from 'react';
+import ContingencyStatus from '@/components/contingency/ContingencyStatus';
+const tone={Confirmed:'Complete',Conditional:'Review due','Requires test':'Pending','Requires remediation':'Manual review','Requires implementation':'Pending','Blocker on current plan':'Failed','Confirmed connection':'Verified','Not supported Base44-only':'Unavailable'};
+export default function FeasibilityMatrix({rows}){return <section className="cc-panel"><h2>Technical feasibility findings</h2><div className="mt-4 overflow-x-auto"><table className="cc-table"><thead><tr><th>Area</th><th>Assessment</th><th>Finding</th><th>Limitation / risk</th></tr></thead><tbody>{rows.map(row=><tr key={row.area}><td className="font-semibold">{row.area}</td><td><ContingencyStatus value={tone[row.status]}/><p className="mt-1 text-xs">{row.status}</p></td><td className="min-w-64">{row.finding}</td><td className="min-w-64">{row.risk}</td></tr>)}</tbody></table></div></section>;}

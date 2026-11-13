@@ -1,0 +1,2 @@
+import React from 'react';
+export default function AssessmentTable({title,intro,headers=['Capability','Assessment'],rows}){return <section className="cc-panel"><h2>{title}</h2>{intro&&<p className="mt-2 text-sm text-muted-foreground">{intro}</p>}<div className="mt-4 overflow-x-auto"><table className="cc-table"><thead><tr>{headers.map(h=><th key={h}>{h}</th>)}</tr></thead><tbody>{rows.map((row,index)=><tr key={`${row[0]}-${index}`}>{row.map((value,i)=><td key={i} className={i===0?'font-semibold':''}>{value}</td>)}</tr>)}</tbody></table></div></section>;}
