@@ -1,0 +1,79 @@
+{
+  "name": "COFileException",
+  "type": "object",
+  "properties": {
+    "dataset_id": {
+      "type": "string"
+    },
+    "source_id": {
+      "type": "string"
+    },
+    "filename": {
+      "type": "string",
+      "maxLength": 500
+    },
+    "project_name": {
+      "type": "string"
+    },
+    "source_label": {
+      "type": "string"
+    },
+    "file_size": {
+      "type": "integer",
+      "minimum": 0
+    },
+    "limit_bytes": {
+      "type": "integer"
+    },
+    "web_url": {
+      "type": "string"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "open",
+        "resolved"
+      ],
+      "enumColors": [
+        "red",
+        "green"
+      ]
+    },
+    "first_detected": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "last_detected": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "resolved_at": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "dataset_id",
+    "source_id",
+    "filename",
+    "file_size",
+    "status"
+  ],
+  "rls": {
+    "read": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "create": {
+      "user_condition": {
+        "collaborator_role": "editor"
+      }
+    },
+    "update": {
+      "user_condition": {
+        "collaborator_role": "editor"
+      }
+    },
+    "delete": false
+  }
+}

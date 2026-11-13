@@ -1,0 +1,7 @@
+import React from 'react';
+export default function COFileExceptionRows({items}){
+ return <div className="overflow-x-auto"><table className="w-full text-left text-sm"><thead><tr className="border-b"><th className="p-3">File</th><th className="p-3">Project / source</th><th className="p-3">Size</th><th className="p-3">First flagged</th><th className="p-3">Source</th></tr></thead><tbody>{items.map(item=>{
+ let link='';try{const u=new URL(item.web_url);if(u.protocol==='https:'&&u.hostname.endsWith('.sharepoint.com'))link=u.href;}catch{}
+ return <tr key={item.id} className="border-b align-top"><td className="p-3"><span className="font-semibold break-words">{item.filename}</span><p className="mt-1 text-xs text-destructive">Too large to copy</p></td><td className="p-3">{item.project_name||item.source_label}</td><td className="p-3 whitespace-nowrap">{(item.file_size/(1024*1024)).toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2})} MB</td><td className="p-3 whitespace-nowrap">{item.first_detected?new Date(item.first_detected).toLocaleString('en-GB'):'—'}</td><td className="p-3">{link?<a href={link} target="_blank" rel="noopener noreferrer" className="underline" title="Requires Microsoft access">Open SharePoint</a>:'Unavailable'}</td></tr>;
+ })}</tbody></table></div>;
+}
