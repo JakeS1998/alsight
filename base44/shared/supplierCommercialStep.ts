@@ -3,6 +3,7 @@ import {commercialTurnover} from './aseCommercialTurnover.ts';
 import {collectASESource} from './aseCollectSource.ts';
 import {accountModel} from './asePolicy.ts';
 import {kickSupplierCommercialCheck} from './supplierCommercialQueue.ts';
+import {supplierAppointmentStep} from './supplierAppointmentStep.ts';
 export async function supplierCommercialStep(base44,user,input){
  const db=base44.asServiceRole.entities,job=await db.SupplierCommercialCheck.get(input.jobId);
  if(job.status!=='queued'||!job.token||job.token!==input.token)return {skipped:true};
@@ -24,9 +25,10 @@ export async function supplierCommercialStep(base44,user,input){
      }
     }
    }
-   await db.SupplierCommercialCheck.update(job.id,{status:'queued',stage:'calculate',token:crypto.randomUUID(),note});
+   await db.SupplierCommercialCheck.update(job.id,{status:'queued',stage:'appointments',token:crypto.randomUUID(),note});
    return {continuing:true};
   }
+  if(job.stage==='appointments'||!job.appointments_checked)return await supplierAppointmentStep(base44,user,job,account);
   const data=await commercialInsight(base44,account);
   await db.SupplierCommercialCheck.update(job.id,{status:'completed',token:'',checked_at:data.checked_at,concentration_status:data.status,percentage:data.percentage??null,contract_value:data.total_contract_value??null,comparison_basis:data.comparison_basis || '',comparison_value:data.comparison_denominator?.value??null,included_count:data.included_count || 0,excluded_count:data.excluded_count || 0,note:[job.note,data.reason].filter(Boolean).join(' ').slice(0,2000)});
  }catch(error){await db.SupplierCommercialCheck.update(job.id,{status:'blocked',token:'',note:String(error.message).replace(/https:\/\/\S+/g,'[source link]').slice(0,2000)});}

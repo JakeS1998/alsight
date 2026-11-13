@@ -1,0 +1,90 @@
+{
+  "name": "AppointmentFeeExtraction",
+  "type": "object",
+  "properties": {
+    "appointment_id": {
+      "type": "string"
+    },
+    "account_id": {
+      "type": "string"
+    },
+    "project_id": {
+      "type": "string"
+    },
+    "document_type": {
+      "type": "string"
+    },
+    "appointment_link": {
+      "type": "string"
+    },
+    "source_id": {
+      "type": "string"
+    },
+    "source_etag": {
+      "type": "string"
+    },
+    "source_url": {
+      "type": "string"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "ready",
+        "unusable",
+        "error"
+      ],
+      "enumColors": [
+        "green",
+        "gray",
+        "red"
+      ]
+    },
+    "amount": {
+      "type": [
+        "number",
+        "null"
+      ]
+    },
+    "page": {
+      "type": "integer"
+    },
+    "quote": {
+      "type": "string",
+      "maxLength": 1000
+    },
+    "note": {
+      "type": "string",
+      "maxLength": 2000
+    },
+    "extracted_at": {
+      "type": "string",
+      "format": "date-time"
+    }
+  },
+  "required": [
+    "appointment_id",
+    "status"
+  ],
+  "rls": {
+    "read": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "create": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "update": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "delete": {
+      "user_condition": {
+        "role": "admin"
+      }
+    }
+  }
+}

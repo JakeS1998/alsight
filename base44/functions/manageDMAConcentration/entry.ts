@@ -4,6 +4,7 @@ import {dmaCheckStep} from '../../shared/dmaCheckStep.ts';
 import {enqueueSignedDMACheck} from '../../shared/dmaSignedCheck.ts';
 import {startSupplierCommercialChecks} from '../../shared/supplierCommercialQueue.ts';
 import {supplierCommercialStep} from '../../shared/supplierCommercialStep.ts';
+import {extractAppointmentFee} from '../../shared/appointmentFeeExtraction.ts';
 export default async function(req:Request):Promise<Response>{
  try {
   const base44=createClientFromRequest(req),user=await base44.auth.me().catch(e=>e.status===401?null:Promise.reject(e));
@@ -13,6 +14,12 @@ export default async function(req:Request):Promise<Response>{
   if(input.action==='enqueueSigned'){
    if(typeof input.dmaId!=='string'||!/^[a-zA-Z0-9_-]{1,64}$/.test(input.dmaId))return Response.json({error:'Valid signed DMA identifier required.'},{status:400});
    return Response.json(await enqueueSignedDMACheck(base44,input.dmaId));
+  }
+  if(input.action==='appointmentFee'){
+   if(typeof input.appointmentId!=='string'||!/^[a-zA-Z0-9_-]{1,64}$/.test(input.appointmentId))return Response.json({error:'Valid executed appointment required.'},{status:400});
+   const document=await base44.entities.LegalDocument.get(input.appointmentId),accounts=await base44.entities.Account.filter({$or:[{id:document.account_id},{dataverse_id:document.account_id}]},{limit:2});
+   if(accounts.items.length!==1)return Response.json({error:'Appointment supplier is missing or ambiguous.'},{status:400});
+   return Response.json(await extractAppointmentFee(base44,user,document,accounts.items[0]));
   }
   if(input.action==='supplierStart')return Response.json(await startSupplierCommercialChecks(base44));
   if(input.action==='supplierStatus')return Response.json(await base44.asServiceRole.entities.SupplierCommercialCheck.aggregate({query:{},groupBy:['status','concentration_status'],limit:20}));

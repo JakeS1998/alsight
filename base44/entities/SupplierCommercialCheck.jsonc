@@ -27,8 +27,16 @@
       "type": "string",
       "enum": [
         "accounts",
+        "appointments",
         "calculate"
       ]
+    },
+    "appointment_cursor": {
+      "type": "string"
+    },
+    "appointments_checked": {
+      "type": "boolean",
+      "default": false
     },
     "token": {
       "type": "string"

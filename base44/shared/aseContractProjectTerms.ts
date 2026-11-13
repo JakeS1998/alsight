@@ -2,6 +2,7 @@ import {pathwayContractorFee} from './asePathwayFee.ts';
 import {pathwayAppointmentFee} from './asePathwayAppointmentFee.ts';
 import {dmaTermsForContract,readVigoDMAEvidence} from './vigoDMAAttribution.ts';
 import {scopedReadCache} from './scopedReadCache.ts';
+import {appointmentFeeTerms} from './appointmentFeeTerms.ts';
 export async function contractProjectTerms(base44,contracts,account,dmaEvidence=null) {
   const refs=[...new Set(contracts.map(row=>row.project_id).filter(Boolean))];
   if(!refs.length) return contracts;
@@ -25,6 +26,7 @@ export async function contractProjectTerms(base44,contracts,account,dmaEvidence=
        evidences.set(id,evidence);
      }));
    }
+   const appointmentFees=account ? await appointmentFeeTerms(base44,contracts,account,projects) : new Map();
    return contracts.map(contract=>{
     const matches=projects.filter(row=>row.id===contract.project_id || row.dataverse_id===contract.project_id);
     if(matches.length!==1) return contract;
@@ -33,6 +35,6 @@ export async function contractProjectTerms(base44,contracts,account,dmaEvidence=
     const pathway=account && terms.length===1 && current.length===1 ? (contract.document_type ? pathwayAppointmentFee(terms[0],current[0],account,contract.document_type) : pathwayContractorFee(terms[0],current[0],account)) : null;
     const evidence=evidences.get(project.id) || (dmaEvidence?.project_id===project.id ? dmaEvidence : null);
     const dma=current.length===0 ? dmaTermsForContract(evidence,contract) : null;
-    return {...contract,project_name:project.name,project_record_id:project.id,pathway_terms:pathway,dma_terms:dma,...(terms.length===1 ? {recorded_terms:{value:terms[0].contract_sum,start:terms[0].contract_start,end:terms[0].forecast_pc || terms[0].original_pc,programme_record_id:terms[0].id,date_source:terms[0].forecast_pc ? 'Project delivery: contract start to forecast practical completion' : 'Project delivery: contract start to original practical completion',source:'Recorded project contract sum requires company-specific value review; programme dates may be used as an explicitly labelled proxy when contract dates are unknown.'}} : {})};
+    return {...contract,project_name:project.name,project_record_id:project.id,pathway_terms:pathway,dma_terms:dma,appointment_terms:appointmentFees.get(`${contract.project_id}:${contract.document_type}:${contract.document_id}`),...(terms.length===1 ? {recorded_terms:{value:terms[0].contract_sum,start:terms[0].contract_start,end:terms[0].forecast_pc || terms[0].original_pc,programme_record_id:terms[0].id,date_source:terms[0].forecast_pc ? 'Project delivery: contract start to forecast practical completion' : 'Project delivery: contract start to original practical completion',source:'Recorded project contract sum requires company-specific value review; programme dates may be used as an explicitly labelled proxy when contract dates are unknown.'}} : {})};
   });
 }
