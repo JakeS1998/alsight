@@ -1,6 +1,7 @@
 import React, { useId, useState } from 'react';
 import { projectStage } from '@/components/dashboard/pipelineStage';
 import { projectCompletionDates } from '@/components/projects/projectCompletionDates';
+import projectBuildStartDate from '@/components/projects/projectBuildStartDate';
 import { formatDate } from '@/lib/portal';
 
 const LABELS = {
@@ -8,7 +9,7 @@ const LABELS = {
   'RIBA 4': 'Technical Design', 'RIBA 5–7': 'Build',
 };
 
-export default function ProjectHeroPosition({ project }) {
+export default function ProjectHeroPosition({ project, dmas = [] }) {
   const [hovered, setHovered] = useState(false);
   const [pinned, setPinned] = useState(false);
   const detailsId = useId();
@@ -17,7 +18,7 @@ export default function ProjectHeroPosition({ project }) {
   const number = stage ? Number(stage.match(/\d/)[0]) : 5;
   const expected = projectCompletionDates(project)[`riba${number}_system_date`];
   const actual = number === 5 ? project.practical_completion_date : project[`riba${number}_end`];
-  const start = number === 1 ? project.aa_executed_date : project[`riba${number - 1}_end`];
+  const start = number === 5 ? projectBuildStartDate(project, dmas) : number === 1 ? project.aa_executed_date : project[`riba${number - 1}_end`];
   const term = number === 5 ? project.construction_term_weeks : project[`riba${number}_term_weeks`];
   const dates = [
     ['Stage started', start],

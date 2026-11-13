@@ -11,7 +11,7 @@ import ProjectHeroPosition from '@/components/projects/ProjectHeroPosition';
 import ProjectRecordContext from '@/components/projects/ProjectRecordContext';
 import ProjectTeamsShare from '@/components/teams/ProjectTeamsShare';
 
-export default function ProjectWorkspaceHeader({ project, user, isSupplier, client }) {
+export default function ProjectWorkspaceHeader({ project, user, isSupplier, client, dmas = [] }) {
   const photo = useProjectHeroPhoto(project, user);
   return <>
     <div className="ws-topline"><Link to="/projects" className="ws-back"><ArrowLeft size={18} /> Back to Projects</Link>{['admin', 'director', 'regional_director', 'bsm', 'bdm', 'finance'].includes(user?.role) && <ProjectTeamsShare project={project} />}</div>
@@ -31,7 +31,7 @@ export default function ProjectWorkspaceHeader({ project, user, isSupplier, clie
         {!isSupplier && project.description && <p className="ws-description">{project.description}</p>}
         {INTERNAL_ROLES.includes(user?.role) && <SourceOpportunityLink projectId={project.id} />}
         </div></div>
-        <ProjectHeroPosition project={project} />
+        <ProjectHeroPosition project={project} dmas={dmas} />
       </div>
     </header>
   </>;

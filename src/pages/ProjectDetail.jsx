@@ -111,7 +111,7 @@ export default function ProjectDetail({ embedded = false, embeddedProjectId, sup
     <Tabs className={embedded ? 'project-workspace meeting-project-workspace' : 'project-workspace'} orientation="horizontal" value={activeTab} onValueChange={tab => { setActiveTab(tab); setEditUKLFKpis(false); }}>
       <main className="ws-main">
         <Header className="ws-sticky-header">
-          {!embedded && <ProjectWorkspaceHeader project={project} user={user} isSupplier={isSupplier} client={accountMap[project.client_account_id]} />}
+          {!embedded && <ProjectWorkspaceHeader project={project} user={user} isSupplier={isSupplier} client={accountMap[project.client_account_id]} dmas={dmas} />}
           <ProjectWorkspaceNav user={user} project={project} isSupplier={isSupplier} isExternalPM={isExternalPM} canSeeValuations={canSeeValuations}>{extraNavigation}</ProjectWorkspaceNav>
         </Header>
         <TabsContent value="general" className="ws-content space-y-6">
