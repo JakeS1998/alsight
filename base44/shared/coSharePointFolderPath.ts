@@ -1,5 +1,6 @@
 import {fail} from './coCore.ts';
-export async function resolveSharePointFolderPath(graph,url){
+import {resolveProjectFolderAlias} from './coProjectFolderAlias.ts';
+export async function resolveSharePointFolderPath(graph,url,projectNumber=''){
  const path=decodeURIComponent(url.searchParams.get('id')||url.searchParams.get('RootFolder')||url.pathname).replace(/^\/:[a-z]+:\/r\//i,'/');
  const match=path.match(/^\/(sites|teams)\/([^/]+)(\/.*)?$/i);
  if(!match||/\/Forms\/[^/]+\.aspx$/i.test(path))fail('This sharing link cannot be resolved. Save the folder’s direct SharePoint path or check access.');
@@ -13,7 +14,7 @@ export async function resolveSharePointFolderPath(graph,url){
  }
  if(!drive)fail('The project folder’s document library is not accessible to the connected SharePoint account.');
  const relative=path.slice(base.length).replace(/^\//,'');
- const folder=await graph(`/v1.0/drives/${encodeURIComponent(drive.id)}/root${relative?':/'+relative.split('/').map(encodeURIComponent).join('/'):''}`);
+ const folder=await graph(`/v1.0/drives/${encodeURIComponent(drive.id)}/root${relative?':/'+relative.split('/').map(encodeURIComponent).join('/'):''}`).catch(error=>error.status===404&&projectNumber?resolveProjectFolderAlias(graph,drive.id,relative,projectNumber):Promise.reject(error));
  if(!folder.folder)fail('The project link points to a file, not a folder.');
  return{...folder,parentReference:{...folder.parentReference,driveId:drive.id}};
 }

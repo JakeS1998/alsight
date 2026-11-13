@@ -23,14 +23,14 @@ async function discoverFolders(b,u){return lease(b,async c=>{
   const current=sources.find(d=>d.mapping.folder_url===link);
   if(!link){for(const d of sources)if(d.enabled)changes.push({id:d.id,enabled:false});return;}
   if(current){for(const d of sources)if(d.id!==current.id&&d.enabled)changes.push({id:d.id,enabled:false});return;}
-  try{const folder=await resolveFolder(b,link,graph,host);
+  try{const folder=await resolveFolder(b,link,graph,host,project.project_number);
    await E.CODataset.create({...folder,kind:'sharepoint',label:`${project.name} — Legal folder`.slice(0,120),scope_ids:[],enabled:true,version:1,interval_minutes:c.policy?.rpo_minutes||60,retention_days:c.policy?.retention_days||365,state:{},mapping:{auto_project_legals:true,project_id:project.id,project_name:project.name,folder_url:link,approved_by:policy.approved_by,approved_at:policy.approved_at}});
    for(const d of sources)if(d.enabled)changes.push({id:d.id,enabled:false});added++;
   }catch(e){for(const d of sources)if(d.enabled)changes.push({id:d.id,enabled:false});errors.push({project_id:project.id,project_name:project.name,error:safeError(e)});}
  }));}
  if(changes.length)await E.CODataset.bulkUpdate(changes);
  const complete=!page.has_more,report=[...(policy.cursor?policy.errors||[]:[]),...errors].slice(-100);
- await E.COConfig.update(c.id,{policy:{...c.policy,project_legals:{...policy,cursor:page.next_cursor||'',last_scan:complete?at:policy.last_scan,scan_in_progress:!complete,errors:report,discovered_at:at}}});
+ await E.COConfig.update(c.id,{...(added?{acceptance:{},owner_approvals:[]}:{}),policy:{...c.policy,project_legals:{...policy,cursor:page.next_cursor||'',last_scan:complete?at:policy.last_scan,scan_in_progress:!complete,errors:report,discovered_at:at}}});
  await audit(b,u,'Project legal-folder discovery batch',{projects_checked:page.items.length,added,failed:errors.length,complete});
  return{added,failed:errors.length,scan_in_progress:!complete};
  });}
