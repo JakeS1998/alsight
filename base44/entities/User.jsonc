@@ -32,9 +32,9 @@
       "maxItems": 2,
       "description": "Additional administrator-assigned operational roles. Does not replace the access role or independently grant data permissions.",
       "rls": {
-        "write": {
+        "update": {
           "user_condition": {
-            "role": "admin"
+            "collaborator_role": "editor"
           }
         }
       }
@@ -85,44 +85,114 @@
     },
     "account_id": {
       "type": "string",
-      "description": "Dataverse GUID of account this user belongs to"
+      "description": "Dataverse GUID of account this user belongs to",
+      "rls": {
+        "update": {
+          "user_condition": {
+            "collaborator_role": "editor"
+          }
+        }
+      }
     },
     "company_number": {
       "type": "string",
-      "description": "Company number of linked supplier account for supplier purchase orders"
+      "description": "Company number of linked supplier account for supplier purchase orders",
+      "rls": {
+        "update": {
+          "user_condition": {
+            "collaborator_role": "editor"
+          }
+        }
+      }
     },
     "contact_dataverse_id": {
       "type": "string",
-      "description": "Dataverse contact GUID for external project manager access"
+      "description": "Dataverse contact GUID for external project manager access",
+      "rls": {
+        "update": {
+          "user_condition": {
+            "collaborator_role": "editor"
+          }
+        }
+      }
     },
     "region": {
       "type": "string",
-      "description": "Region GUID for regional director scoping"
+      "description": "Region GUID for regional director scoping",
+      "rls": {
+        "update": {
+          "user_condition": {
+            "collaborator_role": "editor"
+          }
+        }
+      }
     },
     "delegate_of": {
       "type": "string",
-      "description": "User id covered via delegation"
+      "description": "User id covered via delegation",
+      "rls": {
+        "update": {
+          "user_condition": {
+            "collaborator_role": "editor"
+          }
+        }
+      }
     },
     "delegate_of_name": {
-      "type": "string"
+      "type": "string",
+      "rls": {
+        "update": {
+          "user_condition": {
+            "collaborator_role": "editor"
+          }
+        }
+      }
     },
     "delegate_region": {
-      "type": "string"
+      "type": "string",
+      "rls": {
+        "update": {
+          "user_condition": {
+            "collaborator_role": "editor"
+          }
+        }
+      }
     },
     "staff_aad_id": {
       "type": "string",
-      "description": "Original staff AAD identifier used by project assignments"
+      "description": "Original staff AAD identifier used by project assignments",
+      "rls": {
+        "update": {
+          "user_condition": {
+            "collaborator_role": "editor"
+          }
+        }
+      }
     },
     "dataverse_systemuser_id": {
       "type": "string",
-      "description": "Reviewed Dataverse systemuser link; does not create a login or grant roles"
+      "description": "Reviewed Dataverse systemuser link; does not create a login or grant roles",
+      "rls": {
+        "update": {
+          "user_condition": {
+            "collaborator_role": "editor"
+          }
+        }
+      }
     },
     "phone": {
       "type": "string"
     },
     "line_manager_id": {
       "type": "string",
-      "description": "Direct line manager's portal user ID; assigned by an administrator for pipeline visibility"
+      "description": "Direct line manager's portal user ID; assigned by an administrator for pipeline visibility",
+      "rls": {
+        "update": {
+          "user_condition": {
+            "collaborator_role": "editor"
+          }
+        }
+      }
     },
     "profile_picture_uri": {
       "type": "string",

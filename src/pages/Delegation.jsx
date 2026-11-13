@@ -54,11 +54,8 @@ export default function Delegation() {
     setSaving(true);
     setError("");
     try {
-      await base44.auth.updateMe({
-        delegate_of: selected.aad_id,
-        delegate_of_name: selected.full_name,
-        delegate_region: isRDTarget ? regionPick : null,
-      });
+      const response=await base44.functions.invoke('managePortalDelegation',{action:'start',contactId:selected.id,region:isRDTarget?regionPick:null});
+      if(response.data?.error)throw new Error(response.data.error);
       await checkUserAuth();
       setSelected(null);
       setRegionPick("");
@@ -73,7 +70,8 @@ export default function Delegation() {
     setSaving(true);
     setError("");
     try {
-      await base44.auth.updateMe({ delegate_of: null, delegate_of_name: null, delegate_region: null });
+      const response=await base44.functions.invoke('managePortalDelegation',{action:'end'});
+      if(response.data?.error)throw new Error(response.data.error);
       await checkUserAuth();
     } catch (e) {
       setError(e.message || "Could not update delegation.");

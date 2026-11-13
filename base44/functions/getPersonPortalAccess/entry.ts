@@ -1,5 +1,6 @@
 import {createClientFromRequest} from 'npm:@base44/sdk@0.8.52';
 import {contingencyDesignation,setContingencyDesignation} from '../../shared/portalContingencyAdmin.ts';
+import {assignPortalIdentity} from '../../shared/portalIdentityAssignment.ts';
 
 export default async function(req) {
   let stage = 'administrator check';
@@ -8,12 +9,14 @@ export default async function(req) {
     const administrator = await client.auth.me().catch(error=>error.status===401?null:Promise.reject(error));
     if(!administrator)return Response.json({error:'Sign in to manage portal access.'},{status:401});
     if (administrator.role !== 'admin') return Response.json({error:'Only administrators can manage portal access.'},{status:403});
-    const {contactId,action='read',pageAccess,contingencyAdmin} = await req.json().catch(()=>({}));
-    if(!['read','savePageAccess','saveContingencyAdmin'].includes(action))return Response.json({error:'Unknown portal access operation.'},{status:400});
+    const input=await req.json().catch(()=>({}));
+    const {contactId,action='read',pageAccess,contingencyAdmin}=input;
+    if(!['read','savePageAccess','saveContingencyAdmin','saveRoleAccess'].includes(action))return Response.json({error:'Unknown portal access operation.'},{status:400});
     if (typeof contactId !== 'string' || !contactId || contactId.length > 100) return Response.json({error:'Invalid person selected.'},{status:400});
     stage = 'person lookup';
     const contact = await client.entities.Contact.get(contactId).catch(error=>error.status===404?null:Promise.reject(error));
     if(!contact)return Response.json({error:'Person not found.'},{status:404});
+    if(action==='saveRoleAccess'){await assignPortalIdentity(client,administrator,contact,input);return Response.json({ok:true});}
     stage = 'portal identity lookup';
     // Cross-user identity reads require service scope, after the administrator check above.
     const users = contact.email ? await client.asServiceRole.entities.User.filter({email:contact.email.trim().toLowerCase()},'-created_date',1) : [];

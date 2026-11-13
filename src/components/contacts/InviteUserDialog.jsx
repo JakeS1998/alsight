@@ -88,16 +88,8 @@ export function InviteUserDialog({ open, onOpenChange, contact, accounts, existi
         ? await base44.entities.StaffReportingLine.filter({ contact_id: contact.id }, { limit: 1 }).then(page => page.items[0])
         : null;
       if (existingUser) {
-        await base44.entities.User.update(existingUser.id, {
-          role,
-          duty_roles: dutyRoles.filter(value=>value!==role),
-          staff_aad_id: staffLine?.staff_aad_id || existingUser?.staff_aad_id || null,
-          ...(existingUser.role !== role ? { delegate_of: null, delegate_of_name: null, delegate_region: null } : {}),
-          account_id: linkedAccountId,
-          company_number: companyNumber,
-          region: role === "regional_director" ? (region || null) : null,
-          contact_dataverse_id: role === "project_manager" ? (contact.dataverse_id || null) : null,
-        });
+        const saved=await base44.functions.invoke('getPersonPortalAccess',{action:'saveRoleAccess',contactId:contact.id,userId:existingUser.id,email:address,role,dutyRoles,accountId:linkedAccountId,region});
+        if(saved.data?.error)throw new Error(saved.data.error);
         await updateContact(existingUser.id, address);
       } else {
         const matching = await filterAll(base44.entities.PendingPortalAccess, { email: address });
@@ -127,14 +119,8 @@ export function InviteUserDialog({ open, onOpenChange, contact, accounts, existi
         const fresh = await filterAll(base44.entities.User, { email: address }).catch(() => []);
         const created = fresh.find((u) => (u.email || "").toLowerCase() === address);
         if (created) {
-          await base44.entities.User.update(created.id, {
-            role,
-            duty_roles: dutyRoles.filter(value=>value!==role),
-            staff_aad_id: staffLine?.staff_aad_id || null,
-            account_id: linkedAccountId,
-            region: role === "regional_director" ? (region || null) : null,
-          contact_dataverse_id: role === "project_manager" ? (contact.dataverse_id || null) : null,
-          });
+          const saved=await base44.functions.invoke('getPersonPortalAccess',{action:'saveRoleAccess',contactId:contact.id,userId:created.id,email:address,role,dutyRoles,accountId:linkedAccountId,region});
+          if(saved.data?.error)throw new Error(saved.data.error);
           await updateContact(created.id, address);
           await base44.entities.PendingPortalAccess.delete(staged.id);
         } else if (!contact.email) {
