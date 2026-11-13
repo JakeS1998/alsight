@@ -15,10 +15,11 @@ import { aseRoles } from '@/components/ase/aseClient';
 import ASECommercialConcentration from '@/components/ase/ASECommercialConcentration';
 export default function AccountOverview({ account, contacts, projects, signals, user, summaryLoading, summaryError, onSummaryRetry, onAccountEnriched }) {
   const showCompaniesHouse = hasCompanyRegistry(account) && aseRoles.includes(user?.role);
+  const showConcentration = aseRoles.includes(user?.role) && (hasCompanyRegistry(account) || [account.account_type,...(account.relationship_types || [])].some(type=>['supplier','consultant','contractor'].includes(type)));
   return <div className="account-overview-grid">
     <div className="account-main-column">
       {INTERNAL_ROLES.includes(user?.role) && <section className="account-panel account-assessment-panel" aria-label="Compass assessment"><ASERating account={account} expanded /></section>}
-      {showCompaniesHouse && <div className="account-commercial-row"><ASECommercialConcentration key={account.id} account={account} card/></div>}
+      {showConcentration && <div className="account-commercial-row"><ASECommercialConcentration key={account.id} account={account} card/></div>}
     </div>
     <div className="account-summary-column">
       <AccountRelationshipSummary account={account} signals={signals} loading={summaryLoading} error={summaryError} onRetry={onSummaryRetry} />

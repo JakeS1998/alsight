@@ -1,0 +1,118 @@
+{
+  "name": "SupplierCommercialCheck",
+  "type": "object",
+  "properties": {
+    "account_id": {
+      "type": "string"
+    },
+    "account_name": {
+      "type": "string"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "queued",
+        "processing",
+        "completed",
+        "blocked"
+      ],
+      "enumColors": [
+        "yellow",
+        "blue",
+        "green",
+        "red"
+      ]
+    },
+    "stage": {
+      "type": "string",
+      "enum": [
+        "accounts",
+        "calculate"
+      ]
+    },
+    "token": {
+      "type": "string"
+    },
+    "checked_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "claimed_at": {
+      "type": "string"
+    },
+    "concentration_status": {
+      "type": "string",
+      "enum": [
+        "available",
+        "incomplete",
+        "unavailable",
+        "not_applicable"
+      ],
+      "enumColors": [
+        "green",
+        "yellow",
+        "red",
+        "gray"
+      ]
+    },
+    "percentage": {
+      "type": [
+        "number",
+        "null"
+      ]
+    },
+    "contract_value": {
+      "type": [
+        "number",
+        "null"
+      ]
+    },
+    "comparison_basis": {
+      "type": "string"
+    },
+    "comparison_value": {
+      "type": [
+        "number",
+        "null"
+      ]
+    },
+    "included_count": {
+      "type": "integer"
+    },
+    "excluded_count": {
+      "type": "integer"
+    },
+    "note": {
+      "type": "string",
+      "maxLength": 2000
+    }
+  },
+  "required": [
+    "account_id",
+    "status",
+    "stage",
+    "token"
+  ],
+  "rls": {
+    "read": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "create": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "update": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "delete": {
+      "user_condition": {
+        "role": "admin"
+      }
+    }
+  }
+}

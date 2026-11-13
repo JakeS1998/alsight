@@ -1,0 +1,53 @@
+{
+  "name": "Supplier commercial concentration refresh",
+  "description": "Sequentially refresh missing filed turnover or balance-sheet evidence and calculate concentration for every queued supplier, preserving unavailable outcomes and existing published ratings.",
+  "trigger": {
+    "config": {
+      "trigger_type": "entity",
+      "entity_name": "SupplierCommercialCheck",
+      "events": [
+        "create",
+        "update"
+      ]
+    },
+    "condition": "${ .trigger.data.status == \"queued\" and (.trigger.data.token // \"\") != \"\" and .trigger.data.token != .trigger.old_data.token }"
+  },
+  "definition": {
+    "document": {
+      "dsl": "1.0.0",
+      "name": "supplier_commercial_concentration",
+      "version": "1.0",
+      "namespace": "base44"
+    },
+    "do": [
+      {
+        "pace_supplier": {
+          "wait": "PT15S",
+          "then": "refresh_supplier",
+          "x-base44": {
+            "title": "Pace supplier checks",
+            "description": "One supplier source or calculation at a time"
+          }
+        }
+      },
+      {
+        "refresh_supplier": {
+          "call": "invoke_backend_function",
+          "with": {
+            "function_name": "manageDMAConcentration",
+            "args": {
+              "action": "supplierStep",
+              "jobId": "${ .trigger.entity_id }",
+              "token": "${ .trigger.data.token }"
+            }
+          },
+          "then": "end",
+          "x-base44": {
+            "title": "Populate supplier concentration inputs",
+            "description": "Filed financial evidence and signed fee comparison"
+          }
+        }
+      }
+    ]
+  }
+}
