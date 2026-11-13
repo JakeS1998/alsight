@@ -8,7 +8,15 @@ export async function appointmentSignedSource(reads,document,project){
    let item=await reads.resolve(link);
    if(item.file&&/\.pdf$/i.test(item.name)&&/\/Legals Signed\//i.test(pathOf(item))&&pathOf(item).split('/').slice(0,-1).some(part=>role.test(part)))return reads.graph(`/drives/${item.parentReference.driveId}/items/${item.id}`);
    let signed=null;
-   for(let depth=0;depth<8;depth++){
+   if(item.folder){
+    const folders=[item];
+    for(let index=0;index<folders.length&&index<12;index++){
+     const folder=folders[index];if(/^Legals Signed$/i.test(folder.name)){signed=folder;break;}
+     const children=await reads.children(folder);
+     folders.push(...children.filter(c=>c.folder&&/project administration|^(?:\d+[. ]*)?legals(?: signed)?$/i.test(c.name)));
+    }
+   }
+   for(let depth=0;!signed&&depth<8;depth++){
     if(item.folder&&/^Legals Signed$/i.test(item.name)){signed=item;break;}
     if(item.folder){const children=await reads.children(item);const matches=children.filter(c=>c.folder&&/^Legals Signed$/i.test(c.name));if(matches.length===1){signed=matches[0];break;}}
     if(!item.parentReference?.id)break;
