@@ -3,7 +3,7 @@ import {Button} from '@/components/ui/button';
 export default function COStandbyPolicy({data,run,busy}){
  const[mode,setMode]=useState(data.config.mode),[enabled,setEnabled]=useState(data.config.enabled),[rpo,setRpo]=useState(data.config.policy?.rpo_minutes||60),[rto,setRto]=useState(data.config.policy?.rto_minutes||120),[retention,setRetention]=useState(data.config.policy?.retention_days||365);
  useEffect(()=>{setMode(data.config.mode);setEnabled(data.config.enabled);},[data.config.mode,data.config.enabled]);
- return <section className="cc-panel"><h2>24/7 standby and replication policy</h2>
+ return <section className="cc-panel"><h2>Nightly standby and replication policy</h2>
  <p className="mt-2 text-sm text-muted-foreground">Approved sources sync nightly at 02:00 UK time. After the first full copy, only new files, new folders and changed files are added; unchanged file copies are retained, without opening access to employees. Two-person approval is for incident activation, not for running standby.</p>
  <Button className="my-4" disabled={busy} onClick={()=>run('verify')}>Verify Microsoft sources</Button>
  <div className="mb-4 grid gap-3 md:grid-cols-2">{['dataverse','sharepoint'].map(k=><div className="rounded-panel border p-3" key={k}><strong>{k}</strong><p className="mt-1 text-sm">{data.config.health?.[k]?.ok?'Read check passed':data.config.health?.[k]?.error||'Not checked'}</p></div>)}</div>
