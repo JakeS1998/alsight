@@ -1,0 +1,3 @@
+import React from 'react';
+const green=['Healthy','Current','Executed','Complete','Successful','Approved','Verified'],red=['Unavailable','Failed','Rejected'],amber=['Degraded','Review due','Pending','Manual review','Awaiting'];
+export default function ContingencyStatus({value}){const cls=green.includes(value)?'bg-success/10 text-success':red.includes(value)?'bg-destructive/10 text-destructive':amber.includes(value)?'bg-risk-moderate/15 text-foreground':'bg-contingency/15 text-contingency-dark';return <span className={`inline-flex items-center gap-1.5 whitespace-nowrap rounded-md px-2 py-1 text-xs font-semibold ${cls}`}><span className="h-1.5 w-1.5 rounded-full bg-current"/>{value}</span>;}

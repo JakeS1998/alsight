@@ -1,0 +1,5 @@
+import React from 'react';
+import {replication,stamp} from '@/components/contingency/demoData';
+import {useContingency} from '@/components/contingency/ContingencyContext';
+import ContingencyStatus from '@/components/contingency/ContingencyStatus';
+export default function ContingencyReplication(){const {state}=useContingency();return <section className="cc-panel" id="replication"><h2>Data Replication</h2><p className="mb-3 text-xs text-muted-foreground">Illustrative full-estate counts, not actual replicated records. Browseable sample: 12 projects, 96 documents, 16 people.</p><div className="overflow-x-auto"><table className="cc-table"><thead><tr><th>Dataset</th><th>Last sync</th><th>Status</th><th>Demo estate count</th></tr></thead><tbody>{replication.map(([name,count])=><tr key={name}><td>{name}</td><td>{stamp(state.lastSync)}</td><td><ContingencyStatus value="Complete"/></td><td>{count.toLocaleString('en-GB')}</td></tr>)}</tbody></table></div></section>;}

@@ -1,0 +1,20 @@
+import React from 'react';
+import {Routes,Route} from 'react-router-dom';
+import {useAuth} from '@/lib/AuthContext';
+import AccessDenied from '@/pages/AccessDenied';
+import PageNotFound from '@/lib/PageNotFound';
+import ContingencyContext from '@/components/contingency/ContingencyContext';
+import ContingencyShell from '@/components/contingency/ContingencyShell';
+import ContingencyDashboard from '@/components/contingency/ContingencyDashboard';
+import ContingencyActivation from '@/components/contingency/ContingencyActivation';
+import ContingencyProjects from '@/components/contingency/ContingencyProjects';
+import ContingencyProjectDetail from '@/components/contingency/ContingencyProjectDetail';
+import ContingencyDocuments from '@/components/contingency/ContingencyDocuments';
+import ContingencyReports from '@/components/contingency/ContingencyReports';
+import ContingencyPacks from '@/components/contingency/ContingencyPacks';
+import ContingencyPeople from '@/components/contingency/ContingencyPeople';
+import ContingencyUpdates from '@/components/contingency/ContingencyUpdates';
+import ContingencyRecovery from '@/components/contingency/ContingencyRecovery';
+import ContingencyAudit from '@/components/contingency/ContingencyAudit';
+import '@/components/contingency/contingency.css';
+export default function Contingency(){const {user}=useAuth();if(user?.role!=='admin')return <AccessDenied/>;return <ContingencyContext><Routes><Route element={<ContingencyShell/>}><Route index element={<ContingencyDashboard/>}/><Route path="environment" element={<ContingencyDashboard employeeView/>}/><Route path="activation" element={<ContingencyActivation/>}/><Route path="projects" element={<ContingencyProjects/>}/><Route path="projects/:id" element={<ContingencyProjectDetail/>}/><Route path="documents" element={<ContingencyDocuments/>}/><Route path="reports" element={<ContingencyReports/>}/><Route path="packs" element={<ContingencyPacks/>}/><Route path="people" element={<ContingencyPeople/>}/><Route path="updates" element={<ContingencyUpdates/>}/><Route path="recovery" element={<ContingencyRecovery/>}/><Route path="audit" element={<ContingencyAudit/>}/><Route path="*" element={<PageNotFound/>}/></Route></Routes></ContingencyContext>;}

@@ -33,6 +33,7 @@ export const PORTAL_PAGES=[
 ];
 export function canViewWorkspace(identity,workspace){
  const user=typeof identity==='object'&&identity?identity:null,role=user?.role||identity;
+ if(workspace==='contingency')return role==='admin';
  if(workspace==='people'&&user?.page_access?.network===false)return false;
  if(PORTAL_PAGES.some(page=>page.key===workspace)&&typeof user?.page_access?.[workspace]==='boolean')return user.page_access[workspace];
  return WORKSPACE_ACCESS[workspace]?.includes(role)||false;
@@ -44,7 +45,7 @@ export function canViewPage(user,key,approvalEnabled=false){
 export function workspaceForPath(path,user){
  const root=path.split('/')[1];
  if(root==='projects'&&user?.role==='framework_stakeholder'&&path.split('/')[2])return 'framework';
- return ({today:'today','today-legacy':'today',alliance360:'alliance360',accounts:'network',suppliers:'network',clients:'network',people:'network',contacts:'network','insights-engagement':'ie',opportunities:'opportunities',crm:'opportunities',projects:'projects',documents:'projects',warranties:'projects',commercial:'commercial','bss-hub':'bss',approvals:'approvals',framework:'framework',insider:'insider',lookout:'insider'})[root];
+ return ({contingency:'contingency',today:'today','today-legacy':'today',alliance360:'alliance360',accounts:'network',suppliers:'network',clients:'network',people:'network',contacts:'network','insights-engagement':'ie',opportunities:'opportunities',crm:'opportunities',projects:'projects',documents:'projects',warranties:'projects',commercial:'commercial','bss-hub':'bss',approvals:'approvals',framework:'framework',insider:'insider',lookout:'insider'})[root];
 }
 export function portalHomePath(user){
  const preferred=['sam','sam_director'].includes(user?.role)?'ie':user?.role==='framework_stakeholder'?'framework':'today';

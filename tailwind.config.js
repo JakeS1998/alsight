@@ -19,6 +19,7 @@ module.exports = {
             hero: 'var(--hero-radius)'
         },
   		colors: {
+            contingency: { DEFAULT: 'hsl(var(--contingency))', dark: 'hsl(var(--contingency-dark))', pale: 'hsl(var(--contingency-pale))' },
             'map-region': {
                 scotland: 'hsl(var(--map-region-scotland))',
                 'south-east': 'hsl(var(--map-region-south-east))',

@@ -80,6 +80,9 @@
     --lookout-white: 255 255 255;
     --als-navy: 213 61% 16%;
     --als-navy-light: 208 54% 27%;
+    --contingency: 25 81% 53%;
+    --contingency-dark: 24 80% 44%;
+    --contingency-pale: 27 100% 96%;
     --assistant-accent: 0 72% 47%;
     --sidebar-background: 213 61% 16%;
     --sidebar-foreground: 0 0% 100%;
@@ -142,6 +145,9 @@
     --lookout-white: 255 255 255;
     --als-navy: 213 61% 16%;
     --als-navy-light: 208 54% 27%;
+    --contingency: 25 81% 53%;
+    --contingency-dark: 24 80% 44%;
+    --contingency-pale: 25 30% 18%;
     --assistant-accent: 0 78% 58%;
     --sidebar-background: 213 61% 16%;
     --sidebar-foreground: 0 0% 100%;

@@ -1,0 +1,14 @@
+import React from 'react';
+import {Link} from 'react-router-dom';
+import {Button} from '@/components/ui/button';
+import {useContingency} from '@/components/contingency/ContingencyContext';
+import {stamp} from '@/components/contingency/demoData';
+import ContingencyHealth from '@/components/contingency/ContingencyHealth';
+import ContingencyReplication from '@/components/contingency/ContingencyReplication';
+import ContingencyEmployeeHub from '@/components/contingency/ContingencyEmployeeHub';
+import ContingencyActivity from '@/components/contingency/ContingencyActivity';
+export default function ContingencyDashboard({employeeView=false}){const {state,commit,busy}=useContingency();if(state.status==='ACTIVE')return <ContingencyEmployeeHub/>;if(employeeView)return <div className="cc-panel"><h2>Employee access disabled</h2><p className="text-sm">The environment is in standby. Employee navigation becomes available after two different simulated reviewers approve activation.</p></div>;return <>
+ {state.lastOutcome&&<div className="cc-banner font-semibold">{state.lastOutcome} · Employee access disabled · AWS standby simulated</div>}
+ <div className="grid gap-4 lg:grid-cols-3"><div className="cc-panel"><h2>Contingency Environment</h2><dl className="space-y-3 text-sm">{[['Current status',state.status],['Employee access','Disabled'],['AWS environment','Simulated – PoC'],['Last system check',stamp(state.healthCheckedAt)],['Last successful data synchronisation',stamp(state.lastSync)]].map(([k,v])=><div key={k}><dt className="text-xs text-muted-foreground">{k}</dt><dd className="mt-1 font-semibold">{v}</dd></div>)}</dl></div><div className="cc-panel lg:col-span-2"><h2>Ready when the business needs it</h2><p className="mb-5 max-w-2xl text-sm text-muted-foreground">Standby demonstration of critical information access and controlled recovery. Activation is a deliberate governance decision, not an automatic response to a service alert.</p><div className="flex flex-wrap gap-2"><Button asChild><Link to="/contingency/activation">Request Contingency Activation</Link></Button><Button asChild variant="outline"><Link to="/contingency/environment">View Contingency Environment</Link></Button><Button variant="outline" onClick={()=>document.getElementById('replication')?.scrollIntoView({behavior:'smooth'})}>View Replication Status</Button><Button variant="outline" disabled={busy} onClick={()=>commit('System health check completed',s=>{s.healthCheckedAt=new Date().toISOString();return s;})}>Run System Health Check</Button><Button asChild variant="outline"><Link to="/contingency/audit">View Audit Log</Link></Button></div>{state.request&&<p className="mt-4 text-sm font-semibold text-contingency-dark">{state.request.reference} · Activation {state.request.status} · {state.approvals.length}/2 approvals</p>}</div></div>
+ <div className="grid items-start gap-4 xl:grid-cols-2"><ContingencyReplication/><ContingencyHealth/></div><ContingencyActivity/>
+ </>;}

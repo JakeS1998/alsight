@@ -1,0 +1,70 @@
+{
+  "name": "ContingencyAuditLog",
+  "type": "object",
+  "properties": {
+    "sandbox_owner": {
+      "type": "string"
+    },
+    "user": {
+      "type": "string"
+    },
+    "action": {
+      "type": "string"
+    },
+    "occurred_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "incident_reference": {
+      "type": "string"
+    },
+    "previous_value": {
+      "type": "string"
+    },
+    "new_value": {
+      "type": "string"
+    },
+    "approval_status": {
+      "type": "string"
+    },
+    "transaction_reference": {
+      "type": "string"
+    },
+    "reconciliation_status": {
+      "type": "string"
+    },
+    "simulation": {
+      "type": "boolean",
+      "default": true
+    }
+  },
+  "required": [
+    "sandbox_owner",
+    "user",
+    "action",
+    "occurred_at",
+    "simulation"
+  ],
+  "rls": {
+    "read": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "create": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "update": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "delete": {
+      "user_condition": {
+        "role": "admin"
+      }
+    }
+  }
+}

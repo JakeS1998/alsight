@@ -74,6 +74,7 @@ const Lookout = lazy(() => import('@/pages/Lookout'));
 const LookoutAdmin = lazy(() => import('@/pages/LookoutAdmin'));
 const BSSHub = lazy(() => import('@/pages/BSSHub'));
 const Mfa = lazy(() => import('@/pages/Mfa'));
+const Contingency = lazy(() => import('@/pages/Contingency'));
 const ApprovalCentre = lazy(() => import('@/pages/ApprovalCentre.jsx'));
 const ApprovalSetup = lazy(() => import('@/pages/ApprovalSetup.jsx'));
 const PrivacyPolicy = lazy(() => import('@/pages/PrivacyPolicy'));
@@ -137,6 +138,7 @@ const AuthenticatedApp = () => {
           <Route path="/dataverse" element={<DataverseWorkspace />} />
           <Route path="/calendar" element={<Calendar />} />
           <Route path="/bss-hub" element={<BSSHub />} />
+          <Route path="/contingency/*" element={<Contingency />} />
           <Route path="/approvals" element={<ApprovalCentre />} />
           <Route path="/help" element={<Help />} />
 
