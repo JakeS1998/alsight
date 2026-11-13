@@ -3,15 +3,17 @@ import {projectSharePointReads} from './projectSharePointReads.ts';
 const normalise=value=>String(value||'').toLowerCase().replace(/[^a-z0-9]/g,'');
 const types={principaldesignercdmfee:'appointment_pd_cdm',principaldesignercdm:'appointment_pd_cdm',principaldesignerbuildingregsfee:'appointment_pd_br',principaldesignerbuildingregulationsfee:'appointment_pd_br',projectmanagerfee:'appointment_pm',architectfee:'appointment_architect',contractorfee:'contractor',contractsum:'contractor'};
 const aliases=account=>[account.id,account.dataverse_id].filter(Boolean);
-export async function readVigoDMAEvidence(base44,account,automatic=false) {
- if(account) {
-  const refs=[vigoProjectId,vigoProjectRef],ids=aliases(account);
+export async function readVigoDMAEvidence(base44,account,automatic=false,projectId=vigoProjectId) {
+  const selected=projectId===vigoProjectId ? null : await base44.entities.Project.get(projectId);
+  const projectRefs=selected ? [selected.id,selected.dataverse_id].filter(Boolean) : [vigoProjectId,vigoProjectRef];
+  if(account) {
+  const refs=projectRefs,ids=aliases(account);
   const [appointments,contracts]=await Promise.all([base44.entities.LegalDocument.count({project_id:{$in:refs},account_id:{$in:ids},executed:'yes',document_type:{$in:['appointment_pm','appointment_pd_cdm','appointment_pd_br','appointment_architect']}}),base44.entities.JCT.count({project_id:{$in:refs},executed:'yes',$or:[{contractor_id:{$in:ids}},{account_id:{$in:ids},client_account_id:{$nin:ids}}]})]);
   if(!appointments&&!contracts)return null;
  }
- const project=await base44.entities.Project.get(vigoProjectId).catch(e=>[403,404].includes(e.status)?null:Promise.reject(e));
+ const project=selected || await base44.entities.Project.get(projectId).catch(e=>[403,404].includes(e.status)?null:Promise.reject(e));
  if(!project)return null;
- const refs=[vigoProjectId,vigoProjectRef];
+ const refs=projectRefs;
  const [documents,contracts,proposals,delivery,dmas]=await Promise.all([
   base44.entities.LegalDocument.filter({project_id:{$in:refs},executed:'yes',document_type:{$in:['appointment_pm','appointment_pd_cdm','appointment_pd_br','appointment_architect']}},{limit:40}),
   base44.entities.JCT.filter({project_id:{$in:refs},executed:'yes'},{limit:20}),
@@ -22,8 +24,9 @@ export async function readVigoDMAEvidence(base44,account,automatic=false) {
  if(documents.has_more||contracts.has_more)throw new Error('Too many signed supplier records to safely attribute the DMA fees.');
  const linked=[...documents.items,...contracts.items.map(c=>({...c,document_type:'contractor',account_id:c.contractor_id||c.account_id}))];
  if(account&&!linked.some(d=>aliases(account).includes(d.account_id)))return null;
- if(automatic&&!proposals)await extractVigoDMAFees(base44,await base44.auth.me(),vigoProjectId);
- const extraction=await savedVigoDMAFees(base44);
+ if(automatic&&!proposals&&projectId===vigoProjectId)await extractVigoDMAFees(base44,await base44.auth.me(),vigoProjectId);
+   const saved=projectId===vigoProjectId ? null : await base44.asServiceRole.entities.DMAFeeExtraction.filter({project_id:project.id,status:'ready'},{limit:2});
+   const extraction=projectId===vigoProjectId ? await savedVigoDMAFees(base44) : saved.items.length===1 ? saved.items[0] : null;
  const base={project_id:project.id,project_name:project.name,status:proposals?'proposal_available':extraction?.status||'not_extracted',source_url:extraction?.source_url,source_name:extraction?.source_name,source_etag:extraction?.source_etag,extracted_at:extraction?.extracted_at,note:proposals?'A current Pathway proposal exists; DMA fallback is not used.':extraction?.note||'Signed DMA fees have not yet been read.',rows:[]};
  if(proposals||!extraction||extraction.status!=='ready')return base;
  if(dmas.items.length!==1||dmas.items[0].id!==extraction.dma_id)return {...base,status:'unusable',note:'The executed DMA record changed or is ambiguous; cached fees are not used.'};
@@ -53,5 +56,5 @@ export function dmaTermsForContract(evidence,contract) {
  const matches=evidence.rows.filter(row=>Boolean(contract.id)&&row.document_id===contract.id||Boolean(contract.document_id)&&row.document_type===(contract.document_type||'contractor')&&contract.document_id===row.document_reference);
  if(matches.length!==1||matches[0].reason)return null;
  const row=matches[0];
- return {value:row.amount,source:`Signed Vigo Road DMA Schedule 5, PDF page ${row.page}: ${row.quote}. Supplier identified by ${row.match_source}. OCR-derived fallback; VAT excluded by assumption, not independently verified.`,source_url:evidence.source_url,source_page:row.page,source_etag:evidence.source_etag};
+ return {value:row.amount,source:`Signed ${evidence.project_name || 'project'} DMA Schedule 5, PDF page ${row.page}: ${row.quote}. Supplier identified by ${row.match_source}. OCR-derived fallback; VAT excluded by assumption, not independently verified.`,source_url:evidence.source_url,source_page:row.page,source_etag:evidence.source_etag};
 }

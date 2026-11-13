@@ -1,0 +1,53 @@
+{
+  "name": "Signed DMA commercial concentration checks",
+  "description": "Processes the requested signed DMA portfolio sequentially, preserving fee citations and refreshing matched supplier accounts and concentration inputs.",
+  "trigger": {
+    "config": {
+      "trigger_type": "entity",
+      "entity_name": "DMACheckJob",
+      "events": [
+        "create",
+        "update"
+      ]
+    },
+    "condition": "${ .trigger.data.status == \"queued\" and (.trigger.data.token // \"\") != \"\" and .trigger.data.token != .trigger.old_data.token }"
+  },
+  "definition": {
+    "document": {
+      "dsl": "1.0.0",
+      "name": "signed_dma_concentration",
+      "version": "1.0",
+      "namespace": "base44"
+    },
+    "do": [
+      {
+        "pace_check": {
+          "wait": "PT10S",
+          "then": "process_check",
+          "x-base44": {
+            "title": "Pace signed document checks",
+            "description": "One document or company at a time"
+          }
+        }
+      },
+      {
+        "process_check": {
+          "call": "invoke_backend_function",
+          "with": {
+            "function_name": "manageDMAConcentration",
+            "args": {
+              "action": "step",
+              "jobId": "${ .trigger.entity_id }",
+              "token": "${ .trigger.data.token }"
+            }
+          },
+          "then": "end",
+          "x-base44": {
+            "title": "Read signed DMA and populate concentration",
+            "description": "Retain evidence and flag blocked inputs"
+          }
+        }
+      }
+    ]
+  }
+}
