@@ -1,0 +1,14 @@
+import React,{useEffect,useState} from 'react';
+import {useQueryClient} from '@tanstack/react-query';
+import {base44} from '@/api/base44Client';
+import {useAuth} from '@/lib/AuthContext';
+import {Button} from '@/components/ui/button';
+export default function PersonContingencyAccess({contact,user,access}){
+ const {user:administrator}=useAuth(),cache=useQueryClient();
+ const [enabled,setEnabled]=useState(access?.enabled===true),[busy,setBusy]=useState(false),[error,setError]=useState(''),[notice,setNotice]=useState('');
+ useEffect(()=>{setEnabled(access?.enabled===true);},[user?.id,access?.enabled]);
+ useEffect(()=>{setNotice('');setError('');},[user?.id]);
+ async function save(){setBusy(true);setError('');setNotice('');try{const {data}=await base44.functions.invoke('getPersonPortalAccess',{action:'saveContingencyAdmin',contactId:contact.id,contingencyAdmin:enabled});if(data.error)throw new Error(data.error);cache.setQueryData(['person-portal-account',contact.id,administrator?.id,administrator?.role],data);await cache.invalidateQueries({queryKey:['co']});setNotice(enabled?'Contingency Admin access granted.':'Contingency Admin designation removed.');}catch(e){setError(e.response?.data?.error||e.message);}finally{setBusy(false);}}
+ const locked=!user||access?.automatic||!access?.eligible;
+ return <section className="mt-5 space-y-3 rounded-panel border border-border p-4"><h3 className="text-sm font-semibold">Contingency administration</h3><p className="text-xs text-muted-foreground">System Administrators can designate internal users to administer contingency operations and access all contingency datasets, without changing their portal role. Only System Administrators can assign users or run replication; independent approval requirements remain in place.</p><label className="flex items-center gap-2 text-sm font-medium"><input type="checkbox" checked={enabled} disabled={busy||locked} onChange={e=>{setEnabled(e.target.checked);setNotice('');}}/>Contingency Admin</label>{!user?<p className="text-xs text-muted-foreground">Link a portal account before assigning this permission.</p>:access?.automatic?<p className="text-xs text-muted-foreground">System Administrators already have this access.</p>:!access?.eligible?<p className="text-xs text-muted-foreground">This permission is available to internal portal users only.</p>:<Button type="button" disabled={busy||enabled===(access?.enabled===true)} onClick={save}>{busy?'Saving…':'Save contingency access'}</Button>}{error&&<p role="alert" className="text-xs text-destructive">{error}</p>}{notice&&<p role="status" className="text-xs text-success">{notice}</p>}</section>;
+}

@@ -1,4 +1,5 @@
 import {createClientFromRequest} from 'npm:@base44/sdk@0.8.52';
+import {contingencyDesignation,setContingencyDesignation} from '../../shared/portalContingencyAdmin.ts';
 
 export default async function(req) {
   let stage = 'administrator check';
@@ -7,8 +8,8 @@ export default async function(req) {
     const administrator = await client.auth.me().catch(error=>error.status===401?null:Promise.reject(error));
     if(!administrator)return Response.json({error:'Sign in to manage portal access.'},{status:401});
     if (administrator.role !== 'admin') return Response.json({error:'Only administrators can manage portal access.'},{status:403});
-    const {contactId,action='read',pageAccess} = await req.json().catch(()=>({}));
-    if(!['read','savePageAccess'].includes(action))return Response.json({error:'Unknown portal access operation.'},{status:400});
+    const {contactId,action='read',pageAccess,contingencyAdmin} = await req.json().catch(()=>({}));
+    if(!['read','savePageAccess','saveContingencyAdmin'].includes(action))return Response.json({error:'Unknown portal access operation.'},{status:400});
     if (typeof contactId !== 'string' || !contactId || contactId.length > 100) return Response.json({error:'Invalid person selected.'},{status:400});
     stage = 'person lookup';
     const contact = await client.entities.Contact.get(contactId).catch(error=>error.status===404?null:Promise.reject(error));
@@ -24,6 +25,11 @@ export default async function(req) {
       stage='saving page access';
       identity=await client.asServiceRole.entities.User.update(identity.id,{page_access:pageAccess});
     }
+    if(action==='saveContingencyAdmin'){
+      if(!identity)return Response.json({error:'This person needs a linked portal account before Contingency Admin access can be assigned.'},{status:400});
+      stage='saving Contingency Admin designation';
+      await setContingencyDesignation(client,administrator,identity,contingencyAdmin);
+    }
     stage = 'pending invitation lookup';
     const pendingPage = await client.entities.PendingPortalAccess.filter({contact_id:contact.id},{limit:1});
     const pending = pendingPage.items[0] || null;
@@ -32,9 +38,10 @@ export default async function(req) {
     stage = 'organisation lookup';
     const accounts = accountQuery ? (await client.entities.Account.filter(accountQuery,{limit:1})).items : [];
     const user = identity ? Object.fromEntries(['id','role','duty_roles','staff_aad_id','account_id','region','page_access'].map(key=>[key,identity[key]])) : null;
-    return Response.json({user,pending,accounts});
+    const contingency=await contingencyDesignation(client,identity);
+    return Response.json({user,pending,accounts,contingency});
   } catch (error) {
     console.error('Portal access lookup failed',{stage,message:error.message});
-    return Response.json({error:`Portal access could not be loaded (${stage}): ${error.message}`},{status:500});
+    return Response.json({error:`Portal access could not be loaded (${stage}): ${error.message}`},{status:[400,401,403,404,409].includes(error.status)?error.status:500});
   }
 }
