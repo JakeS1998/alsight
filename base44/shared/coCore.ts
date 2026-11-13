@@ -12,8 +12,7 @@ export async function cas(entity,row,input,patch){if(Number(input.version)!==row
 export async function lease(b,work){const E=b.asServiceRole.entities.COConfig,c=await configuration(b),token=crypto.randomUUID(),at=now();await E.updateMany({id:c.id,version:c.version,lease_until:{$lt:at}},{$set:{lease_token:token,lease_until:new Date(Date.now()+330000).toISOString()},$inc:{version:1}});const locked=await get(E,c.id);if(locked.lease_token!==token)fail('Another continuity operation is running. Refresh and retry shortly.',409);try{return await work(locked);}finally{await E.updateMany({id:c.id,lease_token:token},{$set:{lease_token:'',lease_until:'1970-01-01T00:00:00.000Z'},$inc:{version:1}});}}
 export async function audit(b,u,action,details={},i='',key=''){return b.asServiceRole.entities.COAudit.create({actor_id:u.id,actor_name:u.full_name||u.email,action,occurred_at:now(),incident_id:i,transaction_key:key,details});}
 export function object(value,max=60000){if(!value||typeof value!=='object'||Array.isArray(value)||JSON.stringify(value).length>max)fail('Invalid or oversized values.');return value;}
-export function ready(c){return tests.every(k=>c.acceptance?.[k]?.passed&&c.acceptance[k].evidence?.length>=10)&&new Set((c.owner_approvals||[]).map(a=>a.user_id)).size>=2;}
-export function productionGate(c){if(c.mode==='production'&&!ready(c))fail('Production is locked until all pilot evidence and two independent owner approvals are recorded.',409);}
+export function ready(c){return tests.every(k=>c.acceptance?.[k]?.passed&&c.acceptance[k].evidence?.length>=10);}
 export function active(i){if(!i||!['active','recovering'].includes(i.status))fail('Employee contingency access is disabled while on standby.',403);}
 export async function sha(bytes){return Array.from(new Uint8Array(await crypto.subtle.digest('SHA-256',bytes))).map(v=>v.toString(16).padStart(2,'0')).join('');}
 export const equal=(a,b)=>JSON.stringify(a)===JSON.stringify(b);

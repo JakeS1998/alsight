@@ -17,7 +17,7 @@
     }
   },
   "name": "Contingency approved replication",
-  "description": "Checks every five minutes for approved source batches whose configured cadence is due. Disabled configuration and active incidents skip Microsoft reads. No recovery write-back is scheduled.",
+  "description": "Runs around the clock, checking every five minutes for approved source batches due at their configured cadence. Production standby needs no incident or owner-release approval. Disabled configuration and active incidents skip Microsoft reads. No recovery write-back is scheduled.",
   "definition": {
     "document": {
       "dsl": "1.0.0",
@@ -38,7 +38,7 @@
           "then": "end",
           "x-base44": {
             "title": "Copy one approved due batch",
-            "description": "Pilot and incident safety gates"
+            "description": "24/7 standby; preserve incident snapshots"
           }
         }
       }
