@@ -4,7 +4,16 @@ export const admins=['contingency_administrator','approving_administrator','tech
 export const tests=['record_replication','document_download','password_without_microsoft','permissions','concurrent_approvals','reconciliation_writeback','backup_restore','credential_expiry','volume_rpo_rto'];
 export async function get(entity,id){if(typeof id!=='string'||id.length>120)fail('Choose a valid record.');const r=await entity.get(id).catch(e=>e.status===404?null:Promise.reject(e));if(!r)fail('Record not found.',404);return r;}
 export async function configuration(b){const p=await b.asServiceRole.entities.COConfig.filter({key:'primary'},{limit:2});if(p.items.length!==1)fail('Contingency configuration must be initialised once by an administrator; duplicate configurations require review.',409);return p.items[0];}
-export async function membership(b,u){if(u.role==='admin')return{duty:'contingency_administrator',dataset_ids:[],can_edit:true,global:true};const p=await b.asServiceRole.entities.COAccess.filter({user_id:u.id,$or:[{active:true},{portal_admin:true}]},{limit:2});if(p.items.length!==1)fail('No unique active contingency duty is assigned to this account.',403);const m=p.items[0];if(m.portal_admin===true){if(['client','supplier','framework_stakeholder'].includes(u.role))fail('Contingency Admin access is limited to internal portal users.',403);return{...m,duty:'contingency_administrator',can_edit:true,global:true};}return m;}
+export async function membership(b,u){
+ if(!u?.id||!u.role||['client','supplier','framework_stakeholder'].includes(u.role))fail('Contingency access is limited to signed-in internal users.',403);
+ const access={duty:'employee',dataset_ids:[],can_edit:true,global:true};
+ if(u.role==='admin')return{...access,duty:'contingency_administrator'};
+ const p=await b.asServiceRole.entities.COAccess.filter({user_id:u.id,$or:[{active:true},{portal_admin:true}]},{limit:2});
+ if(p.items.length>1)fail('Duplicate contingency duty assignments require administrator review.',403);
+ const m=p.items[0];
+ if(!m)return access;
+ return{...m,...access,duty:m.portal_admin===true?'contingency_administrator':m.duty};
+}
 export function requireAdmin(m){if(!admins.includes(m.duty))fail('An assigned contingency administrator is required.',403);}
 export function canDataset(m,id){if(!m.global&&!m.dataset_ids.includes(id))fail('This dataset is outside your assigned access.',403);}
 export async function incident(b){const p=await b.asServiceRole.entities.COIncident.filter({status:{$in:['requested','active','recovering']}},{limit:2});if(p.items.length>1)fail('Multiple open incidents require administrator review.',409);return p.items[0]||null;}
@@ -13,7 +22,7 @@ export async function lease(b,work){const E=b.asServiceRole.entities.COConfig,c=
 export async function audit(b,u,action,details={},i='',key=''){return b.asServiceRole.entities.COAudit.create({actor_id:u.id,actor_name:u.full_name||u.email,action,occurred_at:now(),incident_id:i,transaction_key:key,details});}
 export function object(value,max=60000){if(!value||typeof value!=='object'||Array.isArray(value)||JSON.stringify(value).length>max)fail('Invalid or oversized values.');return value;}
 export function ready(c){return tests.every(k=>c.acceptance?.[k]?.passed&&c.acceptance[k].evidence?.length>=10);}
-export function active(i){if(!i||!['active','recovering'].includes(i.status))fail('Employee contingency access is disabled while on standby.',403);}
+export function active(i){if(!i||!['active','recovering'].includes(i.status))fail('An active contingency incident is required for this operation.',403);}
 export async function sha(bytes){return Array.from(new Uint8Array(await crypto.subtle.digest('SHA-256',bytes))).map(v=>v.toString(16).padStart(2,'0')).join('');}
 export const equal=(a,b)=>JSON.stringify(a)===JSON.stringify(b);
 export function safeError(e){return String(e.message||'Operation failed.').replace(/Bearer\s+\S+/gi,'[redacted]').slice(0,350);}

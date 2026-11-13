@@ -11,5 +11,5 @@ export default function useContingencyMenu(user){
   staleTime:30000,refetchInterval:30000,refetchIntervalInBackground:false,retry:false
  });
  const active=eligible&&query.data?.active===true;
- return {active,visible:eligible&&(user?.role==='admin'||active)};
+ return {active,visible:eligible};
 }
