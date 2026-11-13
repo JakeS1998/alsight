@@ -35,10 +35,26 @@
               "action": "tick"
             }
           },
-          "then": "end",
+          "then": "copy_project_legal_folders",
           "x-base44": {
             "title": "Copy one approved due batch",
             "description": "24/7 standby; preserve incident snapshots"
+          }
+        }
+      },
+      {
+        "copy_project_legal_folders": {
+          "call": "invoke_backend_function",
+          "with": {
+            "function_name": "manageContingencyOperations",
+            "args": {
+              "action": "project_legals_tick"
+            }
+          },
+          "then": "end",
+          "x-base44": {
+            "title": "Discover and copy project legal folders",
+            "description": "Saved project links, recursive private document copies"
           }
         }
       }
