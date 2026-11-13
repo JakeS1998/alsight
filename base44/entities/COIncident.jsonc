@@ -1,0 +1,72 @@
+{
+  "name": "COIncident",
+  "type": "object",
+  "properties": {
+    "reference": {
+      "type": "string"
+    },
+    "mode": {
+      "type": "string",
+      "enum": [
+        "pilot",
+        "production"
+      ],
+      "enumColors": [
+        "yellow",
+        "green"
+      ]
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "requested",
+        "active",
+        "recovering",
+        "closed",
+        "rejected"
+      ],
+      "enumColors": [
+        "yellow",
+        "red",
+        "blue",
+        "green",
+        "gray"
+      ]
+    },
+    "version": {
+      "type": "integer",
+      "default": 1
+    },
+    "command_token": {
+      "type": "string"
+    },
+    "details": {
+      "type": "object",
+      "additionalProperties": true
+    }
+  },
+  "required": [
+    "reference",
+    "mode",
+    "status",
+    "version"
+  ],
+  "rls": {
+    "read": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "create": {
+      "user_condition": {
+        "collaborator_role": "editor"
+      }
+    },
+    "update": {
+      "user_condition": {
+        "collaborator_role": "editor"
+      }
+    },
+    "delete": false
+  }
+}

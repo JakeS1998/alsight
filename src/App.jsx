@@ -126,7 +126,7 @@ const AuthenticatedApp = () => {
         <Route path="/powerbi-callback" element={<PowerBICallback />} />
         <Route path="/onboarding" element={<Onboarding />} />
       </Route>
-      <Route element={<ProtectedRoute unauthenticatedElement={<Navigate to="/login" replace />} />}>
+      <Route element={<ProtectedRoute unauthenticatedElement={<Navigate to={location.pathname.startsWith('/contingency')?`/login?contingency=1&returnTo=${encodeURIComponent(location.pathname+location.search)}`:'/login'} replace />} />}>
         <Route element={<OnboardingGate />}>
         <Route element={<PortalLayout />}>
           <Route path="/" element={<Navigate to={portalHomePath(user)} replace />} />

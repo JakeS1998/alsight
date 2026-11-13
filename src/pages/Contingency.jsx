@@ -1,4 +1,5 @@
 import React from 'react';
+import ContingencyOperations from '@/components/contingency/live/ContingencyOperations';
 import {Routes,Route} from 'react-router-dom';
 import {useAuth} from '@/lib/AuthContext';
 import AccessDenied from '@/pages/AccessDenied';
@@ -18,4 +19,4 @@ import ContingencyRecovery from '@/components/contingency/ContingencyRecovery';
 import ContingencyAudit from '@/components/contingency/ContingencyAudit';
 import ContingencyFeasibility from '@/components/contingency/ContingencyFeasibility';
 import '@/components/contingency/contingency.css';
-export default function Contingency(){const {user}=useAuth();if(user?.role!=='admin')return <AccessDenied/>;return <ContingencyContext><Routes><Route element={<ContingencyShell/>}><Route index element={<ContingencyDashboard/>}/><Route path="environment" element={<ContingencyDashboard employeeView/>}/><Route path="activation" element={<ContingencyActivation/>}/><Route path="projects" element={<ContingencyProjects/>}/><Route path="projects/:id" element={<ContingencyProjectDetail/>}/><Route path="documents" element={<ContingencyDocuments/>}/><Route path="reports" element={<ContingencyReports/>}/><Route path="packs" element={<ContingencyPacks/>}/><Route path="people" element={<ContingencyPeople/>}/><Route path="updates" element={<ContingencyUpdates/>}/><Route path="recovery" element={<ContingencyRecovery/>}/><Route path="audit" element={<ContingencyAudit/>}/><Route path="assessment" element={<ContingencyFeasibility/>}/><Route path="*" element={<PageNotFound/>}/></Route></Routes></ContingencyContext>;}
+export default function Contingency(){return <ContingencyOperations/>;}

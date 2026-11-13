@@ -1,0 +1,47 @@
+{
+  "trigger": {
+    "condition": null,
+    "config": {
+      "trigger_type": "scheduled",
+      "events": [],
+      "schedule_mode": "recurring",
+      "cron_expression": "*/5 * * * *",
+      "one_time_date": null,
+      "timezone": "Europe/London",
+      "interval_value": null,
+      "interval_unit": null,
+      "interval_anchor": null,
+      "ends_type": "never",
+      "ends_on_date": null,
+      "ends_after_count": null
+    }
+  },
+  "name": "Contingency approved replication",
+  "description": "Checks every five minutes for approved source batches whose configured cadence is due. Disabled configuration and active incidents skip Microsoft reads. No recovery write-back is scheduled.",
+  "definition": {
+    "document": {
+      "dsl": "1.0.0",
+      "name": "contingency_approved_replication",
+      "version": "1.0",
+      "namespace": "base44"
+    },
+    "do": [
+      {
+        "copy_due_batch": {
+          "call": "invoke_backend_function",
+          "with": {
+            "function_name": "manageContingencyOperations",
+            "args": {
+              "action": "tick"
+            }
+          },
+          "then": "end",
+          "x-base44": {
+            "title": "Copy one approved due batch",
+            "description": "Pilot and incident safety gates"
+          }
+        }
+      }
+    ]
+  }
+}

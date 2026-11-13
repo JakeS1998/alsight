@@ -1,0 +1,69 @@
+{
+  "name": "CORecord",
+  "type": "object",
+  "properties": {
+    "dataset_id": {
+      "type": "string"
+    },
+    "source_id": {
+      "type": "string"
+    },
+    "title": {
+      "type": "string",
+      "maxLength": 500
+    },
+    "payload": {
+      "type": "object",
+      "additionalProperties": true
+    },
+    "source_etag": {
+      "type": "string"
+    },
+    "source_modified": {
+      "type": "string"
+    },
+    "replicated_at": {
+      "type": "string"
+    },
+    "file_uri": {
+      "type": "string"
+    },
+    "sha256": {
+      "type": "string"
+    },
+    "file_size": {
+      "type": "integer"
+    },
+    "mime_type": {
+      "type": "string"
+    },
+    "deleted_at_source": {
+      "type": "boolean",
+      "default": false
+    }
+  },
+  "required": [
+    "dataset_id",
+    "source_id",
+    "title",
+    "replicated_at"
+  ],
+  "rls": {
+    "read": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "create": {
+      "user_condition": {
+        "collaborator_role": "editor"
+      }
+    },
+    "update": {
+      "user_condition": {
+        "collaborator_role": "editor"
+      }
+    },
+    "delete": false
+  }
+}

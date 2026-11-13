@@ -1,0 +1,82 @@
+{
+  "name": "COConfig",
+  "type": "object",
+  "properties": {
+    "key": {
+      "type": "string",
+      "enum": [
+        "primary"
+      ]
+    },
+    "version": {
+      "type": "integer",
+      "default": 1
+    },
+    "mode": {
+      "type": "string",
+      "enum": [
+        "pilot",
+        "production"
+      ],
+      "enumColors": [
+        "yellow",
+        "green"
+      ],
+      "default": "pilot"
+    },
+    "enabled": {
+      "type": "boolean",
+      "default": false
+    },
+    "policy": {
+      "type": "object",
+      "additionalProperties": true
+    },
+    "acceptance": {
+      "type": "object",
+      "additionalProperties": true
+    },
+    "owner_approvals": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": true
+      }
+    },
+    "health": {
+      "type": "object",
+      "additionalProperties": true
+    },
+    "lease_token": {
+      "type": "string",
+      "default": ""
+    },
+    "lease_until": {
+      "type": "string",
+      "default": "1970-01-01T00:00:00.000Z"
+    }
+  },
+  "required": [
+    "key",
+    "version",
+    "mode"
+  ],
+  "rls": {
+    "read": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "create": {
+      "user_condition": {
+        "collaborator_role": "editor"
+      }
+    },
+    "update": {
+      "user_condition": {
+        "collaborator_role": "editor"
+      }
+    },
+    "delete": false
+  }
+}

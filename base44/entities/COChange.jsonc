@@ -1,0 +1,99 @@
+{
+  "name": "COChange",
+  "type": "object",
+  "properties": {
+    "incident_id": {
+      "type": "string"
+    },
+    "dataset_id": {
+      "type": "string"
+    },
+    "record_id": {
+      "type": "string"
+    },
+    "operation": {
+      "type": "string",
+      "enum": [
+        "record_update",
+        "document_replace",
+        "document_new",
+        "decision",
+        "announcement"
+      ],
+      "enumColors": [
+        "blue",
+        "purple",
+        "purple",
+        "yellow",
+        "gray"
+      ]
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "pending",
+        "approved",
+        "ready",
+        "conflict",
+        "unsupported",
+        "writing",
+        "verified",
+        "error",
+        "excluded"
+      ],
+      "enumColors": [
+        "yellow",
+        "yellow",
+        "blue",
+        "red",
+        "gray",
+        "purple",
+        "green",
+        "red",
+        "gray"
+      ]
+    },
+    "version": {
+      "type": "integer",
+      "default": 1
+    },
+    "command_token": {
+      "type": "string"
+    },
+    "transaction_key": {
+      "type": "string"
+    },
+    "title": {
+      "type": "string"
+    },
+    "details": {
+      "type": "object",
+      "additionalProperties": true
+    }
+  },
+  "required": [
+    "incident_id",
+    "operation",
+    "status",
+    "version",
+    "transaction_key"
+  ],
+  "rls": {
+    "read": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "create": {
+      "user_condition": {
+        "collaborator_role": "editor"
+      }
+    },
+    "update": {
+      "user_condition": {
+        "collaborator_role": "editor"
+      }
+    },
+    "delete": false
+  }
+}

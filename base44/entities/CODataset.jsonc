@@ -1,0 +1,92 @@
+{
+  "name": "CODataset",
+  "type": "object",
+  "properties": {
+    "label": {
+      "type": "string",
+      "maxLength": 120
+    },
+    "kind": {
+      "type": "string",
+      "enum": [
+        "dataverse",
+        "sharepoint"
+      ],
+      "enumColors": [
+        "blue",
+        "purple"
+      ]
+    },
+    "table_key": {
+      "type": "string"
+    },
+    "mapping": {
+      "type": "object",
+      "additionalProperties": true
+    },
+    "environment": {
+      "type": "string"
+    },
+    "scope_ids": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "maxItems": 100
+    },
+    "drive_id": {
+      "type": "string"
+    },
+    "root_id": {
+      "type": "string"
+    },
+    "interval_minutes": {
+      "type": "integer",
+      "minimum": 60,
+      "maximum": 1440
+    },
+    "retention_days": {
+      "type": "integer",
+      "minimum": 30,
+      "maximum": 3650
+    },
+    "enabled": {
+      "type": "boolean",
+      "default": false
+    },
+    "state": {
+      "type": "object",
+      "additionalProperties": true
+    },
+    "version": {
+      "type": "integer",
+      "default": 1
+    },
+    "command_token": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "label",
+    "kind",
+    "version"
+  ],
+  "rls": {
+    "read": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "create": {
+      "user_condition": {
+        "collaborator_role": "editor"
+      }
+    },
+    "update": {
+      "user_condition": {
+        "collaborator_role": "editor"
+      }
+    },
+    "delete": false
+  }
+}

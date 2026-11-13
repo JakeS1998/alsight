@@ -1,0 +1,4 @@
+import React from 'react';
+import {useQuery} from '@tanstack/react-query';
+import {coCall} from '@/components/contingency/live/useContingencyOperations';
+export default function COUpdates({data}){const q=useQuery({queryKey:['co','announcements',data.incident?.id],queryFn:()=>coCall('announcements'),enabled:['active','recovering'].includes(data.incident?.status),retry:false});if(!data.incident||!q.data?.items.length)return null;return <section className="cc-panel"><h2>Emergency updates</h2><div className="mt-3 space-y-3">{q.data.items.map(r=><article className="rounded-panel border p-3" key={r.id}><p className="whitespace-pre-wrap text-sm">{r.details.text}</p><p className="mt-2 text-xs text-muted-foreground">{r.details.author_name} · {new Date(r.details.at).toLocaleString('en-GB',{timeZone:'Europe/London'})}</p></article>)}</div></section>;}
