@@ -18,6 +18,7 @@ import { LayoutDashboard, FolderKanban, Building2, UserCircle, Users, BriefcaseB
 import MobileBottomNavigation from '@/components/navigation/MobileBottomNavigation';
 import mobileNavigationItems from '@/components/navigation/mobileNavigationItems';
 import OverflowNavigation from '@/components/navigation/OverflowNavigation';
+import useContingencyMenu from '@/components/navigation/useContingencyMenu';
 
 const NAV_ITEMS = [
   { label: 'Today', path: '/today', icon: House, roles: WORKSPACE_ACCESS.today },
@@ -47,14 +48,15 @@ export default function PortalHeader() {
   const role = user?.role || 'client';
   const approvalAccess = useApprovalAccess();
   const approvalSummary = useApprovalSummary();
-  const items = NAV_ITEMS.filter(item => !['/account','/contacts','/help'].includes(item.path) && canViewPage(user,workspaceForPath(item.path,user),approvalAccess.enabled));
+  const contingencyMenu = useContingencyMenu(user);
+  const items = NAV_ITEMS.filter(item => !['/account','/contacts','/help'].includes(item.path) && (item.path==='/contingency'?contingencyMenu.visible:canViewPage(user,workspaceForPath(item.path,user),approvalAccess.enabled)));
   const signOut = () => { setMenuOpen(false); logout(false); navigate('/login'); };
   const primaryItems = mobileNavigationItems(user);
   const nav = (compact = false, excluded = []) => items.filter(item => !excluded.includes(item.path)).map(item => {
     const Icon = item.icon;
     if(item.path==='/accounts') return <RelationshipNavigation key="relationships" compact={compact} showPeople={canViewWorkspace(user,'people')} onNavigate={()=>setMenuOpen(false)}/>;
     const active = item.path === '/opportunities' ? (location.pathname.startsWith('/crm') || location.pathname === '/opportunities' || location.pathname.startsWith('/opportunities/')) : item.path === '/today' ? ['/', '/today', '/today-legacy'].includes(location.pathname) : location.pathname === item.path || location.pathname.startsWith(`${item.path}/`);
-    return <Link key={item.path} to={item.path} onClick={() => setMenuOpen(false)} aria-current={active ? 'page' : undefined} data-active={active} data-outstanding={item.path === '/approvals' && approvalSummary.data?.pending > 0} className={`portal-nav-item ${['/today', '/alliance360'].includes(item.path) ? 'font-bold' : ''} ${compact ? 'w-full' : ''}`}>{Icon === UKLFIcon ? <UKLFIcon darkBackground /> : <Icon className="h-4 w-4 shrink-0" />}{item.path === '/alliance360' ? <span>Alliance<span className="text-primary">360</span></span> : item.label}{item.path==='/approvals' && approvalSummary.data?.pending>0 && <span className="rounded-full bg-primary px-1.5 py-0.5 text-[10px] font-bold text-primary-foreground">{approvalSummary.data.pending}</span>}</Link>;
+    return <Link key={item.path} to={item.path} onClick={() => setMenuOpen(false)} aria-current={active ? 'page' : undefined} data-active={active} data-contingency-active={item.path==='/contingency'&&contingencyMenu.active} data-outstanding={item.path === '/approvals' && approvalSummary.data?.pending > 0} className={`portal-nav-item ${['/today', '/alliance360'].includes(item.path) ? 'font-bold' : ''} ${compact ? 'w-full' : ''}`}>{Icon === UKLFIcon ? <UKLFIcon darkBackground /> : <Icon className="h-4 w-4 shrink-0" />}{item.path === '/alliance360' ? <span>Alliance<span className="text-primary">360</span></span> : item.label}{item.path==='/approvals' && approvalSummary.data?.pending>0 && <span className="rounded-full bg-primary px-1.5 py-0.5 text-[10px] font-bold text-primary-foreground">{approvalSummary.data.pending}</span>}</Link>;
   });
   return <><header ref={headerRef} className={`sticky top-0 z-40 shadow-sm ${isContingency ? 'portal-contingency-header' : 'bg-als-navy text-white'}`}>
     <div className="portal-topbar">
