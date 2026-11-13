@@ -5,8 +5,10 @@ import { flowSelection, mappedFlowValues } from './dataverseFlowValues.ts';
 import { addFlowWriteValue } from './dataverseWritePayload.ts';
 import {syncDocumentApprovals} from './documentApprovalSync.ts';
 import { generalFlowMappings, assertGeneralFlowWrite } from './approvalWriteBoundary.ts';
+import {roleFlowMappings,assertBsmProjectWrite} from './bsmProjectWriteAccess.ts';
 export async function writeFlowContext(base44, user, config, input) {
-  const spec = flowSpecs[input.table], settings = config?.tables?.[input.table];
+  const spec = flowSpecs[input.table], configured = config?.tables?.[input.table];
+  const settings = configured ? {...configured,mappings:roleFlowMappings(input.table,configured.mappings||[],user.role)} : null;
   if (input.action === 'save') assertGeneralFlowWrite(input.table, input.values, settings?.mappings);
   if (!settings?.mappings?.length) throw new Error('An administrator must confirm this table’s mapping first.');
   if (!spec.writeRoles.includes(user.role)) { const error = new Error('Your ALS Hub role cannot edit this table.'); error.status = 403; throw error; }
@@ -15,6 +17,7 @@ export async function writeFlowContext(base44, user, config, input) {
   const record = await base44.entities[spec.entity].get(input.recordId);
   const sourceId = record?.[spec.identityField || 'dataverse_id'];
   if (!record || !isGuid(sourceId)) throw new Error('This ALS Hub record is not linked to Dataverse.');
+  await assertBsmProjectWrite(base44,user,input.table,record,input);
   const { environment, record: connection } = await personalDataverseContext(base44, user);
   if (environment !== config.environment_url) throw new Error('The environment changed. Ask an administrator to review the mappings.');
   const token = await getPersonalDataverseToken(base44, user, environment, connection);

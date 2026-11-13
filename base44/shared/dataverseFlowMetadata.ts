@@ -30,10 +30,10 @@ export function validateMapping(table, inspected, mappings) {
     const source = inspected.fields.find(f => f.name === item.source);
     if (!spec.fields[item.local] || !source || seen.has(item.local) || sources.has(item.source)) throw new Error('The mapping contains an invalid or duplicate field.');
     const localType = dataverseSourceType(source.type);
-    if (item.write && !source.writable) throw new Error('Dataverse marks this column as read-only. Choose an editable column for write-back.');
+    if ((item.write || item.bsmWrite) && !source.writable) throw new Error('Dataverse marks this column as read-only. Choose an editable column for write-back.');
     if (table === 'users' && item.local === 'dataverse_systemuser_id' && (item.write || source.name !== inspected.primaryId)) throw new Error('The systemuser identity must remain linked to its read-only primary ID.');
     const lookupTarget = source.type === 'Lookup' ? source.lookupTargets?.find(target => target.entity === item.lookupTarget?.entity && target.navigation === item.lookupTarget?.navigation) || (source.lookupTargets?.length === 1 ? source.lookupTargets[0] : undefined) : undefined;
-    if (item.write && source.type === 'Lookup' && !lookupTarget) throw new Error(`Choose a lookup target table for ${item.local}.`);
+    if ((item.write || item.bsmWrite) && source.type === 'Lookup' && !lookupTarget) throw new Error(`Choose a lookup target table for ${item.local}.`);
     let values;
     if (['Picklist', 'State', 'Status'].includes(source.type)) {
       values = matchFlowChoices(source.options, spec.enums?.[item.local], item.values);
@@ -48,7 +48,7 @@ export function validateMapping(table, inspected, mappings) {
     }
     seen.add(item.local); sources.add(item.source);
     const automatic = inspected.suggestions?.some(m => m.local === item.local && m.source === source.name);
-    return { local: item.local, source: source.name, queryName: source.queryName, type: source.type, write: Boolean(item.write), localType, origin: item.origin === 'manual' ? 'manual' : automatic ? 'automatic' : 'manual', ...(values ? { values, choiceOptions: source.options } : {}), ...(lookupTarget ? { lookupTarget } : {}) };
+    return { local: item.local, source: source.name, queryName: source.queryName, type: source.type, write: Boolean(item.write), ...(item.bsmWrite===true?{bsmWrite:true}:{}), localType, origin: item.origin === 'manual' ? 'manual' : automatic ? 'automatic' : 'manual', ...(values ? { values, choiceOptions: source.options } : {}), ...(lookupTarget ? { lookupTarget } : {}) };
   });
   if (table === 'insurance') {
     const supplier = result.find(m => m.local === 'account_id');

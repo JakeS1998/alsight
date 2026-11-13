@@ -5,6 +5,7 @@ import { base44 } from '@/api/base44Client';
 import { Button } from '@/components/ui/button';
 import DataverseEditContext from '@/components/dataverse/DataverseEditContext';
 import flowRequest from '@/components/dataverse/flowClient';
+import BsmRecordFields from '@/components/dataverse/BsmRecordFields';
 const entities = { projects: 'Project', accounts: 'Account', contacts: 'Contact', documents: 'LegalDocument', dma: 'DMA', jct: 'JCT', warranties: 'Warranty' };
 export default function DataverseRecordEdit({ table, record, onUpdated, children }) {
   const { user } = useAuth();
@@ -14,9 +15,10 @@ export default function DataverseRecordEdit({ table, record, onUpdated, children
   const data = status.data;
   const option = data?.tables?.[table] || { enabled: data?.config?.tables?.[table]?.mappings?.some(m => m.write), canWrite: data?.specs?.[table]?.writeRoles?.includes(user?.role) };
   const mappedFields = allowed && linked && option.enabled && option.canWrite ? data?.writeFields?.[table] || data?.config?.tables?.[table]?.mappings?.filter(m => m.write).map(m => m.local) || [] : [];
-  const saved = async (data) => { if (onUpdated) onUpdated(data?.record || await base44.entities[entities[table]].get(record.id)); };
+  const saved = async (data) => { if (data?.refreshRequired) return; if (onUpdated) onUpdated(data?.record || await base44.entities[entities[table]].get(record.id)); };
   return <DataverseEditContext.Provider value={{ table, record, saved, mappedFields, checking: allowed && linked && status.isPending }}>
     {children}
+    {children && user?.role==='bsm' && linked && mappedFields.length>0 && ['projects','documents','dma','jct','warranties'].includes(table) && <BsmRecordFields key={table+record.id} table={table} recordId={record.id} onSaved={saved}/>}
     {children && allowed && linked && status.isError && <div role="alert" className="text-xs text-destructive">Unable to check editable fields. <Button type="button" variant="link" size="sm" onClick={() => status.refetch()}>Retry</Button></div>}
   </DataverseEditContext.Provider>;
 }
