@@ -1,5 +1,5 @@
 .contingency { --primary:var(--contingency); --accent:var(--contingency); }
-.contingency .cc-panel {border:1px solid hsl(var(--border));border-radius:var(--panel-radius);background:hsl(var(--card));padding:1.25rem;}
+.contingency .cc-panel {border:1px solid hsl(var(--border));border-radius:var(--panel-radius);background:hsl(var(--card));padding:1.25rem;box-shadow:var(--surface-shadow);}
 .contingency .cc-panel h2 {font-size:1rem;font-weight:700;margin-bottom:1rem;}
 .contingency .cc-table {width:100%;border-collapse:collapse;font-size:.8rem;}
 .contingency .cc-table th {text-align:left;background:hsl(var(--muted));color:hsl(var(--muted-foreground));font-weight:600;white-space:nowrap;}
@@ -8,7 +8,10 @@
 .contingency .cc-banner {border:1px solid hsl(var(--contingency)/.4);background:hsl(var(--contingency-pale));border-radius:var(--panel-radius);padding:1rem;color:hsl(var(--foreground));}
 .contingency .cc-field {border:1px solid hsl(var(--input));border-radius:var(--radius);background:hsl(var(--card));padding:.6rem .75rem;min-width:0;font-size:.85rem;}
 .contingency .cc-field:focus {outline:2px solid hsl(var(--contingency));outline-offset:2px;}
-.contingency .cc-nav {display:flex;flex-wrap:wrap;gap:.4rem;}
-.contingency .cc-nav a {padding:.6rem .8rem;border-radius:var(--radius);font-size:.8rem;background:hsl(var(--card));border:1px solid hsl(var(--border));}
-.contingency .cc-nav a[aria-current=page] {background:hsl(var(--contingency));color:hsl(var(--foreground));border-color:hsl(var(--contingency));font-weight:700;}
+.contingency .cc-nav {display:flex;flex-wrap:wrap;gap:6px;padding:6px;border-radius:var(--panel-radius);background:hsl(var(--contingency));box-shadow:var(--surface-shadow);}
+.contingency .cc-nav a {padding:.6rem .8rem;border-radius:var(--radius);font-size:.8rem;font-weight:500;color:hsl(var(--als-navy));background:transparent;border:1px solid transparent;}
+.contingency .cc-nav a:hover {background:hsl(var(--card)/.3);}
+.contingency .cc-nav a[aria-current=page] {background:hsl(var(--als-navy));color:hsl(var(--sidebar-foreground));border-color:hsl(var(--als-navy));font-weight:700;}
+.contingency .cc-nav a:focus-visible {outline:2px solid hsl(var(--als-navy));outline-offset:2px;}
+@media (min-width:1024px) {.contingency .cc-panel {padding:24px 27px;}}
 .contingency .cc-metric {font-size:1.7rem;font-weight:700;letter-spacing:-.03em;}

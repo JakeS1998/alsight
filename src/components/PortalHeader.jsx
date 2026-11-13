@@ -41,6 +41,7 @@ export default function PortalHeader() {
   useStickyHeight(headerRef, '--portal-header-height');
   const { user, logout } = useAuth();
   const location = useLocation();
+  const isContingency = location.pathname === '/contingency' || location.pathname.startsWith('/contingency/');
   const navigate = useNavigate();
   const [menuOpen, setMenuOpen] = useState(false);
   const role = user?.role || 'client';
@@ -55,9 +56,9 @@ export default function PortalHeader() {
     const active = item.path === '/opportunities' ? (location.pathname.startsWith('/crm') || location.pathname === '/opportunities' || location.pathname.startsWith('/opportunities/')) : item.path === '/today' ? ['/', '/today', '/today-legacy'].includes(location.pathname) : location.pathname === item.path || location.pathname.startsWith(`${item.path}/`);
     return <Link key={item.path} to={item.path} onClick={() => setMenuOpen(false)} aria-current={active ? 'page' : undefined} data-active={active} data-outstanding={item.path === '/approvals' && approvalSummary.data?.pending > 0} className={`portal-nav-item ${['/today', '/alliance360'].includes(item.path) ? 'font-bold' : ''} ${compact ? 'w-full' : ''}`}>{Icon === UKLFIcon ? <UKLFIcon darkBackground /> : <Icon className="h-4 w-4 shrink-0" />}{item.path === '/alliance360' ? <span>Alliance<span className="text-primary">360</span></span> : item.label}{item.path==='/approvals' && approvalSummary.data?.pending>0 && <span className="rounded-full bg-primary px-1.5 py-0.5 text-[10px] font-bold text-primary-foreground">{approvalSummary.data.pending}</span>}</Link>;
   });
-  return <><header ref={headerRef} className="sticky top-0 z-40 bg-als-navy text-white shadow-sm">
+  return <><header ref={headerRef} className={`sticky top-0 z-40 shadow-sm ${isContingency ? 'portal-contingency-header' : 'bg-als-navy text-white'}`}>
     <div className="portal-topbar">
-      <Link to={portalHomePath(user)} aria-label="ALS Hub home" onClick={() => setMenuOpen(false)} className="portal-logo"><Logo variant="header" className="portal-logo-image" /></Link>
+      <Link to={portalHomePath(user)} aria-label={isContingency ? 'ALS Hub home, Contingency area' : 'ALS Hub home'} onClick={() => setMenuOpen(false)} className="portal-logo"><Logo variant={isContingency ? 'full' : 'header'} className="portal-logo-image" />{isContingency && <span className="portal-contingency-wordmark">CONTINGENCY</span>}</Link>
       <OverflowNavigation>{nav()}</OverflowNavigation>
       <div className="portal-utilities">
         <PortalSearch />
