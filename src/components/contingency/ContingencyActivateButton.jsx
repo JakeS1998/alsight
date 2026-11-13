@@ -1,0 +1,17 @@
+import React,{useState} from 'react';
+import {Button} from '@/components/ui/button';
+import {Dialog,DialogContent,DialogTitle,DialogDescription} from '@/components/ui/dialog';
+import {ShieldAlert} from 'lucide-react';
+import {useContingency} from '@/components/contingency/ContingencyContext';
+import {actors,canApprove,initialState} from '@/components/contingency/demoData';
+export default function ContingencyActivateButton(){
+ const {actor,state,commit,busy}=useContingency(),[open,setOpen]=useState(false),[password,setPassword]=useState(''),[error,setError]=useState('');
+ const pending=state.request?.status==='Pending',eligible=canApprove(actor);
+ const close=value=>{setOpen(value);setPassword('');setError('');};
+ async function activate(event){event.preventDefault();if(!eligible||pending||busy)return;if(password!=='ALS-DEMO'){setError('Incorrect demonstration password. Use ALS-DEMO for this exercise.');return;}
+  const at=new Date().toISOString(),recipients=actors.filter(a=>canApprove(a)&&a.id!==actor.id).map(a=>({id:a.id,name:a.name}));
+  const saved=await commit('Activation initiated; other administrators notified (demo)',s=>{s.request={reason:'Password-confirmed activation initiated',description:'An administrator has initiated the contingency exercise. One different administrator must independently approve.',reference:`EXERCISE-${at.replace(/\D/g,'').slice(0,14)}`,impact:'Employee demonstration access remains disabled until one other administrator approves.',requesterId:actor.id,requester:actor.name,at,status:'Pending',health:structuredClone(s.health),recipients,initiatorConfirmed:true,notificationAt:at};s.reference=s.request.reference;s.approvals=[];s.recovery=null;s.checks=initialState().checks;s.reconciliation=initialState().reconciliation;s.activatedAt=null;s.revision++;s.lastOutcome='';return s;},{approval:'Pending'});
+  if(saved)close(false);
+ }
+ return <><Button disabled={busy||!eligible||pending} onClick={()=>close(true)}><ShieldAlert/>{pending?'Awaiting another administrator':'Activate Contingency'}</Button><Dialog open={open} onOpenChange={close}><DialogContent className="contingency"><DialogTitle>Activate ALS Contingency</DialogTitle><DialogDescription>Confirm with the demonstration password to send an approval notification to every other authorised demonstration administrator. The environment activates only after one of them approves.</DialogDescription><form onSubmit={activate} className="space-y-4"><div className="cc-banner text-sm">PoC password: <strong>ALS-DEMO</strong><p className="mt-1 text-xs">This is a simulated confirmation, not account authentication. Do not enter your actual ALS Hub or Microsoft password. Notifications appear in this exercise only; no real emails are sent.</p></div><label className="session-record-block block text-sm">Activation password (demonstration)<input autoFocus required type="password" autoComplete="off" maxLength={100} className="cc-field mt-2 w-full" value={password} onChange={e=>{setPassword(e.target.value);setError('');}}/></label>{error&&<p role="alert" className="text-sm text-destructive">{error}</p>}<div className="flex gap-2"><Button type="submit" disabled={busy||!password}>Activate & notify other administrators</Button><Button type="button" variant="outline" disabled={busy} onClick={()=>close(false)}>Cancel</Button></div></form></DialogContent></Dialog></>;
+}
