@@ -17,13 +17,14 @@ function signInError(err) {
 }
 
 export default function Login() {
+  const contingency = new URLSearchParams(window.location.search).get('contingency') === '1';
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [remember, setRemember] = useState(false);
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
-  const [showEmailLogin, setShowEmailLogin] = useState(false);
+  const [showEmailLogin, setShowEmailLogin] = useState(contingency);
   // Post-login destination (e.g. the MCP OAuth consent page sends users here
   // with returnTo so the grant flow can resume). Same-origin paths only.
   const returnTo = safeReturnTo();
@@ -59,12 +60,13 @@ export default function Login() {
         <div role="alert" className="mb-5 rounded-lg bg-destructive/10 p-3 text-sm font-medium text-destructive">{error}</div>
       )}
 
-      <Button type="button" className="h-12 w-full font-medium" onClick={handleALSLogin} disabled={loading}>
+      {contingency && <p className="mb-4 rounded-panel border border-border bg-muted p-3 text-sm">Contingency sign-in: use the Base44 email/password credentials prepared before the outage. Password recovery may require access to your email service.</p>}
+      {!contingency && <Button type="button" className="h-12 w-full font-medium" onClick={handleALSLogin} disabled={loading}>
         {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Building2 className="h-4 w-4" aria-hidden="true" />}
         Sign in with your Alliance account
-      </Button>
+      </Button>}
       <div className="mt-5 text-center text-sm text-muted-foreground">
-        External user?{" "}
+        {contingency ? 'Emergency access' : 'External user?'}{" "}
         <button type="button" aria-expanded={showEmailLogin} aria-controls="external-email-login" onClick={() => setShowEmailLogin((open) => !open)} disabled={loading} className="font-semibold text-primary hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring">
           Sign in with email
         </button>
