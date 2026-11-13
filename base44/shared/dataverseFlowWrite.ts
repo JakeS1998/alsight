@@ -6,7 +6,9 @@ import { addFlowWriteValue } from './dataverseWritePayload.ts';
 import {syncDocumentApprovals} from './documentApprovalSync.ts';
 import { generalFlowMappings, assertGeneralFlowWrite } from './approvalWriteBoundary.ts';
 import {roleFlowMappings,assertBsmProjectWrite} from './bsmProjectWriteAccess.ts';
+import {assertMicrosoftSync} from './coMicrosoftPause.ts';
 export async function writeFlowContext(base44, user, config, input) {
+  await assertMicrosoftSync(base44);
   const spec = flowSpecs[input.table], configured = config?.tables?.[input.table];
   const settings = configured ? {...configured,mappings:roleFlowMappings(input.table,configured.mappings||[],user.role)} : null;
   if (input.action === 'save') assertGeneralFlowWrite(input.table, input.values, settings?.mappings);
@@ -34,6 +36,7 @@ export async function loadFlowRecord(context) {
   return { values, choiceValues, etag, fields: generalFlowMappings(Object.keys(flowSpecs).find(key => flowSpecs[key].entity === context.spec.entity), settings.mappings), recordId: record.id, title: record[context.spec.labelField || context.spec.required] };
 }
 export async function saveFlowRecord(base44, context, input) {
+  await assertMicrosoftSync(base44);
   assertGeneralFlowWrite(Object.keys(flowSpecs).find(key => flowSpecs[key].entity === context.spec.entity), input.values, context.settings.mappings);
   if (typeof input.etag !== 'string' || !/^W\/"[0-9]+"$/.test(input.etag)) throw new Error('Reload this record before saving.');
   if (!input.values || typeof input.values !== 'object' || Array.isArray(input.values)) throw new Error('Invalid changes.');

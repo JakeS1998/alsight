@@ -3,7 +3,9 @@ import { flowSpecs, isGuid } from './dataverseFlowFields.ts';
 import { flowSelection } from './dataverseFlowValues.ts';
 import { prepareFlowBatch } from './dataverseFlowBatchReview.ts';
 import { applyFlowUpdates } from './dataverseFlowApply.ts';
+import {assertMicrosoftSync} from './coMicrosoftPause.ts';
 export async function pollFlowBatch(base44, context, table, settings, previous = {}, preview = false) {
+  await assertMicrosoftSync(base44);
   const bytes = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(JSON.stringify([table === 'contacts' ? 'dataverse-authority-v2-skip-placeholder-email' : 'dataverse-authority-v1', context.environment, settings.logicalName, settings.mappings, Boolean(settings.dataverseOnly), settings.columnPlans || {}])));
   const fingerprint = Array.from(new Uint8Array(bytes), byte => byte.toString(16).padStart(2, '0')).join('');
   const checkpoint = previous.fingerprint === fingerprint ? previous : {};
@@ -20,6 +22,7 @@ export async function pollFlowBatch(base44, context, table, settings, previous =
   if (next) { const url = new URL(next); if (url.origin !== context.environment || url.pathname !== address.pathname) throw new Error('Invalid Dataverse continuation address.'); }
   if (preview) return { table, sampled: data.value.length, has_more: Boolean(next) };
   const { updates, counts, appliedReviews } = await prepareFlowBatch(base44, context, table, settings, data.value, true);
+  await assertMicrosoftSync(base44);
   await applyFlowUpdates(base44, table, flowSpecs[table], updates, appliedReviews, data.value.map(row=>row[settings.primaryId]));
   return { fingerprint, watermark: next ? checkpoint.watermark || '' : windowEnd, window_end: next ? windowEnd : '', cursor: next, last_checked_at: new Date().toISOString(), last_batch: counts, initial_scan: Boolean(next && !checkpoint.watermark), processed: (checkpoint.cursor ? checkpoint.processed || 0 : 0) + data.value.length };
 }

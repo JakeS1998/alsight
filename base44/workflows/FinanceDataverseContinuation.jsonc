@@ -10,7 +10,7 @@
         "update"
       ]
     },
-    "condition": "${ .trigger.data.status == \"running\" and .trigger.data.generation != (.trigger.old_data.generation // \"\") }"
+    "condition": "${ .trigger.data.status == \"running\" and (.trigger.data.generation != (.trigger.old_data.generation // \"\") or ((.trigger.data.dispatch_token // \"\" | startswith(\"resume:\")) and .trigger.data.dispatch_token != .trigger.old_data.dispatch_token)) }"
   },
   "definition": {
     "document": {

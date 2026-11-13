@@ -1,6 +1,7 @@
 import {approvalEntity} from './documentApprovalRecords.ts';
 import {flowConfig,sharedFlowContext,flowRequest} from './dataverseFlowApi.ts';
 import {isGuid} from './dataverseFlowFields.ts';
+import {assertMicrosoftSync} from './coMicrosoftPause.ts';
 // Only refresh the mapped document dates and approval fields, never write to Dataverse.
 export async function refreshDocumentApprovalDates(base44,table,documents) {
  if(documents.length>50)throw new Error('Check at most 50 document dates at a time.');
@@ -24,6 +25,7 @@ export async function refreshDocumentApprovalDates(base44,table,documents) {
   if(Object.entries(values).some(([field,value])=>document[field]!==value))changes.push({id:document.id,...values});
   return {...document,...values,approval_source_version:row['@odata.etag']};
  });
+ await assertMicrosoftSync(base44);
  if(changes.length)await base44.asServiceRole.entities[approvalEntity(table)].bulkUpdate(changes);
  return {documents:refreshed,checked:rows.size,missing:ids.length-rows.size};
 }

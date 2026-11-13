@@ -4,7 +4,9 @@ import {financeNamespace} from './financeDataverseSpecs.ts';
 import {configuredFinanceSpecs} from './financeDataverseMappings.ts';
 import {resolveFinanceProjects} from './financeProjectMatching.ts';
 export async function financeSyncState(base44){return (await base44.asServiceRole.entities.FinanceDataverseSync.filter({key:'primary'},{limit:1})).items[0]||null;}
+import {microsoftSyncPause,assertMicrosoftSync} from './coMicrosoftPause.ts';
 export async function startFinanceSync(base44){
+ const paused=await microsoftSyncPause(base44);if(paused)return paused;
  const old=await financeSyncState(base44);if(old?.status==='running'&&(new Date(old.lease_until||0)>new Date()||Date.now()-new Date(old.updated_date).getTime()<300000))throw new Error('A finance sync is already processing.');
  const discovered=await discoverFinanceTables(base44),tables=[],specs=configuredFinanceSpecs(await flowConfig(base44));
  for(const spec of specs){
@@ -33,6 +35,7 @@ export async function continueFinanceSync(base44,input){
 }
 const number=value=>typeof value==='number'&&Number.isFinite(value)?value:null;
 export async function syncFinanceBatch(base44,input){
+ const paused=await microsoftSyncPause(base44);if(paused)return paused;
  const db=base44.entities,state=await financeSyncState(base44);
  if(!state||state.status!=='running'||state.dispatch_token!==input.dispatchToken)return {skipped:true};
  if(state.page_index>=1000){await db.FinanceDataverseSync.update(state.id,{status:'error',error:'Finance sync reached its page limit; ask an administrator to review the source.'});throw new Error('Finance sync reached its page limit.');}
@@ -57,10 +60,11 @@ export async function syncFinanceBatch(base44,input){
    const projects=ids.length?(await db.FinanceDataverseRecord.filter({generation:state.generation,kind:'projects',source_id:{$in:ids}},{limit:200})).items:[];
    for(const r of records){const p=projects.find(p=>p.source_id===r.project_source_id);if(p){r.project_key=p.project_key;r.project_name=p.name;r.project_code=p.reference;}}
   }
+  await assertMicrosoftSync(base44);
   if(records.length)await db.FinanceDataverseRecord.upsert(records,{key:'record_key'});
   t.processed+=records.length;t.cursor=d['@odata.nextLink']||'';t.complete=!t.cursor;
   const index=t.complete?state.table_index+1:state.table_index,completed=index>=tables.length;
   await db.FinanceDataverseSync.update(state.id,{tables:{list:tables},table_index:index,page_index:state.page_index+1,status:completed?'completed':'running',dispatch_token:completed?'':crypto.randomUUID(),lease_token:'',lease_until:'1970-01-01T00:00:00.000Z',...(completed?{active_generation:state.generation,last_completed_at:at}:{})});
   return {processed:records.length,table:t.logical,completed};
- }catch(error){await db.FinanceDataverseSync.update(state.id,{status:'error',error:String(error.message).slice(0,1000),lease_token:'',lease_until:'1970-01-01T00:00:00.000Z'});throw error;}
+ }catch(error){if(error.code==='CONTINGENCY_SYNC_PAUSED'){await db.FinanceDataverseSync.update(state.id,{lease_token:'',lease_until:'1970-01-01T00:00:00.000Z'});return {skipped:true,paused:true};}await db.FinanceDataverseSync.update(state.id,{status:'error',error:String(error.message).slice(0,1000),lease_token:'',lease_until:'1970-01-01T00:00:00.000Z'});throw error;}
 }

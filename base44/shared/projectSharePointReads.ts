@@ -1,6 +1,9 @@
+import {assertMicrosoftSync} from './coMicrosoftPause.ts';
 export async function projectSharePointReads(base44) {
+ await assertMicrosoftSync(base44);
  const {accessToken}=await base44.asServiceRole.connectors.getConnection('share_point');
  async function graph(path) {
+  await assertMicrosoftSync(base44);
   if(!path.startsWith('/'))throw new Error('Invalid SharePoint request.');
   const response=await fetch('https://graph.microsoft.com/v1.0'+path,{headers:{Authorization:`Bearer ${accessToken}`},signal:AbortSignal.timeout(30000)});
   const text=await response.text(),data=text?JSON.parse(text):null;

@@ -1,4 +1,5 @@
 import { dataverseRequest } from './dataverseRequest.ts';
+import {assertMicrosoftSync} from './coMicrosoftPause.ts';
 import { personalDataverseContext, getPersonalDataverseToken, delegatedDataverseIdentity } from './dataverseUserAuth.ts';
 export async function flowConfig(base44) {
   return (await base44.asServiceRole.entities.DataverseFlowConfig.filter({ key: 'primary' }, { limit: 1 })).items[0] || null;
@@ -19,7 +20,8 @@ export async function flowRequest(environment, token, path, options = {}) {
   }
   return response.status === 204 ? null : await response.json();
 }
-export async function sharedFlowContext(base44, config) {
+export async function sharedFlowContext(base44, config, recovery=false) {
+  await assertMicrosoftSync(base44,recovery);
   if (!config?.source_connection_id) throw new Error('An administrator must confirm Jake’s shared read connection first.');
   const primary = (await base44.asServiceRole.entities.DataverseConnection.filter({ key: 'primary' }, { limit: 1 })).items[0];
   if (primary?.environment_url !== config.environment_url) throw new Error('The environment changed. Confirm Jake’s connection and mappings again.');

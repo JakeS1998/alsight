@@ -3,6 +3,7 @@ import {powerBIOrderState} from './powerBIOrderState.ts';
 import {modelColumns,validateOrderSources,orderTotalsDax,orderPageDax} from './powerBIOrderDax.ts';
 import {sourceKey,resolveFinanceProjects} from './financeProjectMatching.ts';
 import {mapPowerBIOrderDates} from './powerBIOrderDates.ts';
+import {assertMicrosoftSync} from './coMicrosoftPause.ts';
 export async function configurePowerBIOrders(base44,input){
  const old=await powerBIOrderState(base44);if(old?.status==='running')throw new Error('Wait for the current import to finish before changing its mappings.');
  const address=reportAddress(input.reportURL),token=await powerToken(base44),report=await powerRequest(token,`groups/${address.workspace_id}/reports/${address.report_id}`);
@@ -11,6 +12,7 @@ export async function configurePowerBIOrders(base44,input){
  const record=old?await base44.entities.PowerBIOrderImport.update(old.id,values):await base44.entities.PowerBIOrderImport.create(values);return {state:record,notice:'Model field mappings verified and saved. Import the data to review it before switching reporting.'};
 }
 export async function startPowerBIOrders(base44,options={}){
+ await assertMicrosoftSync(base44);
  const state=await powerBIOrderState(base44);if(!state)throw new Error('Save the semantic-model mappings first.');
  if(state.status==='running')throw new Error('An import is already running. Continue it rather than starting again.');
  if(state.lease_until>new Date().toISOString()&&state.lease_token!==options.leaseToken)throw new Error('Another import is starting. Wait for its progress to appear.');
@@ -24,6 +26,7 @@ export async function startPowerBIOrders(base44,options={}){
  const record=await base44.entities.PowerBIOrderImport.update(state.id,{status:'running',generation:crypto.randomUUID(),table_index:0,tables:{list:tables,...(options.automatic?{automatic:{revision:state.revision,started_at:new Date().toISOString()}}:{})},error:'',lease_token:'',lease_until:'1970-01-01T00:00:00.000Z'});return {state:record};
 }
 export async function batchPowerBIOrders(base44,input){
+ await assertMicrosoftSync(base44);
  const state=await powerBIOrderState(base44);if(!state||state.status!=='running')return {state};
  if(input.generation!==state.generation)throw new Error('This import has changed. Reload its progress.');
  const db=base44.entities,now=new Date().toISOString(),lease=crypto.randomUUID();
@@ -37,6 +40,7 @@ export async function batchPowerBIOrders(base44,input){
   const mapped=await resolveFinanceProjects(base44,{dataset_id:state.namespace},pairs),keys=new Map(mapped.map(r=>[JSON.stringify([r.Project,r.Code]),r.source_key]));
   const records=rows.map(r=>({record_key:`${state.generation}:${t.type}:${r.Reference}`,generation:state.generation,namespace:state.namespace,kind:t.kind,source_table:t.logical,source_id:`${t.type}:${r.Reference}`,reference:r.Reference,name:r.Reference,project_key:keys.get(JSON.stringify([r.Project,r.Code])),project_name:r.Project,project_code:r.Code,supplier_name:r.Supplier||'',amount:typeof r.Amount==='number'?r.Amount:null,has_amount:typeof r.Amount==='number',date:dateByRef.get(r.Reference)||null,vat:null,gross:null,active:true,synced_at:at}));
   const projects=mapped.map(r=>({record_key:`${state.generation}:project:${r.source_key}`,namespace:state.namespace,generation:state.generation,kind:'projects',source_table:'Power BI order projects',source_id:r.source_key,project_key:r.source_key,project_name:r.Project,project_code:r.Code,name:r.Project,reference:r.Code,has_amount:false,active:true,synced_at:at}));
+  await assertMicrosoftSync(base44);
   if(records.length)await db.FinanceDataverseRecord.upsert([...records,...projects],{key:'record_key'});
   t.processed+=rows.length;t.cursor=rows.at(-1)?.Reference||t.cursor;t.complete=rows.length<100;
   if(t.processed>t.expected)throw new Error('The model changed during import. Start a fresh import.');
@@ -50,9 +54,10 @@ export async function batchPowerBIOrders(base44,input){
    }
   }
   const completed=index===tables.length;const record=await db.PowerBIOrderImport.update(state.id,{tables:{...state.tables,list:tables},table_index:index,status:completed?'completed':'running',lease_token:'',lease_until:'1970-01-01T00:00:00.000Z',...(completed?{last_completed_at:at}:{})});return {state:record,processed:rows.length};
- }catch(error){await db.PowerBIOrderImport.update(state.id,{status:'error',error:String(error.message).slice(0,1000),lease_token:'',lease_until:'1970-01-01T00:00:00.000Z'});throw error;}
+ }catch(error){if(error.code==='CONTINGENCY_SYNC_PAUSED'){await db.PowerBIOrderImport.update(state.id,{lease_token:'',lease_until:'1970-01-01T00:00:00.000Z'});return {state,busy:true,paused:true};}await db.PowerBIOrderImport.update(state.id,{status:'error',error:String(error.message).slice(0,1000),lease_token:'',lease_until:'1970-01-01T00:00:00.000Z'});throw error;}
 }
 export async function confirmPowerBIOrders(base44,user,input){
+ await assertMicrosoftSync(base44);
  const state=await powerBIOrderState(base44);if(state?.status!=='completed'||input.generation!==state.generation||input.revision!==state.revision)throw new Error('Complete and review the latest import before switching reporting.');
  if(input.netGBPConfirmed!==true)throw new Error('Confirm that the mapped Total columns are GBP values excluding VAT before using them as net financial figures.');
  const record=await base44.entities.PowerBIOrderImport.update(state.id,{active_generation:state.generation,active_sources:state.sources,confirmed_at:new Date().toISOString(),confirmed_by:user.id});return {state:record,notice:'Power BI is now the PO/SO reporting source. Dataverse records have not been deleted or edited.'};

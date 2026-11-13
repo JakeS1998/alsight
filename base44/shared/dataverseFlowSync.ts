@@ -3,7 +3,9 @@ import { flowSpecs, isGuid } from './dataverseFlowFields.ts';
 import { flowSelection } from './dataverseFlowValues.ts';
 import { prepareFlowBatch } from './dataverseFlowBatchReview.ts';
 import { applyFlowUpdates } from './dataverseFlowApply.ts';
+import {assertMicrosoftSync} from './coMicrosoftPause.ts';
 export async function syncFlowBatch(base44, context, table, config, restart) {
+  await assertMicrosoftSync(base44);
   const settings = config.tables?.[table], spec = flowSpecs[table];
   if (!settings?.mappings?.length) throw new Error('Confirm the table mapping before synchronising.');
   const select = flowSelection(settings, table);
@@ -14,6 +16,7 @@ export async function syncFlowBatch(base44, context, table, config, restart) {
   if (!Array.isArray(data.value) || data.value.length > 50) throw new Error('Dataverse returned an unexpectedly large batch.');
   if (data.value.some(row => !isGuid(row[settings.primaryId]))) throw new Error('Dataverse returned an invalid record identity.');
   const { updates, counts, appliedReviews } = await prepareFlowBatch(base44, context, table, settings, data.value);
+  await assertMicrosoftSync(base44);
   await applyFlowUpdates(base44, table, spec, updates, appliedReviews, data.value.map(row=>row[settings.primaryId]));
   const next = data['@odata.nextLink'] || '';
   if (next && (new URL(next).origin !== context.environment || new URL(next).pathname !== `/api/data/v9.2/${settings.entitySet}`)) throw new Error('Dataverse returned an invalid continuation address.');

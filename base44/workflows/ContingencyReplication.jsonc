@@ -17,7 +17,7 @@
     }
   },
   "name": "Contingency approved replication",
-  "description": "Runs around the clock, checking every five minutes for approved source batches due at their configured cadence. Production standby needs no incident or owner-release approval. Disabled configuration and active incidents skip Microsoft reads. No recovery write-back is scheduled.",
+  "description": "Runs around the clock, checking every five minutes for approved source batches due at their configured cadence. Production standby needs no incident or owner-release approval. Disabled configuration and active incidents skip Microsoft reads. Approved evening cutover starts at 21:00 Europe/London and retries blocked recovery in bounded batches; ordinary Microsoft copying remains frozen until verified closure.",
   "definition": {
     "document": {
       "dsl": "1.0.0",
@@ -26,6 +26,22 @@
       "namespace": "base44"
     },
     "do": [
+      {
+        "process_evening_cutover": {
+          "call": "invoke_backend_function",
+          "with": {
+            "function_name": "manageContingencyOperations",
+            "args": {
+              "action": "cutover"
+            }
+          },
+          "then": "copy_due_batch",
+          "x-base44": {
+            "title": "Run approved evening return to live",
+            "description": "Starts at 21:00 London; close only after verified replay"
+          }
+        }
+      },
       {
         "copy_due_batch": {
           "call": "invoke_backend_function",

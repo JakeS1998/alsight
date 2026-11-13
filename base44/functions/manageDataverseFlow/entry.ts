@@ -1,4 +1,5 @@
 import { createClientFromRequest } from 'npm:@base44/sdk@0.8.52';
+import {microsoftSyncPause} from '../../shared/coMicrosoftPause.ts';
 import { dataverseRoles } from '../../shared/dataverseUserAuth.ts';
 import { flowConfig, sharedFlowContext, confirmJake, flowRequest } from '../../shared/dataverseFlowApi.ts';
 import { flowSpecs } from '../../shared/dataverseFlowFields.ts';
@@ -28,6 +29,7 @@ export default async function(req) {
     const input = JSON.parse(raw), adminActions = ['confirmJake', 'checkShared', 'discover', 'inspect', 'mapping', 'preview', 'sync', 'poll', 'relationships', 'cleanDMA', 'reviews', 'reviewDetails', 'reviewTargets', 'decideReview'];
     if (!['status', 'load', 'save', 'createProject', 'createContact', ...adminActions].includes(input.action)) return Response.json({ error: 'Invalid operation.' }, { status: 400 });
     if (adminActions.includes(input.action) && user.role !== 'admin') return Response.json({ error: 'Administrator access required.' }, { status: 403 });
+    if(['poll','sync'].includes(input.action)){const paused=await microsoftSyncPause(base44);if(paused)return Response.json(paused);}
     let config = await flowConfig(base44);
     if (input.action === 'createProject') return Response.json(await createDataverseProject(base44,user,config,input));
     if (input.action === 'createContact') return Response.json(await createDataverseContact(base44,user,config,input));

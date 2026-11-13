@@ -32,6 +32,7 @@ export async function pollDataverse(base44, config, input) {
       await db.update(state.id, { tables, remaining_tables: remaining, dispatch_token: completed ? '' : crypto.randomUUID(), last_activity: now, error: '', status: completed ? 'completed' : 'running', ...(completed ? { last_completed_at: now } : {}) });
       return { continue: !completed, cycle_token: cycle, table: table || null, processed: checkpoint?.processed || 0, counts: checkpoint?.last_batch || {} };
     } catch (error) {
+      if(error.code==='CONTINGENCY_SYNC_PAUSED')return {continue:false,paused:true};
       await db.update(state.id, { status: 'error', error: String(error.message || 'Automatic Dataverse sync failed.').slice(0, 1000), last_activity: new Date().toISOString() });
       throw error;
     }

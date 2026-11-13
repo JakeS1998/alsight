@@ -20,6 +20,7 @@ export async function continuePsoScheduledSync(db,reads,stateId,ticket) {
   return result;
  }catch(error){
   const current=await db.PsoSourceSyncState.get(stateId);
+  if(error.code==='CONTINGENCY_SYNC_PAUSED'){if(current.lease_token===token)await db.PsoSourceSyncState.update(stateId,{lease_token:'',lease_until:unlocked});return {skipped:true,paused:true};}
   if(current.lease_token===token)await db.PsoSourceSyncState.update(stateId,{status:'error',error:String(error.message).slice(0,1000),lease_until:unlocked,lease_token:''});
   throw error;
  }

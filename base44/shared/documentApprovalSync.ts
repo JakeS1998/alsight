@@ -53,7 +53,9 @@ export async function syncDocumentApprovals(base44,table,documents) {
  }
  return counts;
 }
+import {microsoftSyncPause} from './coMicrosoftPause.ts';
 export async function syncDocumentApprovalPage(base44,input) {
+ const paused=await microsoftSyncPause(base44);if(paused)return paused;
  const entity=approvalEntity(input.table);
  if(!entity)throw new Error('Choose legal documents, development agreements or warranties.');
  if(input.cursor!==undefined && (typeof input.cursor!=='string' || input.cursor.length>2000))throw new Error('Invalid document cursor.');

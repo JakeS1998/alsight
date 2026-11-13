@@ -1,5 +1,6 @@
 import { secrets } from 'base44:runtime';
 import {delegatedPowerBIToken} from './powerBIUserAuth.ts';
+import {assertMicrosoftSync} from './coMicrosoftPause.ts';
 export const financeRoles = ['admin','finance','director'];
 const guid=/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 export function reportAddress(value){
@@ -18,6 +19,7 @@ export function validateSources(value){
  }}return sources;
 }
 export async function powerToken(base44,useApplicationCredentials=false){
+  if(base44)await assertMicrosoftSync(base44);
   if(base44&&!useApplicationCredentials){const delegated=await delegatedPowerBIToken(base44);if(delegated)return delegated;}
  const tenant=secrets.get('POWERBI_TENANT_ID')?.trim(),client=secrets.get('POWERBI_CLIENT_ID')?.trim(),secret=secrets.get('POWERBI_CLIENT_SECRET');
  if(!guid.test(tenant||'')||!guid.test(client||'')||!secret)throw new Error('Ask your Microsoft administrator to confirm the stored Power BI application credentials.');

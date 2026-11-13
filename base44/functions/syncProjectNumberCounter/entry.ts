@@ -1,5 +1,6 @@
 import {createClientFromRequest} from 'npm:@base44/sdk@0.8.54';
 import {reconcileProjectCounter} from '../../shared/projectCounterReconciliation.ts';
+import {microsoftSyncPause} from '../../shared/coMicrosoftPause.ts';
 export default async function(req) {
  try {
   const base44=createClientFromRequest(req);
@@ -9,6 +10,7 @@ export default async function(req) {
   if(req.method!=='POST')return Response.json({error:'Method not allowed.'},{status:405});
   const input=await req.json().catch(()=>({}));
   if(input.action&&!['sync','preview'].includes(input.action))return Response.json({error:'Choose a valid counter operation.'},{status:400});
+  const paused=await microsoftSyncPause(base44);if(paused)return Response.json(paused);
   return Response.json(await reconcileProjectCounter(base44,user,input.action==='preview'));
  } catch(error){return Response.json({error:error.message},{status:500});}
 }

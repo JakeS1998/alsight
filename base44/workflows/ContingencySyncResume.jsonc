@@ -1,0 +1,51 @@
+{
+  "name": "Resume paused Microsoft sync after contingency",
+  "description": "After verified evening closure, let old batch leases expire and resume interrupted finance and SharePoint continuations. Regular scheduled Microsoft sync is already released by closure.",
+  "trigger": {
+    "config": {
+      "trigger_type": "entity",
+      "entity_name": "COIncident",
+      "events": [
+        "update"
+      ]
+    },
+    "condition": "${ .trigger.data.status == \"closed\" and .trigger.old_data.status != \"closed\" and (.trigger.data.details.cutover_completed_at // \"\") != \"\" }"
+  },
+  "definition": {
+    "document": {
+      "dsl": "1.0.0",
+      "name": "contingency_sync_resume",
+      "version": "1.0",
+      "namespace": "base44"
+    },
+    "do": [
+      {
+        "release_old_batch_leases": {
+          "wait": "PT6M",
+          "then": "resume_paused_batches",
+          "x-base44": {
+            "title": "Allow pre-outage batch leases to expire",
+            "description": "Avoid overlapping stale import workers"
+          }
+        }
+      },
+      {
+        "resume_paused_batches": {
+          "call": "invoke_backend_function",
+          "with": {
+            "function_name": "manageContingencyOperations",
+            "args": {
+              "action": "resume_syncs",
+              "incident_id": "${ .trigger.entity_id }"
+            }
+          },
+          "then": "end",
+          "x-base44": {
+            "title": "Resume interrupted Microsoft sync batches",
+            "description": "Resume only after verified closure and no new incident"
+          }
+        }
+      }
+    ]
+  }
+}

@@ -1,0 +1,51 @@
+{
+  "name": "Contingency evening cutover continuation",
+  "description": "Continues independently approved evening Microsoft write-back in bounded batches. Stale tickets and concurrent workers are rejected. Access and normal sync remain paused until verified closure.",
+  "trigger": {
+    "config": {
+      "trigger_type": "entity",
+      "entity_name": "COIncident",
+      "events": [
+        "update"
+      ]
+    },
+    "condition": "${ .trigger.data.status == \"recovering\" and (.trigger.data.details.cutover_ticket // \"\") != \"\" and .trigger.data.details.cutover_ticket != .trigger.old_data.details.cutover_ticket }"
+  },
+  "definition": {
+    "document": {
+      "dsl": "1.0.0",
+      "name": "contingency_evening_cutover_continuation",
+      "version": "1.0",
+      "namespace": "base44"
+    },
+    "do": [
+      {
+        "bounded_pause": {
+          "wait": "PT1M",
+          "then": "continue_cutover",
+          "x-base44": {
+            "title": "Wait before the next write-back batch",
+            "description": "Protect rate limits and allow other operations"
+          }
+        }
+      },
+      {
+        "continue_cutover": {
+          "call": "invoke_backend_function",
+          "with": {
+            "function_name": "manageContingencyOperations",
+            "args": {
+              "action": "cutover",
+              "ticket": "${ .trigger.data.details.cutover_ticket }"
+            }
+          },
+          "then": "end",
+          "x-base44": {
+            "title": "Reconcile the next approved changes",
+            "description": "Verify Microsoft updates before closing access"
+          }
+        }
+      }
+    ]
+  }
+}

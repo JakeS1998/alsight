@@ -1,4 +1,5 @@
 import {powerBIOrderState} from './powerBIOrderState.ts';
+import {microsoftSyncPause} from './coMicrosoftPause.ts';
 import {startPowerBIOrders,batchPowerBIOrders,confirmPowerBIOrders} from './powerBIOrderImport.ts';
 const sameSources=state=>JSON.stringify(state.sources)===JSON.stringify(state.active_sources);
 const automatic=state=>state.tables?.automatic?.revision===state.revision;
@@ -9,7 +10,8 @@ async function publish(base44,user,state){
  return {status:'completed',generation:state.generation,published:true};
 }
 export async function syncPowerBIOrders(base44,user,input){
- let state=await powerBIOrderState(base44);
+  const paused=await microsoftSyncPause(base44);if(paused)return paused;
+  let state=await powerBIOrderState(base44);
  if(!state?.active_generation)return {status:'skipped',reason:'Complete the initial Power BI import and confirmation first.'};
  if(!sameSources(state)||state.status==='configured')return {status:'skipped',reason:'Changed mappings need manual review and confirmation.'};
  if(input.begin===true){

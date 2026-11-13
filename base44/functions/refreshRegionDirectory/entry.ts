@@ -1,4 +1,5 @@
 import { createClientFromRequest } from 'npm:@base44/sdk@0.8.54';
+import {microsoftSyncPause} from '../../shared/coMicrosoftPause.ts';
 import { flowConfig, sharedFlowContext, flowRequest } from '../../shared/dataverseFlowApi.ts';
 export default async function(req) {
   try {
@@ -6,6 +7,9 @@ export default async function(req) {
     const user = await base44.auth.me().catch(error => error.status === 401 ? null : Promise.reject(error));
     if (!user) return Response.json({ error: 'Sign in required.' }, { status: 401 });
     if (user.role !== 'admin') return Response.json({ error: 'Administrator access required.' }, { status: 403 });
+    const paused=await microsoftSyncPause(base44);if(paused)return Response.json(paused);
+    const input=req.method==='POST'?await req.json().catch(()=>({})):{};
+    if(input.dry_run===true)return Response.json({dry_run:true,paused:false});
     const { environment, token } = await sharedFlowContext(base44, await flowConfig(base44));
     const positions = await flowRequest(environment, token, 'positions?$select=positionid,name,statecode,_bss_headofdepartment_value&$top=100', { headers: { Prefer: 'odata.include-annotations="OData.Community.Display.V1.FormattedValue"' } });
     if (positions['@odata.nextLink']) return Response.json({ error: 'Region directory exceeds the supported 100 rows; nothing changed.' }, { status: 422 });
