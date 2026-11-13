@@ -1,5 +1,6 @@
 import {contractProjectTerms} from './aseContractProjectTerms.ts';
 import {annualiseTerms} from './aseCommercialTerms.ts';
+import {commercialDates} from './aseCommercialDates.ts';
 export async function appointmentContractExposure(base44,account,date,dmaEvidence=null) {
   const aliases=[account.id,account.dataverse_id].filter(Boolean);
   const grouped=await base44.entities.LegalDocument.aggregate({query:{account_id:{$in:aliases},executed:'yes',document_type:{$in:['appointment_pm','appointment_pd_cdm','appointment_architect','appointment_pd_br']}},groupBy:['project_id','document_type','document_id'],sum:'total_fees',limit:1000});
@@ -13,16 +14,16 @@ export async function appointmentContractExposure(base44,account,date,dmaEvidenc
     for(const row of linked) {
       if(roleCounts.get(`${row.project_id}:${row.document_type}`)>1) {duplicates+=row.count;continue;}
       const recorded=Number.isFinite(row.sum_total_fees) && row.sum_total_fees>0,fallback=row.pathway_terms || row.dma_terms,value=recorded ? row.sum_total_fees : fallback?.value;
-      const start=row.recorded_terms?.start,end=row.recorded_terms?.end;
+      const dates=commercialDates(row.recorded_terms,date),{start,end}=dates;
       if(!value || !start || !end) {missingTerms+=row.count;continue;}
       let terms;try {terms=annualiseTerms(value,start,end);}catch {missingTerms+=row.count;continue;}
       if(start>date || end<date) {outsideTerm+=row.count;continue;}
       annual+=terms.annual_value;total+=value;included++;if(!recorded&&row.pathway_terms) proposalCount++;if(!recorded&&!row.pathway_terms&&row.dma_terms) dmaCount++;
-      if(contracts.length<20) contracts.push({id:`appointment:${row.project_id}:${row.document_type}`,document_id:row.document_id,project_id:row.project_id,commercial_effective_value:value,commercial_effective_annual_value:terms.annual_value,commercial_effective_start:start,commercial_effective_end:end,commercial_effective_reference:row.document_id,commercial_effective_date_basis:'project_programme',commercial_effective_mode:recorded ? 'appointment_fee' : row.pathway_terms ? 'pathway_proposal' : 'dma_schedule5',commercial_effective_source:{project_name:row.project_name,project_id:row.project_record_id,date_source:row.recorded_terms.date_source,...(!recorded ? fallback : {source:'Recorded company-specific signed professional appointment fee; project programme dates are an estimate.'})}});
+      if(contracts.length<20) contracts.push({id:`appointment:${row.project_id}:${row.document_type}`,document_id:row.document_id,project_id:row.project_id,commercial_effective_value:value,commercial_effective_annual_value:terms.annual_value,commercial_effective_start:start,commercial_effective_end:end,commercial_effective_reference:row.document_id,commercial_effective_date_basis:dates.date_basis,commercial_effective_mode:recorded ? 'appointment_fee' : row.pathway_terms ? 'pathway_proposal' : 'dma_schedule5',commercial_effective_source:{project_name:row.project_name,project_id:row.project_record_id,date_source:dates.date_source,...(!recorded ? fallback : {source:'Recorded company-specific signed professional appointment fee, assumed excluding VAT; programme or current financial-year dates are an estimate.'})}});
     }
   }
   const warnings=[];
-  if(missingTerms) warnings.push(`${missingTerms} signed professional appointment(s) are linked to this company but lack a usable recorded appointment fee, company-and-role matched Pathway fee or clearly attributable signed-DMA fallback and complete programme dates. Their existence is not treated as zero income.`);
+  if(missingTerms) warnings.push(`${missingTerms} signed professional appointment(s) are linked to this company but lack a usable recorded appointment fee, company-and-role matched Pathway fee or clearly attributable signed-DMA fallback . Unknown programme dates are allocated in full to the current financial year. Their existence is not treated as zero income.`);
   if(outsideTerm) warnings.push(`${outsideTerm} signed professional appointment(s) are outside the current recorded programme term.`);
   if(duplicates) warnings.push(`${duplicates} appointment record(s) sharing a project and role are excluded to avoid counting original and replacement appointments twice.`);
   if(included>contracts.length) warnings.push('The professional appointment total includes all eligible appointments; the evidence view retains the first 20 appointment inputs.');

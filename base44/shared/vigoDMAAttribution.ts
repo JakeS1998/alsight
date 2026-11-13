@@ -41,17 +41,17 @@ export async function readVigoDMAEvidence(base44,account,automatic=false) {
   // A role-only professional fee can use one unambiguous executed appointment, never a generic build budget.
   if(type==='contractor'&&!hasName)candidates=[];
   const document=candidates.length===1?candidates[0]:null,company=document?page.items.find(a=>aliases(a).includes(document.account_id)):null;
-  let reason=!type?'Not a clearly attributable supplier fee role.':!document||!company?'Supplier cannot be identified unambiguously from an executed, role-matched appointment / contract.':row.confidence!=='high'||!row.page||!row.quote||!(row.amount>0)?'Fee amount or page evidence is unclear.':normalise(row.vat_basis)!=='excludingvat'?'VAT basis is not confirmed as excluding VAT.':'';
+  let reason=!type?'Not a clearly attributable supplier fee role.':!document||!company?'Supplier cannot be identified unambiguously from an executed, role-matched appointment / contract.':row.confidence!=='high'||!row.page||!row.quote||!(row.amount>0)?'Fee amount or page evidence is unclear.':'';
   if(!reason&&extraction.rows.filter(r=>types[normalise(r.role)]===type).length!==1)reason='Multiple fee rows for this role need clarification; no amounts are inferred or added twice.';
-  return {...row,document_type:type,document_id:document?.id,document_reference:document?.document_id,account_id:company?.id,supplier:company?.name||'',match_source:document?`Executed ${document.document_id} (${document.document_type})`:'',reason};
+  return {...row,vat_basis:'excluding VAT (assumed)',document_type:type,document_id:document?.id,document_reference:document?.document_id,account_id:company?.id,supplier:company?.name||'',match_source:document?`Executed ${document.document_id} (${document.document_type})`:'',reason};
  }).filter(row=>!account||row.account_id===account.id);
  const programme=delivery.items.length===1?delivery.items[0]:null;
- return {...base,rows,programme_complete:!!(programme?.contract_start&&(programme?.forecast_pc||programme?.original_pc)),programme_note:programme?.contract_start&&(programme?.forecast_pc||programme?.original_pc)?'Existing programme eligibility rules apply.':'No complete project programme dates are recorded; fees remain excluded from the current-period comparison.'};
+ return {...base,rows,programme_complete:!!(programme?.contract_start&&(programme?.forecast_pc||programme?.original_pc)),programme_note:programme?.contract_start&&(programme?.forecast_pc||programme?.original_pc)?'Existing programme eligibility rules apply.':'No complete project programme dates are recorded; the full fee is allocated to the current financial year (1 April to 31 March).'};
 }
 export function dmaTermsForContract(evidence,contract) {
  if(evidence?.status!=='ready')return null;
  const matches=evidence.rows.filter(row=>Boolean(contract.id)&&row.document_id===contract.id||Boolean(contract.document_id)&&row.document_type===(contract.document_type||'contractor')&&contract.document_id===row.document_reference);
  if(matches.length!==1||matches[0].reason)return null;
  const row=matches[0];
- return {value:row.amount,source:`Signed Vigo Road DMA Schedule 5, PDF page ${row.page}: ${row.quote}. Supplier identified by ${row.match_source}. OCR-derived fallback excluding VAT, not independently verified.`,source_url:evidence.source_url,source_page:row.page,source_etag:evidence.source_etag};
+ return {value:row.amount,source:`Signed Vigo Road DMA Schedule 5, PDF page ${row.page}: ${row.quote}. Supplier identified by ${row.match_source}. OCR-derived fallback; VAT excluded by assumption, not independently verified.`,source_url:evidence.source_url,source_page:row.page,source_etag:evidence.source_etag};
 }

@@ -4,8 +4,8 @@ export function accountsTurnoverExemption(content='') {
   return match ? {confirmed:true,quote:match[0].slice(0,400)} : null;
 }
 export function balanceSheetProxy(period,number,now=new Date(),maxAgeDays=913) {
-  const unavailable={status:'unavailable',reason:'An exemption-confirmed, recent company-only GBP balance-sheet total is required.'};
-  if(!period?.filing_exemption?.confirmed || !accountsTurnoverExemption(period.filing_exemption.quote)) return unavailable;
+  const unavailable={status:'unavailable',reason:'A recent company-only GBP balance-sheet total is required when turnover is unavailable.'};
+  if(!period) return unavailable;
   let source;try {source=new URL(period.source_url);}catch {return unavailable;}
   const age=(now.getTime()-Date.parse(period.end))/86400000,filed=Date.parse(period.filed_at);
   if(!Number.isFinite(age) || age<0 || age>maxAgeDays || !Number.isFinite(filed) || filed<Date.parse(period.end) || filed>now.getTime() || source.protocol!=='https:' || source.hostname!=='find-and-update.company-information.service.gov.uk' || !source.pathname.startsWith(`/company/${number}/filing-history/`)) return unavailable;
@@ -14,5 +14,5 @@ export function balanceSheetProxy(period,number,now=new Date(),maxAgeDays=913) {
   const net=metrics.net_assets;
   if(!valid(net) || !cited(net) || net.value<=0 || pdf && !/\bnet assets\b|\btotal net assets\b/i.test(net.quote)) return {...unavailable,reason:'The exempt filing must disclose a positive balance-sheet total (net assets: assets minus all liabilities). Gross assets and assets less only current liabilities are not substituted.'};
   const value=net.value,derivation='Disclosed net assets: total assets minus all liabilities',citations=[net];
-  return {status:'available',basis:'balance_sheet_total',metric:'net_assets',value,currency:'GBP',period_end:period.end,source_date:period.filed_at,source_reference:source.href,company_number:number,annual_verified:false,confidence:'Low',extraction:pdf ? 'pdf' : 'tagged',derivation,exemption:period.filing_exemption,citations:citations.map(metric=>({concept:metric.concept,value:metric.value,page:metric.page,quote:metric.quote})),...(pdf ? {pdf_file_uri:period.pdf_file_uri} : {}),limitation:'Turnover is unavailable under the accounts filing exemption. Balance-sheet total (net assets: total assets minus all liabilities) is used instead. This is a Low-confidence net-assets exposure proxy, not revenue concentration or an estimate of turnover; it does not enter turnover-based ASE scoring.'};
+  return {status:'available',basis:'balance_sheet_total',metric:'net_assets',value,currency:'GBP',period_end:period.end,source_date:period.filed_at,source_reference:source.href,company_number:number,annual_verified:false,confidence:'Low',extraction:pdf ? 'pdf' : 'tagged',derivation,exemption:period.filing_exemption,citations:citations.map(metric=>({concept:metric.concept,value:metric.value,page:metric.page,quote:metric.quote})),...(pdf ? {pdf_file_uri:period.pdf_file_uri} : {}),limitation:'Turnover is unavailable. Balance-sheet total (net assets: total assets minus all liabilities) is used instead. This is a Low-confidence net-assets exposure proxy, not revenue concentration or an estimate of turnover; it does not enter turnover-based ASE scoring.'};
 }

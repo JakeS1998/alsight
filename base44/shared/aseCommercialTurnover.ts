@@ -31,7 +31,10 @@ export async function filedCommercialTurnover(base44,account,now=new Date(),maxA
       return {status:'unavailable',period_end:latest?.end,...(proxy.status==='available' ? {balance_sheet_proxy:{...proxy,refresh_id:audit.id,raw_sha256:sha,retrieved_at:audit.refreshed_at}} : {}),reason:`No numeric annual company turnover was extracted from the available filed accounts${latest?.end ? `, latest period ending ${latest.end}` : ''}. A turnover accounting-policy heading is not a reported revenue amount; a cited annual turnover figure is required.`};
     }
     const turnover=filedTurnoverPeriod(candidates[0],number,now,maxAgeDays);
-    return turnover.status==='available' ? {...turnover,refresh_id:audit.id,raw_sha256:sha,retrieved_at:audit.refreshed_at} : turnover;
+    if(turnover.status==='available') return {...turnover,refresh_id:audit.id,raw_sha256:sha,retrieved_at:audit.refreshed_at};
+    const latest=[...(snapshot.data.periods || [])].sort((a,b)=>b.end.localeCompare(a.end))[0];
+    const proxy=balanceSheetProxy(latest,number,now,maxAgeDays);
+    return {...turnover,...(proxy.status==='available' ? {balance_sheet_proxy:{...proxy,refresh_id:audit.id,raw_sha256:sha,retrieved_at:audit.refreshed_at}} : {})};
   } catch(error) {return {status:'unavailable',reason:'Stored turnover evidence could not be verified: '+String(error.message).slice(0,200)};}
 }
 export async function hmrcStatus(base44,account) {

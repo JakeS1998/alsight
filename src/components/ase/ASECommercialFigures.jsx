@@ -11,7 +11,7 @@ export default function ASECommercialFigures({data,historical=false,expandedEvid
   const netAssetsProxy = proxy && data.comparison_denominator?.metric==='net_assets';
   const blockers = [
     !Number.isFinite(exposure) && 'Usable current contract fees and term dates are missing.',
-    !(data.turnover?.status==='available' && Number.isFinite(data.turnover.value) && data.turnover.value>0) && (Number.isFinite(data.turnover?.value) && data.turnover.value>0 ? 'Annual turnover evidence is not valid for this comparison.' : 'A usable numeric annual turnover figure is missing.')
+    !((data.comparison_denominator || data.turnover)?.status==='available' && Number.isFinite((data.comparison_denominator || data.turnover).value) && (data.comparison_denominator || data.turnover).value>0) && (Number.isFinite(data.turnover?.value) && data.turnover.value>0 ? 'Annual turnover evidence is not valid for this comparison.' : 'Usable turnover or a filed balance-sheet total is missing.')
   ].filter(Boolean).join(' ');
   const position = available ? Math.min(100,Math.max(0,data.percentage)) : 0;
   const heat = !available ? 'unavailable' : data.percentage < 10 ? 'low' : data.percentage < 25 ? 'good' : data.percentage < 50 ? 'moderate' : data.percentage < 75 ? 'high' : 'critical';
@@ -33,7 +33,7 @@ export default function ASECommercialFigures({data,historical=false,expandedEvid
         </div>
       </div>
       {contractTotals && <p className="mt-3 text-xs text-muted-foreground">Contract totals are not annualised or increased for shorter programmes. {available && <>{formatCurrency(exposure)} ÷ {formatCurrency(data.comparison_denominator?.value ?? data.turnover?.value)} × 100 = {data.percentage.toFixed(1)}%. </>}This compares contract exposure with {proxy ? 'balance-sheet value' : 'annual turnover'}, not annual Alliance revenue; periods may differ.</p>}
-      {proxy && <p className="mt-3 text-xs text-muted-foreground">Turnover is unavailable under the filing exemption. Using balance-sheet total ({netAssetsProxy ? 'net assets: assets minus all liabilities' : 'total assets'}) of {formatCurrency(data.comparison_denominator.value)} at {data.comparison_denominator.period_end} instead. This is {netAssetsProxy ? 'a net-assets' : 'an asset-based'} exposure proxy, not revenue concentration; Low confidence and excluded from turnover-based Compass scoring.</p>}
+      {proxy && <p className="mt-3 text-xs text-muted-foreground">Turnover is unavailable. Using balance-sheet total ({netAssetsProxy ? 'net assets: assets minus all liabilities' : 'total assets'}) of {formatCurrency(data.comparison_denominator.value)} at {data.comparison_denominator.period_end} instead. This is {netAssetsProxy ? 'a net-assets' : 'an asset-based'} exposure proxy, not revenue concentration; Low confidence and excluded from turnover-based Compass scoring.</p>}
       {!available && <p role="status" className="mt-3 text-xs text-muted-foreground">Cannot calculate concentration: {blockers || data.reason || 'Usable contract values and annual turnover evidence are required.'}</p>}
     </div>
     <ASECommercialEvidence data={data} expanded={expandedEvidence}/>

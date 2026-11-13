@@ -1,6 +1,8 @@
 import {calculate,defaultModels,scoreEvidence} from './asePolicy.ts';
 import {commercialRule,commercialEvidence,withCommercialModel} from './aseCommercialScoring.ts';
 import {filedTurnoverPeriod} from './aseFiledTurnover.ts';
+import {commercialDates} from './aseCommercialDates.ts';
+import {balanceSheetProxy} from './aseBalanceSheetProxy.ts';
 export function checkCommercialScoringRules() {
   const at='2026-10-05T12:00:00Z',account={id:'commercial-rule-check',name:'Rule check'},now=new Date(at);
   const data={status:'available',percentage:60,total_contract_value:600000,included_count:1,excluded_count:0,estimated:false,turnover:{status:'available',value:1000000,currency:'GBP',period_start:'2025-01-01',period_end:'2025-12-31',annual_verified:true}};
@@ -11,7 +13,14 @@ export function checkCommercialScoringRules() {
   const migrated=withCommercialModel(legacy);
   const period={end:'2025-12-31',origin:'pdf',filed_at:'2026-08-18',source_url:'https://find-and-update.company-information.service.gov.uk/company/02999852/filing-history/example',pdf_file_uri:'private/test.pdf',metrics:{revenue:{value:30036460,concept:'PDF:revenue',start:'2025-01-01',end:'2025-12-31',annual:true,page:12,quote:'TURNOVER 30,036,460',multiplier:1}}};
   const turnover=filedTurnoverPeriod(period,'02999852',now),invalid=changes=>filedTurnoverPeriod({...period,metrics:{revenue:{...period.metrics.revenue,...changes}}},'02999852',now);
+  const balance={...period,origin:undefined,metrics:{net_assets:{value:200000,end:period.end}}};
   return {
+    balanceSheetWithoutExemption:balanceSheetProxy(balance,'02999852',now).value===200000,
+    balanceSheetNoNonpositive:balanceSheetProxy({...balance,metrics:{net_assets:{value:0,end:period.end}}},'02999852',now).status==='unavailable',
+    assumedFYBeforeApril:commercialDates(null,'2026-03-31').start==='2025-04-01',
+    assumedFYAprilBoundary:commercialDates(null,'2026-04-01').end==='2027-03-31',
+    assumedFYInvalidProgramme:commercialDates({start:'2026-02-30',end:'2027-03-31'},'2026-11-13').date_basis==='current_financial_year',
+    knownProgrammePreserved:commercialDates({start:'2025-01-01',end:'2025-12-31'},'2026-11-13').start==='2025-01-01',
     filedPdfTurnover:turnover.status==='available' && turnover.value===30036460 && turnover.period_end==='2025-12-31' && turnover.annual_verified===false && turnover.confidence==='Low',
     filedPdfTurnoverCitation:invalid({quote:'TURNOVER 999'}).status==='unavailable',
     filedPdfTurnoverDefinition:invalid({quote:'Net assets 30,036,460'}).status==='unavailable',
