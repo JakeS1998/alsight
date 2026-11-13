@@ -1,0 +1,9 @@
+import React,{useState} from 'react';
+import {Download,Loader2} from 'lucide-react';
+import {Button} from '@/components/ui/button';
+import contingencyReportExport from '@/components/contingency/contingencyReportExport';
+export default function ContingencyReportDownloads({report,getReport,disabled=false,caption='Full section report, including all records regardless of screen filters.'}){
+ const [busy,setBusy]=useState(''),[message,setMessage]=useState(''),[error,setError]=useState('');
+ async function download(format){if(busy)return;setBusy(format);setMessage('');setError('');try{const data=getReport?await getReport():report;const parts=await contingencyReportExport(data,format);setMessage(parts>1?`Downloaded all records in ${parts} Excel workbooks. Allow multiple downloads if prompted by your browser.`:`${format==='xlsx'?'Excel':'PDF'} report downloaded.`);}catch(e){setError(e.message||'Unable to download this report. Please try again.');}finally{setBusy('');}}
+ return <div className="space-y-2"><div className="flex flex-wrap items-center gap-2"><Button variant="outline" disabled={disabled||!!busy} onClick={()=>download('xlsx')}>{busy==='xlsx'?<Loader2 className="animate-spin"/>:<Download/>}{busy==='xlsx'?'Preparing Excel…':'Download Excel'}</Button><Button variant="outline" disabled={disabled||!!busy} onClick={()=>download('pdf')}>{busy==='pdf'?<Loader2 className="animate-spin"/>:<Download/>}{busy==='pdf'?'Preparing PDF…':'Download PDF'}</Button></div>{caption&&<p className="text-xs text-muted-foreground">{caption}</p>}{message&&<p role="status" className="text-xs text-success">{message}</p>}{error&&<p role="alert" className="text-sm text-destructive">{error}</p>}</div>;
+}
