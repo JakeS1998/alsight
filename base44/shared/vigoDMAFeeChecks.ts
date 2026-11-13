@@ -1,0 +1,14 @@
+import {appointmentContractExposure} from './aseAppointmentExposure.ts';
+import {dmaTermsForContract} from './vigoDMAAttribution.ts';
+import {vigoProjectId,vigoProjectRef} from './vigoDMAFees.ts';
+export async function checkDMAFeeRules() {
+ const account={id:'supplier-test',company_number:'05335916'},document={project_id:vigoProjectRef,document_type:'appointment_pd_cdm',document_id:'BSS-test',count:1,sum_total_fees:0};
+ const row={document_id:'appointment-test',document_reference:'BSS-test',document_type:'appointment_pd_cdm',amount:100,page:35,quote:'Principal Designer CDM Fee 100',match_source:'Executed BSS-test (appointment_pd_cdm)',reason:''};
+ const evidence={status:'ready',project_id:vigoProjectId,rows:[row],source_url:'https://allianceleisureservice.sharepoint.com/test.pdf'};
+ const run=async ({recorded=0,proposal=false,team=true,dates=true,rows=[document],source=evidence}={})=>{
+  const db={LegalDocument:{aggregate:async()=>({rows:rows.map(row=>({...row,sum_total_fees:recorded})),truncated:false})},Project:{filter:async()=>({items:[{id:vigoProjectId,dataverse_id:vigoProjectRef,name:'DMA fixture'}]})},ProjectDelivery:{filter:async()=>({items:[{id:'programme-test',project_id:vigoProjectId,contract_start:'2026-01-01',forecast_pc:dates?'2026-12-31':'',delivery_team:JSON.stringify(team?[{role:'Principal Designer CDM',supplier_company_number:'05335916',fees:{riba_1:20}}]:[])}]})},FeeProposal:{filter:async()=>({items:proposal?[{id:'proposal-test',project_id:vigoProjectId,is_current:true,status:'accepted',revision_number:1}]:[]})}};
+  return appointmentContractExposure({entities:db},account,'2026-11-13',source);
+ };
+ const [fallback,recorded,proposal,incompleteProposal,noDates,duplicate,unclear]=await Promise.all([run(),run({recorded:300}),run({proposal:true}),run({proposal:true,team:false}),run({dates:false}),run({rows:[document,{...document,document_id:'BSS-replacement'}]}),run({source:{...evidence,rows:[{...row,reason:'VAT basis unknown'}]}})]);
+ return {dmaFallbackUsed:fallback.total_contract_value===100&&fallback.dma_fallback_count===1&&fallback.contracts[0].commercial_effective_mode==='dma_schedule5',dmaRecordedSignedFeePriority:recorded.total_contract_value===300&&recorded.dma_fallback_count===0,dmaProposalPriority:proposal.total_contract_value===20&&proposal.dma_fallback_count===0,dmaMissingProposalMatchNotSubstituted:incompleteProposal.included_count===0,dmaMissingDatesExcluded:noDates.included_count===0,dmaDuplicateAppointmentExcluded:duplicate.included_count===0,dmaUnknownVATExcluded:unclear.included_count===0,dmaStaleOrProcessingExcluded:dmaTermsForContract({...evidence,status:'processing'},{id:'appointment-test'})===null};
+}

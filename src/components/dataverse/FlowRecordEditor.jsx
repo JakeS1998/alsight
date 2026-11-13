@@ -4,6 +4,7 @@ import FlowFieldInput from '@/components/dataverse/FlowFieldInput';
 import FlowEditableField from '@/components/dataverse/FlowEditableField';
 import useFlowOperation from '@/components/dataverse/useFlowOperation';
 import { useQueryClient } from '@tanstack/react-query';
+import { Link } from 'react-router-dom';
 export default function FlowRecordEditor({ table, recordId, writableOnly = false, onSaved }) {
   const { run, busy, error, notice } = useFlowOperation(), [record, setRecord] = useState(null), [values, setValues] = useState({});
   const queryClient = useQueryClient();
@@ -15,6 +16,6 @@ export default function FlowRecordEditor({ table, recordId, writableOnly = false
     <header><h2 className="text-lg font-semibold">{record?.title || 'Record fields'}</h2><p className="text-sm text-muted-foreground">Use the pencil beside a field to edit it, then save to Dataverse under your connected account.</p></header>
     {record && <div className="grid gap-4 md:grid-cols-2">{record.fields.filter(field => !writableOnly || field.write).map(field => field.write ? <FlowEditableField key={field.local} field={field} value={values[field.local]} disabled={Boolean(busy)} resetKey={record.etag} onChange={value => setValues(old => ({ ...old, [field.local]: value }))} onCancel={() => setValues(old => ({ ...old, [field.local]: ({ ...record.values, ...record.choiceValues })[field.local] }))} /> : <FlowFieldInput key={field.local} field={field} value={values[field.local]} disabled />)}</div>}
     <div className="flex flex-wrap gap-2">{record && <Button type="submit" disabled={Boolean(busy) || !Object.keys(changes).length}>Save to Dataverse</Button>}<Button type="button" variant="outline" disabled={Boolean(busy)} onClick={reload}>Reload latest record</Button></div>
-    {busy && <p role="status" className="text-sm text-muted-foreground">{busy === 'save' ? 'Saving under your Dataverse account…' : 'Loading latest Dataverse record…'}</p>}{error && <p role="alert" className="text-sm text-destructive">{error}</p>}{notice && <p role="status" className="text-sm text-success">{notice}</p>}
+    {busy && <p role="status" className="text-sm text-muted-foreground">{busy === 'save' ? 'Saving under your Dataverse account…' : 'Loading latest Dataverse record…'}</p>}{error && <p role="alert" className="text-sm text-destructive">{error}{error.includes('Connect your own Dataverse account') && <> <Link className="underline" to="/account-settings">Connect my Dataverse account</Link></>}</p>}{notice && <p role="status" className="text-sm text-success">{notice}</p>}
   </form>;
 }

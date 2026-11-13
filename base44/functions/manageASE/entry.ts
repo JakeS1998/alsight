@@ -21,14 +21,23 @@ import {dataRequestError} from '../../shared/dataRequestError.ts';
 import {aseCurrentRatings} from '../../shared/aseCurrentRatings.ts';
 import {checkInsuranceRules} from '../../shared/aseInsuranceChecks.ts';
 import {scopedReadCache,invalidateScopedRead} from '../../shared/scopedReadCache.ts';
+import {readVigoDMAEvidence} from '../../shared/vigoDMAAttribution.ts';
+import {vigoProjectId} from '../../shared/vigoDMAFees.ts';
+import {checkDMAFeeRules} from '../../shared/vigoDMAFeeChecks.ts';
 export default async function(req: Request): Promise<Response> {
   try {
     const base44=createClientFromRequest(req), user=await portalActor(base44);
     if (!user || !internalRoles.includes(user.role)) return Response.json({error:'ASE is available to internal staff only.'},{status:403});
     const input=await req.json();
-    const actions=['policy','savePolicy','seed','summary','detail','addEvidence','previewAssessment','assess','bulkPublish','explain','checkRules','automationScope','automationStart','automationStatus','automationPause','automationResume','automationRetry','automationStep','automationDispatch','automationRules','commercial','commercialContracts','reviewCommercialTerms','structure','hmrcStatus'];
+    const actions=['policy','savePolicy','seed','summary','detail','addEvidence','previewAssessment','assess','bulkPublish','explain','checkRules','automationScope','automationStart','automationStatus','automationPause','automationResume','automationRetry','automationStep','automationDispatch','automationRules','commercial','commercialContracts','reviewCommercialTerms','structure','hmrcStatus','dmaFees'];
     if (!actions.includes(input.action)) return Response.json({error:'Invalid ASE operation.'},{status:400});
     if (['savePolicy','seed','addEvidence','previewAssessment','assess','bulkPublish','checkRules'].includes(input.action) && user.role!=='admin') return Response.json({error:'Only administrators can manage ASE evidence, assessments and policy.'},{status:403});
+    if(input.action==='dmaFees') {
+      if(input.projectId!==vigoProjectId)return Response.json({error:'This DMA pilot is limited to Vigo Road.'},{status:400});
+      const evidence=await readVigoDMAEvidence(base44,null,user.role==='admin');
+      if(!evidence)return Response.json({error:'This project is outside your accessible portfolio.'},{status:403});
+      return Response.json(evidence);
+    }
     if(input.action.startsWith('automation')) {
       if(user.role!=='admin') return Response.json({error:'ASE automation is administrator-only.'},{status:403});
       return Response.json(await manageASEAutomation(base44,user,input));
@@ -39,7 +48,10 @@ export default async function(req: Request): Promise<Response> {
       const account=await base44.entities.Account.get(input.accountId);
       if(!account) return Response.json({error:'Account unavailable.'},{status:404});
       const readKey=JSON.stringify([user.id,user.role,user.account_id,user.data?.account_id,user.region,user.data?.region,user.delegate_of,user.data?.delegate_of,user.delegate_region,user.data?.delegate_region,user.staff_aad_id,user.data?.staff_aad_id,account.id]);
-      if(input.action==='commercial') return Response.json(await scopedReadCache(`${readKey}:${input.cursor || ''}`,()=>commercialInsight(base44,account,{cursor:input.cursor})));
+      if(input.action==='commercial') return Response.json(await scopedReadCache(`${readKey}:dma-v1:${input.cursor || ''}`,async()=>{
+        const dmaEvidence=await readVigoDMAEvidence(base44,account,user.role==='admin');
+        return commercialInsight(base44,account,{cursor:input.cursor,dmaEvidence});
+      }));
       if(input.action==='commercialContracts') return Response.json(await contractCandidates(base44,account,input.cursor));
       if(input.action==='reviewCommercialTerms') {const result=await reviewCommercialTerms(base44,account,input,user);invalidateScopedRead(`${readKey}:`);return Response.json(result);}
       if(input.action==='structure') return Response.json(await groupStructure(base44,account));
@@ -69,7 +81,7 @@ export default async function(req: Request): Promise<Response> {
       const b=calculate(defaultModels,'company',full.filter(r=>r.component!=='adverse'),new Date('2026-10-05'));
       const c=calculate(defaultModels,'company',full.slice(0,1),new Date('2026-10-05'));
       const d=calculate(defaultModels,'english_local_authority',defaultModels.english_local_authority.map((r,i)=>make(r.key,[25,1,8,0.5,'5','4','5'][i])),new Date('2026-10-05'));
-      const checks={company:a.precise_score===4.2 && a.displayed_rating===4,missingRenormalised:Math.abs(b.precise_score-37/9)<0.00001,limitedEvidenceConfidence:c.displayed_rating===4 && c.data_confidence==='Low' && c.rating_label==='Good',council:Math.abs(d.precise_score-4.2)<0.00001,...checkPdfAndProvisionalRules(),...checkCommercialScoringRules(),...checkAccountModelRules(),...checkASESourceScoringRules(),...checkBroaderEvidenceRules(),...(await checkInsuranceRules()).checks};
+      const checks={company:a.precise_score===4.2 && a.displayed_rating===4,missingRenormalised:Math.abs(b.precise_score-37/9)<0.00001,limitedEvidenceConfidence:c.displayed_rating===4 && c.data_confidence==='Low' && c.rating_label==='Good',council:Math.abs(d.precise_score-4.2)<0.00001,...checkPdfAndProvisionalRules(),...checkCommercialScoringRules(),...checkAccountModelRules(),...checkASESourceScoringRules(),...checkBroaderEvidenceRules(),...(await checkInsuranceRules()).checks,...(await checkDMAFeeRules())};
       return Response.json({checks,passed:Object.values(checks).every(Boolean)});
     }
     if (typeof input.accountId!=='string' || !/^[a-zA-Z0-9_-]{1,64}$/.test(input.accountId)) return Response.json({error:'Valid Account is required.'},{status:400});

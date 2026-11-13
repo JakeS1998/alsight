@@ -1,5 +1,6 @@
 import React, { useState } from "react";
 import agreementNames from '@/components/projects/agreementNames';
+import VigoDMAFeePanel from '@/components/documents/VigoDMAFeePanel';
 import RecordUpdatedAt from '@/components/RecordUpdatedAt';
 import DataverseRecordEdit from '@/components/dataverse/DataverseRecordEdit';
 import useEditableRecord from '@/components/dataverse/useEditableRecord';
@@ -78,6 +79,7 @@ export function DMACard({ doc: sourceDoc, projectName, projectNumber, psoOutstan
             <ChecklistGrid items={DMA_PSO_ITEMS} data={doc} />
           </div>
           </DataverseRecordEdit>
+          <VigoDMAFeePanel projectId={doc.project_id}/>
         </div>
       )}
     </div>

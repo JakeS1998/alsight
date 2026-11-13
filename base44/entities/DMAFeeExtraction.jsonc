@@ -1,0 +1,110 @@
+{
+  "name": "DMAFeeExtraction",
+  "type": "object",
+  "properties": {
+    "project_id": {
+      "type": "string"
+    },
+    "dma_id": {
+      "type": "string"
+    },
+    "source_id": {
+      "type": "string"
+    },
+    "source_etag": {
+      "type": "string"
+    },
+    "extraction_version": {
+      "type": "integer"
+    },
+    "source_url": {
+      "type": "string"
+    },
+    "source_name": {
+      "type": "string"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "processing",
+        "ready",
+        "unusable",
+        "error"
+      ],
+      "enumColors": [
+        "yellow",
+        "green",
+        "gray",
+        "red"
+      ]
+    },
+    "extracted_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "rows": {
+      "type": "array",
+      "maxItems": 40,
+      "items": {
+        "type": "object",
+        "properties": {
+          "supplier_name": {
+            "type": "string"
+          },
+          "role": {
+            "type": "string"
+          },
+          "amount": {
+            "type": [
+              "number",
+              "null"
+            ]
+          },
+          "page": {
+            "type": "integer"
+          },
+          "quote": {
+            "type": "string"
+          },
+          "vat_basis": {
+            "type": "string"
+          },
+          "confidence": {
+            "type": "string"
+          }
+        }
+      }
+    },
+    "note": {
+      "type": "string",
+      "maxLength": 2000
+    }
+  },
+  "required": [
+    "project_id",
+    "source_id",
+    "status"
+  ],
+  "rls": {
+    "read": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "create": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "update": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "delete": {
+      "user_condition": {
+        "role": "admin"
+      }
+    }
+  }
+}

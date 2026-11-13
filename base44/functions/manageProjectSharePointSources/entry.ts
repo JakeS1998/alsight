@@ -5,6 +5,7 @@ import {scanLoiExpiry} from '../../shared/loiExpiryScan.ts';
 import {startPsoScheduledSync,continuePsoScheduledSync} from '../../shared/psoScheduledSync.ts';
 import {readLoiSources} from '../../shared/loiWordSelection.ts';
 import {microsoftSyncPause} from '../../shared/coMicrosoftPause.ts';
+import {extractVigoDMAFees} from '../../shared/vigoDMAFees.ts';
 export default async function(req) {
  try {
   const base44=createClientFromRequest(req),user=await base44.auth.me();
@@ -12,6 +13,7 @@ export default async function(req) {
   if(user.role!=='admin')return Response.json({error:'Administrator access required.'},{status:403});
   const input=await req.json();
   const paused=await microsoftSyncPause(base44);if(paused)return Response.json(paused);
+   if(input.action==='dmaFees')return Response.json(await extractVigoDMAFees(base44,user,input.projectId));
   if(input.action==='psoStart')return Response.json(await startPsoScheduledSync(base44.entities,input.allProjects===true));
   if(input.action==='psoContinue') {
    if(typeof input.stateId!=='string' || !/^[a-f0-9]{24}$/i.test(input.stateId) || typeof input.ticket!=='string' || input.ticket.length>80)return Response.json({error:'Valid PSO batch ticket required.'},{status:400});

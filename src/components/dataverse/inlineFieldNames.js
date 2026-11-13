@@ -1,7 +1,7 @@
 const common = {
   'document id': 'document_id', 'warranty id': 'warranty_id', 'type': 'document_type',
   'drafted': 'drafted_date', 'drafting due': 'drafting_due_date', 'drafted date': 'drafted_date',
-  'signing target': 'signing_target_date', 'execution date': 'date_of_execution', 'execution': 'date_of_execution',
+  'signing target': 'signing_target_date', 'execution date': 'date_of_execution', 'date of execution': 'date_of_execution', 'sent for signing': 'sent_for_signing', 'shared with council': 'shared_with_council', 'execution': 'date_of_execution',
   'approver': 'approvers_name', 'bsm owner': 'is_bsm_document_owner', 'file': 'link_to_file',
   'file link': 'link_to_file', 'reminder': 'reminder_date', 'loi expiry': 'loi_expiry_date',
   'fee proposal date': 'fee_proposal_date', 'account': 'account_id', 'supplier': 'supplier_id', 'contractor': 'contractor_id'
