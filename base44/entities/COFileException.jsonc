@@ -32,11 +32,13 @@
       "type": "string",
       "enum": [
         "open",
-        "resolved"
+        "resolved",
+        "excluded"
       ],
       "enumColors": [
         "red",
-        "green"
+        "green",
+        "gray"
       ]
     },
     "first_detected": {
@@ -49,6 +51,20 @@
     },
     "resolved_at": {
       "type": "string"
+    },
+    "acknowledged_by": {
+      "type": "string"
+    },
+    "acknowledged_name": {
+      "type": "string"
+    },
+    "acknowledged_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "acknowledgement_note": {
+      "type": "string",
+      "maxLength": 2000
     }
   },
   "required": [

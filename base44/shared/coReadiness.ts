@@ -24,6 +24,8 @@ export async function contingencyReadiness(b,m,c){
  if(coverage.errors?.length)warnings.push(`${coverage.errors.length} project folder links need review. These are non-blocking exceptions; documents at those links are not confirmed backed up.`);
  if(covered!==linked)warnings.push(`${covered} enabled project-folder sources are configured for ${linked} linked projects. Incomplete linked-folder coverage is reported separately and does not block readiness for the configured sources.`);
  if(exceptions)blockers.push(`${exceptions} files have unresolved backup exceptions.`);
+ const excludedFiles=await E.COFileException.count({status:'excluded',...(!m.global?{dataset_id:{$in:m.dataset_ids}}:{})});
+ if(excludedFiles)warnings.push(`${excludedFiles} files were acknowledged and excluded from future backups. Their current versions are not confirmed backed up; these exclusions do not block readiness.`);
  if(missingTests.length)blockers.push(`${missingTests.length} acceptance checks lack a recorded pass with evidence.`);
  return {checked_at:new Date().toISOString(),operational_checks_complete:!blockers.length&&ready(c),blockers,warnings,source_count:total,pending_sources:pendingSources,linked_projects:linked,configured_project_sources:covered,open_file_exceptions:exceptions,missing_tests:missingTests,limitations:['A readiness summary does not run the acceptance tests or prove file restoration.','Business-owner acceptance must be obtained before declaring outage readiness.']};
 }

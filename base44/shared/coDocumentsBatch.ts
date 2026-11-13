@@ -10,6 +10,8 @@ export async function documentsBatch(b,d){
  let pending=[...(s.pending||[])],next=s.next||'';
  if(!pending.length){const data=await graph(path);pending=(data.value||[]).map(x=>({id:x.id,name:x.name,file:x.file,folder:x.folder,size:x.size,eTag:x.eTag,webUrl:x.webUrl,parentReference:x.parentReference,lastModifiedDateTime:x.lastModifiedDateTime}));next=data['@odata.nextLink']||'';}
  const old=pending.length?(await b.asServiceRole.entities.CORecord.filter({dataset_id:d.id,source_id:{$in:pending.map(x=>x.id)}},{limit:150})).items:[];
+ const excludedRows=pending.length?(await b.asServiceRole.entities.COFileException.filter({dataset_id:d.id,status:'excluded',source_id:{$in:pending.map(x=>x.id)}},{limit:150})).items:[];
+ const excluded=new Set(excludedRows.map(r=>r.source_id));
  const index=new Map(old.map(r=>[r.source_id,r])),rows=[],versions=[],left=[],flags=[],checked=[];
  for(const item of pending){
   const prior=index.get(item.id),payload={webUrl:item.webUrl,parent_id:item.parentReference?.id,...(d.mapping?.auto_project_legals?{project_id:d.mapping.project_id,project_name:d.mapping.project_name,folder_url:d.mapping.folder_url}:{})};
@@ -18,7 +20,7 @@ export async function documentsBatch(b,d){
    if(!prior)rows.push({dataset_id:d.id,source_id:item.id,title:item.name,payload:{...payload,kind:'folder'},source_etag:item.eTag||'',source_modified:item.lastModifiedDateTime||'',replicated_at:now(),deleted_at_source:false});
    continue;
   }
-  if(!item.file)continue;
+  if(!item.file||excluded.has(item.id))continue;
   if(!shouldCopyFile(item,prior,watermark)){checked.push(item.id);continue;}
   if(item.size>copyLimitBytes){flags.push(item);continue;}
   if(versions.length>=2){left.push(item);continue;}
