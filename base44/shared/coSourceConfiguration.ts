@@ -9,7 +9,7 @@ export async function addSource(b,u,c,input){
  const scope=input.scope_ids||[],estate=production&&input.read_scope==='estate';
  if(!Array.isArray(scope)||scope.length>100||scope.some(id=>!isGuid(id))||estate&&scope.length)fail('Enter up to 100 valid source GUIDs, or choose the whole-table read scope.');
  if(production&&!['estate','records'].includes(input.read_scope))fail('Choose a whole-table or specific-record read scope.');
- const interval=Number(input.interval_minutes||60);if(![60,120,240,1440].includes(interval))fail('Choose an approved cadence.');
+ const interval=1440;
  let values;
  if(input.kind==='dataverse'){
   if(!estate&&!scope.length)fail('Choose approved source record IDs or explicitly approve whole-table production reads.');

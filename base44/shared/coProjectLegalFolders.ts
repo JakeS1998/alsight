@@ -1,4 +1,5 @@
-import {lease,incident,now,audit,fail,safeError} from './coCore.ts';
+import {lease,incident,configuration,now,audit,fail,safeError} from './coCore.ts';
+import {nightlyDueQuery,retryDueQuery} from './coNightlyEligibility.ts';
 import {graphClient,resolveFolder} from './coMicrosoft.ts';
 import {replicate} from './coReplication.ts';
 export const legalFolderQuery={link_to_legals:{$exists:true,$nin:[null,'']}};
@@ -14,6 +15,7 @@ export async function approveProjectLegalFolders(b,u,c){
 async function discoverFolders(b,u){return lease(b,async c=>{
  const policy=c.policy?.project_legals;
  if(!policy?.enabled||!c.enabled||c.mode!=='production'||await incident(b))return{skipped:true};
+ if(!policy.cursor&&policy.last_scan&&(!c.policy?.nightly_sync_at||policy.last_scan>=c.policy.nightly_sync_at))return {current:true};
  const E=b.asServiceRole.entities,at=now(),page=await E.Project.filter(legalFolderQuery,{sort:'created_date',limit:10,...(policy.cursor?{cursor:policy.cursor}:{})});
  const existing=page.items.length?(await E.CODataset.filter({'mapping.project_id':{$in:page.items.map(p=>p.id)}},{sort:'-created_date',limit:100})).items:[];
  const changes=[],errors=[],graph=await graphClient(b),root=await graph('/v1.0/sites/root'),host=new URL(root.webUrl).hostname;
@@ -36,14 +38,13 @@ async function discoverFolders(b,u){return lease(b,async c=>{
  });}
 export async function projectLegalFolderTick(b,u){
  const start=Date.now(),discovery=await discoverFolders(b,u);if(discovery.skipped)return discovery;
- const at=now(),cutoff=new Date(Date.now()-60*60000).toISOString();
- const page=await b.asServiceRole.entities.CODataset.filter({enabled:true,'mapping.auto_project_legals':true,$and:[{$or:[{'state.retry_after':{$exists:false}},{'state.retry_after':{$in:[null,'']}},{'state.retry_after':{$lte:at}}]},{$or:[{'state.last_success':{$exists:false}},{'state.last_success':{$in:[null,'']}},{'state.last_success':{$lte:cutoff}},{'state.cursor':{$exists:true,$nin:[null,'']}},{'state.pending':{$exists:true,$ne:[]}},{'state.queue':{$exists:true,$ne:[]}}]}]},{sort:'updated_date',limit:8});
+ const at=now(),c=await configuration(b);
+ const page=await b.asServiceRole.entities.CODataset.filter({enabled:true,'mapping.auto_project_legals':true,$and:[retryDueQuery(at),nightlyDueQuery(c)]},{sort:'state.last_attempt',limit:8});
  const projects=page.items.length?(await b.asServiceRole.entities.Project.filter({id:{$in:page.items.map(d=>d.mapping.project_id)}},{limit:8})).items:[];
  const obsolete=page.items.filter(d=>!projects.some(p=>p.id===d.mapping.project_id&&String(p.link_to_legals||'').trim()===d.mapping.folder_url));
  if(obsolete.length)await b.asServiceRole.entities.CODataset.bulkUpdate(obsolete.map(d=>({id:d.id,enabled:false})));
  const results=[];for(const d of page.items.filter(d=>!obsolete.some(old=>old.id===d.id))){if(Date.now()-start>90000)break;
   if(d.state?.retry_after&&d.state.retry_after>now())continue;
-  if(d.state?.last_success&&!d.state.cursor&&!d.state.pending?.length&&!d.state.queue?.length&&Date.now()-Date.parse(d.state.last_success)<d.interval_minutes*60000)continue;
   results.push(await replicate(b,u,{dataset_id:d.id}));
  }
  return{discovery,batches:results.length,results};

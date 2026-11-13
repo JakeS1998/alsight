@@ -17,7 +17,7 @@
     }
   },
   "name": "Contingency approved replication",
-  "description": "Runs around the clock, checking every five minutes for approved source batches due at their configured cadence. Production standby needs no incident or owner-release approval. Disabled configuration and active incidents skip Microsoft reads. Approved evening cutover starts at 21:00 Europe/London and retries blocked recovery in bounded batches; ordinary Microsoft copying remains frozen until verified closure.",
+  "description": "Continues unfinished initial copies and nightly sync batches every five minutes; it never starts another completed-source scan until the next nightly trigger. Production standby needs no incident or owner-release approval. Disabled configuration and active incidents skip Microsoft reads. Approved evening cutover starts at 21:00 Europe/London and retries blocked recovery in bounded batches; ordinary Microsoft copying remains frozen until verified closure.",
   "definition": {
     "document": {
       "dsl": "1.0.0",
@@ -54,7 +54,7 @@
           "then": "copy_project_legal_folders",
           "x-base44": {
             "title": "Copy one approved due batch",
-            "description": "24/7 standby; preserve incident snapshots"
+            "description": "Continue queued nightly or initial copies; preserve incident snapshots"
           }
         }
       },
@@ -70,7 +70,7 @@
           "then": "end",
           "x-base44": {
             "title": "Discover and copy project legal folders",
-            "description": "Saved project links, recursive private document copies"
+            "description": "Continue nightly folder discovery and incremental private copies"
           }
         }
       }

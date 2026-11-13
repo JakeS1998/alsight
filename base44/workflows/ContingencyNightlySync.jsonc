@@ -1,0 +1,79 @@
+{
+  "name": "Nightly incremental contingency sync",
+  "description": "At 02:00 UK time, queue approved contingency sources for an incremental sync. Existing background batches finish the cycle without recopying unchanged documents; active incidents pause Microsoft copying.",
+  "trigger": {
+    "condition": null,
+    "config": {
+      "trigger_type": "scheduled",
+      "events": [],
+      "schedule_mode": "recurring",
+      "cron_expression": "0 2 * * *",
+      "one_time_date": null,
+      "timezone": "Europe/London",
+      "interval_value": null,
+      "interval_unit": null,
+      "interval_anchor": null,
+      "ends_type": "never",
+      "ends_on_date": null,
+      "ends_after_count": null
+    }
+  },
+  "definition": {
+    "document": {
+      "dsl": "1.0.0",
+      "name": "contingency_nightly_incremental_sync",
+      "version": "1.0",
+      "namespace": "base44"
+    },
+    "do": [
+      {
+        "queue_nightly_sync": {
+          "call": "invoke_backend_function",
+          "with": {
+            "function_name": "manageContingencyOperations",
+            "args": {
+              "action": "nightly_start"
+            }
+          },
+          "then": "copy_source_batch",
+          "x-base44": {
+            "title": "Queue nightly incremental sync",
+            "description": "Keep the last successful checkpoint until copying completes"
+          }
+        }
+      },
+      {
+        "copy_source_batch": {
+          "call": "invoke_backend_function",
+          "with": {
+            "function_name": "manageContingencyOperations",
+            "args": {
+              "action": "tick"
+            }
+          },
+          "then": "discover_and_copy_project_folders",
+          "x-base44": {
+            "title": "Start approved source copying",
+            "description": "Initial copies or changes since the successful checkpoint"
+          }
+        }
+      },
+      {
+        "discover_and_copy_project_folders": {
+          "call": "invoke_backend_function",
+          "with": {
+            "function_name": "manageContingencyOperations",
+            "args": {
+              "action": "project_legals_tick"
+            }
+          },
+          "then": "end",
+          "x-base44": {
+            "title": "Discover new folders and copy changed documents",
+            "description": "Queued batches continue safely until completion"
+          }
+        }
+      }
+    ]
+  }
+}
