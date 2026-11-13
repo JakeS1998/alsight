@@ -1,11 +1,15 @@
 import React, { useState } from 'react';
 import { ExternalLink, Loader2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { useAuth } from '@/lib/AuthContext';
+import AccessDenied from '@/pages/AccessDenied';
 
 const PO_URL = 'https://alslive.crm11.dynamics.com/main.aspx?appid=3631f3af-18b0-f011-bbd3-6045bd0e7165&pagetype=entitylist&etn=cr78c_purchase_order&viewid=ae024647-7c07-f111-8406-6045bd0bfa4d&viewType=1039';
 
 export default function POTool() {
   const [loading, setLoading] = useState(true);
+  const { user } = useAuth();
+  if (user?.role === 'bsm') return <AccessDenied />;
   return <div className="space-y-4">
     <header className="flex flex-wrap items-center justify-between gap-4 rounded-panel border bg-card p-5">
       <div>

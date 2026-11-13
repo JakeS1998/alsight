@@ -2,6 +2,7 @@ import React, { startTransition } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { ChartNoAxesCombined, ClipboardList } from 'lucide-react';
 import SlidingTabHighlight from '@/components/navigation/SlidingTabHighlight';
+import { useAuth } from '@/lib/AuthContext';
 
 const items = [
   { label: 'Dashboard', path: '/commercial', icon: ChartNoAxesCombined },
@@ -10,9 +11,10 @@ const items = [
 export default function CommercialNavigation() {
   const { pathname } = useLocation();
   const navigate = useNavigate();
+  const { user } = useAuth();
   return <nav aria-label="Commercial views" className="commercial-tabs sliding-tab-list">
     <SlidingTabHighlight />
-    {items.map(({ label, path, icon: Icon }) => <button key={path} type="button" aria-pressed={pathname === path} onClick={() => startTransition(() => navigate(path))}>
+    {items.filter(item => user?.role !== 'bsm' || item.path !== '/commercial/po-tool').map(({ label, path, icon: Icon }) => <button key={path} type="button" aria-pressed={pathname === path} onClick={() => startTransition(() => navigate(path))}>
       <span className="sliding-tab-label"><Icon size={16} aria-hidden="true" />{label}</span>
     </button>)}
   </nav>;

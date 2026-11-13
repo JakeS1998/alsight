@@ -61,11 +61,6 @@
           "user_condition": {
             "role": "finance"
           }
-        },
-        {
-          "user_condition": {
-            "role": "bsm"
-          }
         }
       ]
     },

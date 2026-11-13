@@ -243,37 +243,6 @@
               "data.region_id": "{{user.data.region}}"
             }
           ]
-        },
-        {
-          "$and": [
-            {
-              "user_condition": {
-                "role": "bsm"
-              }
-            },
-            {
-              "data.bsm_identity": {
-                "$exists": true,
-                "$nin": [
-                  null,
-                  ""
-                ]
-              }
-            },
-            {
-              "$or": [
-                {
-                  "data.bsm_identity": "{{user.id}}"
-                },
-                {
-                  "data.bsm_identity": "{{user.data.staff_aad_id}}"
-                },
-                {
-                  "data.bsm_identity": "{{user.data.dataverse_systemuser_id}}"
-                }
-              ]
-            }
-          ]
         }
       ]
     },

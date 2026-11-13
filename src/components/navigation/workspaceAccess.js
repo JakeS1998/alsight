@@ -34,6 +34,7 @@ export const PORTAL_PAGES=[
 export function canViewWorkspace(identity,workspace){
  const user=typeof identity==='object'&&identity?identity:null,role=user?.role||identity;
  if(workspace==='contingency')return Boolean(user?.id)&&!['client','supplier','framework_stakeholder'].includes(role);
+ if(workspace==='ie'&&role==='bsm')return false;
  if(workspace==='people'&&user?.page_access?.network===false)return false;
  if(PORTAL_PAGES.some(page=>page.key===workspace)&&typeof user?.page_access?.[workspace]==='boolean')return user.page_access[workspace];
  return WORKSPACE_ACCESS[workspace]?.includes(role)||false;

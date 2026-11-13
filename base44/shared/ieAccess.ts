@@ -1,4 +1,4 @@
-export const ieRoles=['admin','sam','sam_director','director','regional_director','finance','bsm'];
+export const ieRoles=['admin','sam','sam_director','director','regional_director','finance'];
 export const ieManagers=['admin','sam','sam_director'];
 export function ieError(message,status=400){const error=new Error(message);error.status=status;throw error;}
 export const ieIdentity=user=>[user.id,user.staff_aad_id,user.data?.staff_aad_id,user.dataverse_systemuser_id,user.data?.dataverse_systemuser_id].filter(Boolean);
@@ -9,7 +9,7 @@ export function ieScope(user){
   const region=user.region||user.data?.region;
   return region?{$or:[{region_id:region},{project_id:{$in:user.ieRegionalProjectIds||[]}}]}:{id:{$in:[]}};
  }
- if(user.role==='bsm')return {bsm_identity:{$in:ieIdentity(user)}};
+
  ieError('I&E access is not available for this role.',403);
 }
 export async function ieRecord(base44,user,id){
