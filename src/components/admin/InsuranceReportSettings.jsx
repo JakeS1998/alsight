@@ -1,11 +1,11 @@
 import React, {useEffect,useState} from 'react';
 import {useQuery} from '@tanstack/react-query';
-import {base44} from '@/api/base44Client';
+import {insuranceReportRequest as request} from '@/components/admin/insuranceReportClient';
 import {Button} from '@/components/ui/button';
 import InsuranceReportRecipients from '@/components/admin/InsuranceReportRecipients.jsx';
 import InsuranceReportPreview from '@/components/admin/InsuranceReportPreview.jsx';
 import SubmissionSummary from '@/components/forms/SubmissionSummary';
-const request=async values=>{const {data}=await base44.functions.invoke('manageInsuranceReports',values);if(data.error)throw new Error(data.error);return data;};
+
 export default function InsuranceReportSettings() {
  const settings=useQuery({queryKey:['insurance-report-settings','full-names'],retry:false,queryFn:()=>request({action:'get'})});
  const [draft,setDraft]=useState(null),[busy,setBusy]=useState(''),[error,setError]=useState(''),[notice,setNotice]=useState(''),[preview,setPreview]=useState(null),[submitted,setSubmitted]=useState(null);

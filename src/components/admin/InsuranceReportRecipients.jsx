@@ -1,11 +1,11 @@
 import React, {useEffect,useState} from 'react';
 import {useInfiniteQuery} from '@tanstack/react-query';
-import {base44} from '@/api/base44Client';
+import {insuranceReportRequest} from '@/components/admin/insuranceReportClient';
 import {Button} from '@/components/ui/button';
 import {Input} from '@/components/ui/input';
 export default function InsuranceReportRecipients({selected,onChange,disabled,recipientNames={}}) {
  const [search,setSearch]=useState('');
- const users=useInfiniteQuery({queryKey:['insurance-report-users','full-names',search],initialPageParam:0,retry:false,queryFn:async({pageParam})=>{const {data}=await base44.functions.invoke('manageInsuranceReports',{action:'people',search,offset:pageParam});if(data.error)throw new Error(data.error);return data;},getNextPageParam:page=>page.has_more ? page.next_offset : undefined});
+ const users=useInfiniteQuery({queryKey:['insurance-report-users','full-names',search],initialPageParam:0,retry:false,queryFn:({pageParam})=>insuranceReportRequest({action:'people',search,offset:pageParam}),getNextPageParam:page=>page.has_more ? page.next_offset : undefined});
  const [names,setNames]=useState({});
  useEffect(()=>{if(users.data)setNames(previous=>({...previous,...Object.fromEntries(users.data.pages.flatMap(page=>page.items).map(person=>[person.email.toLowerCase(),person.name]))}));},[users.data]);
  const nameOf=email=>names[email.toLowerCase()] || recipientNames[email.toLowerCase()] || 'Full name not recorded';

@@ -2,6 +2,7 @@ import {createClientFromRequest} from 'npm:@base44/sdk@0.8.52';
 import {insuranceReportData} from '../../shared/insuranceReportData.ts';
 import {withPortalUserNames} from '../../shared/portalUserNames.ts';
 import {portalUserSearch} from '../../shared/portalUserSearch.ts';
+import {dataRequestError} from '../../shared/dataRequestError.ts';
 const roles=['admin','director','regional_director','bsm','bdm','finance'];
 const address=value=>String(value || '').trim().toLowerCase();
 const escape=value=>value.replace(/[.*+?^${}()|[\]\\]/g,'\\$&');
@@ -36,5 +37,5 @@ export default async function(req: Request): Promise<Response> {
    return Response.json({recipients:[...new Set(emails)].slice(0,20),variables:await insuranceReportData(base44),enabled:true});
   }
   return Response.json({error:'Unknown insurance report operation.'},{status:400});
- }catch(error){return Response.json({error:error.message || 'Unable to manage insurance reports.'},{status:400});}
+ }catch(error){return dataRequestError(error,'Unable to manage insurance reports.',400);}
 }
