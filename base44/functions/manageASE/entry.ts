@@ -25,6 +25,7 @@ import {readVigoDMAEvidence} from '../../shared/vigoDMAAttribution.ts';
 import {vigoProjectId} from '../../shared/vigoDMAFees.ts';
 import {checkDMAFeeRules} from '../../shared/vigoDMAFeeChecks.ts';
 import {checkManualCommercialReviewRules} from '../../shared/manualCommercialReviewChecks.ts';
+import {checkAppointmentExposure} from '../../shared/aseAppointmentChecks.ts';
 import {saveJCTFeeExtraction} from '../../shared/saveJCTFeeExtraction.ts';
 import {syncCommercialInputs} from '../../shared/aseCommercialInputs.ts';
 import {contractQuery} from '../../shared/aseCommercialTerms.ts';
@@ -53,7 +54,7 @@ export default async function(req: Request): Promise<Response> {
       if(!account) return Response.json({error:'Account unavailable.'},{status:404});
       const readKey=JSON.stringify([user.id,user.role,user.account_id,user.data?.account_id,user.region,user.data?.region,user.delegate_of,user.data?.delegate_of,user.delegate_region,user.data?.delegate_region,user.staff_aad_id,user.data?.staff_aad_id,account.id]);
       if(input.action==='commercial' && !(await base44.auth.isAuthenticated())) return Response.json({error:'Sign in to check filed accounts.'},{status:401});
-      if(input.action==='commercial') return Response.json(await scopedReadCache(`${readKey}:signed-jct-only-v7:${input.cursor || ''}`,async()=>{
+      if(input.action==='commercial') return Response.json(await scopedReadCache(`${readKey}:all-contracts-financial-year-v8:${input.cursor || ''}`,async()=>{
         const dmaEvidence=await readVigoDMAEvidence(base44,account,user.role==='admin');
         return commercialInsight(base44,account,{cursor:input.cursor,dmaEvidence,accountsUser:!input.cursor ? user : null});
       }));
@@ -95,7 +96,7 @@ export default async function(req: Request): Promise<Response> {
       const b=calculate(defaultModels,'company',full.filter(r=>r.component!=='adverse'),new Date('2026-10-05'));
       const c=calculate(defaultModels,'company',full.slice(0,1),new Date('2026-10-05'));
       const d=calculate(defaultModels,'english_local_authority',defaultModels.english_local_authority.map((r,i)=>make(r.key,[25,1,8,0.5,'5','4','5'][i])),new Date('2026-10-05'));
-      const checks={company:a.precise_score===4.2 && a.displayed_rating===4,missingRenormalised:Math.abs(b.precise_score-37/9)<0.00001,limitedEvidenceConfidence:c.displayed_rating===4 && c.data_confidence==='Low' && c.rating_label==='Good',council:Math.abs(d.precise_score-4.2)<0.00001,...checkPdfAndProvisionalRules(),...checkCommercialScoringRules(),...checkAccountModelRules(),...checkASESourceScoringRules(),...checkBroaderEvidenceRules(),...(await checkInsuranceRules()).checks,...(await checkDMAFeeRules()),...await checkManualCommercialReviewRules()};
+      const checks={company:a.precise_score===4.2 && a.displayed_rating===4,missingRenormalised:Math.abs(b.precise_score-37/9)<0.00001,limitedEvidenceConfidence:c.displayed_rating===4 && c.data_confidence==='Low' && c.rating_label==='Good',council:Math.abs(d.precise_score-4.2)<0.00001,...checkPdfAndProvisionalRules(),...checkCommercialScoringRules(),...checkAccountModelRules(),...checkASESourceScoringRules(),...checkBroaderEvidenceRules(),...(await checkInsuranceRules()).checks,...(await checkDMAFeeRules()),...await checkManualCommercialReviewRules(),...(await checkAppointmentExposure()).checks};
       return Response.json({checks,passed:Object.values(checks).every(Boolean)});
     }
     if (typeof input.accountId!=='string' || !/^[a-zA-Z0-9_-]{1,64}$/.test(input.accountId)) return Response.json({error:'Valid Account is required.'},{status:400});

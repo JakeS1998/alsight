@@ -22,5 +22,5 @@ export async function commercialContractExposure(base44,account,date,dmaEvidence
     included_count:included,excluded_count:excluded,candidate_count:allCount,appointment_count:appointments.candidate_count,appointment_included_count:appointments.included_count,appointment_contracts:appointments.contracts,warnings:appointments.warnings,
     programme_proxy_count:rows.filter(row=>['project_programme','current_financial_year'].includes(row.commercial_effective_date_basis)).reduce((sum,row)=>sum+row.count,0)+appointments.programme_proxy_count,
     proposal_proxy_count:rows.filter(row=>row.commercial_effective_mode==='pathway_proposal').reduce((sum,row)=>sum+row.count,0)+appointments.proposal_proxy_count,
-    reason:included ? '' : 'No signed JCTs overlapping the current financial year or current professional appointments have usable company-specific fee values; unknown dates use the current financial year, but missing fees are not zero exposure.'};
+    reason:included ? '' : 'No signed JCTs or professional appointments overlapping the current financial year have usable company-specific fee values; unknown dates use the current financial year, but missing fees are not zero exposure.'};
 }
