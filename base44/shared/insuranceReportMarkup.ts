@@ -1,14 +1,16 @@
 import {insuranceReportDate,insuranceReportDay} from './insuranceReportDates.ts';
 const escape=value=>String(value ?? '').replace(/[&<>"']/g,char=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[char]));
 const money=value=>value==null ? 'Not recorded' : new Intl.NumberFormat('en-GB',{style:'currency',currency:'GBP',maximumFractionDigits:0}).format(value);
-const cell=value=>`<td style="padding:10px 7px;border-bottom:1px solid #e5e7eb;vertical-align:top;word-break:break-word;">${value}</td>`;
+const cell=(value,overdue=false)=>`<td style="padding:10px 7px;border-bottom:1px solid #e5e7eb;vertical-align:top;word-break:break-word;${overdue ? 'color:#a33a3a;' : ''}">${value}</td>`;
 const headings=['Supplier','Policy','Insurer','Cover','Renewal date','Timing'];
 export function insuranceReportMarkup(expired,expiring,accounts,window) {
  const byId=new Map(accounts.flatMap(account=>[[account.id,account],[account.dataverse_id,account]])),groups=new Map();
  const row=policy=>{
   const account=byId.get(policy.account_id),supplier=`<a href="https://als-hub.base44.app/accounts/${encodeURIComponent(account.id)}?tab=insurance" style="color:#102642;">${escape(account.name)}</a>${account.categories.length>1 ? `<br/><span style="font-size:12px;color:#5f7586;">${escape(account.categories.join(', '))}</span>` : ''}`;
   const days=Math.round((Date.parse(`${insuranceReportDay(policy.renewal_date)}T00:00:00Z`)-Date.parse(`${window.today}T00:00:00Z`))/86400000),timing=days<0 ? `${-days} days overdue` : days===0 ? 'Expires today' : `In ${days} days`;
-  return `<tr>${[supplier,`${escape(policy.name)}<br/><span style="color:#5f7586;font-size:12px;">${escape(policy.policy_type || 'Type not recorded')}<br/>${escape(policy.policy_number || 'Number not recorded')}${policy.status==='inactive' ? '<br/>Inactive record' : ''}</span>`,escape(policy.insurer || 'Not recorded'),escape(money(policy.cover_amount)),escape(insuranceReportDate(policy.renewal_date)),escape(timing)].map(cell).join('')}</tr>`;
+  const recordLink=policy.dataverse_id ? `<br/><a href="${escape(`https://alslive.crm11.dynamics.com/main.aspx?appid=e986c390-c4b0-f011-bbd3-6045bd0e7eeb&pagetype=entityrecord&etn=bss_supplierinsurance&id=${encodeURIComponent(policy.dataverse_id)}`)}" target="_blank" rel="noopener noreferrer" style="color:#5f7586;font-size:12px;text-decoration:underline;">Open in Power Apps</a>` : '';
+  const policyDetails=`${escape(policy.policy_type || 'Type not recorded')}<br/><span style="color:#5f7586;font-size:12px;">Policy number: ${escape(policy.policy_number || 'Not recorded')}</span>${recordLink}`;
+  return `<tr${days<0 ? ' style="background:#fff5f5;"' : ''}>${[supplier,policyDetails,escape(policy.insurer || 'Not recorded'),escape(money(policy.cover_amount)),escape(insuranceReportDate(policy.renewal_date)),escape(timing)].map((value,index)=>cell(value,days<0 && index>=4)).join('')}</tr>`;
  };
  for(const [status,policies] of [['expired',expired],['expiring',expiring]])for(const policy of policies){
   const account=byId.get(policy.account_id);if(!account)throw new Error('A policy supplier could not be verified for this report.');

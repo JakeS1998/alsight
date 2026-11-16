@@ -3,12 +3,12 @@ import {insuranceReportSuppliers} from './insuranceReportSuppliers.ts';
 import {insuranceReportMarkup} from './insuranceReportMarkup.ts';
 async function allPolicies(db,query) {
  const rows=[];let cursor;
- do{const page=await db.SupplierInsurance.filter(query,{sort:'renewal_date',limit:100,cursor,fields:['name','account_id','policy_type','policy_number','insurer','cover_amount','renewal_date','status']});rows.push(...page.items);cursor=page.has_more ? page.next_cursor : undefined;}while(cursor);
+ do{const page=await db.SupplierInsurance.filter(query,{sort:'renewal_date',limit:100,cursor,fields:['dataverse_id','account_id','policy_type','policy_number','insurer','cover_amount','renewal_date','status']});rows.push(...page.items);cursor=page.has_more ? page.next_cursor : undefined;}while(cursor);
  return rows;
 }
 export async function insuranceReportData(base44) {
  const db=base44.asServiceRole.entities,window=insuranceReportWindow(),accounts=await insuranceReportSuppliers(base44);
- const ids=[...new Set(accounts.flatMap(account=>[account.id,account.dataverse_id]))],supplierScope={account_id:{$in:ids}};
+ const ids=[...new Set(accounts.flatMap(account=>[account.id,account.dataverse_id]))],supplierScope={account_id:{$in:ids},status:'active'};
  const expiredQuery={...supplierScope,renewal_date:{$exists:true,$nin:[null,''],$lt:window.start}},expiringQuery={...supplierScope,renewal_date:{$gte:window.start,$lt:window.end}};
  const expiredCount=ids.length ? await db.SupplierInsurance.count(expiredQuery) : 0,expiringCount=ids.length ? await db.SupplierInsurance.count(expiringQuery) : 0;
  const expired=ids.length ? await allPolicies(db,expiredQuery) : [],expiring=ids.length ? await allPolicies(db,expiringQuery) : [];
