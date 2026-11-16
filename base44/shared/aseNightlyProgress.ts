@@ -1,5 +1,5 @@
 import {gazetteWaitSeconds} from './aseProviderPolicy.ts';
-export const outsideASENight=(run,now=new Date())=>run.source_mode==='gazette' && gazetteWaitSeconds(now)>0;
+export const outsideASENight=(run,now=new Date())=>(run.source_mode==='gazette' || (run.scheduled===true && run.source_mode==='assessment')) && gazetteWaitSeconds(now)>0;
 export const stalledASERun=(run,now=new Date())=>!Number.isFinite(Date.parse(run.last_activity)) || now.getTime()-Date.parse(run.last_activity)>900000;
 export async function resumeNightlyASE(base44,run) {
   if(run.pause_requested) return {skipped:true,runId:run.id,reason:'This portfolio run was manually paused; its saved progress is preserved.'};
@@ -10,5 +10,5 @@ export async function resumeNightlyASE(base44,run) {
 }
 export function nightlyProgressRules() {
   const run={scheduled:true,source_mode:'gazette',cursor:'saved-page',active_job_id:'saved-company',processed_count:42};
-  return {gazetteContinuesAtNight:!outsideASENight(run,new Date('2026-10-06T21:15:00Z')),gazetteStopsInDay:outsideASENight(run,new Date('2026-10-07T07:00:00Z')),assessmentsContinueInDay:!outsideASENight({...run,source_mode:'assessment'},new Date('2026-10-07T12:00:00Z')),legacyScheduledContinuesInDay:!outsideASENight({scheduled:true},new Date('2026-10-07T12:00:00Z')),stalledRunRecoverable:stalledASERun({last_activity:'2026-10-05T21:15:00Z'},new Date('2026-10-06T21:15:00Z')),liveRunNotRestarted:!stalledASERun({last_activity:'2026-10-06T21:14:00Z'},new Date('2026-10-06T21:15:00Z'))};
+  return {gazetteContinuesAtNight:!outsideASENight(run,new Date('2026-10-06T21:15:00Z')),gazetteStopsInDay:outsideASENight(run,new Date('2026-10-07T07:00:00Z')),assessmentsContinueInDay:!outsideASENight({...run,source_mode:'assessment',scheduled:false},new Date('2026-10-07T12:00:00Z')),overnightAssessmentsStopInDay:outsideASENight({...run,source_mode:'assessment'},new Date('2026-10-07T07:00:00Z')),overnightAssessmentsRunAtNight:!outsideASENight({...run,source_mode:'assessment'},new Date('2026-10-06T21:15:00Z')),legacyScheduledContinuesInDay:!outsideASENight({scheduled:true},new Date('2026-10-07T12:00:00Z')),stalledRunRecoverable:stalledASERun({last_activity:'2026-10-05T21:15:00Z'},new Date('2026-10-06T21:15:00Z')),liveRunNotRestarted:!stalledASERun({last_activity:'2026-10-06T21:14:00Z'},new Date('2026-10-06T21:15:00Z'))};
 }

@@ -5,6 +5,7 @@ import {automaticEvidence} from './aseAutomaticEvidence.ts';
 import {dispatchASEContinuation} from './aseAutomationDispatch.ts';
 import {resumeNightlyASE,stalledASERun,nightlyProgressRules} from './aseNightlyProgress.ts';
 import {accountsCacheRules} from './aseAccountsCache.ts';
+import {overnightSourceRules} from './aseAutomationSources.ts';
 export async function manageASEAutomation(base44,user,input) {
   const sourceMode=input.sourceMode || 'assessment';
   if(!['assessment','gazette'].includes(sourceMode)) throw new Error('Invalid ASE source mode.');
@@ -15,24 +16,24 @@ export async function manageASEAutomation(base44,user,input) {
     const assess=(source,facts,raw)=>automaticEvidence(source,account,{facts,raw},now);
     const good=assess('accounts',[fact],{company_number:'12345678',periods:[{end:'2026-03-31',metrics:{net_assets:{value:25},assets:{value:100}}}]})[0];
     const checks={primaryMetric:good.automatic_eligible,wrongCompany:!assess('accounts',[fact],{company_number:'87654321'})[0].automatic_eligible,staleMetric:!assess('accounts',[{...fact,reporting_period:'2020-03-31'}],{company_number:'12345678'})[0].automatic_eligible,noAbsence:!assess('gazette',[{...fact,component:'adverse',value:'5'}],{})[0].automatic_eligible,externalScore:!assess('blackflag',[{...fact,component:'external_risk_score',value:'90'}],{})[0].automatic_eligible,ambiguousDebt:!assess('accounts',[{...fact,component:'debt'}],{company_number:'12345678',periods:[{end:fact.reporting_period,metrics:{borrowings:{concept:'Borrowings'}}}]})[0].automatic_eligible};
-    Object.assign(checks,nightlyProgressRules(),accountsCacheRules());
+    Object.assign(checks,nightlyProgressRules(),accountsCacheRules(),overnightSourceRules());
     return {checks,passed:Object.values(checks).every(Boolean)};
   }
   if(input.action==='automationScope') return aseAutomationScope(base44,input.accountId);
   if(input.action==='automationStart') {
     if(input.confirmed!==true) throw new Error('Confirm automatic source refresh and publication.');
     const result=await withASEAutomationLease(base44,async()=>{
-      const active=await base44.entities.ASEAutomationRun.filter({...modeQuery,status:{$in:['queued','running']}},{limit:1});
+      const active=await base44.entities.ASEAutomationRun.filter({status:{$in:['queued','running']}},{limit:1});
       if(active.items.length) {
         if(input.scheduled===true) {
           const run=active.items[0];
-          if(run.scope==='portfolio' && stalledASERun(run)) return resumeNightlyASE(base44,run);
+          if(run.scope==='portfolio' && run.scheduled===true && run.source_mode===sourceMode && stalledASERun(run)) return resumeNightlyASE(base44,run);
           return {skipped:true,reason:'An ASE refresh is already active; no overlapping nightly run was started.',runId:run.id};
         }
         throw new Error('An ASE run is already active. Pause it or wait for completion before starting another.');
       }
       if(input.scheduled===true) {
-        const unfinished=await base44.entities.ASEAutomationRun.filter({...modeQuery,scope:'portfolio',status:'paused',pause_requested:{$ne:true}},{sort:'-created_date',limit:1});
+        const unfinished=await base44.entities.ASEAutomationRun.filter({source_mode:sourceMode,scheduled:true,scope:'portfolio',status:'paused',pause_requested:{$ne:true}},{sort:'-created_date',limit:1});
         if(unfinished.items[0]) return resumeNightlyASE(base44,unfinished.items[0]);
       }
       const scope=await aseAutomationScope(base44,input.accountId,sourceMode);
@@ -71,7 +72,7 @@ export async function manageASEAutomation(base44,user,input) {
       await base44.entities.ASEAutomationAccount.update(job.id,{outcome:'processing',stage:'Retrying frozen publication',completed_at:''});
       await base44.entities.ASEAutomationRun.update(run.id,{active_job_id:job.id});
     } else if(run.status==='completed') throw new Error('This run has completed. Start a new refresh instead.');
-    const active=await base44.entities.ASEAutomationRun.filter({...aseModeQuery(run.source_mode),status:{$in:['queued','running']}},{limit:10,fields:['id']});
+    const active=await base44.entities.ASEAutomationRun.filter({status:{$in:['queued','running']}},{limit:10,fields:['id']});
     if(active.items.some(item=>item.id!==run.id)) throw new Error('Another ASE run is active. Pause it before resuming this run.');
     if(run.status==='running') await base44.entities.ASEAutomationRun.update(run.id,{status:'paused'});
     return {run:await base44.entities.ASEAutomationRun.update(run.id,{status:'queued',pause_requested:false,dispatch_token:'',error:'',waiting_until:'',completed_at:''})};

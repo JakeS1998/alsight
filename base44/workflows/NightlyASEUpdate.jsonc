@@ -1,5 +1,5 @@
 {
-  "description": "At 21:15 Europe/London, starts or resumes a separate Gazette-only company refresh. Companies House and council source assessments continue independently during the daytime. Gazette collection stops at 07:00 and resumes from saved progress the next night; manual pauses, provider limits, existing evidence freshness and legacy assessments are preserved.",
+  "description": "At 21:15 Europe/London, starts or resumes the overnight all-source Compass portfolio refresh. Refreshes Companies House registry and filed accounts, Gazette, council, Environment Agency and automated Leadership & Control sources where applicable, then republishes using the latest saved profile and internal evidence. Stops at 07:00 and resumes saved organisation/source progress the next night; manual pauses, provider limits, evidence safeguards and assessment history are preserved. Active runs are never overlapped.",
   "name": "Nightly ASE Update",
   "trigger": {
     "condition": null,
@@ -22,7 +22,7 @@
     "document": {
       "dsl": "1.0.0",
       "name": "nightly_ase_update",
-      "version": "1.3",
+      "version": "1.4",
       "namespace": "base44"
     },
     "do": [
@@ -35,13 +35,13 @@
               "action": "automationStart",
               "confirmed": true,
               "scheduled": true,
-              "sourceMode": "gazette"
+              "sourceMode": "assessment"
             }
           },
           "then": "end",
           "x-base44": {
-            "title": "Resume or start Gazette-only refresh",
-            "description": "Stored progress; no daytime source refreshes"
+            "title": "Resume or start overnight all-source Compass refresh",
+            "description": "Applicable sources, latest profiles and automatic publication"
           }
         }
       }

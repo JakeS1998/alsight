@@ -9,7 +9,7 @@ export async function advanceASEAutomation(base44,runId,user) {
     const db=base44.entities,run=await db.ASEAutomationRun.get(runId);
     if(!run || run.pause_requested || !['queued','running'].includes(run.status)) return {continue:false,waitFor:'PT15S'};
     if(outsideASENight(run)) {
-      await db.ASEAutomationRun.update(run.id,{status:'paused',pause_requested:false,dispatch_token:'',waiting_until:'',error:'Gazette overnight window ended; saved company will continue at the next nightly Gazette refresh.',last_activity:new Date().toISOString()});
+      await db.ASEAutomationRun.update(run.id,{status:'paused',pause_requested:false,dispatch_token:'',waiting_until:'',error:'Overnight source window ended; saved organisation and source progress will continue at the next nightly refresh.',last_activity:new Date().toISOString()});
       return {continue:false,waitFor:'PT15S'};
     }
     try {
