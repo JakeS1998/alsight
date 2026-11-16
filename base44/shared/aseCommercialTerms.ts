@@ -1,4 +1,5 @@
 import {contractProjectTerms} from './aseContractProjectTerms.ts';
+import {commercialDates} from './aseCommercialDates.ts';
 export const contractQuery=account=>{
   const ids=[account.id,account.dataverse_id].filter(Boolean),supplier=account.account_type==='supplier' || account.relationship_types?.some(type=>['supplier','contractor','consultant'].includes(type));
   return {executed:'yes',$or:[{contractor_id:{$in:ids}},...(supplier ? [{$and:[{account_id:{$in:ids}},{client_account_id:{$nin:ids}}]}] : [])]};
@@ -16,12 +17,13 @@ export async function reviewCommercialTerms(base44,account,input,user) {
   const page=await base44.entities.JCT.filter({...contractQuery(account),id:input.contractId},{limit:1});
   const contract=page.items[0];if(!contract) throw new Error('An executed contractor-side contract linked to this account is required.');
   if(input.confirmed!==true || typeof input.reference!=='string' || !input.reference.trim() || input.reference.length>500) throw new Error('Confirm the company-specific GBP value and provide the signed contract reference.');
-  const basis=input.dateBasis ?? (input.start && input.end ? 'contract_dates' : 'project_programme');
+  let basis=input.dateBasis ?? (input.start && input.end ? 'contract_dates' : 'project_programme');
   if(!['contract_dates','project_programme'].includes(basis)) throw new Error('Choose confirmed contract dates or the project programme.');
   let start=input.start,end=input.end,source='Confirmed contract dates',programmeId='';
   if(basis==='project_programme') {
-    const [linked]=await contractProjectTerms(base44,[contract]),programme=linked.recorded_terms;
-    if(!programme?.start || !programme?.end) throw new Error('No complete recorded project programme is available. This contract remains excluded from annualisation until programme or contract dates are recorded.');
+    const [linked]=await contractProjectTerms(base44,[contract]);
+    const programme=commercialDates(linked.recorded_terms);
+    basis=programme.date_basis;
     start=programme.start;end=programme.end;source=programme.date_source;programmeId=programme.programme_record_id;
   }
   const terms=annualiseTerms(input.value,start,end),reference=input.reference.trim();

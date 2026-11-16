@@ -24,6 +24,7 @@ import {scopedReadCache,invalidateScopedRead} from '../../shared/scopedReadCache
 import {readVigoDMAEvidence} from '../../shared/vigoDMAAttribution.ts';
 import {vigoProjectId} from '../../shared/vigoDMAFees.ts';
 import {checkDMAFeeRules} from '../../shared/vigoDMAFeeChecks.ts';
+import {checkManualCommercialReviewRules} from '../../shared/manualCommercialReviewChecks.ts';
 export default async function(req: Request): Promise<Response> {
   try {
     const base44=createClientFromRequest(req), user=await portalActor(base44);
@@ -82,7 +83,7 @@ export default async function(req: Request): Promise<Response> {
       const b=calculate(defaultModels,'company',full.filter(r=>r.component!=='adverse'),new Date('2026-10-05'));
       const c=calculate(defaultModels,'company',full.slice(0,1),new Date('2026-10-05'));
       const d=calculate(defaultModels,'english_local_authority',defaultModels.english_local_authority.map((r,i)=>make(r.key,[25,1,8,0.5,'5','4','5'][i])),new Date('2026-10-05'));
-      const checks={company:a.precise_score===4.2 && a.displayed_rating===4,missingRenormalised:Math.abs(b.precise_score-37/9)<0.00001,limitedEvidenceConfidence:c.displayed_rating===4 && c.data_confidence==='Low' && c.rating_label==='Good',council:Math.abs(d.precise_score-4.2)<0.00001,...checkPdfAndProvisionalRules(),...checkCommercialScoringRules(),...checkAccountModelRules(),...checkASESourceScoringRules(),...checkBroaderEvidenceRules(),...(await checkInsuranceRules()).checks,...(await checkDMAFeeRules())};
+      const checks={company:a.precise_score===4.2 && a.displayed_rating===4,missingRenormalised:Math.abs(b.precise_score-37/9)<0.00001,limitedEvidenceConfidence:c.displayed_rating===4 && c.data_confidence==='Low' && c.rating_label==='Good',council:Math.abs(d.precise_score-4.2)<0.00001,...checkPdfAndProvisionalRules(),...checkCommercialScoringRules(),...checkAccountModelRules(),...checkASESourceScoringRules(),...checkBroaderEvidenceRules(),...(await checkInsuranceRules()).checks,...(await checkDMAFeeRules()),...await checkManualCommercialReviewRules()};
       return Response.json({checks,passed:Object.values(checks).every(Boolean)});
     }
     if (typeof input.accountId!=='string' || !/^[a-zA-Z0-9_-]{1,64}$/.test(input.accountId)) return Response.json({error:'Valid Account is required.'},{status:400});
