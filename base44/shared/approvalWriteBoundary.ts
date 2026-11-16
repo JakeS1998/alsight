@@ -1,12 +1,14 @@
 const tables = ['documents', 'dma', 'warranties'];
 const fields = ['approval_status', 'approvers_name', 'approval_comments', 'approval_date'];
-export function generalFlowMappings(table, mappings = []) {
+export function generalFlowMappings(table, mappings = [], role) {
+  if (['projects','documents','dma','jct'].includes(table) && ['admin','bsm'].includes(role)) return mappings;
   const protectedFields=table==='projects' ? ['approval_status','project_number'] : fields;
   if (!tables.includes(table) && table!=='projects') return mappings;
   const sources = new Set(mappings.filter(mapping => protectedFields.includes(mapping.local)).map(mapping => mapping.source));
   return mappings.map(mapping => protectedFields.includes(mapping.local) || sources.has(mapping.source) ? { ...mapping, write: false } : mapping);
 }
-export function assertGeneralFlowWrite(table, values, mappings = []) {
+export function assertGeneralFlowWrite(table, values, mappings = [], role) {
+  if (['projects','documents','dma','jct'].includes(table) && ['admin','bsm'].includes(role)) return;
   if ((!tables.includes(table) && table!=='projects') || !values || typeof values !== 'object' || Array.isArray(values)) return;
   const protectedFields=table==='projects' ? ['approval_status','project_number'] : fields;
   const allowed = generalFlowMappings(table, mappings);

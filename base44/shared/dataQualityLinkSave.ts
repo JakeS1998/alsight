@@ -2,6 +2,7 @@ import {flowConfig} from './dataverseFlowApi.ts';
 import {isGuid} from './dataverseFlowFields.ts';
 import {writeFlowContext,loadFlowRecord,saveFlowRecord} from './dataverseFlowWrite.ts';
 import {correctedDocumentLinks} from './documentLinkCorrections.ts';
+import {roleFlowMappings} from './bsmProjectWriteAccess.ts';
 const sources={jct:{entity:'JCT',table:'jct'},dma:{entity:'DMA',table:'dma'},appointment:{entity:'LegalDocument',table:'documents'}};
 export async function saveQualityLink(base44,user,input) {
  const source=sources[input.source];
@@ -14,7 +15,7 @@ export async function saveQualityLink(base44,user,input) {
  const prior=await db.DocumentLinkCorrection.filter({entity:source.entity,record_id:record.id},{limit:2});
  if(prior.items.length>1)throw new Error('Duplicate local link corrections need review.');
  const config=isGuid(record.dataverse_id)&&record.status!=='inactive'?await flowConfig(base44):null;
- const linkWritable=config?.tables?.[source.table]?.mappings?.some(mapping=>mapping.local==='link_to_file'&&mapping.write===true);
+ const linkWritable=roleFlowMappings(source.table,config?.tables?.[source.table]?.mappings||[],user.role).some(mapping=>mapping.local==='link_to_file'&&mapping.write===true);
  if(record.status==='inactive'||isGuid(record.dataverse_id)&&!linkWritable) {
   const values={entity:source.entity,record_id:record.id,url:url.href,original_url:record.link_to_file||'',changed_by:user.id};
   if(prior.items[0])await db.DocumentLinkCorrection.update(prior.items[0].id,values);else await db.DocumentLinkCorrection.create(values);

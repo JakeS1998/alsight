@@ -11,7 +11,7 @@ export default function InlineDataverseField({ field, label, children }) {
   const name = field || inlineFieldName(context?.table, label);
   const edit = useInlineDataverseField(context, name), container = useRef(null);
   useEffect(() => { if (edit.open && edit.field && !edit.busy) container.current?.querySelector('input:not(:disabled),textarea:not(:disabled),select:not(:disabled),[role="combobox"]')?.focus(); }, [edit.open, edit.field, edit.busy]);
-  const approvalOnly = ['documents', 'dma', 'warranties'].includes(context?.table) && ['approval_status', 'approvers_name', 'approval_comments', 'approval_date'].includes(name);
+  const approvalOnly = ['warranties'].includes(context?.table) && ['approval_status', 'approvers_name', 'approval_comments', 'approval_date'].includes(name);
   if (approvalOnly || !context?.mappedFields.includes(name)) return children;
   const title = label || name.replaceAll('_', ' ');
   return <div ref={container} className="min-w-0 text-left" onClick={event => event.stopPropagation()}>

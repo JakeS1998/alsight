@@ -11,7 +11,7 @@ export async function writeFlowContext(base44, user, config, input) {
   await assertMicrosoftSync(base44);
   const spec = flowSpecs[input.table], configured = config?.tables?.[input.table];
   const settings = configured ? {...configured,mappings:roleFlowMappings(input.table,configured.mappings||[],user.role)} : null;
-  if (input.action === 'save') assertGeneralFlowWrite(input.table, input.values, settings?.mappings);
+  if (input.action === 'save') assertGeneralFlowWrite(input.table, input.values, settings?.mappings, user.role);
   if (!settings?.mappings?.length) throw new Error('An administrator must confirm this table’s mapping first.');
   if (!spec.writeRoles.includes(user.role)) { const error = new Error('Your ALS Hub role cannot edit this table.'); error.status = 403; throw error; }
   if (typeof input.recordId !== 'string' || input.recordId.length > 100) throw new Error('Choose an ALS Hub record.');
@@ -23,7 +23,7 @@ export async function writeFlowContext(base44, user, config, input) {
   const { environment, record: connection } = await personalDataverseContext(base44, user);
   if (environment !== config.environment_url) throw new Error('The environment changed. Ask an administrator to review the mappings.');
   const token = await getPersonalDataverseToken(base44, user, environment, connection);
-  return { spec, settings, record, sourceId, environment, token };
+  return { spec, settings, record, sourceId, environment, token, role:user.role };
 }
 export async function loadFlowRecord(context) {
   const { settings, environment, token, record } = context;
@@ -33,11 +33,11 @@ export async function loadFlowRecord(context) {
   if (typeof etag !== 'string' || !/^W\/"[0-9]+"$/.test(etag)) throw new Error('Dataverse did not return a version for safe editing.');
   const values = mappedFlowValues(Object.keys(flowSpecs).find(key => flowSpecs[key].entity === context.spec.entity), settings, data);
   const choiceValues = Object.fromEntries(settings.mappings.filter(m => m.write && ['Picklist', 'State', 'Status'].includes(m.type)).map(m => [m.local, data[m.queryName || m.source] ?? null]));
-  return { values, choiceValues, etag, fields: generalFlowMappings(Object.keys(flowSpecs).find(key => flowSpecs[key].entity === context.spec.entity), settings.mappings), recordId: record.id, title: record[context.spec.labelField || context.spec.required] };
+  return { values, choiceValues, etag, fields: generalFlowMappings(Object.keys(flowSpecs).find(key => flowSpecs[key].entity === context.spec.entity), settings.mappings, context.role), recordId: record.id, title: record[context.spec.labelField || context.spec.required] };
 }
 export async function saveFlowRecord(base44, context, input) {
   await assertMicrosoftSync(base44);
-  assertGeneralFlowWrite(Object.keys(flowSpecs).find(key => flowSpecs[key].entity === context.spec.entity), input.values, context.settings.mappings);
+  assertGeneralFlowWrite(Object.keys(flowSpecs).find(key => flowSpecs[key].entity === context.spec.entity), input.values, context.settings.mappings, context.role);
   if (typeof input.etag !== 'string' || !/^W\/"[0-9]+"$/.test(input.etag)) throw new Error('Reload this record before saving.');
   if (!input.values || typeof input.values !== 'object' || Array.isArray(input.values)) throw new Error('Invalid changes.');
   const entries = Object.entries(input.values);
