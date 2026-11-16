@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { ArrowUp, Sparkles } from 'lucide-react';
 import AliceSuggestionInput from '@/components/alice/AliceSuggestionInput';
+import '@/components/adaptive/adaptive-alice.css';
 export default function ALSightIntelligencePanel({intelligence,time}) {
  const [question,setQuestion]=useState('');
  async function submit(e){e.preventDefault();const submitted=question.trim();if(!submitted||intelligence.busy)return;if(await intelligence.request('ask',submitted))setQuestion(current=>current.trim()===submitted?'':current);}

@@ -1,0 +1,15 @@
+.adaptive-today .at-panel.at-intelligence {
+  --at-muted: hsl(var(--sidebar-foreground) / .8);
+  --at-soft: hsl(var(--sidebar-foreground) / .08);
+  --at-line: hsl(var(--sidebar-foreground) / .2);
+  background: radial-gradient(ellipse at 100% 0%, hsl(var(--chart-2)), transparent 55%), hsl(var(--als-navy));
+  color: hsl(var(--sidebar-foreground));
+  border-color: hsl(var(--als-navy));
+}
+.adaptive-today .at-intelligence .at-eyebrow { color: hsl(var(--primary)); }
+.adaptive-today .at-intelligence .at-prompts button { color: hsl(var(--sidebar-foreground)); }
+.adaptive-today .at-intelligence .at-prompts button:hover { background: hsl(var(--sidebar-foreground) / .15); }
+.adaptive-today .at-intelligence .at-ask { background: hsl(var(--background)); border-color: hsl(var(--border)); }
+.adaptive-today .at-intelligence .at-ask textarea { color: hsl(var(--foreground)); }
+.adaptive-today .at-intelligence .at-ask .at-icon-button { background: hsl(var(--primary)); color: hsl(var(--primary-foreground)); }
+.adaptive-today .at-intelligence .at-error { color: hsl(var(--risk-critical)); }
