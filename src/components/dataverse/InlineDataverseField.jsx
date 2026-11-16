@@ -16,7 +16,7 @@ export default function InlineDataverseField({ field, label, children }) {
   const title = label || name.replaceAll('_', ' ');
   return <div ref={container} className="min-w-0 text-left" onClick={event => event.stopPropagation()}>
     {edit.open ? <div className="min-w-0 space-y-2">
-      {edit.field && <FlowFieldInput field={edit.field} label={title} hideLabel value={edit.value} onChange={edit.setValue} disabled={Boolean(edit.busy)} />}
+      {edit.field && <FlowFieldInput table={context.table} recordId={context.record.id} field={edit.field} label={title} hideLabel value={edit.value} onChange={edit.setValue} disabled={Boolean(edit.busy)} />}
       <div className="flex flex-wrap items-center gap-1">
         {edit.field ? <Button type="button" size="sm" disabled={Boolean(edit.busy) || !edit.changed} onClick={edit.save} aria-label={`Save ${title}`}><Check />Save</Button> : !edit.busy && <Button type="button" size="sm" variant="outline" onClick={edit.start}>Retry loading field</Button>}
         <Button type="button" variant="ghost" size="sm" disabled={Boolean(edit.busy)} onClick={edit.cancel} aria-label={`Cancel editing ${title}`}><X />Cancel</Button>

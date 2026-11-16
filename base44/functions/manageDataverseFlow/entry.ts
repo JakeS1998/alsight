@@ -17,6 +17,8 @@ import { listFlowReviews, decideFlowReview } from '../../shared/dataverseFlowRev
 import { flowReviewDetails, searchReviewTargets } from '../../shared/dataverseFlowReviewReads.ts';
 import { createDataverseProject } from '../../shared/createDataverseProject.ts';
 import { createDataverseContact } from '../../shared/createDataverseContact.ts';
+import { directoryOptions } from '../../shared/projectDirectoryOptions.ts';
+import { isGuid } from '../../shared/dataverseFlowFields.ts';
 // Supplier commission tables are included in the shared read-only catalogue.
 export default async function(req) {
   try {
@@ -27,7 +29,7 @@ export default async function(req) {
     const raw = await req.text();
     if (raw.length > 40000) return Response.json({ error: 'Request too large.' }, { status: 400 });
     const input = JSON.parse(raw), adminActions = ['confirmJake', 'checkShared', 'discover', 'inspect', 'mapping', 'preview', 'sync', 'poll', 'relationships', 'cleanDMA', 'reviews', 'reviewDetails', 'reviewTargets', 'decideReview'];
-    if (!['status', 'load', 'save', 'createProject', 'createContact', ...adminActions].includes(input.action)) return Response.json({ error: 'Invalid operation.' }, { status: 400 });
+    if (!['status', 'load', 'save', 'lookup', 'createProject', 'createContact', ...adminActions].includes(input.action)) return Response.json({ error: 'Invalid operation.' }, { status: 400 });
     if (adminActions.includes(input.action) && user.role !== 'admin') return Response.json({ error: 'Administrator access required.' }, { status: 403 });
     if(['poll','sync'].includes(input.action)){const paused=await microsoftSyncPause(base44);if(paused)return Response.json(paused);}
     let config = await flowConfig(base44);
@@ -52,6 +54,14 @@ export default async function(req) {
       return Response.json({ notice: 'Jake’s shared read connection is available.' });
     }
     if (!flowSpecs[input.table]) return Response.json({ error: 'Choose one of the configured sync tables.' }, { status: 400 });
+    if (input.action === 'lookup') {
+      if (typeof input.field !== 'string' || input.field.length > 100 || (input.search != null && (typeof input.search !== 'string' || input.search.length > 100)) || (input.selectedId && !isGuid(input.selectedId))) return Response.json({error:'Choose a valid lookup field and search by name.'},{status:400});
+      const context = await writeFlowContext(base44, user, config, input);
+      const mapping = context.settings.mappings.find(m => m.local === input.field && m.write && ['systemuser','contact','account'].includes(m.lookupTarget?.entity));
+      if (!mapping) return Response.json({error:'This field is not an editable person or organisation lookup.'},{status:403});
+      const [options, current] = await Promise.all([directoryOptions(context,input.field,input.search || ''),input.selectedId ? directoryOptions(context,input.field,'',input.selectedId) : Promise.resolve({options:[]})]);
+      return Response.json({...options,selected:current.options[0] || null});
+    }
     if (['load', 'save'].includes(input.action)) {
       const context = await writeFlowContext(base44, user, config, input);
       return Response.json(input.action === 'load' ? await loadFlowRecord(context) : await saveFlowRecord(base44, context, input));
