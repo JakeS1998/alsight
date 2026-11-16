@@ -25,7 +25,7 @@ export default async function(req:Request):Promise<Response>{
   if(input.action==='list'){
    if(!['pending','approved','rejected','all'].includes(input.view) || (input.cursor && (typeof input.cursor!=='string' || input.cursor.length>4000)))throw new Error('Invalid approval view.');
    const query={...(input.view==='all' ? {} : {status:input.view}),...(user.role==='admin' ? {} : {approver_emails:email})};
-   const [page,total]=await Promise.all([db.ProjectApproval.filter(query,{sort:'-created_date',limit:20,cursor:input.cursor}),db.ProjectApproval.count(query)]);
+   const [page,total]=await Promise.all([db.ProjectApproval.filter(query,{sort:'project_name',limit:20,cursor:input.cursor}),db.ProjectApproval.count(query)]);
    return Response.json({...page,total});
   }
   if(!['respond','retry'].includes(input.action) || !validId(input.requestId))throw new Error('Choose a project approval operation.');

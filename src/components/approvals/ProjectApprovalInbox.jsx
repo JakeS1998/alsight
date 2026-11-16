@@ -8,7 +8,7 @@ import projectApprovalClient from '@/components/approvals/projectApprovalClient'
 import SubmissionSummary from '@/components/forms/SubmissionSummary';
 export default function ProjectApprovalInbox({view}) {
  const {user}=useAuth(),client=useQueryClient(),[notice,setNotice]=useState(''),[submitted,setSubmitted]=useState(null),[status,setStatus]=useState(['pending','approved'].includes(view) ? view : 'all');
- const query=useInfiniteQuery({queryKey:['project-approvals',user?.id,status],initialPageParam:undefined,retry:false,queryFn:({pageParam})=>projectApprovalClient('list',{view:status,...(pageParam ? {cursor:pageParam} : {})}),getNextPageParam:page=>page.has_more ? page.next_cursor : undefined,refetchInterval:30000});
+ const query=useInfiniteQuery({queryKey:['project-approvals',user?.id,status,'project-name-asc'],initialPageParam:undefined,retry:false,queryFn:({pageParam})=>projectApprovalClient('list',{view:status,...(pageParam ? {cursor:pageParam} : {})}),getNextPageParam:page=>page.has_more ? page.next_cursor : undefined,refetchInterval:30000});
  useEffect(()=>{const unsubscribe=base44.entities.ProjectApproval.subscribe(()=>client.invalidateQueries({queryKey:['project-approvals']}));return unsubscribe;},[client]);
  const saved=(message,details)=>{if(message){setNotice(message);setSubmitted(details);}client.invalidateQueries({queryKey:['project-approvals']});client.invalidateQueries({queryKey:['project-number-counter']});client.invalidateQueries({queryKey:['approval-summary']});};
  const rows=query.data?.pages.flatMap(page=>page.items) || [];

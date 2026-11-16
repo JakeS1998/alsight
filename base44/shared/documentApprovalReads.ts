@@ -18,8 +18,8 @@ export async function approvalList(base44,user,input) {
  if(!['pending','approved','all','history'].includes(input.view))throw new Error('Choose an approval view.');
  if(input.search && (typeof input.search!=='string' || input.search.length>200))throw new Error('Keep your search within 200 characters.');
  for(const key of ['cursor','project','projectName','type','requester'])if(input[key]!==undefined && (typeof input[key]!=='string' || input[key].length>2000))throw new Error('Invalid approval filter.');
- const sorts={oldest:'requested_at',newest:'-requested_at',project:'project_name',type:'source_table',requester:'requested_by_name'};
- const sort=input.view==='approved' ? '-decided_at' : sorts[input.sort || 'oldest'];
+ const sorts={title:'document_title',oldest:'requested_at',newest:'-requested_at',project:'project_name',type:'source_table',requester:'requested_by_name'};
+ const sort=sorts[input.sort || 'title'];
  if(!sort)throw new Error('Choose a valid sort order.');
  const query=approvalQuery(user,input);
  if(input.view==='history')query.status={$ne:'pending'};

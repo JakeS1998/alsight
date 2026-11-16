@@ -12,7 +12,7 @@ export default function ContactProjects({contact,account}){
  const ids=[contact.id,contact.dataverse_id].filter(Boolean);
  const key=[user?.id,user?.role,contact.id,contact.dataverse_id,account?.id,account?.dataverse_id];
  const scope=useQuery({queryKey:['contact-project-scope',...key],queryFn:()=>contactProjectQuery(contact,account),staleTime:60000,retry:false});
- const projects=useInfiniteQuery({queryKey:['contact-projects',...key,scope.data],enabled:!!scope.data,initialPageParam:null,queryFn:({pageParam})=>base44.entities.Project.filter(scope.data,{sort:'-created_date',limit:20,...(pageParam?{cursor:pageParam}:{})}),getNextPageParam:page=>page.has_more?page.next_cursor:undefined,staleTime:60000,retry:false});
+ const projects=useInfiniteQuery({queryKey:['contact-projects',...key,scope.data,'name-asc'],enabled:!!scope.data,initialPageParam:null,queryFn:({pageParam})=>base44.entities.Project.filter(scope.data,{sort:'name',limit:20,...(pageParam?{cursor:pageParam}:{})}),getNextPageParam:page=>page.has_more?page.next_cursor:undefined,staleTime:60000,retry:false});
  const rows=projects.data?.pages.flatMap(page=>page.items)||[];
  const error=scope.error||projects.error,loading=scope.isPending||projects.isPending;
  const relationship=project=>project.project_manager_id&&ids.includes(project.project_manager_id)?'Project manager':project.contractor_contact_id&&ids.includes(project.contractor_contact_id)?'Contractor contact':[project.client_rep_id,project.client_rep2_id].some(id=>ids.includes(id))?'Client representative':'Organisation project';

@@ -46,7 +46,7 @@ export async function frameworkWorkspace(base44,user,body) {
  }
  const outcome=await scopedReadCache(`${viewerKey}:complete-delivery-outcomes-v2`,()=>frameworkDeliveryOutcome(base44.asServiceRole.entities));
  const query=workspaceQuery(scope,body,outcome.query);
- const page=await source.filter(body.workspaceAction==='detail' ? {...scope,id:String(body.reportId || '')} : query,{sort:'-framework_ref',limit:body.workspaceAction==='detail' ? 1 : body.limit===10 ? 10 : 50,fields:workspaceFields,...(body.cursor ? {cursor:body.cursor} : {})});
+ const page=await source.filter(body.workspaceAction==='detail' ? {...scope,id:String(body.reportId || '')} : query,{sort:'site',limit:body.workspaceAction==='detail' ? 1 : body.limit===10 ? 10 : 50,fields:workspaceFields,...(body.cursor ? {cursor:body.cursor} : {})});
  const ids=page.items.map(r=>r.project_id).filter(id=>typeof id==='string' && /^[a-f0-9]{24}$/i.test(id));
  const legacy=page.items.map(r=>r.project_id).filter(id=>typeof id==='string' && id && !/^[a-f0-9]{24}$/i.test(id));
  const projects=[];

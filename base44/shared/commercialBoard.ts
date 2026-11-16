@@ -9,7 +9,7 @@ export default async function commercialBoard(db,query,stageTotals,selectedStage
       continue;
     }
     const stageQuery=stage==='lead' ? {...query,$and:[...(query.$and || []),{$or:[{stage:'lead'},{stage:{$exists:false}}]}]} : {...query,stage};
-    const page=await db.Opportunity.filter(stageQuery,{sort:'expected_decision_date',limit:20,...(cursors[stage] ? {cursor:cursors[stage]} : {})});
+    const page=await db.Opportunity.filter(stageQuery,{sort:'title',limit:20,...(cursors[stage] ? {cursor:cursors[stage]} : {})});
     pages.push({stage,...page});
   }
   return pages;

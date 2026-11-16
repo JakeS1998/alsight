@@ -11,7 +11,7 @@ import ApprovalDetailPanel from '@/components/approvals/ApprovalDetailPanel.jsx'
 import LoadingPanel from '@/components/loading/LoadingPanel';
 export default function ApprovalWorkspace({view}) {
  const {user}=useAuth(),[params,setParams]=useSearchParams(),selected=params.get('approval');
- const [filters,setFilters]=useState({search:'',sort:'oldest'}),[debounced,setDebounced]=useState(filters);
+ const [filters,setFilters]=useState({search:'',sort:'title'}),[debounced,setDebounced]=useState(filters);
  useEffect(()=>{const timer=setTimeout(()=>setDebounced(filters),300);return ()=>clearTimeout(timer);},[filters]);
  const options=useQuery({queryKey:['approval-options',user?.id],queryFn:()=>approvalClient('options'),retry:false});
  const inbox=useApprovalInbox(view,true,debounced),items=inbox.data?.pages.flatMap(page=>page.items) || [];

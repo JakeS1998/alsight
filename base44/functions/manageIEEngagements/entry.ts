@@ -53,7 +53,7 @@ export default async function(req){
   if(action==='list'){
    const query=ieQuery(user,input.filters),limit=input.page_size==null?30:Number(input.page_size);
    if(!Number.isInteger(limit)||limit<1||limit>30)ieError('Choose a page size between 1 and 30.');
-   const [page,total]=await Promise.all([db.IEEngagement.filter(query,{sort:'-updated_date',limit,...(input.cursor?{cursor:ieText(input.cursor,4000)}:{})}),db.IEEngagement.count(query)]);
+   const [page,total]=await Promise.all([db.IEEngagement.filter(query,{sort:'name',limit,...(input.cursor?{cursor:ieText(input.cursor,4000)}:{})}),db.IEEngagement.count(query)]);
    return Response.json({...page,items:await ieProjectNumbers(db,page.items),total});
   }
   if(action==='detail'){

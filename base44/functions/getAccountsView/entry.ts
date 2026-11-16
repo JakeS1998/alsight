@@ -91,7 +91,7 @@ export default async function(req: Request): Promise<Response> {
     return { ...(searchClauses.length ? { $and: searchClauses } : {}), ...(matchingIds ? { id: { $in: matchingIds } } : aseIds ? {id:{[filters.ase==='unassessed' ? '$nin' : '$in']:aseIds}} : {}) };
     };
     const {query,total,suggested}=await resolveSearchQuery(base44.entities.Account,search,makeQuery);
-    const page=await base44.entities.Account.filter(query,{...(!query.id ? {sort:'name'} : {}),limit:30,...(typeof input.cursor==='string' ? {cursor:input.cursor} : {})});
+    const page=await base44.entities.Account.filter(query,{sort:'name',limit:30,...(typeof input.cursor==='string' ? {cursor:input.cursor} : {})});
     const ownerIds = [...new Set(page.items.map(account => account.account_manager_aad_id).filter(Boolean))];
     const ownerRecordIds=recordIds(ownerIds);
     const owners = ownerIds.length ? await base44.entities.Contact.filter({ $or: [{ aad_id: { $in: ownerIds } }, { dataverse_id: { $in: ownerIds } }, ...(ownerRecordIds.length ? [{ id: { $in: ownerRecordIds } }] : [])] }, { limit: 100, fields: ['full_name','aad_id','dataverse_id'] }) : { items: [] };

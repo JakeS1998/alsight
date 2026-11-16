@@ -13,7 +13,7 @@ export async function groupedCommercialBoard(db,query,stageTotals,selectedGroups
     const total=rows.reduce((sum,row)=>({count:sum.count+row.count,sum_budget:sum.sum_budget+(row.sum_budget || 0),sum_weighted_value:sum.sum_weighted_value+(row.sum_weighted_value || 0)}),{count:0,sum_budget:0,sum_weighted_value:0});
     if(!total.count) {pages.push({...group,total,items:[],has_more:false,next_cursor:null});continue;}
     const stageQuery={...query,stage:{$in:applicable.includes('lead') ? [...applicable,null] : applicable}};
-    const page=await db.Opportunity.filter(stageQuery,{sort:'expected_decision_date',limit:20,...(cursors[group.stage] ? {cursor:cursors[group.stage]} : {})});
+    const page=await db.Opportunity.filter(stageQuery,{sort:'title',limit:20,...(cursors[group.stage] ? {cursor:cursors[group.stage]} : {})});
     pages.push({...group,total,...page});
   }
   return pages;

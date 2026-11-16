@@ -59,7 +59,7 @@ export default function Projects() {
   const { view, setView, density, setDensity } = useProjectView();
 
   const [search, setSearch] = useListState('search', '');
-  const [sortBy, setSortBy] = useListState('sort', 'newest');
+  const [sortBy, setSortBy] = useListState('sort-a-z-default', 'name_asc');
   const [bdmFilter, setBdmFilter] = useListState('bdm', '');
   const [bsmFilter, setBsmFilter] = useListState('bsm', '');
   const [regionFilter, setRegionFilter] = useListState('region', '');

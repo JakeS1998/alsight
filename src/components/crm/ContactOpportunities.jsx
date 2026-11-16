@@ -14,7 +14,7 @@ export default function ContactOpportunities({ contactId }) {
   const load = async (next = null) => {
     setLoading(true);
     try {
-      const page = await base44.entities.Opportunity.filter({ contact_id: contactId }, { sort: '-created_date', limit: 50, ...(next ? { cursor: next } : {}) });
+      const page = await base44.entities.Opportunity.filter({ contact_id: contactId }, { sort: 'title', limit: 50, ...(next ? { cursor: next } : {}) });
       setItems(old => next ? [...old, ...page.items] : page.items); setCursor(page.next_cursor); setHasMore(page.has_more);
     } catch (e) { setError(e.message || 'Unable to load opportunities.'); }
     finally { setLoading(false); }
