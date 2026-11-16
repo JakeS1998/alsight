@@ -11,12 +11,20 @@ import {recheckAllSignedDMAs} from '../../shared/dmaRecheckAll.ts';
 import {extractProjectDMAFees} from '../../shared/vigoDMAFees.ts';
 import {readVigoDMAEvidence} from '../../shared/vigoDMAAttribution.ts';
 import {checkDMASignedWordRules} from '../../shared/dmaSignedSourceChecks.ts';
+import {readJCTContractorFee} from '../../shared/jctContractorFeeRead.ts';
 export default async function(req:Request):Promise<Response>{
  try {
   const base44=createClientFromRequest(req),user=await base44.auth.me().catch(e=>e.status===401?null:Promise.reject(e));
   if(!user)return Response.json({error:'Sign in required.'},{status:401});
   if(user.role!=='admin')return Response.json({error:'Signed DMA portfolio checks are administrator-only.'},{status:403});
   const input=await req.json().catch(()=>({}));
+  if(input.action==='extractJCT'){
+   if(typeof input.contractId!=='string'||!/^[a-zA-Z0-9_-]{1,64}$/.test(input.contractId))return Response.json({error:'Valid executed JCT identifier required.'},{status:400});
+   const contract=await base44.entities.JCT.get(input.contractId).catch(e=>e.status===404?null:Promise.reject(e));
+   if(!contract)return Response.json({error:'JCT unavailable.'},{status:404});
+   if(contract.executed!=='yes'||!contract.link_to_file)return Response.json({error:'An executed JCT with a saved document link is required.'},{status:400});
+   return Response.json(await readJCTContractorFee(base44,contract));
+  }
   if(input.action==='extractSigned'){
    if(typeof input.dmaId!=='string'||!/^[a-zA-Z0-9_-]{1,64}$/.test(input.dmaId))return Response.json({error:'Valid signed DMA identifier required.'},{status:400});
    const dma=await base44.entities.DMA.get(input.dmaId),projects=await base44.entities.Project.filter({$or:[{id:dma.project_id},{dataverse_id:dma.project_id}]},{limit:2});
