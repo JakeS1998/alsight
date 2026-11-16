@@ -10,6 +10,7 @@ import {checkDMASupplierRules} from '../../shared/dmaSupplierContractValue.ts';
 import {recheckAllSignedDMAs} from '../../shared/dmaRecheckAll.ts';
 import {extractProjectDMAFees} from '../../shared/vigoDMAFees.ts';
 import {readVigoDMAEvidence} from '../../shared/vigoDMAAttribution.ts';
+import {checkDMASignedWordRules} from '../../shared/dmaSignedSourceChecks.ts';
 export default async function(req:Request):Promise<Response>{
  try {
   const base44=createClientFromRequest(req),user=await base44.auth.me().catch(e=>e.status===401?null:Promise.reject(e));
@@ -48,7 +49,7 @@ export default async function(req:Request):Promise<Response>{
    if(accounts.items.length!==1)return Response.json({error:'Appointment supplier is missing or ambiguous.'},{status:400});
    return Response.json(await extractAppointmentFee(base44,user,document,accounts.items[0]));
   }
-  if(input.action==='supplierRules')return Response.json(checkDMASupplierRules());
+  if(input.action==='supplierRules')return Response.json({...checkDMASupplierRules(),...await checkDMASignedWordRules()});
   if(input.action==='recheckAll')return Response.json(await recheckAllSignedDMAs(base44));
   if(input.action==='hensallRules')return Response.json(checkHensallDMARules());
   if(input.action==='supplierStart')return Response.json(await startSupplierCommercialChecks(base44));

@@ -1,4 +1,5 @@
 import {resolveDMASavedLink} from './dmaSavedLink.ts';
+import {dmaSignedFolderFromWord} from './dmaSignedFolderFromWord.ts';
 export async function dmaSignedSource(reads,project,dma) {
   const signed=file=>file.file && /\.pdf$/i.test(file.name) && /legals[ %]*20?signed|legals signed/i.test(decodeURIComponent(file.webUrl || ''));
   const roots=[];
@@ -9,6 +10,9 @@ export async function dmaSignedSource(reads,project,dma) {
   for(const link of [...new Set(roots)]) {
     let root;try {root=await resolveDMASavedLink(reads,link);}catch(error){errors.push(String(error.message));continue;}
     if(signed(root)) return reads.graph(`/drives/${root.parentReference.driveId}/items/${root.id}`);
+    if(root.file&&/\.docx?$/i.test(root.name)) {
+      try {root=await dmaSignedFolderFromWord(reads,root);}catch(error){errors.push(String(error.message));continue;}
+    }
     if(!root.folder) continue;
     const folders=[root];
     for(let n=0;n<folders.length;n++) {
@@ -17,7 +21,7 @@ export async function dmaSignedSource(reads,project,dma) {
       const children=await reads.children(folder);
       for(const item of children) {
         const path=decodeURIComponent(item.webUrl || '');
-        if(item.folder && (/signed|dma/i.test(item.name) || !/work in progress/i.test(path) && n===0))folders.push(item);
+        if(item.folder && (/signed|dma/i.test(item.name) || !/work in progress/i.test(path) && n===0 && !/^(?:\d+[.\s]*)?legals signed$/i.test(root.name)))folders.push(item);
         if(signed(item) && (/development management|delivery agreement|\bdma\b/i.test(item.name) || /\/[^/]*dma\//i.test(path)))found.set(item.id,item);
       }
     }
