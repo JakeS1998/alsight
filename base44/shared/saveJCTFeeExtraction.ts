@@ -1,6 +1,8 @@
 import {readJCTContractorFee} from './jctContractorFeeRead.ts';
+import {correctedDocumentLinks} from './documentLinkCorrections.ts';
 import {jctFeeForAccount} from './jctFeeTerms.ts';
 export async function saveJCTFeeExtraction(base44,contract) {
+ [contract]=await correctedDocumentLinks(base44.asServiceRole.entities,'JCT',[contract]);
  const refs=[contract.contractor_id,contract.account_id!==contract.client_account_id?contract.account_id:null].filter(Boolean);
  const accounts=refs.length ? await base44.entities.Account.filter({$or:[{id:{$in:refs}},{dataverse_id:{$in:refs}}]},{limit:2}) : {items:[]};
    const account=accounts.items.length===1?accounts.items[0]:null,result=await readJCTContractorFee(base44,contract);

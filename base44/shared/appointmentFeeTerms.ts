@@ -1,4 +1,5 @@
 import {projectSharePointReads} from './projectSharePointReads.ts';
+import {correctedDocumentLinks} from './documentLinkCorrections.ts';
 export async function appointmentFeeTerms(base44,contracts,account,projects){
  const result=new Map(),references=contracts.filter(c=>c.document_type).map(c=>c.document_id).filter(Boolean);
  if(!references.length)return result;
@@ -11,7 +12,7 @@ export async function appointmentFeeTerms(base44,contracts,account,projects){
  if(saved.has_more)throw new Error('Too many appointment fee extractions for safe attribution.');
  if(!saved.items.length)return result;
  const reads=await projectSharePointReads(base44);
- for(const document of eligible){
+ for(const document of await correctedDocumentLinks(base44.asServiceRole.entities,'LegalDocument',eligible)){
   const matches=saved.items.filter(e=>e.appointment_id===document.id&&e.account_id===document.account_id&&e.document_type===document.document_type&&e.appointment_link===(document.link_to_file || ''));
   if(matches.length!==1)continue;
   const evidence=matches[0];

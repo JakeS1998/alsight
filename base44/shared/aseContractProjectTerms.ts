@@ -1,9 +1,11 @@
 import {jctFeeTerms} from './jctFeeTerms.ts';
+import {correctedDocumentLinks} from './documentLinkCorrections.ts';
 import {pathwayAppointmentFee} from './asePathwayAppointmentFee.ts';
 import {dmaTermsForContract,readVigoDMAEvidence} from './vigoDMAAttribution.ts';
 import {scopedReadCache} from './scopedReadCache.ts';
 import {appointmentFeeTerms} from './appointmentFeeTerms.ts';
 export async function contractProjectTerms(base44,contracts,account,dmaEvidence=null) {
+  if(base44.asServiceRole){const [jcts,appointments]=await Promise.all([correctedDocumentLinks(base44.asServiceRole.entities,'JCT',contracts.filter(c=>!c.document_type)),correctedDocumentLinks(base44.asServiceRole.entities,'LegalDocument',contracts.filter(c=>c.document_type))]);const corrected=new Map([...jcts,...appointments].map(c=>[c.id,c]));contracts=contracts.map(c=>corrected.get(c.id)||c);}
   const refs=[...new Set(contracts.map(row=>row.project_id).filter(Boolean))];
   if(!refs.length) return contracts;
   const fields=['name','dataverse_id'];

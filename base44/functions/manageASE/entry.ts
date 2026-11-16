@@ -62,7 +62,7 @@ export default async function(req: Request): Promise<Response> {
         if(user.role!=='admin')return Response.json({error:'Only administrators can extract signed JCT amounts.'},{status:403});
         if(typeof input.contractId!=='string'||!/^[a-zA-Z0-9_-]{1,64}$/.test(input.contractId))return Response.json({error:'Valid JCT identifier required.'},{status:400});
         const page=await base44.entities.JCT.filter({...contractQuery(account),id:input.contractId},{limit:1});
-        if(!page.items[0]||!page.items[0].link_to_file)return Response.json({error:'An accessible executed contractor-side JCT with a document link is required.'},{status:400});
+        if(!page.items[0])return Response.json({error:'An accessible executed contractor-side JCT with a document link is required.'},{status:400});
         const result=await saveJCTFeeExtraction(base44,page.items[0]);
         await syncCommercialInputs(base44,account);invalidateScopedRead(`${readKey}:`);
         return Response.json(result);

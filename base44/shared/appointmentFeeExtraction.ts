@@ -1,9 +1,11 @@
 import {projectSharePointReads} from './projectSharePointReads.ts';
+import {correctedDocumentLinks} from './documentLinkCorrections.ts';
 import {appointmentSignedSource,appointmentRoles} from './appointmentSignedSource.ts';
 import {appointmentDocumentPages} from './appointmentDocumentPages.ts';
 const normalise=s=>String(s || '').toLowerCase().replace(/\bltd\b/g,'limited').replace(/[^a-z0-9]/g,'');
 export async function extractAppointmentFee(base44,user,document,account){
  if(user.role!=='admin')throw new Error('Administrator access required.');
+ [document]=await correctedDocumentLinks(base44.asServiceRole.entities,'LegalDocument',[document]);
  if(document.executed!=='yes'||!appointmentRoles[document.document_type]||![account.id,account.dataverse_id].filter(Boolean).includes(document.account_id))throw new Error('Executed company-matched appointment required.');
  const db=base44.asServiceRole.entities,projects=await base44.entities.Project.filter({$or:[{id:document.project_id},{dataverse_id:document.project_id}]},{limit:2});
  if(projects.items.length!==1)throw new Error('Appointment project is missing or ambiguous.');

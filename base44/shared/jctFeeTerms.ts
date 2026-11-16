@@ -1,3 +1,4 @@
+import {correctedDocumentLinks} from './documentLinkCorrections.ts';
 const normalise=value=>String(value||'').toLowerCase().replace(/\blimited\b/g,'ltd').replace(/[^a-z0-9]/g,'');
 export function jctFeeForAccount(row,contract,account) {
  if(!row||row.status!=='extracted'||row.account_id!==account.id||row.linked_url!==contract.link_to_file||!(row.amount>0)||!row.page||!row.quote)return null;
@@ -7,6 +8,7 @@ export function jctFeeForAccount(row,contract,account) {
 export async function jctFeeTerms(base44,contracts,account) {
  const ids=contracts.filter(c=>!c.document_type).map(c=>c.id).filter(Boolean);
  if(!ids.length||!base44.asServiceRole)return new Map();
+ contracts=await correctedDocumentLinks(base44.asServiceRole.entities,'JCT',contracts);
  const page=await base44.asServiceRole.entities.JCTFeeExtraction.filter({contract_id:{$in:ids},account_id:account.id},{limit:80,sort:'-extracted_at'});
  if(page.has_more)throw new Error('Too many JCT extraction versions for this contract page.');
  const terms=new Map();

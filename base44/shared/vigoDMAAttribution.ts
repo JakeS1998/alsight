@@ -38,6 +38,8 @@ export async function readVigoDMAEvidence(base44,account,automatic=false,project
  if(proposalPriority||!extraction||extraction.status!=='ready')return base;
  if(dmas.items.length!==1||dmas.items[0].id!==extraction.dma_id)return {...base,status:'unusable',note:'The executed DMA record changed or is ambiguous; cached fees are not used.'};
  try {
+  const corrections=await base44.asServiceRole.entities.DocumentLinkCorrection.filter({entity:'DMA',record_id:extraction.dma_id},{limit:1});
+  if(corrections.items[0]&&Date.parse(corrections.items[0].updated_date)>Date.parse(extraction.extracted_at))return {...base,status:'unusable',note:'The local DMA link changed; re-read the corrected PDF before using its fees.'};
   const reads=await projectSharePointReads(base44),meta=await resolveDMASavedLink(reads,extraction.source_url),live=await reads.graph(`/drives/${meta.parentReference.driveId}/items/${meta.id}?$select=id,eTag`);
   if(live.id!==extraction.source_id||live.eTag!==extraction.source_etag)return {...base,status:'unusable',note:'The signed DMA changed; old extracted fees are not used. An administrator must open the fee evidence to read the current version.'};
  }catch(error){return {...base,status:'unusable',note:'Source freshness could not be confirmed; DMA fees are not used. '+String(error.message).slice(0,200)};}

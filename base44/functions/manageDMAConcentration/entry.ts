@@ -22,7 +22,7 @@ export default async function(req:Request):Promise<Response>{
    if(typeof input.contractId!=='string'||!/^[a-zA-Z0-9_-]{1,64}$/.test(input.contractId))return Response.json({error:'Valid executed JCT identifier required.'},{status:400});
    const contract=await base44.entities.JCT.get(input.contractId).catch(e=>e.status===404?null:Promise.reject(e));
    if(!contract)return Response.json({error:'JCT unavailable.'},{status:404});
-   if(contract.executed!=='yes'||!contract.link_to_file)return Response.json({error:'An executed JCT with a saved document link is required.'},{status:400});
+   if(contract.executed!=='yes')return Response.json({error:'An executed JCT with a saved document link is required.'},{status:400});
    return Response.json(await saveJCTFeeExtraction(base44,contract));
   }
   if(input.action==='extractSigned'){

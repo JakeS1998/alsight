@@ -3,6 +3,8 @@ import { Link } from 'react-router-dom';
 import { Link2Off, RefreshCw } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import useBrokenLinks from '@/components/admin/useBrokenLinks';
+import BrokenLinkEditor from '@/components/admin/BrokenLinkEditor';
+import BrokenLinkRecheck from '@/components/admin/BrokenLinkRecheck';
 export default function DataQualityBrokenLinks({ refreshToken }) {
  const links = useBrokenLinks(refreshToken);
  return <section className="rounded-xl border border-border bg-card p-5 space-y-4">
@@ -17,8 +19,8 @@ export default function DataQualityBrokenLinks({ refreshToken }) {
    <tbody>{links.items.map(item => <tr key={item.id} className="border-b last:border-0 align-top">
     <td className="min-w-48 py-3 pr-4"><Link to={item.href} className="font-medium underline underline-offset-4">{item.label}</Link><p className="mt-1 text-xs text-muted-foreground">{item.project}</p>{item.checkedAt && <p className="mt-1 text-xs text-muted-foreground">Recorded {new Date(item.checkedAt).toLocaleString('en-GB')}</p>}</td>
     <td className="py-3 pr-4"><span className={item.changed ? 'text-muted-foreground' : 'text-destructive'}>{item.category}</span></td>
-    <td className="min-w-64 py-3 pr-4"><p>{item.reason}</p>{item.changed && <p className="mt-2 text-xs text-muted-foreground">The saved link has changed since this failure. Read the document again to confirm it works.</p>}{item.url && <p className="mt-2 max-w-md break-all text-xs text-muted-foreground">{item.url}</p>}</td>
-    <td className="py-3 space-y-2 whitespace-nowrap"><Link to={item.href} className="block underline underline-offset-4">Open record</Link>{item.url && <a href={item.url} target="_blank" rel="noopener noreferrer" className="block underline underline-offset-4">Open saved link</a>}</td>
+    <td className="min-w-64 py-3 pr-4"><p>{item.reason}</p>{item.changed && <p className="mt-2 text-xs text-muted-foreground">{item.localLink ? 'Using an ALS Hub-only corrected link; the source record is unchanged. ' : ''}Read the corrected document again to confirm access and reconcile values.</p>}{item.url && <p className="mt-2 max-w-md break-all text-xs text-muted-foreground">{item.url}</p>}</td>
+    <td className="py-3 space-y-2 whitespace-nowrap"><Link to={item.href} className="block underline underline-offset-4">Open record</Link>{item.url && <a href={item.url} target="_blank" rel="noopener noreferrer" className="block underline underline-offset-4">Open saved link</a>}<BrokenLinkEditor item={item} source={links.source} onSaved={() => links.refetch()} /><BrokenLinkRecheck item={item} source={links.source} onSaved={() => links.refetch()} /></td>
    </tr>)}</tbody>
   </table></div>}
   {links.hasNextPage && <Button variant="outline" disabled={links.isFetching} onClick={() => links.fetchNextPage()}>{links.isFetchingNextPage ? 'Loading…' : 'Load more'}</Button>}

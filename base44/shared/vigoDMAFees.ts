@@ -1,4 +1,5 @@
 import {projectSharePointReads} from './projectSharePointReads.ts';
+import {correctedDocumentLinks} from './documentLinkCorrections.ts';
 import {dmaDocumentPages} from './dmaDocumentPages.ts';
 import {dmaSignedSource} from './dmaSignedSource.ts';
 export const vigoProjectId='6ac7b8e21d5610a3a3c8f502';
@@ -6,6 +7,9 @@ export const vigoProjectRef='931b23c0-d1b0-f011-bbd2-6045bd142db3';
 const drive='b!I2aQb37SwEGmHKs7xf_8FOAWWA2mBz5NpWMK71hiwuuOzkYJHQyrT4iTKhKPqq7r';
 const sourceId='01RKJLJZ6HVUH5THZ5UBEZMSRYT6BSB2PQ';
 export async function savedVigoDMAFees(base44) {
+ const dmas=await base44.entities.DMA.filter({project_id:{$in:[vigoProjectId,vigoProjectRef]},executed:'yes'},{limit:2});
+ const corrected=await correctedDocumentLinks(base44.asServiceRole.entities,'DMA',dmas.items);
+ if(corrected.length===1&&corrected[0].local_link){const latest=await base44.asServiceRole.entities.DMAFeeExtraction.filter({project_id:vigoProjectId,dma_id:corrected[0].id},{limit:1,sort:'-extracted_at'});return latest.items[0]||null;}
  const page=await base44.asServiceRole.entities.DMAFeeExtraction.filter({project_id:vigoProjectId,source_id:sourceId},{limit:2,sort:'-created_date'});
  if(page.items.length>1)throw new Error('Duplicate DMA extraction records need administrator review.');
  return page.items[0] || null;
@@ -19,8 +23,8 @@ export async function extractProjectDMAFees(base44,user,projectId,dmaId=null,for
  const project=await base44.entities.Project.get(projectId),aliases=[project.id,project.dataverse_id].filter(Boolean);
  const page=await base44.entities.DMA.filter({project_id:{$in:aliases},executed:'yes',...(dmaId?{id:dmaId}:{})},{limit:2});
  if(page.items.length!==1)throw new Error('One unambiguous executed DMA is required.');
- const dma=page.items[0],reads=await projectSharePointReads(base44);
- const file=projectId===vigoProjectId ? await reads.graph(`/drives/${drive}/items/${sourceId}`) : await dmaSignedSource(reads,project,dma);
+ const [dma]=await correctedDocumentLinks(base44.asServiceRole.entities,'DMA',page.items),reads=await projectSharePointReads(base44);
+ const file=projectId===vigoProjectId&&!dma.local_link ? await reads.graph(`/drives/${drive}/items/${sourceId}`) : await dmaSignedSource(reads,project,dma);
  const previousPage=await base44.asServiceRole.entities.DMAFeeExtraction.filter({project_id:project.id,dma_id:dma.id,source_id:file.id},{limit:2});
  if(previousPage.items.length>1)throw new Error('Duplicate extraction records need review.');
  const previous=previousPage.items[0];
