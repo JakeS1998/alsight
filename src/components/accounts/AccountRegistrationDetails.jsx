@@ -16,25 +16,24 @@ export default function AccountRegistrationDetails({ account }) {
   const address = ['care_of', 'po_box', 'premises', 'address_line_1', 'address_line_2', 'locality', 'region', 'postal_code', 'country']
     .map(field => office[field]).filter(value => typeof value === 'string' && value.trim()).map(value => value.trim()).join(', ');
   if (isCouncilAccount(account) || (!number && !address)) return null;
-  const information = [matching && account.company_name || account.name, number && `Company number: ${number}`, address && `Registered address: ${address}`].filter(Boolean).join('\n');
-  const copy = async () => {
+  const copy = async value => {
     setError('');
     try {
-      await navigator.clipboard.writeText(information);
-      setCopied(information);
+      await navigator.clipboard.writeText(value);
+      setCopied(value);
     } catch {
       setCopied('');
       setError('Unable to copy. Please select and copy the details manually.');
     }
   };
-  const success = copied === information;
   return <>
-    {number && <span className="break-words">Company number: {number}</span>}
-    {address && <span className="min-w-0 max-w-full break-words">Registered address: {address}</span>}
-    <Button type="button" variant="outline" size="sm" onClick={copy} aria-label="Copy company name, number and registered address" title="Copy company details" className="h-6 border-sidebar-foreground/25 bg-sidebar-foreground/10 px-2 text-xs text-sidebar-foreground hover:bg-sidebar-foreground/20 hover:text-sidebar-foreground">
-      {success ? <Check className="h-3 w-3" /> : <Copy className="h-3 w-3" />}{success ? 'Copied' : 'Copy'}
-    </Button>
-    <span role="status" className="sr-only">{success ? 'Company details copied to clipboard.' : ''}</span>
+    {[['Company number', number], ['Registered address', address]].filter(([, value]) => value).map(([label, value]) => <span key={label} className="inline-flex min-w-0 max-w-full items-center gap-1.5">
+      <strong className="min-w-0 break-words font-inherit">{label}: {value}</strong>
+      <Button type="button" variant="ghost" size="icon" onClick={() => copy(value)} aria-label={`Copy ${label.toLowerCase()}`} title={copied === value ? `${label} copied` : `Copy ${label.toLowerCase()}`} className="h-5 w-5 shrink-0 p-0 text-sidebar-foreground hover:bg-sidebar-foreground/20 hover:text-sidebar-foreground [&_svg]:size-3">
+        {copied === value ? <Check aria-hidden="true" /> : <Copy aria-hidden="true" />}
+      </Button>
+    </span>)}
+    <p role="status" className="sr-only">{copied ? 'Copied to clipboard.' : ''}</p>
     {error && <p role="alert" className="w-full text-xs text-sidebar-foreground">{error}</p>}
   </>;
 }
