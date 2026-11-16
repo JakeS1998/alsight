@@ -22,7 +22,7 @@ export async function contractProjectTerms(base44,contracts,account,dmaEvidence=
      if(saved.has_more)throw new Error('DMA evidence exceeds the safe project page.');
      const available=[...new Set(saved.items.map(r=>r.project_id))],user=available.length ? await base44.auth.me() : null;
      for(let offset=0;offset<available.length;offset+=3)await Promise.all(available.slice(offset,offset+3).map(async id=>{
-       const evidence=dmaEvidence?.project_id===id ? dmaEvidence : await scopedReadCache(`dma-portfolio-v3:${user.id}:${user.role}:${account.id}:${id}`,()=>readVigoDMAEvidence(base44,account,false,id));
+       const evidence=dmaEvidence?.project_id===id ? dmaEvidence : await scopedReadCache(`dma-portfolio-v4:${user.id}:${user.role}:${account.id}:${id}`,()=>readVigoDMAEvidence(base44,account,false,id,true));
        evidences.set(id,evidence);
      }));
    }
@@ -34,7 +34,7 @@ export async function contractProjectTerms(base44,contracts,account,dmaEvidence=
     const current=proposals.items.filter(row=>[project.id,project.dataverse_id].includes(row.project_id));
     const pathway=account && terms.length===1 && current.length===1 ? (contract.document_type ? pathwayAppointmentFee(terms[0],current[0],account,contract.document_type) : pathwayContractorFee(terms[0],current[0],account)) : null;
     const evidence=evidences.get(project.id) || (dmaEvidence?.project_id===project.id ? dmaEvidence : null);
-    const dma=current.length===0 ? dmaTermsForContract(evidence,contract) : null;
+    const dma=!pathway && (!contract.document_type || current.length===0) ? dmaTermsForContract(evidence,contract) : null;
     return {...contract,project_name:project.name,project_record_id:project.id,pathway_terms:pathway,dma_terms:dma,appointment_terms:appointmentFees.get(`${contract.project_id}:${contract.document_type}:${contract.document_id}`),...(terms.length===1 ? {recorded_terms:{value:terms[0].contract_sum,start:terms[0].contract_start,end:terms[0].forecast_pc || terms[0].original_pc,programme_record_id:terms[0].id,date_source:terms[0].forecast_pc ? 'Project delivery: contract start to forecast practical completion' : 'Project delivery: contract start to original practical completion',source:'Recorded project contract sum requires company-specific value review; programme dates may be used as an explicitly labelled proxy when contract dates are unknown.'}} : {})};
   });
 }
