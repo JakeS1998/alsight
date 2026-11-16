@@ -113,6 +113,9 @@
 .account-sticky-header { position: sticky; top: var(--portal-header-height,64px); z-index: 20; padding-block: 12px; background: hsl(var(--background)); }
 .account-tabs { display: flex; flex-wrap: wrap; width: 100%; height: auto; justify-content: flex-start; gap: 6px; }
 @media (min-width: 1024px) {
+  .account-hero .account-badges { flex-wrap: nowrap; }
+  .account-hero .account-badges > span { flex-shrink: 0; }
+  .account-hero .account-badges > .account-registered-address { flex-shrink: 1; min-width: 0; }
   .account-profile { overflow-anchor: none; }
   .account-profile .account-sticky-header::after { content: ''; position: absolute; top: 100%; inset-inline: 0; height: 20px; background: linear-gradient(to bottom,hsl(var(--background)),hsl(var(--background) / 0)); pointer-events: none; }
   .account-profile .account-sticky-header[data-compact="true"] > a,

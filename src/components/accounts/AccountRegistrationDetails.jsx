@@ -27,8 +27,8 @@ export default function AccountRegistrationDetails({ account }) {
     }
   };
   return <>
-    {[['Company number', number], ['Registered address', address]].filter(([, value]) => value).map(([label, value]) => <span key={label} className="inline-flex min-w-0 max-w-full items-center gap-1.5">
-      <strong className="min-w-0 break-words font-inherit">{label}: {value}</strong>
+    {[['Company number', number], ['Registered address', address]].filter(([, value]) => value).map(([label, value]) => <span key={label} className={`inline-flex min-w-0 max-w-full items-center gap-1.5 ${label === 'Registered address' ? 'account-registered-address' : ''}`}>
+      <strong title={value} className={`min-w-0 font-inherit ${label === 'Registered address' ? 'break-words lg:truncate' : 'break-words'}`}>{label}: {value}</strong>
       <Button type="button" variant="ghost" size="icon" onClick={() => copy(value)} aria-label={`Copy ${label.toLowerCase()}`} title={copied === value ? `${label} copied` : `Copy ${label.toLowerCase()}`} className="h-5 w-5 shrink-0 p-0 text-sidebar-foreground hover:bg-sidebar-foreground/20 hover:text-sidebar-foreground [&_svg]:size-3">
         {copied === value ? <Check aria-hidden="true" /> : <Copy aria-hidden="true" />}
       </Button>
