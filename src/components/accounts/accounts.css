@@ -43,7 +43,8 @@
   .account-profile .account-hero { min-height: 220px; border: 1px solid hsl(var(--als-navy-light)); border-radius: var(--panel-radius); background: hsl(var(--als-navy)); color: hsl(var(--sidebar-foreground)); }
   .account-profile .account-hero::before { background: linear-gradient(90deg,hsl(var(--als-navy)) 20%,hsl(var(--als-navy) / .9) 42%,hsl(var(--als-navy) / .35) 72%,hsl(var(--als-navy) / .15) 100%); }
   .account-profile .account-hero-photo { inset: 0 0 0 35%; width: 65%; opacity: 1; }
-  .account-profile .account-hero-copy { max-width: 100%; padding: 30px 28px; }
+  .account-profile .account-hero-copy { max-width: 100%; padding: 30px 28px 58px; }
+  .account-profile .account-hero-updated { position: absolute; right: 28px; bottom: 20px; margin-top: 0; text-align: right; }
   .account-profile .account-hero-copy > p { display: none; }
   .account-profile .account-hero h1 { color: hsl(var(--sidebar-foreground)); font-size: 28px; line-height: 1.25; }
   .account-profile .account-heading-icon { display: flex; align-items: center; justify-content: center; width: 52px; height: 52px; flex-shrink: 0; border: 1px solid hsl(var(--sidebar-foreground) / .25); border-radius: var(--radius); background: hsl(var(--sidebar-foreground) / .08); color: hsl(var(--sidebar-foreground)); }
