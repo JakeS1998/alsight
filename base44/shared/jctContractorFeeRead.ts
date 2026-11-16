@@ -16,11 +16,11 @@ export async function readJCTContractorFee(base44,contract) {
   source=files[0];
  }
  const file=await reads.graph(`/drives/${source.parentReference.driveId}/items/${source.id}`);
- if(!file['@microsoft.graph.downloadUrl'] || file.size>25000000)throw new Error('Signed JCT is unavailable or exceeds the 25 MB reading limit.');
+ if(!file['@microsoft.graph.downloadUrl'] || file.size>30000000)throw new Error('Signed JCT is unavailable or exceeds the 30 MB reading limit.');
  const response=await fetch(file['@microsoft.graph.downloadUrl'],{signal:AbortSignal.timeout(45000)});
  if(!response.ok)throw new Error('Signed JCT download failed.');
  const bytes=await response.arrayBuffer();let totalPages=null,pageLimit=500;
-   if(bytes.byteLength>25000000)throw new Error('Signed JCT exceeds the 25 MB reading limit.');
+   if(bytes.byteLength>30000000)throw new Error('Signed JCT exceeds the 30 MB reading limit.');
    try {const original=await PDFDocument.load(bytes);totalPages=original.getPageCount();pageLimit=totalPages;}catch(error){if(!String(error.message).includes('encrypted'))throw error;}
  const {file_uri}=await base44.asServiceRole.integrations.Core.UploadPrivateFile({file:new File([bytes],'jct-contract-reading.pdf',{type:'application/pdf'})});
  const {signed_url}=await base44.asServiceRole.integrations.Core.CreateFileSignedUrl({file_uri,expires_in:600});
