@@ -39,7 +39,7 @@ async function discoverFolders(b,u){return lease(b,async c=>{
 export async function projectLegalFolderTick(b,u){
  const start=Date.now(),discovery=await discoverFolders(b,u);if(discovery.skipped)return discovery;
  const at=now(),c=await configuration(b);
- const page=await b.asServiceRole.entities.CODataset.filter({enabled:true,'mapping.auto_project_legals':true,$and:[retryDueQuery(at),nightlyDueQuery(c)]},{sort:'state.last_attempt',limit:8});
+ const page=await b.asServiceRole.entities.CODataset.filter({enabled:true,'mapping.auto_project_legals':true,$and:[retryDueQuery(at),nightlyDueQuery(c)]},{sort:'updated_date',limit:8});
  const projects=page.items.length?(await b.asServiceRole.entities.Project.filter({id:{$in:page.items.map(d=>d.mapping.project_id)}},{limit:8})).items:[];
  const obsolete=page.items.filter(d=>!projects.some(p=>p.id===d.mapping.project_id&&String(p.link_to_legals||'').trim()===d.mapping.folder_url));
  if(obsolete.length)await b.asServiceRole.entities.CODataset.bulkUpdate(obsolete.map(d=>({id:d.id,enabled:false})));
