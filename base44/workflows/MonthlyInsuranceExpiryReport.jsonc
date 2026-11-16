@@ -43,18 +43,13 @@
       },
       {
         "email_01": {
-          "call": "send_email",
+          "call": "invoke_backend_function",
           "with": {
-            "template_name": "MonthlyInsuranceReport",
-            "to": "${ .prepare.recipients[0] }",
-            "description": "Complete expired and expiring insurance report",
-            "variables": {
-              "report_date": "${ .prepare.variables.report_date }",
-              "window_end": "${ .prepare.variables.window_end }",
-              "expired_count": "${ .prepare.variables.expired_count }",
-              "expiring_count": "${ .prepare.variables.expiring_count }",
-              "expired_rows": "${ .prepare.variables.expired_rows }",
-              "expiring_rows": "${ .prepare.variables.expiring_rows }"
+            "function_name": "manageInsuranceReports",
+            "args": {
+              "action": "deliver",
+              "to": "${ .prepare.recipients[0] }",
+              "report": true
             }
           },
           "then": "check_02",
@@ -82,18 +77,13 @@
       },
       {
         "email_02": {
-          "call": "send_email",
+          "call": "invoke_backend_function",
           "with": {
-            "template_name": "MonthlyInsuranceReport",
-            "to": "${ .prepare.recipients[1] }",
-            "description": "Complete expired and expiring insurance report",
-            "variables": {
-              "report_date": "${ .prepare.variables.report_date }",
-              "window_end": "${ .prepare.variables.window_end }",
-              "expired_count": "${ .prepare.variables.expired_count }",
-              "expiring_count": "${ .prepare.variables.expiring_count }",
-              "expired_rows": "${ .prepare.variables.expired_rows }",
-              "expiring_rows": "${ .prepare.variables.expiring_rows }"
+            "function_name": "manageInsuranceReports",
+            "args": {
+              "action": "deliver",
+              "to": "${ .prepare.recipients[1] }",
+              "report": true
             }
           },
           "then": "check_03",
@@ -121,18 +111,13 @@
       },
       {
         "email_03": {
-          "call": "send_email",
+          "call": "invoke_backend_function",
           "with": {
-            "template_name": "MonthlyInsuranceReport",
-            "to": "${ .prepare.recipients[2] }",
-            "description": "Complete expired and expiring insurance report",
-            "variables": {
-              "report_date": "${ .prepare.variables.report_date }",
-              "window_end": "${ .prepare.variables.window_end }",
-              "expired_count": "${ .prepare.variables.expired_count }",
-              "expiring_count": "${ .prepare.variables.expiring_count }",
-              "expired_rows": "${ .prepare.variables.expired_rows }",
-              "expiring_rows": "${ .prepare.variables.expiring_rows }"
+            "function_name": "manageInsuranceReports",
+            "args": {
+              "action": "deliver",
+              "to": "${ .prepare.recipients[2] }",
+              "report": true
             }
           },
           "then": "check_04",
@@ -160,18 +145,13 @@
       },
       {
         "email_04": {
-          "call": "send_email",
+          "call": "invoke_backend_function",
           "with": {
-            "template_name": "MonthlyInsuranceReport",
-            "to": "${ .prepare.recipients[3] }",
-            "description": "Complete expired and expiring insurance report",
-            "variables": {
-              "report_date": "${ .prepare.variables.report_date }",
-              "window_end": "${ .prepare.variables.window_end }",
-              "expired_count": "${ .prepare.variables.expired_count }",
-              "expiring_count": "${ .prepare.variables.expiring_count }",
-              "expired_rows": "${ .prepare.variables.expired_rows }",
-              "expiring_rows": "${ .prepare.variables.expiring_rows }"
+            "function_name": "manageInsuranceReports",
+            "args": {
+              "action": "deliver",
+              "to": "${ .prepare.recipients[3] }",
+              "report": true
             }
           },
           "then": "check_05",
@@ -199,18 +179,13 @@
       },
       {
         "email_05": {
-          "call": "send_email",
+          "call": "invoke_backend_function",
           "with": {
-            "template_name": "MonthlyInsuranceReport",
-            "to": "${ .prepare.recipients[4] }",
-            "description": "Complete expired and expiring insurance report",
-            "variables": {
-              "report_date": "${ .prepare.variables.report_date }",
-              "window_end": "${ .prepare.variables.window_end }",
-              "expired_count": "${ .prepare.variables.expired_count }",
-              "expiring_count": "${ .prepare.variables.expiring_count }",
-              "expired_rows": "${ .prepare.variables.expired_rows }",
-              "expiring_rows": "${ .prepare.variables.expiring_rows }"
+            "function_name": "manageInsuranceReports",
+            "args": {
+              "action": "deliver",
+              "to": "${ .prepare.recipients[4] }",
+              "report": true
             }
           },
           "then": "check_06",
@@ -238,18 +213,13 @@
       },
       {
         "email_06": {
-          "call": "send_email",
+          "call": "invoke_backend_function",
           "with": {
-            "template_name": "MonthlyInsuranceReport",
-            "to": "${ .prepare.recipients[5] }",
-            "description": "Complete expired and expiring insurance report",
-            "variables": {
-              "report_date": "${ .prepare.variables.report_date }",
-              "window_end": "${ .prepare.variables.window_end }",
-              "expired_count": "${ .prepare.variables.expired_count }",
-              "expiring_count": "${ .prepare.variables.expiring_count }",
-              "expired_rows": "${ .prepare.variables.expired_rows }",
-              "expiring_rows": "${ .prepare.variables.expiring_rows }"
+            "function_name": "manageInsuranceReports",
+            "args": {
+              "action": "deliver",
+              "to": "${ .prepare.recipients[5] }",
+              "report": true
             }
           },
           "then": "check_07",
@@ -277,18 +247,13 @@
       },
       {
         "email_07": {
-          "call": "send_email",
+          "call": "invoke_backend_function",
           "with": {
-            "template_name": "MonthlyInsuranceReport",
-            "to": "${ .prepare.recipients[6] }",
-            "description": "Complete expired and expiring insurance report",
-            "variables": {
-              "report_date": "${ .prepare.variables.report_date }",
-              "window_end": "${ .prepare.variables.window_end }",
-              "expired_count": "${ .prepare.variables.expired_count }",
-              "expiring_count": "${ .prepare.variables.expiring_count }",
-              "expired_rows": "${ .prepare.variables.expired_rows }",
-              "expiring_rows": "${ .prepare.variables.expiring_rows }"
+            "function_name": "manageInsuranceReports",
+            "args": {
+              "action": "deliver",
+              "to": "${ .prepare.recipients[6] }",
+              "report": true
             }
           },
           "then": "check_08",
@@ -316,18 +281,13 @@
       },
       {
         "email_08": {
-          "call": "send_email",
+          "call": "invoke_backend_function",
           "with": {
-            "template_name": "MonthlyInsuranceReport",
-            "to": "${ .prepare.recipients[7] }",
-            "description": "Complete expired and expiring insurance report",
-            "variables": {
-              "report_date": "${ .prepare.variables.report_date }",
-              "window_end": "${ .prepare.variables.window_end }",
-              "expired_count": "${ .prepare.variables.expired_count }",
-              "expiring_count": "${ .prepare.variables.expiring_count }",
-              "expired_rows": "${ .prepare.variables.expired_rows }",
-              "expiring_rows": "${ .prepare.variables.expiring_rows }"
+            "function_name": "manageInsuranceReports",
+            "args": {
+              "action": "deliver",
+              "to": "${ .prepare.recipients[7] }",
+              "report": true
             }
           },
           "then": "check_09",
@@ -355,18 +315,13 @@
       },
       {
         "email_09": {
-          "call": "send_email",
+          "call": "invoke_backend_function",
           "with": {
-            "template_name": "MonthlyInsuranceReport",
-            "to": "${ .prepare.recipients[8] }",
-            "description": "Complete expired and expiring insurance report",
-            "variables": {
-              "report_date": "${ .prepare.variables.report_date }",
-              "window_end": "${ .prepare.variables.window_end }",
-              "expired_count": "${ .prepare.variables.expired_count }",
-              "expiring_count": "${ .prepare.variables.expiring_count }",
-              "expired_rows": "${ .prepare.variables.expired_rows }",
-              "expiring_rows": "${ .prepare.variables.expiring_rows }"
+            "function_name": "manageInsuranceReports",
+            "args": {
+              "action": "deliver",
+              "to": "${ .prepare.recipients[8] }",
+              "report": true
             }
           },
           "then": "check_10",
@@ -394,18 +349,13 @@
       },
       {
         "email_10": {
-          "call": "send_email",
+          "call": "invoke_backend_function",
           "with": {
-            "template_name": "MonthlyInsuranceReport",
-            "to": "${ .prepare.recipients[9] }",
-            "description": "Complete expired and expiring insurance report",
-            "variables": {
-              "report_date": "${ .prepare.variables.report_date }",
-              "window_end": "${ .prepare.variables.window_end }",
-              "expired_count": "${ .prepare.variables.expired_count }",
-              "expiring_count": "${ .prepare.variables.expiring_count }",
-              "expired_rows": "${ .prepare.variables.expired_rows }",
-              "expiring_rows": "${ .prepare.variables.expiring_rows }"
+            "function_name": "manageInsuranceReports",
+            "args": {
+              "action": "deliver",
+              "to": "${ .prepare.recipients[9] }",
+              "report": true
             }
           },
           "then": "check_11",
@@ -433,18 +383,13 @@
       },
       {
         "email_11": {
-          "call": "send_email",
+          "call": "invoke_backend_function",
           "with": {
-            "template_name": "MonthlyInsuranceReport",
-            "to": "${ .prepare.recipients[10] }",
-            "description": "Complete expired and expiring insurance report",
-            "variables": {
-              "report_date": "${ .prepare.variables.report_date }",
-              "window_end": "${ .prepare.variables.window_end }",
-              "expired_count": "${ .prepare.variables.expired_count }",
-              "expiring_count": "${ .prepare.variables.expiring_count }",
-              "expired_rows": "${ .prepare.variables.expired_rows }",
-              "expiring_rows": "${ .prepare.variables.expiring_rows }"
+            "function_name": "manageInsuranceReports",
+            "args": {
+              "action": "deliver",
+              "to": "${ .prepare.recipients[10] }",
+              "report": true
             }
           },
           "then": "check_12",
@@ -472,18 +417,13 @@
       },
       {
         "email_12": {
-          "call": "send_email",
+          "call": "invoke_backend_function",
           "with": {
-            "template_name": "MonthlyInsuranceReport",
-            "to": "${ .prepare.recipients[11] }",
-            "description": "Complete expired and expiring insurance report",
-            "variables": {
-              "report_date": "${ .prepare.variables.report_date }",
-              "window_end": "${ .prepare.variables.window_end }",
-              "expired_count": "${ .prepare.variables.expired_count }",
-              "expiring_count": "${ .prepare.variables.expiring_count }",
-              "expired_rows": "${ .prepare.variables.expired_rows }",
-              "expiring_rows": "${ .prepare.variables.expiring_rows }"
+            "function_name": "manageInsuranceReports",
+            "args": {
+              "action": "deliver",
+              "to": "${ .prepare.recipients[11] }",
+              "report": true
             }
           },
           "then": "check_13",
@@ -511,18 +451,13 @@
       },
       {
         "email_13": {
-          "call": "send_email",
+          "call": "invoke_backend_function",
           "with": {
-            "template_name": "MonthlyInsuranceReport",
-            "to": "${ .prepare.recipients[12] }",
-            "description": "Complete expired and expiring insurance report",
-            "variables": {
-              "report_date": "${ .prepare.variables.report_date }",
-              "window_end": "${ .prepare.variables.window_end }",
-              "expired_count": "${ .prepare.variables.expired_count }",
-              "expiring_count": "${ .prepare.variables.expiring_count }",
-              "expired_rows": "${ .prepare.variables.expired_rows }",
-              "expiring_rows": "${ .prepare.variables.expiring_rows }"
+            "function_name": "manageInsuranceReports",
+            "args": {
+              "action": "deliver",
+              "to": "${ .prepare.recipients[12] }",
+              "report": true
             }
           },
           "then": "check_14",
@@ -550,18 +485,13 @@
       },
       {
         "email_14": {
-          "call": "send_email",
+          "call": "invoke_backend_function",
           "with": {
-            "template_name": "MonthlyInsuranceReport",
-            "to": "${ .prepare.recipients[13] }",
-            "description": "Complete expired and expiring insurance report",
-            "variables": {
-              "report_date": "${ .prepare.variables.report_date }",
-              "window_end": "${ .prepare.variables.window_end }",
-              "expired_count": "${ .prepare.variables.expired_count }",
-              "expiring_count": "${ .prepare.variables.expiring_count }",
-              "expired_rows": "${ .prepare.variables.expired_rows }",
-              "expiring_rows": "${ .prepare.variables.expiring_rows }"
+            "function_name": "manageInsuranceReports",
+            "args": {
+              "action": "deliver",
+              "to": "${ .prepare.recipients[13] }",
+              "report": true
             }
           },
           "then": "check_15",
@@ -589,18 +519,13 @@
       },
       {
         "email_15": {
-          "call": "send_email",
+          "call": "invoke_backend_function",
           "with": {
-            "template_name": "MonthlyInsuranceReport",
-            "to": "${ .prepare.recipients[14] }",
-            "description": "Complete expired and expiring insurance report",
-            "variables": {
-              "report_date": "${ .prepare.variables.report_date }",
-              "window_end": "${ .prepare.variables.window_end }",
-              "expired_count": "${ .prepare.variables.expired_count }",
-              "expiring_count": "${ .prepare.variables.expiring_count }",
-              "expired_rows": "${ .prepare.variables.expired_rows }",
-              "expiring_rows": "${ .prepare.variables.expiring_rows }"
+            "function_name": "manageInsuranceReports",
+            "args": {
+              "action": "deliver",
+              "to": "${ .prepare.recipients[14] }",
+              "report": true
             }
           },
           "then": "check_16",
@@ -628,18 +553,13 @@
       },
       {
         "email_16": {
-          "call": "send_email",
+          "call": "invoke_backend_function",
           "with": {
-            "template_name": "MonthlyInsuranceReport",
-            "to": "${ .prepare.recipients[15] }",
-            "description": "Complete expired and expiring insurance report",
-            "variables": {
-              "report_date": "${ .prepare.variables.report_date }",
-              "window_end": "${ .prepare.variables.window_end }",
-              "expired_count": "${ .prepare.variables.expired_count }",
-              "expiring_count": "${ .prepare.variables.expiring_count }",
-              "expired_rows": "${ .prepare.variables.expired_rows }",
-              "expiring_rows": "${ .prepare.variables.expiring_rows }"
+            "function_name": "manageInsuranceReports",
+            "args": {
+              "action": "deliver",
+              "to": "${ .prepare.recipients[15] }",
+              "report": true
             }
           },
           "then": "check_17",
@@ -667,18 +587,13 @@
       },
       {
         "email_17": {
-          "call": "send_email",
+          "call": "invoke_backend_function",
           "with": {
-            "template_name": "MonthlyInsuranceReport",
-            "to": "${ .prepare.recipients[16] }",
-            "description": "Complete expired and expiring insurance report",
-            "variables": {
-              "report_date": "${ .prepare.variables.report_date }",
-              "window_end": "${ .prepare.variables.window_end }",
-              "expired_count": "${ .prepare.variables.expired_count }",
-              "expiring_count": "${ .prepare.variables.expiring_count }",
-              "expired_rows": "${ .prepare.variables.expired_rows }",
-              "expiring_rows": "${ .prepare.variables.expiring_rows }"
+            "function_name": "manageInsuranceReports",
+            "args": {
+              "action": "deliver",
+              "to": "${ .prepare.recipients[16] }",
+              "report": true
             }
           },
           "then": "check_18",
@@ -706,18 +621,13 @@
       },
       {
         "email_18": {
-          "call": "send_email",
+          "call": "invoke_backend_function",
           "with": {
-            "template_name": "MonthlyInsuranceReport",
-            "to": "${ .prepare.recipients[17] }",
-            "description": "Complete expired and expiring insurance report",
-            "variables": {
-              "report_date": "${ .prepare.variables.report_date }",
-              "window_end": "${ .prepare.variables.window_end }",
-              "expired_count": "${ .prepare.variables.expired_count }",
-              "expiring_count": "${ .prepare.variables.expiring_count }",
-              "expired_rows": "${ .prepare.variables.expired_rows }",
-              "expiring_rows": "${ .prepare.variables.expiring_rows }"
+            "function_name": "manageInsuranceReports",
+            "args": {
+              "action": "deliver",
+              "to": "${ .prepare.recipients[17] }",
+              "report": true
             }
           },
           "then": "check_19",
@@ -745,18 +655,13 @@
       },
       {
         "email_19": {
-          "call": "send_email",
+          "call": "invoke_backend_function",
           "with": {
-            "template_name": "MonthlyInsuranceReport",
-            "to": "${ .prepare.recipients[18] }",
-            "description": "Complete expired and expiring insurance report",
-            "variables": {
-              "report_date": "${ .prepare.variables.report_date }",
-              "window_end": "${ .prepare.variables.window_end }",
-              "expired_count": "${ .prepare.variables.expired_count }",
-              "expiring_count": "${ .prepare.variables.expiring_count }",
-              "expired_rows": "${ .prepare.variables.expired_rows }",
-              "expiring_rows": "${ .prepare.variables.expiring_rows }"
+            "function_name": "manageInsuranceReports",
+            "args": {
+              "action": "deliver",
+              "to": "${ .prepare.recipients[18] }",
+              "report": true
             }
           },
           "then": "check_20",
@@ -784,18 +689,13 @@
       },
       {
         "email_20": {
-          "call": "send_email",
+          "call": "invoke_backend_function",
           "with": {
-            "template_name": "MonthlyInsuranceReport",
-            "to": "${ .prepare.recipients[19] }",
-            "description": "Complete expired and expiring insurance report",
-            "variables": {
-              "report_date": "${ .prepare.variables.report_date }",
-              "window_end": "${ .prepare.variables.window_end }",
-              "expired_count": "${ .prepare.variables.expired_count }",
-              "expiring_count": "${ .prepare.variables.expiring_count }",
-              "expired_rows": "${ .prepare.variables.expired_rows }",
-              "expiring_rows": "${ .prepare.variables.expiring_rows }"
+            "function_name": "manageInsuranceReports",
+            "args": {
+              "action": "deliver",
+              "to": "${ .prepare.recipients[19] }",
+              "report": true
             }
           },
           "then": "end",

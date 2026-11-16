@@ -1,5 +1,6 @@
 import {createClientFromRequest} from 'npm:@base44/sdk@0.8.52';
 import {insuranceReportData} from '../../shared/insuranceReportData.ts';
+import {renderInsuranceReportEmail} from '../../shared/insuranceReportEmail.ts';
 import {withPortalUserNames} from '../../shared/portalUserNames.ts';
 import {portalUserSearch} from '../../shared/portalUserSearch.ts';
 import {dataRequestError} from '../../shared/dataRequestError.ts';
@@ -29,6 +30,19 @@ export default async function(req: Request): Promise<Response> {
    return Response.json({settings:result.records[0]});
   }
   if(input.action==='preview')return Response.json({variables:await insuranceReportData(base44)});
+  if(input.action==='renderCheck'){
+   const report=await insuranceReportData(base44),rendered=renderInsuranceReportEmail(report);
+   return Response.json({table_rows:rendered.tableRows,policy_count:report.expired_count+report.expiring_count,html_contains_table:rendered.html.includes('<thead>'),escaped_table:rendered.html.includes('&lt;table'),unresolved_variables:/\{\{/.test(rendered.html)});
+  }
+  if(input.action==='deliver'){
+   const config=await settings(db);
+   if(!config.enabled)return Response.json({sent:false,reason:'Report disabled.'});
+   const people=await recipients(db,config.recipient_emails),person=people.find(p=>address(p.email)===address(input.to));
+   if(!person)return Response.json({error:'Choose an eligible saved report recipient.'},{status:400});
+   const rendered=renderInsuranceReportEmail(await insuranceReportData(base44));
+   const result=await base44.asServiceRole.integrations.Core.SendEmail({to:person.email,subject:rendered.subject,html:rendered.html,category:'transactional'});
+   return Response.json({sent:result?.success===true,reason:result?.reason,table_rows:rendered.tableRows});
+  }
   if(input.action==='prepare'){
    const config=await settings(db);
    if(!config.enabled || !config.recipient_emails.length)return Response.json({recipients:[],variables:{},enabled:false});
