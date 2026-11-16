@@ -7,6 +7,7 @@ import DataQualityIssues from '@/components/admin/DataQualityIssues';
 import useDataQuality from '@/components/admin/useDataQuality';
 import DataQualityRecordEditor from '@/components/admin/DataQualityRecordEditor';
 import CommercialDataChecks from '@/components/admin/CommercialDataChecks';
+import DataQualityBrokenLinks from '@/components/admin/DataQualityBrokenLinks';
 import { useQueryClient } from '@tanstack/react-query';
 
 export default function DataQualityDashboard() {
@@ -34,6 +35,7 @@ export default function DataQualityDashboard() {
       <DataQualityCards checks={quality.summary.checks} selected={quality.selected} onSelect={quality.setSelected} />
       {check && <DataQualityIssues check={check} result={quality.result} loading={quality.loading} onMore={quality.loadMore} onEdit={setEditing} />}
     </>}
+    <DataQualityBrokenLinks refreshToken={quality.summary?.checkedAt} />
     <CommercialDataChecks />
     <DataQualityRecordEditor target={editing} check={quality.selected} onClose={() => setEditing(null)} onSaved={quality.refresh} />
   </div>;
