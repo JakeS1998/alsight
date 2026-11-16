@@ -5,7 +5,9 @@ import {jctLinkItem} from './jctLinkItem.ts';
 export async function readJCTContractorFee(base44,contract) {
  const reads=await projectSharePointReads(base44),linked=await jctLinkItem(reads,contract.link_to_file);
  let source=linked;
- if(!linked.file || !/\.pdf$/i.test(linked.name) || !/\/Legals Signed\//i.test(decodeURIComponent(linked.webUrl || ''))){
+ // An executed JCT's saved PDF link identifies the document, regardless of its folder name.
+ // Only folder or non-PDF links need discovery of a unique signed PDF.
+ if(!linked.file || !/\.pdf$/i.test(linked.name)){
   const signed=await dmaSignedFolderFromWord(reads,linked);
   const folders=(await reads.children(signed)).filter(row=>row.folder&&/jct|building contract/i.test(row.name));
   if(folders.length!==1)throw new Error('No unique signed JCT folder was found.');
