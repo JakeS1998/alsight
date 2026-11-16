@@ -50,7 +50,7 @@ export default async function(req: Request): Promise<Response> {
       const readKey=JSON.stringify([user.id,user.role,user.account_id,user.data?.account_id,user.region,user.data?.region,user.delegate_of,user.data?.delegate_of,user.delegate_region,user.data?.delegate_region,user.staff_aad_id,user.data?.staff_aad_id,account.id]);
       if(input.action==='commercial') return Response.json(await scopedReadCache(`${readKey}:appointment-equity-v4:${input.cursor || ''}`,async()=>{
         const dmaEvidence=await readVigoDMAEvidence(base44,account,user.role==='admin');
-        return commercialInsight(base44,account,{cursor:input.cursor,dmaEvidence});
+        return commercialInsight(base44,account,{cursor:input.cursor,dmaEvidence,accountsUser:!input.cursor ? user : null});
       }));
       if(input.action==='commercialContracts') return Response.json(await contractCandidates(base44,account,input.cursor));
       if(input.action==='reviewCommercialTerms') {const result=await reviewCommercialTerms(base44,account,input,user);invalidateScopedRead(`${readKey}:`);return Response.json(result);}

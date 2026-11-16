@@ -16,6 +16,7 @@ export default function ASECommercialFigures({data,historical=false,expandedEvid
   const position = available ? Math.min(100,Math.max(0,data.percentage)) : 0;
   const heat = !available ? 'unavailable' : data.percentage < 10 ? 'low' : data.percentage < 25 ? 'good' : data.percentage < 50 ? 'moderate' : data.percentage < 75 ? 'high' : 'critical';
   return <div className="space-y-3">
+    {data.accounts_refresh?.message && <p role="status" className="text-xs text-muted-foreground">{data.accounts_refresh.message}</p>}
     <div className="ase-concentration" data-heat={heat} aria-label={`${historical ? 'Historical' : 'Current'} indicative commercial concentration${data.estimated ? ', estimated' : ''}${data.status==='incomplete' ? ', incomplete comparison' : ''}`}>
       <p className="mb-2 text-xs font-semibold text-muted-foreground">{proxy ? 'Commercial concentration · Balance-sheet proxy' : 'Commercial concentration · Contract exposure ÷ reported annual revenue'}</p>
       <p className="percentage">{available ? `${data.percentage.toFixed(1)}%` : 'Unavailable'}</p>
