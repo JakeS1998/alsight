@@ -5,6 +5,7 @@ import {enqueueSignedDMACheck} from '../../shared/dmaSignedCheck.ts';
 import {startSupplierCommercialChecks} from '../../shared/supplierCommercialQueue.ts';
 import {supplierCommercialStep} from '../../shared/supplierCommercialStep.ts';
 import {extractAppointmentFee} from '../../shared/appointmentFeeExtraction.ts';
+import {checkHensallDMARules} from '../../shared/hensallDMAContractValue.ts';
 export default async function(req:Request):Promise<Response>{
  try {
   const base44=createClientFromRequest(req),user=await base44.auth.me().catch(e=>e.status===401?null:Promise.reject(e));
@@ -35,6 +36,7 @@ export default async function(req:Request):Promise<Response>{
    if(accounts.items.length!==1)return Response.json({error:'Appointment supplier is missing or ambiguous.'},{status:400});
    return Response.json(await extractAppointmentFee(base44,user,document,accounts.items[0]));
   }
+  if(input.action==='hensallRules')return Response.json(checkHensallDMARules());
   if(input.action==='supplierStart')return Response.json(await startSupplierCommercialChecks(base44));
   if(input.action==='supplierStatus')return Response.json(await base44.asServiceRole.entities.SupplierCommercialCheck.aggregate({query:{},groupBy:['status','concentration_status'],limit:20}));
   if(input.action==='start')return Response.json(await startDMACheck(base44));
