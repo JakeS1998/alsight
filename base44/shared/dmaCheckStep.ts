@@ -19,8 +19,8 @@ export async function dmaCheckStep(base44,user,input){
    if(page.items.length!==1)throw new Error('DMA project is missing or ambiguous.');
    const project=page.items[0],refs=[project.id,project.dataverse_id].filter(Boolean);
    if(!force&&!await contractorDMAFallbackNeeded(base44,project)){
-    await db.DMACheckJob.update(job.id,{status:'completed',token:'',note:'Skipped DMA fallback because current Fee Proposal Builder values cover all executed contractors.'});
-    await kickDMACheck(base44);return {skipped:true,reason:'Contractor Fee Proposal Builder values populated.'};
+    await db.DMACheckJob.update(job.id,{status:'completed',token:'',note:'Skipped DMA fallback: no professional appointment needs it; contractors use signed JCTs.'});
+    await kickDMACheck(base44);return {skipped:true,reason:'Contractors use signed JCTs; no professional appointment DMA fallback needed.'};
    }
    const extraction=await extractProjectDMAFees(base44,user,project.id,dma.id,force);
    if(extraction.status==='processing')throw new Error('Another extraction is already processing this document; review before retrying.');

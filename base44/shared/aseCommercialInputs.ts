@@ -9,15 +9,15 @@ export async function syncCommercialInputs(base44,account,dmaEvidence=null,date=
     for(const row of linked) {
       ids.push(row.id);
       let input={commercial_effective_value:0,commercial_effective_annual_value:0,commercial_effective_start:'',commercial_effective_end:'',commercial_effective_reference:'',commercial_effective_date_basis:'',commercial_effective_mode:'unavailable',commercial_effective_source:{}};
-      const reviewed=row.commercial_reviewed===true;
-      const fallback=row.pathway_terms || row.dma_terms;
+      const reviewed=row.commercial_reviewed===true && (!row.jct_terms || Date.parse(row.commercial_reviewed_at)>Date.parse(row.jct_terms.extracted_at));
+      const fallback=row.jct_terms;
       const value=reviewed ? row.commercial_value : fallback?.value;
       const dates=commercialDates(reviewed ? {start:row.commercial_start,end:row.commercial_end,date_basis:row.commercial_date_basis || 'contract_dates',date_source:row.commercial_date_source,programme_record_id:row.commercial_programme_record_id} : row.recorded_terms,date),{start,end}=dates;
       if(value>0 && start && end) {
         const days=(Date.parse(end)-Date.parse(start))/86400000+1;
         if(Number.isFinite(days) && days>=2 && days<=36525 && /^\d{4}-\d{2}-\d{2}$/.test(start) && /^\d{4}-\d{2}-\d{2}$/.test(end) && new Date(start).toISOString().slice(0,10)===start && new Date(end).toISOString().slice(0,10)===end) {
-          const reference=reviewed ? row.commercial_reference : `pathway:${row.project_record_id}:${account.company_number}`;
-          if(reference) input={commercial_effective_value:value,commercial_effective_annual_value:annualiseTerms(value,start,end).annual_value,commercial_effective_start:start,commercial_effective_end:end,commercial_effective_reference:reference,commercial_effective_date_basis:dates.date_basis,commercial_effective_mode:reviewed ? 'reviewed' : row.pathway_terms ? 'pathway_proposal' : 'dma_schedule5',commercial_effective_source:{project_name:row.project_name,project_id:row.project_record_id,date_source:dates.date_source,programme_record_id:dates.programme_record_id,...(!reviewed ? fallback : {source:'Manually reviewed signed contract terms',source_url:row.link_to_file || '',reviewed_at:row.commercial_reviewed_at})}};
+          const reference=reviewed ? row.commercial_reference : row.document_id;
+          if(reference) input={commercial_effective_value:value,commercial_effective_annual_value:annualiseTerms(value,start,end).annual_value,commercial_effective_start:start,commercial_effective_end:end,commercial_effective_reference:reference,commercial_effective_date_basis:dates.date_basis,commercial_effective_mode:reviewed ? 'reviewed' : 'signed_jct_pdf',commercial_effective_source:{project_name:row.project_name,project_id:row.project_record_id,date_source:dates.date_source,programme_record_id:dates.programme_record_id,...(!reviewed ? fallback : {source:'Manually reviewed signed contract terms',source_url:row.link_to_file || '',reviewed_at:row.commercial_reviewed_at})}};
         }
       }
       if(Object.entries(input).some(([key,value])=>JSON.stringify(row[key])!==JSON.stringify(value))) updates.push({id:row.id,...input});

@@ -15,7 +15,7 @@ export async function commercialContractExposure(base44,account,date,dmaEvidence
   const appointments=await appointmentContractExposure(base44,account,date,dmaEvidence);
   const included=rows.reduce((sum,row)=>sum+row.count,0)+appointments.included_count,allCount=candidateCount+appointments.candidate_count,excluded=allCount-included;
   return {status:included ? excluded ? 'incomplete' : 'available' : 'unavailable',eligible,duplicateRefs,
-    exposure_basis:'contract_total',dmaEvidence,dma_fallback_count:rows.filter(row=>row.commercial_effective_mode==='dma_schedule5').reduce((sum,row)=>sum+row.count,0)+(appointments.dma_fallback_count||0),
+    exposure_basis:'contract_total',dmaEvidence,jct_extraction_count:rows.filter(row=>row.commercial_effective_mode==='signed_jct_pdf').reduce((sum,row)=>sum+row.count,0),dma_fallback_count:rows.filter(row=>row.commercial_effective_mode==='dma_schedule5').reduce((sum,row)=>sum+row.count,0)+(appointments.dma_fallback_count||0),
     total_contract_value:included ? rows.reduce((sum,row)=>sum+row.sum_commercial_effective_value,0)+appointments.total_contract_value : null,
     included_count:included,excluded_count:excluded,candidate_count:allCount,appointment_count:appointments.candidate_count,appointment_included_count:appointments.included_count,appointment_contracts:appointments.contracts,warnings:appointments.warnings,
     programme_proxy_count:rows.filter(row=>['project_programme','current_financial_year'].includes(row.commercial_effective_date_basis)).reduce((sum,row)=>sum+row.count,0)+appointments.programme_proxy_count,

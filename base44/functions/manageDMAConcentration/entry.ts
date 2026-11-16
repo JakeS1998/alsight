@@ -11,7 +11,7 @@ import {recheckAllSignedDMAs} from '../../shared/dmaRecheckAll.ts';
 import {extractProjectDMAFees} from '../../shared/vigoDMAFees.ts';
 import {readVigoDMAEvidence} from '../../shared/vigoDMAAttribution.ts';
 import {checkDMASignedWordRules} from '../../shared/dmaSignedSourceChecks.ts';
-import {readJCTContractorFee} from '../../shared/jctContractorFeeRead.ts';
+import {saveJCTFeeExtraction} from '../../shared/saveJCTFeeExtraction.ts';
 export default async function(req:Request):Promise<Response>{
  try {
   const base44=createClientFromRequest(req),user=await base44.auth.me().catch(e=>e.status===401?null:Promise.reject(e));
@@ -23,7 +23,7 @@ export default async function(req:Request):Promise<Response>{
    const contract=await base44.entities.JCT.get(input.contractId).catch(e=>e.status===404?null:Promise.reject(e));
    if(!contract)return Response.json({error:'JCT unavailable.'},{status:404});
    if(contract.executed!=='yes'||!contract.link_to_file)return Response.json({error:'An executed JCT with a saved document link is required.'},{status:400});
-   return Response.json(await readJCTContractorFee(base44,contract));
+   return Response.json(await saveJCTFeeExtraction(base44,contract));
   }
   if(input.action==='extractSigned'){
    if(typeof input.dmaId!=='string'||!/^[a-zA-Z0-9_-]{1,64}$/.test(input.dmaId))return Response.json({error:'Valid signed DMA identifier required.'},{status:400});

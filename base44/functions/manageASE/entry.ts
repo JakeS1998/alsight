@@ -25,12 +25,15 @@ import {readVigoDMAEvidence} from '../../shared/vigoDMAAttribution.ts';
 import {vigoProjectId} from '../../shared/vigoDMAFees.ts';
 import {checkDMAFeeRules} from '../../shared/vigoDMAFeeChecks.ts';
 import {checkManualCommercialReviewRules} from '../../shared/manualCommercialReviewChecks.ts';
+import {saveJCTFeeExtraction} from '../../shared/saveJCTFeeExtraction.ts';
+import {syncCommercialInputs} from '../../shared/aseCommercialInputs.ts';
+import {contractQuery} from '../../shared/aseCommercialTerms.ts';
 export default async function(req: Request): Promise<Response> {
   try {
     const base44=createClientFromRequest(req), user=await portalActor(base44);
     if (!user || !internalRoles.includes(user.role)) return Response.json({error:'ASE is available to internal staff only.'},{status:403});
     const input=await req.json();
-    const actions=['policy','savePolicy','seed','summary','detail','addEvidence','previewAssessment','assess','bulkPublish','explain','checkRules','automationScope','automationStart','automationStatus','automationPause','automationResume','automationRetry','automationStep','automationDispatch','automationRules','commercial','commercialContracts','reviewCommercialTerms','structure','hmrcStatus','dmaFees'];
+    const actions=['policy','savePolicy','seed','summary','detail','addEvidence','previewAssessment','assess','bulkPublish','explain','checkRules','automationScope','automationStart','automationStatus','automationPause','automationResume','automationRetry','automationStep','automationDispatch','automationRules','commercial','commercialContracts','reviewCommercialTerms','extractCommercialJCT','structure','hmrcStatus','dmaFees'];
     if (!actions.includes(input.action)) return Response.json({error:'Invalid ASE operation.'},{status:400});
     if (['savePolicy','seed','addEvidence','previewAssessment','assess','bulkPublish','checkRules'].includes(input.action) && user.role!=='admin') return Response.json({error:'Only administrators can manage ASE evidence, assessments and policy.'},{status:403});
     if(input.action==='dmaFees') {
@@ -43,17 +46,26 @@ export default async function(req: Request): Promise<Response> {
       if(user.role!=='admin') return Response.json({error:'ASE automation is administrator-only.'},{status:403});
       return Response.json(await manageASEAutomation(base44,user,input));
     }
-    if(['commercial','commercialContracts','reviewCommercialTerms','structure','hmrcStatus'].includes(input.action)) {
+    if(['commercial','commercialContracts','reviewCommercialTerms','extractCommercialJCT','structure','hmrcStatus'].includes(input.action)) {
       if(typeof input.accountId!=='string' || !/^[a-zA-Z0-9_-]{1,64}$/.test(input.accountId)) return Response.json({error:'Valid Account is required.'},{status:400});
       if(input.cursor!=null && (typeof input.cursor!=='string' || input.cursor.length>4096)) return Response.json({error:'Invalid cursor.'},{status:400});
       const account=await base44.entities.Account.get(input.accountId);
       if(!account) return Response.json({error:'Account unavailable.'},{status:404});
       const readKey=JSON.stringify([user.id,user.role,user.account_id,user.data?.account_id,user.region,user.data?.region,user.delegate_of,user.data?.delegate_of,user.delegate_region,user.data?.delegate_region,user.staff_aad_id,user.data?.staff_aad_id,account.id]);
       if(input.action==='commercial' && !(await base44.auth.isAuthenticated())) return Response.json({error:'Sign in to check filed accounts.'},{status:401});
-      if(input.action==='commercial') return Response.json(await scopedReadCache(`${readKey}:appointment-equity-v6-dma-supplier-placeholders:${input.cursor || ''}`,async()=>{
+      if(input.action==='commercial') return Response.json(await scopedReadCache(`${readKey}:signed-jct-only-v7:${input.cursor || ''}`,async()=>{
         const dmaEvidence=await readVigoDMAEvidence(base44,account,user.role==='admin');
         return commercialInsight(base44,account,{cursor:input.cursor,dmaEvidence,accountsUser:!input.cursor ? user : null});
       }));
+      if(input.action==='extractCommercialJCT') {
+        if(user.role!=='admin')return Response.json({error:'Only administrators can extract signed JCT amounts.'},{status:403});
+        if(typeof input.contractId!=='string'||!/^[a-zA-Z0-9_-]{1,64}$/.test(input.contractId))return Response.json({error:'Valid JCT identifier required.'},{status:400});
+        const page=await base44.entities.JCT.filter({...contractQuery(account),id:input.contractId},{limit:1});
+        if(!page.items[0]||!page.items[0].link_to_file)return Response.json({error:'An accessible executed contractor-side JCT with a document link is required.'},{status:400});
+        const result=await saveJCTFeeExtraction(base44,page.items[0]);
+        await syncCommercialInputs(base44,account);invalidateScopedRead(`${readKey}:`);
+        return Response.json(result);
+      }
       if(input.action==='commercialContracts') return Response.json(await contractCandidates(base44,account,input.cursor));
       if(input.action==='reviewCommercialTerms') {const result=await reviewCommercialTerms(base44,account,input,user);invalidateScopedRead(`${readKey}:`);return Response.json(result);}
       if(input.action==='structure') return Response.json(await groupStructure(base44,account));

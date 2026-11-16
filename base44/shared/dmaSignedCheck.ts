@@ -8,11 +8,11 @@ export async function enqueueSignedDMACheck(base44,dmaId){
  const projects=await db.Project.filter({$or:[{id:dma.project_id},{dataverse_id:dma.project_id}]},{limit:2});
  if(projects.items.length!==1)return {skipped:true,reason:'Linked project is missing or ambiguous.'};
  const project=projects.items[0];
- if(!await contractorDMAFallbackNeeded(base44,project))return {skipped:true,reason:'Current Fee Proposal Builder values cover all executed contractors; no DMA fallback needed.'};
+ if(!await contractorDMAFallbackNeeded(base44,project))return {skipped:true,reason:'No professional appointment requires DMA fallback; contractor amounts use signed JCTs.'};
  const prior=await db.DMACheckJob.filter({dma_id:dma.id},{sort:'-created_date',limit:1});
  const existing=prior.items[0];
  if(existing&&['queued','processing'].includes(existing.status)){await kickDMACheck(base44);return {already_queued:true};}
- const data={dma_id:dma.id,project_id:project.id,reference:dma.document_id,status:'queued',stage:'document',token:'',account_ids:[],account_index:0,results:[],note:'Automatically queued on DMA signing; Fee Proposal Builder first, signed DMA fallback where contractor values are unavailable.',extraction_status:'',claimed_at:''};
+ const data={dma_id:dma.id,project_id:project.id,reference:dma.document_id,status:'queued',stage:'document',token:'',account_ids:[],account_index:0,results:[],note:'Automatically queued on DMA signing for professional appointment fallback only; contractor amounts use signed JCTs.',extraction_status:'',claimed_at:''};
  const job=existing?await db.DMACheckJob.update(existing.id,data):await db.DMACheckJob.create(data);
  await kickDMACheck(base44);
  return {queued:true,jobId:job.id};

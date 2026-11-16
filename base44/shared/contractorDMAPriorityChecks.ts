@@ -1,27 +1,25 @@
 import {contractProjectTerms} from './aseContractProjectTerms.ts';
 import {contractorDMAFallbackNeeded} from './contractorDMAFallbackNeeded.ts';
+import {dmaTermsForContract} from './vigoDMAAttribution.ts';
+import {syncCommercialInputs} from './aseCommercialInputs.ts';
 export async function checkContractorDMAPriority() {
- const project={id:'6ac7b8e21d5610a3a3c8f502',name:'Priority fixture'},account={id:'contractor-fixture',company_number:'05335916'};
- const contract={id:'jct-fixture',project_id:project.id,contractor_id:account.id,document_id:'JCT-fixture'};
+ const project={id:'6ac7b8e21d5610a3a3c8f502',name:'Priority fixture'},account={id:'contractor-fixture',name:'Fixture Contractor Ltd',company_number:'05335916'};
+ const contract={id:'jct-fixture',project_id:project.id,contractor_id:account.id,document_id:'JCT-fixture',link_to_file:'https://allianceleisureservice.sharepoint.com/fixture.pdf'};
  const evidence={status:'ready',project_id:project.id,rows:[{document_id:contract.id,amount:500,page:35,quote:'Contract Sum 500',match_source:'Executed JCT-fixture',reason:''}]};
- const run=async ({amount=100,company=account.company_number,proposal=true,source=evidence}={})=>{
-  const db={
-   Project:{filter:async()=>({items:[project]})},
-   ProjectDelivery:{filter:async()=>({items:[{id:'delivery-fixture',project_id:project.id,delivery_team:JSON.stringify([{role:'Contractor',supplier_company_number:company,fees:{riba_1:amount},contractor_ohp:{riba_1:{type:'percentage',value:10}}}])}]})},
-   FeeProposal:{filter:async()=>({items:proposal?[{id:'proposal-fixture',project_id:project.id,revision_number:1,status:'accepted'}]:[]})},
-   JCT:{filter:async()=>({items:[contract]})},Account:{filter:async()=>({items:[account]})},
-   DMAFeeExtraction:{filter:async()=>({items:[{project_id:project.id}]})}
-  };
-  const client={entities:db,asServiceRole:{entities:db},auth:{me:async()=>({id:'fixture-user',role:'admin'})}};
-  const [terms]=await contractProjectTerms(client,[contract],account,source);
-  return {terms,needsDMA:await contractorDMAFallbackNeeded(client,project)};
+ const run=async ({proposal=true,jct=true,company=account.name,reviewed=false}={})=>{
+  let derived;
+  const record={...contract,...(reviewed?{commercial_reviewed:true,commercial_value:300,commercial_reference:contract.document_id,commercial_reviewed_at:'2026-11-17T00:00:00Z'}:{})};
+  const db={Project:{filter:async()=>({items:[project]})},
+   ProjectDelivery:{filter:async()=>({items:[{id:'delivery-fixture',project_id:project.id,delivery_team:JSON.stringify([{role:'Contractor',supplier_company_number:account.company_number,fees:{riba_1:100}}])}]})},
+   FeeProposal:{filter:async()=>({items:proposal?[{id:'proposal-fixture',project_id:project.id,status:'accepted'}]:[]}),count:async()=>proposal?1:0},
+   LegalDocument:{count:async()=>0},
+   JCT:{filter:async()=>({items:[record]}),bulkUpdate:async rows=>{derived=rows[0];}},
+   JCTFeeExtraction:{filter:async()=>({items:jct?[{contract_id:contract.id,account_id:account.id,linked_url:contract.link_to_file,status:'extracted',amount:200,contractor:company,page:5,quote:'Contract Sum 200',extracted_at:'2026-11-16T00:00:00Z'}]:[]})}};
+  const client={entities:db,asServiceRole:{entities:db}};
+  const [terms]=await contractProjectTerms(client,[record],account,evidence);
+  await syncCommercialInputs(client,account,evidence,'2026-11-16');
+  return {terms,derived,needsDMA:await contractorDMAFallbackNeeded(client,project)};
  };
- const [builder,empty,unmatched,missing,unclear]=await Promise.all([run(),run({amount:0}),run({company:'00000001'}),run({proposal:false}),run({amount:0,source:{...evidence,rows:[{...evidence.rows[0],reason:'Ambiguous contractor'}]}})]);
- return {
-  contractorBuilderPriority:builder.terms.pathway_terms?.value===110&&!builder.terms.dma_terms&&!builder.needsDMA,
-  contractorEmptyBuilderDMAFallback:!empty.terms.pathway_terms&&empty.terms.dma_terms?.value===500&&empty.needsDMA,
-  contractorUnmatchedBuilderDMAFallback:!unmatched.terms.pathway_terms&&unmatched.terms.dma_terms?.value===500&&unmatched.needsDMA,
-  contractorNoProposalDMAFallback:missing.terms.dma_terms?.value===500&&missing.needsDMA,
-  contractorAmbiguousDMAExcluded:!unclear.terms.pathway_terms&&!unclear.terms.dma_terms
- };
+ const [signed,missing,noProposal,wrongCompany,reviewed]=await Promise.all([run(),run({jct:false}),run({proposal:false}),run({company:'Other Contractor Ltd'}),run({reviewed:true})]);
+ return {contractorSignedJCTPriority:signed.derived.commercial_effective_value===200&&signed.derived.commercial_effective_mode==='signed_jct_pdf',contractorNoDMAFallback:!signed.terms.dma_terms&&!signed.needsDMA&&dmaTermsForContract(evidence,contract)===null,contractorNoProposalSubstitution:missing.derived.commercial_effective_value===0&&!missing.terms.pathway_terms,contractorJCTWithoutProposal:noProposal.derived.commercial_effective_value===200&&!noProposal.needsDMA,contractorWrongJCTCompanyExcluded:wrongCompany.derived.commercial_effective_value===0,contractorLaterManualJCTReview:reviewed.derived.commercial_effective_value===300&&reviewed.derived.commercial_effective_mode==='reviewed'};
 }

@@ -12,7 +12,7 @@ export async function readVigoDMAEvidence(base44,account,automatic=false,project
   if(account) {
   const refs=projectRefs,ids=aliases(account);
   const [appointments,contracts]=await Promise.all([base44.entities.LegalDocument.count({project_id:{$in:refs},account_id:{$in:ids},executed:'yes',document_type:{$in:['appointment_pm','appointment_pd_cdm','appointment_pd_br','appointment_architect']}}),base44.entities.JCT.count({project_id:{$in:refs},executed:'yes',$or:[{contractor_id:{$in:ids}},{account_id:{$in:ids},client_account_id:{$nin:ids}}]})]);
-  if(!appointments&&!contracts)return null;
+  if(!appointments)return null;
  }
  const project=selected || await base44.entities.Project.get(projectId).catch(e=>[403,404].includes(e.status)?null:Promise.reject(e));
  if(!project)return null;
@@ -50,7 +50,7 @@ export async function readVigoDMAEvidence(base44,account,automatic=false,project
   if(type==='contractor'&&isDMAContractValue(row))candidates=dmaContractValueCandidates(row,candidates,page.items);
   else if(type==='contractor'&&!hasName)candidates=[];
   const document=candidates.length===1?candidates[0]:null,company=document?page.items.find(a=>aliases(a).includes(document.account_id)):null;
-  let reason=!type?'Not a clearly attributable supplier fee role.':!document||!company?'Supplier cannot be identified unambiguously from an executed, role-matched appointment / contract.':row.confidence!=='high'||!row.page||!row.quote||!(row.amount>0)?'Fee amount or page evidence is unclear.':'';
+  let reason=type==='contractor'?'Contractor amounts come from the signed JCT, never DMA Schedule 5.':!type?'Not a clearly attributable supplier fee role.':!document||!company?'Supplier cannot be identified unambiguously from an executed, role-matched appointment / contract.':row.confidence!=='high'||!row.page||!row.quote||!(row.amount>0)?'Fee amount or page evidence is unclear.':'';
   if(!reason&&type==='contractor'&&isHensall(company)&&!isDMAContractValue(row))reason='Hensall contract exposure must use Schedule 5 Contract Value or its accepted Contract Sum replacement, not contractor fees or other totals.';
   if(!reason&&['contractvalue','contractsum'].includes(normalise(row.role))&&!isDMAContractValue(row))reason='The exact cost-plan label is missing from the cited evidence.';
   if(!reason&&normalise(row.role)==='contractsum'&&hasContractValue)reason='Schedule 5 Contract Value takes precedence; Contract Sum is not counted again.';
@@ -64,7 +64,7 @@ export async function readVigoDMAEvidence(base44,account,automatic=false,project
  return {...base,rows,programme_complete:!!(programme?.contract_start&&(programme?.forecast_pc||programme?.original_pc)),programme_note:programme?.contract_start&&(programme?.forecast_pc||programme?.original_pc)?'Existing programme eligibility rules apply.':'No complete project programme dates are recorded; the full fee is allocated to the current financial year (1 April to 31 March).'};
 }
 export function dmaTermsForContract(evidence,contract) {
- if(evidence?.status!=='ready')return null;
+ if(!contract.document_type || contract.document_type==='contractor' || evidence?.status!=='ready')return null;
  const matches=evidence.rows.filter(row=>!row.reason&&(Boolean(contract.id)&&row.document_id===contract.id||Boolean(contract.document_id)&&row.document_type===(contract.document_type||'contractor')&&contract.document_id===row.document_reference));
  if(matches.length!==1||matches[0].reason)return null;
  const row=matches[0];
