@@ -1,0 +1,20 @@
+import React, {useState} from 'react';
+import {Link} from 'react-router-dom';
+import {useQuery, useQueryClient} from '@tanstack/react-query';
+import {base44} from '@/api/base44Client';
+import InlineEditTrigger from '@/components/forms/InlineEditTrigger';
+import {Input} from '@/components/ui/input';
+import {Button} from '@/components/ui/button';
+const request=async input=>{const {data}=await base44.functions.invoke('manageProjectDirectory',input);if(data.error)throw new Error(data.error);return data;};
+export default function ProjectDirectoryField({label,project,override,editable,onUpdated,children}) {
+ const cache=useQueryClient(),[open,setOpen]=useState(false),[search,setSearch]=useState(''),[term,setTerm]=useState(''),[selected,setSelected]=useState(null),[busy,setBusy]=useState(false),[error,setError]=useState(''),[notice,setNotice]=useState('');
+ React.useEffect(()=>{const timer=setTimeout(()=>setTerm(search),300);return()=>clearTimeout(timer);},[search]);
+ const options=useQuery({queryKey:['project-directory-options',project.id,label,term],enabled:open,retry:false,queryFn:()=>request({action:'options',projectId:project.id,field:label,search:term})});
+ const save=async()=>{setBusy(true);setError('');try{const data=await request({action:'save',projectId:project.id,field:label,selectedId:selected,etag:options.data?.etag});setNotice(data.notice);setOpen(false);await cache.invalidateQueries({queryKey:['project-directory',project.id]});if(data.project)onUpdated?.(data.project);cache.invalidateQueries({queryKey:['project-record-owners']});cache.invalidateQueries({queryKey:['project-assignment-director-v2']});cache.invalidateQueries({queryKey:['project-assignment-contacts']});}catch(e){setError(e.response?.data?.error||e.message);}finally{setBusy(false);}};
+ const display=override ? override.selected_id ? override.selected_url ? <Link to={override.selected_url} className="underline underline-offset-2 hover:text-primary">{override.selected_name}</Link> : override.selected_name : 'Not recorded' : children;
+ return <><div className="ws-label">{label}</div><div className="ws-value">{open ? <div className="space-y-2">
+  <Input aria-label={`Search ${label}`} placeholder="Search by name" value={search} onChange={e=>setSearch(e.target.value)} disabled={busy}/>
+  {options.isPending ? <p role="status" className="text-xs text-muted-foreground">Loading choices…</p> : options.isError ? <p role="alert" className="text-xs text-destructive">{options.error.response?.data?.error||options.error.message}<Button size="sm" variant="link" onClick={()=>options.refetch()}>Retry</Button></p> : <><select aria-label={`Choose ${label}`} className="h-9 w-full rounded-md border border-input bg-card px-2 text-sm" value={selected??'__choose'} disabled={busy} onChange={e=>setSelected(e.target.value)}><option disabled value="__choose">Choose an assignment</option><option value="">Not recorded</option>{options.data.options.map(o=><option key={o.id} value={o.id}>{o.name}</option>)}</select><p className="text-xs text-muted-foreground">{options.data.dataverse?'Saves to Dataverse using your connected account.':'Saved in the Hub directory; no corresponding Dataverse project column.'}{options.data.has_more?' Refine the search to find more choices.':''}</p></>}
+  <div className="flex gap-2"><Button size="sm" onClick={save} disabled={busy||selected===null||!options.data}>{busy?'Saving…':'Save'}</Button><Button size="sm" variant="ghost" disabled={busy} onClick={()=>{setOpen(false);setError('');}}>Cancel</Button></div>
+ </div> : editable ? <InlineEditTrigger label={label} onEdit={()=>{setOpen(true);setSelected(null);setSearch('');setError('');setNotice('');}}>{display||'Not recorded'}</InlineEditTrigger> : display||'Not recorded'}{error&&<p role="alert" className="text-xs text-destructive">{error}</p>}{notice&&<p role="status" className="text-xs text-muted-foreground">{notice}</p>}</div></>;
+}

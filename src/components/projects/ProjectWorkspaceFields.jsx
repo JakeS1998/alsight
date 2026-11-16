@@ -2,8 +2,9 @@ import React from 'react';
 import { Link } from 'react-router-dom';
 import ProjectDetailGroups from '@/components/projects/ProjectDetailGroups';
 import InlineDataverseField from '@/components/dataverse/InlineDataverseField';
+import ProjectDirectory from '@/components/projects/ProjectDirectory';
 
-export default function ProjectWorkspaceFields({ summary, assignments, details }) {
+export default function ProjectWorkspaceFields({ summary, assignments, details, project, onProjectUpdated }) {
   return <>
     <section className="ws-overview">
       <div className="ws-sectionhead"><h2 className="ws-sectiontitle">Delivery 360</h2></div>
@@ -13,10 +14,7 @@ export default function ProjectWorkspaceFields({ summary, assignments, details }
       </div>)}</div>
     </section>
     <div className="ws-grid2">
-      <section className="ws-card ws-panel">
-        <div className="ws-panelhead"><h3 className="ws-sectiontitle">Project Directory</h3></div>
-        <div className="ws-teamgrid">{assignments.map(([label, value, to]) => <div className="ws-teamitem" key={label}><div className="ws-label">{label}</div><div className="ws-value"><InlineDataverseField label={label}>{to ? <Link to={to} className="underline underline-offset-2 hover:text-primary">{value}</Link> : value || '—'}</InlineDataverseField></div></div>)}</div>
-      </section>
+      <ProjectDirectory project={project} assignments={assignments} onUpdated={onProjectUpdated} />
       <section className="ws-card ws-panel">
         <div className="ws-panelhead"><h3 className="ws-sectiontitle">Additional Details</h3></div>
         <ProjectDetailGroups groups={details} />

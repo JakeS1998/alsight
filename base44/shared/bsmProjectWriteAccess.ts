@@ -2,7 +2,9 @@ import {generalFlowMappings} from './approvalWriteBoundary.ts';
 import {isGuid} from './dataverseFlowFields.ts';
 export const bsmProjectTables=['projects','documents','dma','jct','warranties'];
 export function roleFlowMappings(table,mappings=[],role){
- return generalFlowMappings(table,role==='bsm'&&bsmProjectTables.includes(table)?mappings.map(m=>m.bsmWrite===true?{...m,write:true}:m):mappings);
+ const directory=['bdm_aad_id','bsm_aad_id','director_aad_id','project_manager_id','client_rep_id'];
+ const enabled=mappings.map(m=>table==='projects' && directory.includes(m.local) && ['admin','director','bsm','bdm'].includes(role) ? {...m,write:!(role==='bdm'&&m.local==='bsm_aad_id')} : role==='bsm'&&bsmProjectTables.includes(table)&&m.bsmWrite===true ? {...m,write:true} : m);
+ return generalFlowMappings(table,enabled);
 }
 async function accessibleProject(b,id){
  if(typeof id!=='string'||!id||id.length>100){const e=new Error('A linked project is required for BSM write-back.');e.status=403;throw e;}

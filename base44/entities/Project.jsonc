@@ -56,7 +56,33 @@
       "type": "string"
     },
     "bsm_aad_id": {
-      "type": "string"
+      "type": "string",
+      "rls": {
+        "update": {
+          "$or": [
+            {
+              "user_condition": {
+                "role": "admin"
+              }
+            },
+            {
+              "user_condition": {
+                "role": "director"
+              }
+            },
+            {
+              "user_condition": {
+                "role": "bsm"
+              }
+            },
+            {
+              "user_condition": {
+                "collaborator_role": "editor"
+              }
+            }
+          ]
+        }
+      }
     },
     "director_aad_id": {
       "type": "string"

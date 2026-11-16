@@ -1,0 +1,63 @@
+{
+  "name": "ProjectDirectoryAssignment",
+  "type": "object",
+  "properties": {
+    "project_id": {
+      "type": "string"
+    },
+    "field": {
+      "type": "string",
+      "enum": [
+        "BDM",
+        "BSM",
+        "Director",
+        "Project Manager",
+        "Client Representative",
+        "Contractor",
+        "Principal Designer (CDM)",
+        "Principal Designer (BR)",
+        "Architect",
+        "Structural Engineer",
+        "M&E Engineer",
+        "Cost Consultant"
+      ]
+    },
+    "selected_id": {
+      "type": "string"
+    },
+    "selected_name": {
+      "type": "string",
+      "maxLength": 500
+    },
+    "selected_url": {
+      "type": "string",
+      "maxLength": 200
+    }
+  },
+  "required": [
+    "project_id",
+    "field"
+  ],
+  "rls": {
+    "read": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "create": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "update": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "delete": {
+      "user_condition": {
+        "role": "admin"
+      }
+    }
+  }
+}
