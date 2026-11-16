@@ -11,19 +11,20 @@ export async function dmaCheckStep(base44,user,input){
  await db.DMACheckJob.updateMany({id:job.id,status:'queued',token:job.token},{$set:{status:'processing',token:claim,claimed_at:new Date().toISOString()}});
  if((await db.DMACheckJob.get(job.id)).token!==claim)return {skipped:true};
  try {
-  if(job.stage==='document'){
+  if(['document','recheck_document'].includes(job.stage)){
+   const force=job.stage==='recheck_document';
    const dma=await base44.entities.DMA.get(job.dma_id);if(dma.executed!=='yes')throw new Error('DMA is no longer marked executed.');
    const page=await base44.entities.Project.filter({$or:[{id:dma.project_id},{dataverse_id:dma.project_id}]},{limit:2});
    if(page.items.length!==1)throw new Error('DMA project is missing or ambiguous.');
    const project=page.items[0],refs=[project.id,project.dataverse_id].filter(Boolean);
-   if(await db.FeeProposal.count({project_id:{$in:refs},is_current:true,status:{$ne:'lost'}})){
+   if(!force&&await db.FeeProposal.count({project_id:{$in:refs},is_current:true,status:{$ne:'lost'}})){
     await db.DMACheckJob.update(job.id,{status:'completed',token:'',note:'Skipped DMA fallback because a current fee proposal is populated.'});
     await kickDMACheck(base44);return {skipped:true,reason:'Current fee proposal populated.'};
    }
-   const extraction=await extractProjectDMAFees(base44,user,project.id,dma.id);
+   const extraction=await extractProjectDMAFees(base44,user,project.id,dma.id,force);
    if(extraction.status==='processing')throw new Error('Another extraction is already processing this document; review before retrying.');
    if(extraction.status!=='ready')throw new Error(extraction.note || 'No usable Schedule 5 fee rows found.');
-   const evidence=await readVigoDMAEvidence(base44,null,false,project.id);
+   const evidence=await readVigoDMAEvidence(base44,null,false,project.id,force);
    const ids=[...new Set((evidence?.rows || []).filter(r=>!r.reason&&r.account_id).map(r=>r.account_id))];
    if(!ids.length){await db.DMACheckJob.update(job.id,{status:evidence?.status==='proposal_available'?'completed':'blocked',token:'',extraction_status:extraction.status,note:[evidence?.note,'Extracted fees could not be attributed to unambiguous signed supplier appointments.',...new Set((evidence?.rows||[]).map(row=>row.reason).filter(Boolean))].filter(Boolean).join(' ').slice(0,2000)});}
    else {await db.DMACheckJob.update(job.id,{project_id:project.id,stage:'accounts',account_ids:ids,account_index:0,extraction_status:extraction.status,status:'queued',token:crypto.randomUUID(),note:'Schedule 5 extracted; refreshing matched company concentration.'});return {continuing:true,accounts:ids.length};}

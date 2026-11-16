@@ -14,7 +14,7 @@ export async function extractVigoDMAFees(base44,user,projectId) {
  if(projectId!==vigoProjectId)throw new Error('Choose the Vigo project for this document panel.');
  return extractProjectDMAFees(base44,user,projectId);
 }
-export async function extractProjectDMAFees(base44,user,projectId,dmaId=null) {
+export async function extractProjectDMAFees(base44,user,projectId,dmaId=null,force=false) {
  if(user.role!=='admin'){const e=new Error('Administrator access required for document extraction.');e.status=403;throw e;}
  const project=await base44.entities.Project.get(projectId),aliases=[project.id,project.dataverse_id].filter(Boolean);
  const page=await base44.entities.DMA.filter({project_id:{$in:aliases},executed:'yes',...(dmaId?{id:dmaId}:{})},{limit:2});
@@ -25,7 +25,7 @@ export async function extractProjectDMAFees(base44,user,projectId,dmaId=null) {
  if(previousPage.items.length>1)throw new Error('Duplicate extraction records need review.');
  const previous=previousPage.items[0];
  if(!file.file || !/\.pdf$/i.test(file.name) || file.size>25000000 || !file.webUrl?.includes('/Legals%20Signed/') && !file.webUrl?.includes('/Legals Signed/'))throw new Error('A signed PDF under 25 MB is required.');
- if(previous?.source_etag===file.eTag && previous?.extraction_version===4 && (['ready','unusable'].includes(previous.status)||previous.status==='error'&&!/exceeds (the )?90[- ]page/.test(previous.note||'')&&Date.now()-Date.parse(previous.extracted_at)<900000))return previous;
+ if(!force && previous?.source_etag===file.eTag && previous?.extraction_version===4 && (['ready','unusable'].includes(previous.status)||previous.status==='error'&&!/exceeds (the )?90[- ]page/.test(previous.note||'')&&Date.now()-Date.parse(previous.extracted_at)<900000))return previous;
  if(previous?.status==='processing' && Date.now()-Date.parse(previous.extracted_at)<300000)return previous;
  const initial={project_id:project.id,dma_id:dma.id,source_id:file.id,source_etag:file.eTag,source_url:file.webUrl,source_name:file.name,extraction_version:4,status:'processing',extracted_at:new Date().toISOString(),rows:[],note:''};
  const record=previous ? await base44.asServiceRole.entities.DMAFeeExtraction.update(previous.id,initial) : await base44.asServiceRole.entities.DMAFeeExtraction.create(initial);
