@@ -3,6 +3,7 @@ import { checks, directQueries } from '../../shared/dataQualityRules.ts';
 import { auditProjects, directCheck, duplicateContacts } from '../../shared/dataQualityAudit.ts';
 import { qualityEditContext, qualityEditorResponse, saveQualityEdit } from '../../shared/dataQualityEditor.ts';
 import { qualityLookup } from '../../shared/dataQualityLookups.ts';
+import { qualityBrokenLinks } from '../../shared/dataQualityBrokenLinks.ts';
 
 export default async function(req: Request): Promise<Response> {
   try {
@@ -10,8 +11,12 @@ export default async function(req: Request): Promise<Response> {
     const user = await base44.auth.me();
     if (!user || user.role !== 'admin') return Response.json({ error: 'Administrator access required.' }, { status: 403 });
     const body = await req.json();
-    if (!['summary', 'issues', 'editor', 'save', 'lookup', 'duplicate_records'].includes(body.action)) return Response.json({ error: 'Invalid quality check action.' }, { status: 400 });
+    if (!['summary', 'issues', 'editor', 'save', 'lookup', 'duplicate_records', 'broken_links'].includes(body.action)) return Response.json({ error: 'Invalid quality check action.' }, { status: 400 });
     const db = base44.entities;
+    if (body.action === 'broken_links') {
+      if ((body.source && !['jct','dma','appointment'].includes(body.source)) || (body.cursor != null && (typeof body.cursor !== 'string' || body.cursor.length > 2000))) return Response.json({ error: 'Invalid document source or page.' }, { status: 400 });
+      return Response.json(await qualityBrokenLinks(db, body));
+    }
     if (['editor','save','lookup','duplicate_records'].includes(body.action)) {
       try {
         if (body.action === 'editor') return Response.json(qualityEditorResponse(await qualityEditContext(db, body)));
