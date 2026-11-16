@@ -22,7 +22,7 @@ export async function contractProjectTerms(base44,contracts,account,dmaEvidence=
      if(saved.has_more)throw new Error('DMA evidence exceeds the safe project page.');
      const available=[...new Set(saved.items.map(r=>r.project_id))],user=available.length ? await base44.auth.me() : null;
      for(let offset=0;offset<available.length;offset+=3)await Promise.all(available.slice(offset,offset+3).map(async id=>{
-       const evidence=dmaEvidence?.project_id===id ? dmaEvidence : await scopedReadCache(`dma-portfolio-v2:${user.id}:${user.role}:${account.id}:${id}`,()=>readVigoDMAEvidence(base44,account,false,id));
+       const evidence=dmaEvidence?.project_id===id ? dmaEvidence : await scopedReadCache(`dma-portfolio-v3:${user.id}:${user.role}:${account.id}:${id}`,()=>readVigoDMAEvidence(base44,account,false,id));
        evidences.set(id,evidence);
      }));
    }

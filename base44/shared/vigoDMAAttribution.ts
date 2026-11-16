@@ -41,6 +41,7 @@ export async function readVigoDMAEvidence(base44,account,automatic=false,project
   const reads=await projectSharePointReads(base44),meta=await resolveDMASavedLink(reads,extraction.source_url),live=await reads.graph(`/drives/${meta.parentReference.driveId}/items/${meta.id}?$select=id,eTag`);
   if(live.id!==extraction.source_id||live.eTag!==extraction.source_etag)return {...base,status:'unusable',note:'The signed DMA changed; old extracted fees are not used. An administrator must open the fee evidence to read the current version.'};
  }catch(error){return {...base,status:'unusable',note:'Source freshness could not be confirmed; DMA fees are not used. '+String(error.message).slice(0,200)};}
+ const hasContractValue=extraction.rows.some(row=>normalise(row.role)==='contractvalue'&&isDMAContractValue(row));
  const rows=extraction.rows.map(row=>{
   const type=types[normalise(row.role)],hasName=!['','na','none','notapplicable','notspecified','unknown','notprovided','notnamed'].includes(normalise(row.supplier_name));
   let candidates=linked.filter(d=>d.document_type===type);
@@ -50,9 +51,10 @@ export async function readVigoDMAEvidence(base44,account,automatic=false,project
   else if(type==='contractor'&&!hasName)candidates=[];
   const document=candidates.length===1?candidates[0]:null,company=document?page.items.find(a=>aliases(a).includes(document.account_id)):null;
   let reason=!type?'Not a clearly attributable supplier fee role.':!document||!company?'Supplier cannot be identified unambiguously from an executed, role-matched appointment / contract.':row.confidence!=='high'||!row.page||!row.quote||!(row.amount>0)?'Fee amount or page evidence is unclear.':'';
-  if(!reason&&type==='contractor'&&isHensall(company)&&!isDMAContractValue(row))reason='Hensall contract exposure must use the DMA cost-plan Contract Value line, not contractor fees or other totals.';
-  if(!reason&&normalise(row.role)==='contractvalue'&&!isDMAContractValue(row))reason='The exact Contract Value label is missing from the cited cost-plan evidence.';
-  if(!reason&&type==='contractor'&&!isDMAContractValue(row)&&extraction.rows.some(isDMAContractValue))reason='The cost-plan Contract Value line takes precedence over other contractor totals.';
+  if(!reason&&type==='contractor'&&isHensall(company)&&!isDMAContractValue(row))reason='Hensall contract exposure must use Schedule 5 Contract Value or its accepted Contract Sum replacement, not contractor fees or other totals.';
+  if(!reason&&['contractvalue','contractsum'].includes(normalise(row.role))&&!isDMAContractValue(row))reason='The exact cost-plan label is missing from the cited evidence.';
+  if(!reason&&normalise(row.role)==='contractsum'&&hasContractValue)reason='Schedule 5 Contract Value takes precedence; Contract Sum is not counted again.';
+  if(!reason&&type==='contractor'&&!isDMAContractValue(row)&&extraction.rows.some(isDMAContractValue))reason='The Schedule 5 Contract Value or Contract Sum line takes precedence over other contractor totals.';
   return {...row,vat_basis:'excluding VAT (assumed)',document_type:type,document_id:document?.id,document_reference:document?.document_id,account_id:company?.id,supplier:company?.name||'',match_source:document?`Executed ${document.document_id} (${document.document_type})`:'',reason};
  }).filter(row=>!account||row.account_id===account.id);
  const counts=new Map();
