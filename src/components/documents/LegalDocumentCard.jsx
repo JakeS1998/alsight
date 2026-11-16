@@ -45,7 +45,7 @@ export function LegalDocumentCard({ doc: sourceDoc, projectName, projectNumber, 
       {open && (
         <div className="border-t border-slate-100 bg-slate-50/60 p-3 space-y-3">
           <RecordUpdatedAt record={doc} />
-          <DataverseRecordEdit table="documents" record={doc} onUpdated={setDoc}>
+          <DataverseRecordEdit table="documents" record={doc} onUpdated={setDoc} inlineOnly>
           <ProgressTracker steps={steps} />
           <div className="grid gap-4 sm:grid-cols-3 items-start">
             <DetailColumn title="Document & Execution">
@@ -70,9 +70,9 @@ export function LegalDocumentCard({ doc: sourceDoc, projectName, projectNumber, 
             {!hideCommentsAndLinks && <DetailColumn title="Comments & Links">
               <InlineDataverseField field="comments"><p className="text-xs text-slate-600 whitespace-pre-line">{doc.comments || '—'}</p></InlineDataverseField>
               <div className="space-y-1">
-                {doc.link_to_file && <LinkRow href={doc.link_to_file} label="File" />}
-                {doc.link_to_client_proposal && <LinkRow href={doc.link_to_client_proposal} label="Client Proposal" />}
-                {doc.link_to_fee_proposal && !hideFinancials && <LinkRow href={doc.link_to_fee_proposal} label="Fee Proposal" />}
+                <LinkRow href={doc.link_to_file} label="File" />
+                <LinkRow href={doc.link_to_client_proposal} label="Client Proposal" />
+                {!hideFinancials && <LinkRow href={doc.link_to_fee_proposal} label="Fee Proposal" />}
               </div>
             </DetailColumn>}
           </div>
@@ -101,7 +101,7 @@ function DetailRow({ label, value }) {
 }
 function LinkRow({ href, label }) {
   const field = { File: 'link_to_file', 'Client Proposal': 'link_to_client_proposal', 'Fee Proposal': 'link_to_fee_proposal' }[label];
-  return <InlineDataverseField field={field} label={label}><a href={href} target="_blank" rel="noreferrer" className="inline-flex items-center gap-1 text-xs text-blue-600 hover:underline">
+  return <InlineDataverseField field={field} label={label}>{href ? <a href={href} target="_blank" rel="noreferrer" className="inline-flex items-center gap-1 text-xs text-blue-600 hover:underline">
     <ExternalLink className="h-3 w-3" /> {label}
-  </a></InlineDataverseField>;
+  </a> : <span className="text-xs text-muted-foreground">{label}: —</span>}</InlineDataverseField>;
 }

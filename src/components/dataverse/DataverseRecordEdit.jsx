@@ -7,7 +7,7 @@ import DataverseEditContext from '@/components/dataverse/DataverseEditContext';
 import flowRequest from '@/components/dataverse/flowClient';
 import BsmRecordFields from '@/components/dataverse/BsmRecordFields';
 const entities = { projects: 'Project', accounts: 'Account', contacts: 'Contact', documents: 'LegalDocument', dma: 'DMA', jct: 'JCT', warranties: 'Warranty' };
-export default function DataverseRecordEdit({ table, record, onUpdated, children }) {
+export default function DataverseRecordEdit({ table, record, onUpdated, children, inlineOnly = false }) {
   const { user } = useAuth();
   const allowed = ['admin', 'director', 'regional_director', 'bsm', 'bdm', 'finance'].includes(user?.role);
   const linked = Boolean(record?.id && record?.dataverse_id);
@@ -18,7 +18,7 @@ export default function DataverseRecordEdit({ table, record, onUpdated, children
   const saved = async (data) => { if (data?.refreshRequired) return; if (onUpdated) onUpdated(data?.record || await base44.entities[entities[table]].get(record.id)); };
   return <DataverseEditContext.Provider value={{ table, record, saved, mappedFields, checking: allowed && linked && status.isPending }}>
     {children}
-    {children && ['admin','bsm'].includes(user?.role) && linked && mappedFields.length>0 && ['projects','documents','dma','jct','warranties'].includes(table) && <BsmRecordFields key={table+record.id} table={table} recordId={record.id} onSaved={saved}/>}
+    {!inlineOnly && children && ['admin','bsm'].includes(user?.role) && linked && mappedFields.length>0 && ['projects','documents','dma','jct','warranties'].includes(table) && <BsmRecordFields key={table+record.id} table={table} recordId={record.id} onSaved={saved}/>}
     {children && allowed && linked && status.isError && <div role="alert" className="text-xs text-destructive">Unable to check editable fields. <Button type="button" variant="link" size="sm" onClick={() => status.refetch()}>Retry</Button></div>}
   </DataverseEditContext.Provider>;
 }
