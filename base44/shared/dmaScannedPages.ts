@@ -5,9 +5,10 @@ export async function dmaScannedPages(base44,url) {
  const bytes=await response.arrayBuffer();
  if(bytes.byteLength>25000000)throw new Error('Signed DMA exceeds the 25 MB pilot limit.');
  const doc=await PDFDocument.load(bytes,{ignoreEncryption:false}),pages=doc.getPages();
- if(pages.length>180)throw new Error('Signed DMA exceeds the 180-page processing limit.');
- const selected=[];
- for(let index=0;index<pages.length;index++) {
+ if(pages.length>500)throw new Error('Signed DMA exceeds the 500-page document limit.');
+ const selected=[],scanCount=pages.length>180?96:pages.length;
+ // Long DMAs contain appended technical material: bound each cost-plan read, never infer unread pages.
+ for(let index=0;index<scanCount;index++) {
   const resources=pages[index].node.Resources(),objects=resources?.lookupMaybe(PDFName.of('XObject'),PDFDict);
   const images=(objects?.entries()||[]).map(([,reference])=>doc.context.lookup(reference)).filter(stream=>stream instanceof PDFRawStream && stream.dict.get(PDFName.of('Subtype'))?.toString()==='/Image' && stream.dict.get(PDFName.of('Filter'))?.toString().includes('DCTDecode'));
   const image=images.sort((a,b)=>b.contents.length-a.contents.length)[0];

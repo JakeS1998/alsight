@@ -49,7 +49,7 @@ export default async function(req: Request): Promise<Response> {
       if(!account) return Response.json({error:'Account unavailable.'},{status:404});
       const readKey=JSON.stringify([user.id,user.role,user.account_id,user.data?.account_id,user.region,user.data?.region,user.delegate_of,user.data?.delegate_of,user.delegate_region,user.data?.delegate_region,user.staff_aad_id,user.data?.staff_aad_id,account.id]);
       if(input.action==='commercial' && !(await base44.auth.isAuthenticated())) return Response.json({error:'Sign in to check filed accounts.'},{status:401});
-      if(input.action==='commercial') return Response.json(await scopedReadCache(`${readKey}:appointment-equity-v5-shared-accounts:${input.cursor || ''}`,async()=>{
+      if(input.action==='commercial') return Response.json(await scopedReadCache(`${readKey}:appointment-equity-v6-dma-supplier-placeholders:${input.cursor || ''}`,async()=>{
         const dmaEvidence=await readVigoDMAEvidence(base44,account,user.role==='admin');
         return commercialInsight(base44,account,{cursor:input.cursor,dmaEvidence,accountsUser:!input.cursor ? user : null});
       }));

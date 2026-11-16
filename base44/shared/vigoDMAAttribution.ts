@@ -42,7 +42,7 @@ export async function readVigoDMAEvidence(base44,account,automatic=false,project
   if(live.id!==extraction.source_id||live.eTag!==extraction.source_etag)return {...base,status:'unusable',note:'The signed DMA changed; old extracted fees are not used. An administrator must open the fee evidence to read the current version.'};
  }catch(error){return {...base,status:'unusable',note:'Source freshness could not be confirmed; DMA fees are not used. '+String(error.message).slice(0,200)};}
  const rows=extraction.rows.map(row=>{
-  const type=types[normalise(row.role)],hasName=!['','notspecified','unknown','notprovided'].includes(normalise(row.supplier_name));
+  const type=types[normalise(row.role)],hasName=!['','na','none','notapplicable','notspecified','unknown','notprovided','notnamed'].includes(normalise(row.supplier_name));
   let candidates=linked.filter(d=>d.document_type===type);
   if(hasName)candidates=candidates.filter(d=>{const company=page.items.find(a=>aliases(a).includes(d.account_id));return company&&[company.name,company.company_name,company.full_name].some(n=>n&&normalise(n)===normalise(row.supplier_name));});
   // Attribute the exact Contract Value line to one verified project contractor.

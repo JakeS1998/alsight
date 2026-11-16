@@ -8,12 +8,22 @@ import {extractAppointmentFee} from '../../shared/appointmentFeeExtraction.ts';
 import {checkHensallDMARules} from '../../shared/hensallDMAContractValue.ts';
 import {checkDMASupplierRules} from '../../shared/dmaSupplierContractValue.ts';
 import {recheckAllSignedDMAs} from '../../shared/dmaRecheckAll.ts';
+import {extractProjectDMAFees} from '../../shared/vigoDMAFees.ts';
+import {readVigoDMAEvidence} from '../../shared/vigoDMAAttribution.ts';
 export default async function(req:Request):Promise<Response>{
  try {
   const base44=createClientFromRequest(req),user=await base44.auth.me().catch(e=>e.status===401?null:Promise.reject(e));
   if(!user)return Response.json({error:'Sign in required.'},{status:401});
   if(user.role!=='admin')return Response.json({error:'Signed DMA portfolio checks are administrator-only.'},{status:403});
   const input=await req.json().catch(()=>({}));
+  if(input.action==='extractSigned'){
+   if(typeof input.dmaId!=='string'||!/^[a-zA-Z0-9_-]{1,64}$/.test(input.dmaId))return Response.json({error:'Valid signed DMA identifier required.'},{status:400});
+   const dma=await base44.entities.DMA.get(input.dmaId),projects=await base44.entities.Project.filter({$or:[{id:dma.project_id},{dataverse_id:dma.project_id}]},{limit:2});
+   if(dma.executed!=='yes'||projects.items.length!==1)return Response.json({error:'An executed DMA linked to one accessible project is required.'},{status:400});
+   const project=projects.items[0],extraction=await extractProjectDMAFees(base44,user,project.id,dma.id,true);
+   const evidence=extraction.status==='ready'?await readVigoDMAEvidence(base44,null,false,project.id):null;
+   return Response.json({status:extraction.status,note:extraction.note,evidence});
+  }
   if(input.action==='enqueueSigned'){
    if(typeof input.dmaId!=='string'||!/^[a-zA-Z0-9_-]{1,64}$/.test(input.dmaId))return Response.json({error:'Valid signed DMA identifier required.'},{status:400});
    return Response.json(await enqueueSignedDMACheck(base44,input.dmaId));
