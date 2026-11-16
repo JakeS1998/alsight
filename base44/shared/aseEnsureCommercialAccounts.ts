@@ -2,10 +2,16 @@ import {commercialTurnover} from './aseCommercialTurnover.ts';
 import {collectASESource} from './aseCollectSource.ts';
 import {withASEAutomationLease} from './aseAutomationLease.ts';
 import {sourceIdentifier} from './aseSourceCommon.ts';
+import {internalRoles} from './asePolicy.ts';
 
-export async function ensureCommercialAccounts(base44,account,user,now) {
+export async function ensureCommercialAccounts(client,account,user,now) {
+  if(!user?.id || !internalRoles.includes(user.role)) return {turnover:await commercialTurnover(client,account,now)};
+  // The caller authenticates and reads this account with the user's permissions first.
+  // Elevation is limited to this company's filed-account snapshot and source collection.
+  const service=client.asServiceRole;
+  const base44={entities:service.entities,integrations:service.integrations,asServiceRole:service};
   let turnover=await commercialTurnover(base44,account,now);
-  if(turnover.status==='available' || turnover.balance_sheet_proxy?.status==='available' || user?.role!=='admin' || account.name?.startsWith('ASE Demo')) return {turnover};
+  if(turnover.status==='available' || turnover.balance_sheet_proxy?.status==='available' || account.name?.startsWith('ASE Demo')) return {turnover};
   try {
     const identifier=sourceIdentifier(account,'accounts');
     const query={account_id:account.id,source_key:'accounts',identifier};
