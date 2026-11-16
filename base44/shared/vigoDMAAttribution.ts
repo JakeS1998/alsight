@@ -1,5 +1,6 @@
 import {vigoProjectId,vigoProjectRef,savedVigoDMAFees,extractVigoDMAFees} from './vigoDMAFees.ts';
 import {projectSharePointReads} from './projectSharePointReads.ts';
+import {resolveDMASavedLink} from './dmaSavedLink.ts';
 const normalise=value=>String(value||'').toLowerCase().replace(/[^a-z0-9]/g,'');
 const types={principaldesignercdmfee:'appointment_pd_cdm',principaldesignercdm:'appointment_pd_cdm',principaldesignerbuildingregsfee:'appointment_pd_br',principaldesignerbuildingregulationsfee:'appointment_pd_br',projectmanagerfee:'appointment_pm',architectfee:'appointment_architect',contractorfee:'contractor',contractsum:'contractor'};
 const aliases=account=>[account.id,account.dataverse_id].filter(Boolean);
@@ -31,7 +32,7 @@ export async function readVigoDMAEvidence(base44,account,automatic=false,project
  if(proposals||!extraction||extraction.status!=='ready')return base;
  if(dmas.items.length!==1||dmas.items[0].id!==extraction.dma_id)return {...base,status:'unusable',note:'The executed DMA record changed or is ambiguous; cached fees are not used.'};
  try {
-  const reads=await projectSharePointReads(base44),meta=await reads.resolve(extraction.source_url),live=await reads.graph(`/drives/${meta.parentReference.driveId}/items/${meta.id}?$select=id,eTag`);
+  const reads=await projectSharePointReads(base44),meta=await resolveDMASavedLink(reads,extraction.source_url),live=await reads.graph(`/drives/${meta.parentReference.driveId}/items/${meta.id}?$select=id,eTag`);
   if(live.id!==extraction.source_id||live.eTag!==extraction.source_etag)return {...base,status:'unusable',note:'The signed DMA changed; old extracted fees are not used. An administrator must open the fee evidence to read the current version.'};
  }catch(error){return {...base,status:'unusable',note:'Source freshness could not be confirmed; DMA fees are not used. '+String(error.message).slice(0,200)};}
  const ids=[...new Set(linked.map(d=>d.account_id).filter(Boolean))];

@@ -5,7 +5,7 @@ export async function dmaScannedPages(base44,url) {
  const bytes=await response.arrayBuffer();
  if(bytes.byteLength>25000000)throw new Error('Signed DMA exceeds the 25 MB pilot limit.');
  const doc=await PDFDocument.load(bytes,{ignoreEncryption:false}),pages=doc.getPages();
- if(pages.length>90)throw new Error('Signed DMA exceeds the 90-page pilot limit.');
+ if(pages.length>180)throw new Error('Signed DMA exceeds the 180-page processing limit.');
  const selected=[];
  for(let index=0;index<pages.length;index++) {
   const resources=pages[index].node.Resources(),objects=resources?.lookupMaybe(PDFName.of('XObject'),PDFDict);

@@ -6,7 +6,7 @@ export async function dmaDocumentPages(base44,url) {
   const response=await fetch(url,{signal:AbortSignal.timeout(45000)});
   if(!response.ok)throw new Error('Signed DMA download failed.');
   const bytes=await response.arrayBuffer();if(bytes.byteLength>25000000)throw new Error('Signed DMA exceeds 25 MB.');
-  const doc=await PDFDocument.load(bytes);if(doc.getPageCount()>90)throw new Error('Signed DMA exceeds 90 pages.');
+  const doc=await PDFDocument.load(bytes);if(doc.getPageCount()>180)throw new Error('Signed DMA exceeds the 180-page processing limit.');
   const pages=[];
   for(let start=0;start<doc.getPageCount();start+=16){
    const part=await PDFDocument.create();const indices=Array.from({length:Math.min(16,doc.getPageCount()-start)},(_,n)=>start+n);

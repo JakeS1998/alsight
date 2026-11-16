@@ -1,3 +1,4 @@
+import {resolveDMASavedLink} from './dmaSavedLink.ts';
 export async function dmaSignedSource(reads,project,dma) {
   const signed=file=>file.file && /\.pdf$/i.test(file.name) && /legals[ %]*20?signed|legals signed/i.test(decodeURIComponent(file.webUrl || ''));
   const roots=[];
@@ -6,7 +7,7 @@ export async function dmaSignedSource(reads,project,dma) {
   if(dma.link_to_file?.includes('Work%20in%20Progress')) roots.push(dma.link_to_file.replace('Work%20in%20Progress','Signed').replace(/\/[^/?]+\.(docx?|pdf)(\?.*)?$/i,''));
   const visited=new Set(),found=new Map(),errors=[];
   for(const link of [...new Set(roots)]) {
-    let root;try {root=await reads.resolve(link);}catch(error){errors.push(String(error.message));continue;}
+    let root;try {root=await resolveDMASavedLink(reads,link);}catch(error){errors.push(String(error.message));continue;}
     if(signed(root)) return reads.graph(`/drives/${root.parentReference.driveId}/items/${root.id}`);
     if(!root.folder) continue;
     const folders=[root];

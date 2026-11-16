@@ -1,7 +1,12 @@
 export async function kickDMACheck(base44){
  const db=base44.asServiceRole.entities;
- const active=await db.DMACheckJob.count({$or:[{status:'processing'},{status:'queued',token:{$ne:''}}]});
- if(active)return;
+ if(await db.DMACheckJob.count({status:'processing'}))return;
+ const active=await db.DMACheckJob.filter({status:'queued',token:{$exists:true,$nin:['',null]}},{sort:'updated_date',limit:1});
+ if(active.items[0]){
+  // Re-emit a lost queued event after ten minutes, without retrying a claimed extraction.
+  if(Date.now()-Date.parse(active.items[0].updated_date)>600000)await db.DMACheckJob.update(active.items[0].id,{token:crypto.randomUUID()});
+  return;
+ }
  const page=await db.DMACheckJob.filter({status:'queued',token:''},{sort:'created_date',limit:1});
  if(page.items[0])await db.DMACheckJob.update(page.items[0].id,{token:crypto.randomUUID()});
 }

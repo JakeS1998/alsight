@@ -15,6 +15,20 @@ export default async function(req:Request):Promise<Response>{
    if(typeof input.dmaId!=='string'||!/^[a-zA-Z0-9_-]{1,64}$/.test(input.dmaId))return Response.json({error:'Valid signed DMA identifier required.'},{status:400});
    return Response.json(await enqueueSignedDMACheck(base44,input.dmaId));
   }
+  if(input.action==='processSignedNow'){
+   if(typeof input.dmaId!=='string'||!/^[a-zA-Z0-9_-]{1,64}$/.test(input.dmaId))return Response.json({error:'Valid signed DMA identifier required.'},{status:400});
+   const queued=await enqueueSignedDMACheck(base44,input.dmaId);
+   if(queued.skipped)return Response.json(queued);
+   const page=await base44.asServiceRole.entities.DMACheckJob.filter({dma_id:input.dmaId},{sort:'-created_date',limit:1});
+   let job=page.items[0];
+   if(!job)return Response.json({error:'DMA check was not queued.'},{status:409});
+   if(job.status==='queued'){
+    if(!job.token)job=await base44.asServiceRole.entities.DMACheckJob.update(job.id,{token:crypto.randomUUID()});
+    await dmaCheckStep(base44,user,{jobId:job.id,token:job.token});
+    job=await base44.asServiceRole.entities.DMACheckJob.get(job.id);
+   }
+   return Response.json({jobId:job.id,status:job.status,stage:job.stage,extraction_status:job.extraction_status,note:job.note});
+  }
   if(input.action==='appointmentFee'){
    if(typeof input.appointmentId!=='string'||!/^[a-zA-Z0-9_-]{1,64}$/.test(input.appointmentId))return Response.json({error:'Valid executed appointment required.'},{status:400});
    const document=await base44.entities.LegalDocument.get(input.appointmentId),accounts=await base44.entities.Account.filter({$or:[{id:document.account_id},{dataverse_id:document.account_id}]},{limit:2});

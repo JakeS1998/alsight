@@ -25,7 +25,7 @@ export async function dmaCheckStep(base44,user,input){
    if(extraction.status!=='ready')throw new Error(extraction.note || 'No usable Schedule 5 fee rows found.');
    const evidence=await readVigoDMAEvidence(base44,null,false,project.id);
    const ids=[...new Set((evidence?.rows || []).filter(r=>!r.reason&&r.account_id).map(r=>r.account_id))];
-   if(!ids.length){await db.DMACheckJob.update(job.id,{status:evidence?.status==='proposal_available'?'completed':'blocked',token:'',extraction_status:extraction.status,note:evidence?.note || 'Extracted fees could not be attributed to unambiguous signed supplier appointments.'});}
+   if(!ids.length){await db.DMACheckJob.update(job.id,{status:evidence?.status==='proposal_available'?'completed':'blocked',token:'',extraction_status:extraction.status,note:[evidence?.note,'Extracted fees could not be attributed to unambiguous signed supplier appointments.',...new Set((evidence?.rows||[]).map(row=>row.reason).filter(Boolean))].filter(Boolean).join(' ').slice(0,2000)});}
    else {await db.DMACheckJob.update(job.id,{project_id:project.id,stage:'accounts',account_ids:ids,account_index:0,extraction_status:extraction.status,status:'queued',token:crypto.randomUUID(),note:'Schedule 5 extracted; refreshing matched company concentration.'});return {continuing:true,accounts:ids.length};}
   }else {
    const account=await base44.entities.Account.get(job.account_ids[job.account_index]),notes=[];

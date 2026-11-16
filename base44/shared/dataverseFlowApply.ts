@@ -27,6 +27,19 @@ export async function applyFlowUpdates(base44, table, spec, updates, appliedRevi
         }else bulk.push(value);
       }
       if(bulk.length)await base44.entities[spec.entity].upsert(bulk,{key:'dataverse_id'});
+    }else if(table==='dma') {
+      // Single writes on execution transitions emit the signed-DMA workflow event.
+      const page=await base44.entities.DMA.filter({dataverse_id:{$in:values.map(row=>row.dataverse_id)}},{limit:100,fields:['dataverse_id','executed']});
+      if(page.has_more)throw new Error('DMA execution transition check exceeds the sync batch limit.');
+      const existing=new Map(page.items.map(row=>[row.dataverse_id,row])),bulk=[];
+      for(const {id,...value} of values) {
+        const previous=existing.get(value.dataverse_id);
+        if(value.executed==='yes' && previous?.executed!=='yes') {
+          if(previous)await base44.entities.DMA.update(previous.id,value);
+          else await base44.entities.DMA.create(value);
+        }else bulk.push(value);
+      }
+      if(bulk.length)await base44.entities.DMA.upsert(bulk,{key:'dataverse_id'});
     }else await base44.entities[spec.entity].upsert(values.map(({ id, ...value }) => value), { key: 'dataverse_id' });
   }
   if (table === 'projects' && updates.length) {
