@@ -16,6 +16,7 @@ import {v2DisplayAssessment} from '../../shared/aseV2Display.ts';
 import {dataRequestError} from '../../shared/dataRequestError.ts';
 import {checkInsuranceRules} from '../../shared/aseInsuranceChecks.ts';
 import {compassAssessmentClient} from '../../shared/compassAssessmentClient.ts';
+import {compassDetailPresentation} from '../../shared/compassDetailPresentation.ts';
 export default async function(req: Request): Promise<Response> {
   try {
     const base44=createClientFromRequest(req),user=await portalActor(base44);
@@ -54,6 +55,7 @@ export default async function(req: Request): Promise<Response> {
     if(input.assessmentId!=null && (typeof input.assessmentId!=='string' || !/^[a-zA-Z0-9_-]{1,64}$/.test(input.assessmentId))) throw new Error('Invalid assessment reference.');
     const id=input.assessmentId || current?.assessment_id,assessment=id ? await db.ASEV2Assessment.get(id) : null;
     if(assessment && assessment.account_id!==account.id) return Response.json({error:'Assessment belongs to another relationship.'},{status:403});
-    return Response.json({...(user.role==='admin'?{policy}:{}),current,assessment:v2DisplayAssessment(assessment),history:{...history,items:history.items.map(v2DisplayAssessment)}});
+    const presented=await compassDetailPresentation(db,v2DisplayAssessment(assessment));
+    return Response.json({...(user.role==='admin'?{policy}:{}),current,assessment:presented,history:{...history,items:history.items.map(v2DisplayAssessment)}});
   } catch(error){return dataRequestError(error,'Unable to complete ASE v2 operation.',400);}
 }

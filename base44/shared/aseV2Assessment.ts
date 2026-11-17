@@ -5,6 +5,7 @@ import {calculateASEV2,explainASEV2} from './aseV2Calculation.ts';
 import {leadershipAssessment} from './aseLeadershipAssessment.ts';
 import {publishV2Current} from './aseV2Publication.ts';
 import {supplierProfessionalIndemnity,professionalIndemnityCheck} from './aseProfessionalIndemnity.ts';
+import {compassFinancialDetail} from './compassFinancialDetail.ts';
 export async function createASEV2Assessment(base44,account,user,policy,assertLease,{refreshSources=true,automationKey=''}={}) {
   if(automationKey){const saved=await base44.entities.ASEV2Assessment.filter({account_id:account.id,automation_key:automationKey},{limit:1});if(saved.items[0]){await assertLease();return publishV2Current(base44.entities,saved.items[0]);}}
   const collection=await collectV2Sources(base44,account,user,policy.configuration,{refresh:refreshSources}),facts={};
@@ -13,6 +14,11 @@ export async function createASEV2Assessment(base44,account,user,policy,assertLea
   const insurance=professionalIndemnityCheck(await supplierProfessionalIndemnity(base44.entities,account));
   if(insurance)checks.push(insurance);
   const result=calculateASEV2(policy.configuration,checks),db=base44.entities;
+  const financialFacts=[...(facts.accounts || []),...(facts.local_authority || [])];
+  for(const check of checks.filter(c=>c.component==='financial' && c.evidence_id)) {
+    const row=financialFacts.find(row=>row.id===check.evidence_id);
+    if(row)check.display_inputs=compassFinancialDetail(check,row,financialFacts,policy.configuration);
+  }
   const [previousPage,legacy]=await Promise.all([db.ASEV2Current.filter({account_id:account.id},{limit:1}),db.ASECurrentRating.filter({account_id:account.id},{limit:1})]),previous=previousPage.items[0],previousAssessment=previous ? await db.ASEV2Assessment.get(previous.assessment_id) : null;
   const drivers=previousAssessment ? result.components.flatMap(c=>{const old=previousAssessment.components.find(r=>r.key===c.key);return old?.score!==c.score ? [`${c.label}: ${old?.score==null ? 'unavailable' : old.score.toFixed(2)} → ${c.score===null ? 'unavailable' : c.score.toFixed(2)}. Evidence: ${checks.filter(check=>check.component===c.key).map(check=>check.reason).join(' ').slice(0,500)}`] : [];}) : ['First ASE v2 assessment; legacy assessments are retained, not converted into v2 evidence.'];
   if(previousAssessment?.dependency?.percentage!==alliance.dependency.percentage && Number.isFinite(alliance.dependency.percentage)) drivers.push(`Alliance Dependency: ${previousAssessment?.dependency?.percentage ?? 'unavailable'}% → ${alliance.dependency.percentage.toFixed(1)}%.`);
