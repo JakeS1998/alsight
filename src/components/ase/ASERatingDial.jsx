@@ -11,7 +11,7 @@ import AlsightAttention from '@/components/AlsightAttention';
 import organisationQueryPolicy from '@/components/data/organisationQueryPolicy';
 export default function ASERatingDial({account,compact=false,expanded=false}) {
   const {user}=useAuth(); const [open,setOpen]=useState(false);
-  const allowed=aseRoles.includes(user?.role),needsSummary=account._ase===undefined;
+  const allowed=Boolean(user?.id),needsSummary=account._ase==null || !aseRoles.includes(user?.role);
   const query=useQuery({queryKey:['ase','summary',account.id,'ase-v2-default',user?.id,user?.role],enabled:allowed && needsSummary,queryFn:()=>aseRequest('summary',{accountId:account.id}),staleTime:60000,...organisationQueryPolicy});
   if (!allowed) return null;
   const current=needsSummary ? query.data?.current : account._ase;

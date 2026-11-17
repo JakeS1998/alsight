@@ -32,11 +32,12 @@ import {contractQuery} from '../../shared/aseCommercialTerms.ts';
 export default async function(req: Request): Promise<Response> {
   try {
     const base44=createClientFromRequest(req), user=await portalActor(base44);
-    if (!user || !internalRoles.includes(user.role)) return Response.json({error:'ASE is available to internal staff only.'},{status:403});
+    if (!user || !(await base44.auth.isAuthenticated())) return Response.json({error:'Sign in to use Compass.'},{status:401});
     const input=await req.json();
     const actions=['policy','savePolicy','seed','summary','detail','addEvidence','previewAssessment','assess','bulkPublish','explain','checkRules','automationScope','automationStart','automationStatus','automationPause','automationResume','automationRetry','automationStep','automationDispatch','automationRules','commercial','commercialContracts','reviewCommercialTerms','extractCommercialJCT','structure','hmrcStatus','dmaFees'];
     if (!actions.includes(input.action)) return Response.json({error:'Invalid ASE operation.'},{status:400});
-    if (['savePolicy','seed','addEvidence','previewAssessment','assess','bulkPublish','checkRules'].includes(input.action) && user.role!=='admin') return Response.json({error:'Only administrators can manage ASE evidence, assessments and policy.'},{status:403});
+    if (!internalRoles.includes(user.role) && !['summary','detail','explain','commercial'].includes(input.action)) return Response.json({error:'This Compass management operation is internal-only.'},{status:403});
+    if (['policy','savePolicy','seed','addEvidence','previewAssessment','assess','bulkPublish','checkRules'].includes(input.action) && user.role!=='admin') return Response.json({error:'Only administrators can manage ASE evidence, assessments and policy.'},{status:403});
     if(input.action==='dmaFees') {
       if(input.projectId!==vigoProjectId)return Response.json({error:'This DMA pilot is limited to Vigo Road.'},{status:400});
       const evidence=await readVigoDMAEvidence(base44,null,user.role==='admin');
@@ -72,8 +73,8 @@ export default async function(req: Request): Promise<Response> {
       if(input.action==='structure') return Response.json(await groupStructure(base44,account));
       return Response.json(await hmrcStatus(base44,account));
     }
-    if(input.action==='summary') {if(typeof input.accountId!=='string' || !/^[a-zA-Z0-9_-]{1,64}$/.test(input.accountId))return Response.json({error:'Valid Account is required.'},{status:400});const account=await base44.entities.Account.get(input.accountId);if(!account)return Response.json({error:'Account unavailable.'},{status:404});const ratings=await aseCurrentRatings(base44.entities,[account.id]);return Response.json({current:ratings[0] || null,model:accountModel(account),methodology:ratings[0]?.methodology || 'ASE v2'});}
-    const policy=await getPolicy(base44);
+    if(input.action==='summary') {if(typeof input.accountId!=='string' || !/^[a-zA-Z0-9_-]{1,64}$/.test(input.accountId))return Response.json({error:'Valid Account is required.'},{status:400});const account=await base44.entities.Account.get(input.accountId);if(!account)return Response.json({error:'Account unavailable.'},{status:404});const ratings=await aseCurrentRatings(base44.asServiceRole.entities,[account.id]);return Response.json({current:ratings[0] || null,model:accountModel(account),methodology:ratings[0]?.methodology || 'ASE v2'});}
+    const policy=await getPolicy({entities:base44.asServiceRole.entities});
     if (input.action==='policy') return Response.json({policy});
     if (input.action==='bulkPublish') return Response.json(await publishASEBatch(base44,policy,user,input));
     if (input.action==='savePolicy') {
@@ -103,7 +104,8 @@ export default async function(req: Request): Promise<Response> {
     const account=await base44.entities.Account.get(input.accountId);
     if (!account) return Response.json({error:'Account unavailable.'},{status:404});
     const model=accountModel(account);
-    const currentPage=await base44.entities.ASECurrentRating.filter({account_id:account.id},{limit:1});
+    const db=base44.asServiceRole.entities;
+    const currentPage=await db.ASECurrentRating.filter({account_id:account.id},{limit:1});
     const current=currentPage.items[0] || null;
     if (input.action==='addEvidence') {
       if (!model) return Response.json({error:'Select a supported organisation type in Account details first.'},{status:400});
@@ -120,17 +122,17 @@ export default async function(req: Request): Promise<Response> {
     if (input.cursor!=null && (typeof input.cursor!=='string' || input.cursor.length>4096)) return Response.json({error:'Invalid history cursor.'},{status:400});
     if (input.assessmentId!=null && (typeof input.assessmentId!=='string' || !/^[a-zA-Z0-9_-]{1,64}$/.test(input.assessmentId))) return Response.json({error:'Invalid assessment.'},{status:400});
     const selectedId=input.assessmentId || current?.assessment_id;
-    const assessment=selectedId ? await base44.entities.ASEAssessment.get(selectedId) : null;
+    const assessment=selectedId ? await db.ASEAssessment.get(selectedId) : null;
     if (assessment && (assessment.account_id!==account.id || assessment.status!=='published')) return Response.json({error:'Assessment unavailable for this Account.'},{status:404});
-    const [componentPage,evidencePage]=assessment ? await Promise.all([base44.entities.ASEComponentScore.filter({assessment_id:assessment.id},{limit:10}),base44.entities.ASEEvidence.filter({assessment_id:assessment.id},{limit:100})]) : [{items:[]},{items:[]}];
+    const [componentPage,evidencePage]=assessment ? await Promise.all([db.ASEComponentScore.filter({assessment_id:assessment.id},{limit:10}),db.ASEEvidence.filter({assessment_id:assessment.id},{limit:100})]) : [{items:[]},{items:[]}];
     if (input.action==='explain') {
       if (!assessment) return Response.json({error:'Create an assessment first.'},{status:400});
-      const previous=assessment.previous_assessment_id ? await base44.entities.ASEEvidence.filter({assessment_id:assessment.previous_assessment_id},{limit:100}) : {items:[]};
+      const previous=assessment.previous_assessment_id ? await db.ASEEvidence.filter({assessment_id:assessment.previous_assessment_id},{limit:100}) : {items:[]};
       return Response.json({insight:await explainAssessment(base44,assessment,componentPage.items,evidencePage.items,previous.items)});
     }
-    const [history,sourceEvidence]=await Promise.all([base44.entities.ASEAssessment.filter({account_id:account.id,status:'published'},{sort:'-assessment_date',limit:20,...(input.cursor ? {cursor:input.cursor} : {})}),base44.entities.ASEEvidence.filter(currentASESourceQuery(account),{limit:100})]);
+    const [history,sourceEvidence]=await Promise.all([db.ASEAssessment.filter({account_id:account.id,status:'published'},{sort:'-assessment_date',limit:20,...(input.cursor ? {cursor:input.cursor} : {})}),db.ASEEvidence.filter(currentASESourceQuery(account),{limit:100})]);
     const hmrc=await hmrcStatus(base44,account);
     const displayedAssessment=assessment ? {...assessment,explanation:ratingExplanation(componentPage.items,assessment.policy_snapshot?.[assessment.model] || [],assessment.precise_score,assessment.displayed_rating,evidencePage.items,assessment.commercial_context?.professional_indemnity)} : null;
-    return Response.json({account:{id:account.id,name:account.name},model,policy,current:confidenceRating(current),assessment:confidenceRating(displayedAssessment),components:componentPage.items,evidence:evidencePage.items,history:{...history,items:history.items.map(confidenceRating)},sourceEvidence:sourceEvidence.items,sourceHasMore:sourceEvidence.has_more,hmrc});
+    return Response.json({account:{id:account.id,name:account.name},model,...(user.role==='admin'?{policy}:{}),current:confidenceRating(current),assessment:confidenceRating(displayedAssessment),components:componentPage.items,evidence:evidencePage.items,history:{...history,items:history.items.map(confidenceRating)},sourceEvidence:sourceEvidence.items,sourceHasMore:sourceEvidence.has_more,hmrc});
   } catch(error) {return dataRequestError(error,'Unable to complete ASE operation.',400);}
 }

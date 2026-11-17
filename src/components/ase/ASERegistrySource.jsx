@@ -4,7 +4,7 @@ import { base44 } from '@/api/base44Client';
 import { Button } from '@/components/ui/button';
 import { aseRequest,aseError,invalidateASE } from '@/components/ase/aseClient';
 import { formatDateTime } from '@/lib/portal';
-async function request(action,accountId) {const {data}=await base44.functions.invoke('manageCompaniesHouse',{action,accountId});if(data.error) throw new Error(data.error);return data;}
+async function request(action,accountId) {const {data}=await base44.functions.invoke('manageASESources',{action:'registryStatus',accountId});if(data.error) throw new Error(data.error);return data;}
 export default function ASERegistrySource({accountId,model,admin}) {
   const cache=useQueryClient(),applicable=model!=='english_local_authority';
   const query=useQuery({queryKey:['ase','registry',accountId],enabled:applicable,queryFn:()=>request('read',accountId)});

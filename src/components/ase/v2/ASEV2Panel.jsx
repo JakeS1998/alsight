@@ -1,8 +1,9 @@
 import React,{useState} from 'react';
-import {useQuery,useMutation,useQueryClient} from '@tanstack/react-query';
+import {useQuery} from '@tanstack/react-query';
 import {useAuth} from '@/lib/AuthContext';
 import {Button} from '@/components/ui/button';
-import {aseError,invalidateASE} from '@/components/ase/aseClient';
+import {aseError} from '@/components/ase/aseClient';
+import ASERerun from '@/components/ase/ASERerun';
 import {aseV2Request} from '@/components/ase/v2/aseV2Client';
 import ASEV2Header from '@/components/ase/v2/ASEV2Header';
 import ASEV2Components from '@/components/ase/v2/ASEV2Components';
@@ -17,14 +18,13 @@ import organisationQueryPolicy from '@/components/data/organisationQueryPolicy';
 import EnvironmentAgencyRegistrations from '@/components/ase/EnvironmentAgencyRegistrations';
 import ExperianSandbox from '@/components/ase/ExperianSandbox';
 export default function ASEV2Panel({account}) {
-  const {user}=useAuth(),cache=useQueryClient(),[selected,setSelected]=useState(null),[inputs,setInputs]=useState(false),[exposure,setExposure]=useState(false),[confirmed,setConfirmed]=useState(false),admin=user?.role==='admin';
+  const {user}=useAuth(),[selected,setSelected]=useState(null),[inputs,setInputs]=useState(false),[exposure,setExposure]=useState(false),admin=user?.role==='admin';
   const query=useQuery({...organisationQueryPolicy,queryKey:['ase','v2',account.id,selected,user?.id,user?.role],queryFn:()=>aseV2Request('detail',{accountId:account.id,...(selected ? {assessmentId:selected} : {})})});
-  const assess=useMutation({mutationFn:()=>aseV2Request('assess',{accountId:account.id,confirmed}),onSuccess:()=>{setSelected(null);setConfirmed(false);invalidateASE(cache);}});
   if(query.isPending) return <p role="status">Loading Compass assessment…</p>;
   if(query.error) return <p role="alert" className="text-sm text-destructive">{aseError(query.error)} <button className="underline" onClick={()=>query.refetch()}>Try again</button></p>;
   const data=query.data,a=data.assessment;
   return <div className="space-y-5"><p className="rounded-md bg-muted p-3 text-xs">Compass is the default assessment. Daytime updates refresh permitted sources and reuse current stored Gazette evidence; Gazette collection runs overnight from 21:15 Europe/London. Missing or expired Gazette evidence remains unavailable until refreshed. Leadership screening uses Companies House and the official UK Sanctions List. Supplier Environment Agency enforcement searches run with reassessments; published actions remain unscored context pending identity and relevance review. Waste-carrier registrations are available through a live lookup below, without long-term storage. England only; missing records never mean clearance. Procurement integration and live Experian data remain unavailable. Administrators can check the Experian sandbox separately below; test results never affect assessments. Individual insolvency is manual-only; no clearance is implied.</p>
-    {a ? <><ASEV2Header assessment={a}/><ASEV2Components assessment={a}/><ASEV2Dependency data={a.dependency} onReview={admin ? ()=>setInputs(true) : null} onExposure={()=>setExposure(true)}/><ASEV2Sources assessment={a}/>{a.drivers?.length>0 && <section><h3 className="font-semibold">Stored assessment change drivers</h3><ul className="mt-2 space-y-2 text-xs">{a.drivers.map((driver,i)=><li key={i}>{driver}</li>)}</ul></section>}</> : <section className="rounded-lg border border-border p-5"><h2 className="font-semibold">Compass</h2><p className="mt-2 text-sm">No Compass assessment yet. Run a fresh assessment using current eligible evidence; legacy scores are retained, not relabelled.</p><div className="mt-3 grid gap-2 sm:grid-cols-2">{data.policy.configuration.components.map(c=><p key={c.key} className="text-xs">{c.label} · {c.weight}%</p>)}</div></section>}
+    {a ? <><ASEV2Header assessment={a}/><ASEV2Components assessment={a}/><ASEV2Dependency data={a.dependency} onReview={admin ? ()=>setInputs(true) : null} onExposure={()=>setExposure(true)}/><ASEV2Sources assessment={a}/>{a.drivers?.length>0 && <section><h3 className="font-semibold">Stored assessment change drivers</h3><ul className="mt-2 space-y-2 text-xs">{a.drivers.map((driver,i)=><li key={i}>{driver}</li>)}</ul></section>}</> : <section className="rounded-lg border border-border p-5"><h2 className="font-semibold">Compass</h2><p className="mt-2 text-sm">No Compass assessment yet. Run a fresh assessment using current eligible evidence; legacy scores are retained, not relabelled.</p>{admin && <div className="mt-3 grid gap-2 sm:grid-cols-2">{data.policy.configuration.components.map(c=><p key={c.key} className="text-xs">{c.label} · {c.weight}%</p>)}</div>}</section>}
     {admin && !selected && <ExperianSandbox key={account.id}/>}
     <LeadershipControl accountId={account.id} data={a?.leadership} admin={admin && !selected}/>
     {!selected && (account.account_type==='supplier' || account.relationship_types?.includes('supplier')) && <EnvironmentAgencyRegistrations key={account.id} accountId={account.id}/>}

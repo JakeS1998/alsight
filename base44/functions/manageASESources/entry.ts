@@ -20,14 +20,19 @@ export default async function(req: Request): Promise<Response> {
   let base44,attempt;
   try {
     base44=createClientFromRequest(req);const user=await portalActor(base44);
-    if(!user || !internalRoles.includes(user.role)) return Response.json({error:'ASE sources are available to internal staff only.'},{status:403});
+    if(!user || !(await base44.auth.isAuthenticated())) return Response.json({error:'Sign in to view Compass sources.'},{status:401});
     const input=await req.json(),keys=Object.keys(sourceNames).filter(key=>key!=='hmrc');
-    if(!['status','refresh','review','analyse','previewCouncil','previewGovernance','previewEnvironment'].includes(input.action) || typeof input.accountId!=='string' || !/^[a-zA-Z0-9_-]{1,64}$/.test(input.accountId)) return Response.json({error:'Valid Account and source operation required.'},{status:400});
+    if(!['status','registryStatus','refresh','review','analyse','previewCouncil','previewGovernance','previewEnvironment'].includes(input.action) || typeof input.accountId!=='string' || !/^[a-zA-Z0-9_-]{1,64}$/.test(input.accountId)) return Response.json({error:'Valid Account and source operation required.'},{status:400});
     const account=await base44.entities.Account.get(input.accountId);
     if(!account) return Response.json({error:'Account unavailable.'},{status:404});
     if(input.action==='previewEnvironment') {
       if(account.name.startsWith('ASE Demo')) return Response.json({error:'Fictional Accounts cannot use real source checks.'},{status:400});
       return Response.json(await liveEnvironmentRegistrations(account));
+    }
+    if(input.action==='registryStatus') {
+      const number=sourceIdentifier(account,'accounts'),query={account_id:account.id,company_number:number},db=base44.asServiceRole.entities;
+      const [latest,successful]=await Promise.all([db.CompaniesHouseRefresh.filter(query,{sort:'-refreshed_at',limit:1}),db.CompaniesHouseRefresh.filter({...query,status:{$in:['completed','partial']}},{sort:'-refreshed_at',limit:1})]);
+      return Response.json({number,audit:successful.items[0] || null,lastAttempt:latest.items[0] || null});
     }
     if(input.action==='status') {
       const sources=await Promise.all(keys.map(async key=>{
@@ -39,7 +44,7 @@ export default async function(req: Request): Promise<Response> {
                 if(account.name.startsWith('ASE Demo')) blocked='Fictional Accounts cannot use real source checks.';
         if(blocked) return {key,name:sourceNames[key],blocked};
         const query={account_id:account.id,source_key:key,identifier};
-        const [latest,successful]=await Promise.all([base44.entities.ASESourceRefresh.filter(query,{sort:'-refreshed_at',limit:1}),base44.entities.ASESourceRefresh.filter({...query,status:{$in:['completed','partial']}},{sort:'-refreshed_at',limit:1})]);
+        const [latest,successful]=await Promise.all([base44.asServiceRole.entities.ASESourceRefresh.filter(query,{sort:'-refreshed_at',limit:1}),base44.asServiceRole.entities.ASESourceRefresh.filter({...query,status:{$in:['completed','partial']}},{sort:'-refreshed_at',limit:1})]);
         return {key,name:sourceNames[key],identifier,latest:latest.items[0] || null,audit:successful.items[0] || null};
       }));
       return Response.json({account:{id:account.id,vat_number:account.vat_number || '',local_authority_code:account.local_authority_code || ''},sources});

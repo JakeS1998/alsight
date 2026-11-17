@@ -17,6 +17,7 @@ import ASECommercialConcentration from '@/components/ase/ASECommercialConcentrat
 import ASEEvidenceCoverageSummary from '@/components/ase/ASEEvidenceCoverageSummary';
 import ASEHmrcStatus from '@/components/ase/ASEHmrcStatus';
 import ASEV2Panel from '@/components/ase/v2/ASEV2Panel';
+import ASERerun from '@/components/ase/ASERerun';
 export default function ASEDetailDialog({account,open,onOpenChange,initialMode='v2'}) {
   const {user}=useAuth(),[selected,setSelected]=useState(null),[mode,setMode]=useState(initialMode);
   const query=useQuery({queryKey:['ase','detail',account.id,selected,user?.id,user?.role],enabled:open && mode==='legacy',queryFn:()=>aseRequest('detail',{accountId:account.id,...(selected ? {assessmentId:selected} : {})})});
@@ -26,7 +27,7 @@ export default function ASEDetailDialog({account,open,onOpenChange,initialMode='
     {data.model==='company' && (selected ? a?.commercial_context ? <ASECommercialConcentration key={a.id} account={account} snapshot={a.commercial_context}/> : <p className="rounded-xl border border-border p-4 text-sm text-muted-foreground">This historical assessment predates commercial-context snapshots; no current comparison is substituted.</p> : <><ASECommercialConcentration key={account.id} account={account}/>{a?.commercial_context && <details><summary className="cursor-pointer text-sm font-semibold">Commercial context at publication</summary><div className="mt-3"><ASECommercialConcentration key={a.id} account={account} snapshot={a.commercial_context}/></div></details>}</>)}
     <ASEHmrcStatus status={data.hmrc}/>
     <ASESourcesPanel accountId={account.id} data={data}/>
-    {user?.role==='admin' && <ASEAssessmentControls accountId={account.id} data={data} onAssessed={()=>setSelected(null)}/>}
+    {user?.role==='admin' ? <ASEAssessmentControls accountId={account.id} data={data} onAssessed={()=>setSelected(null)}/> : <ASERerun accountId={account.id} onAssessed={()=>{setSelected(null);setMode('v2');}}/>}
     {!a && <ASEEvidenceTable evidence={data.sourceEvidence} title="Source evidence ready for assessment"/>}
     <ASEHistory key={data.current?.assessment_id || 'empty'} accountId={account.id} initial={data.history} selected={a?.id} onSelect={setSelected}/>
   </div>}</DialogContent></Dialog>;
