@@ -20,38 +20,9 @@
   ],
   "rls": {
     "read": {
-      "$or": [
-        {
-          "user_condition": {
-            "role": "admin"
-          }
-        },
-        {
-          "user_condition": {
-            "role": "director"
-          }
-        },
-        {
-          "user_condition": {
-            "role": "regional_director"
-          }
-        },
-        {
-          "user_condition": {
-            "role": "bsm"
-          }
-        },
-        {
-          "user_condition": {
-            "role": "bdm"
-          }
-        },
-        {
-          "user_condition": {
-            "role": "finance"
-          }
-        }
-      ]
+      "user_condition": {
+        "role": "admin"
+      }
     },
     "create": {
       "user_condition": {
