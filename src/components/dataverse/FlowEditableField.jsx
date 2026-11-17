@@ -3,8 +3,10 @@ import { X } from 'lucide-react';
 import InlineEditTrigger from '@/components/forms/InlineEditTrigger';
 import { Button } from '@/components/ui/button';
 import FlowFieldInput from '@/components/dataverse/FlowFieldInput';
+import isApprovalField from '@/components/dataverse/isApprovalField';
 export default function FlowEditableField({ field, value, disabled, resetKey, onChange, onCancel, table, recordId }) {
   const [editing, setEditing] = useState(false), container = useRef(null);
+  if (isApprovalField(field)) field = { ...field, write: false };
   const label = field.local.replaceAll('_', ' ');
   useEffect(() => { setEditing(false); }, [resetKey]);
   useEffect(() => { if (editing) container.current?.querySelector('input, textarea, select')?.focus(); }, [editing]);

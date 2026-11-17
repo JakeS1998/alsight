@@ -361,7 +361,7 @@ export function FeeProposalSection({ projectId, project, onChanged, deliveryTeam
                 <LookupCombobox value={header.status} onChange={(value) => setHeader((prev) => ({ ...prev, status: value }))} options={STATUS} placeholder="Select status" searchPlaceholder="Search statuses..." allowClear={false} />
               </FormField>
               <FormField label="Date issued"><input type="date" value={header.date_issued} onChange={(e) => setHeader({ ...header, date_issued: e.target.value })} className={formInputClass} /></FormField>
-              <FormField label="Client approval date"><input type="date" value={header.client_approval_date} onChange={(e) => setHeader({ ...header, client_approval_date: e.target.value })} className={formInputClass} /></FormField>
+              <FormField label="Client approval date"><input type="date" value={header.client_approval_date} readOnly className={formInputClass} /></FormField>
               <FormField label="Upload proposal (link)"><input value={header.link_to_file} onChange={(e) => setHeader({ ...header, link_to_file: e.target.value })} className={formInputClass} /></FormField>
               <FormField label="Services included"><textarea rows={2} value={header.services_included} onChange={(e) => setHeader({ ...header, services_included: e.target.value })} className={`${formInputClass} h-auto py-2`} /></FormField>
               <FormField label="Services excluded"><textarea rows={2} value={header.services_excluded} onChange={(e) => setHeader({ ...header, services_excluded: e.target.value })} className={`${formInputClass} h-auto py-2`} /></FormField>

@@ -3,8 +3,10 @@ import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import FlowJsonInput from '@/components/dataverse/FlowJsonInput';
 import FlowLookupInput from '@/components/dataverse/FlowLookupInput';
+import isApprovalField from '@/components/dataverse/isApprovalField';
 export default function FlowFieldInput({ field, value, onChange, disabled, labelAction, hideLabel = false, label, table, recordId }) {
   const uniqueId = React.useId();
+  if (isApprovalField(field) || isApprovalField(label)) field = { ...field, write: false };
   const id = `flow-edit-${uniqueId}-${field.local}`, type = field.localType;
   const controlProps = { id, 'aria-label': label || field.local.replaceAll('_', ' '), disabled: disabled || !field.write, value: value ?? '' };
   return <div className="space-y-1">{!hideLabel && <div className="flex min-h-7 items-center justify-between gap-2"><label htmlFor={id} className="block text-sm font-medium capitalize">{field.local.replaceAll('_', ' ')}{!field.write && <span className="ml-2 text-xs text-muted-foreground">Read only</span>}</label>{labelAction}</div>}

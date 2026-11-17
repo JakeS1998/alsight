@@ -67,11 +67,11 @@ export function DMACard({ doc: sourceDoc, projectName, projectNumber, psoOutstan
             <div className="space-y-1.5">
               <p className="text-[10px] font-semibold uppercase tracking-wide text-slate-400">Comments & Links</p>
               <InlineDataverseField field="comments"><p className="text-xs text-slate-600 whitespace-pre-line">{doc.comments || '—'}</p></InlineDataverseField>
-              {doc.link_to_file && (
+              <InlineDataverseField field="link_to_file" label="File link">{doc.link_to_file ? (
                 <a href={doc.link_to_file} target="_blank" rel="noreferrer" className="inline-flex items-center gap-1 text-xs text-blue-600 hover:underline">
                   <ExternalLink className="h-3 w-3" /> File
                 </a>
-              )}
+              ) : <span className="text-xs text-muted-foreground">File: —</span>}</InlineDataverseField>
             </div>
           </div>
           <div>

@@ -1,19 +1,17 @@
-const tables = ['documents', 'dma', 'warranties'];
-const fields = ['approval_status', 'approvers_name', 'approval_comments', 'approval_date'];
+export function isApprovalMapping(mapping) {
+  return [mapping?.local, mapping?.label, mapping?.displayName, mapping?.source, mapping?.queryName].some(value => /approv/i.test(String(value || '')));
+}
 export function generalFlowMappings(table, mappings = [], role) {
-  if (['projects','documents','dma','jct'].includes(table) && ['admin','bsm'].includes(role)) return mappings;
-  const protectedFields=table==='projects' ? ['approval_status','project_number'] : fields;
-  if (!tables.includes(table) && table!=='projects') return mappings;
-  const sources = new Set(mappings.filter(mapping => protectedFields.includes(mapping.local)).map(mapping => mapping.source));
-  return mappings.map(mapping => protectedFields.includes(mapping.local) || sources.has(mapping.source) ? { ...mapping, write: false } : mapping);
+  const protectNumber = table === 'projects' && !['admin','bsm'].includes(role);
+  const protectedMapping = mapping => isApprovalMapping(mapping) || (protectNumber && mapping.local === 'project_number');
+  const sources = new Set(mappings.filter(protectedMapping).map(mapping => mapping.source).filter(Boolean));
+  return mappings.map(mapping => protectedMapping(mapping) || (mapping.source && sources.has(mapping.source)) ? { ...mapping, write: false } : mapping);
 }
 export function assertGeneralFlowWrite(table, values, mappings = [], role) {
-  if (['projects','documents','dma','jct'].includes(table) && ['admin','bsm'].includes(role)) return;
-  if ((!tables.includes(table) && table!=='projects') || !values || typeof values !== 'object' || Array.isArray(values)) return;
-  const protectedFields=table==='projects' ? ['approval_status','project_number'] : fields;
-  const allowed = generalFlowMappings(table, mappings);
-  if (Object.keys(values).some(field => protectedFields.includes(field) || (mappings.some(mapping => mapping.local === field && mapping.write) && !allowed.some(mapping => mapping.local === field && mapping.write)))) {
-    const error = new Error('Approval status, approver, comments and date can only be updated through the approval process.');
+  if (!values || typeof values !== 'object' || Array.isArray(values)) return;
+  const allowed = generalFlowMappings(table, mappings, role);
+  if (Object.keys(values).some(field => /approv/i.test(field) || (table === 'projects' && field === 'project_number' && !['admin','bsm'].includes(role)) || (mappings.some(mapping => mapping.local === field) && !allowed.some(mapping => mapping.local === field && mapping.write)))) {
+    const error = new Error('Approval fields are read-only and can only be updated through the approval process.');
     error.status = 403;
     throw error;
   }
