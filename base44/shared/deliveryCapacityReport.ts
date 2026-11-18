@@ -11,7 +11,7 @@ export async function deliveryCapacityReport(db,user,input,detailDb=null) {
   const {query}=await capacityScope(db,user,input,!!detailDb);
   const cacheKey=JSON.stringify([detailDb ? 'organisation-totals-v1' : 'rls',user.id,user.role,user.region,user.data,user.staff_aad_id,user.delegate_of,query,new Date().toISOString().slice(0,10),input.filters || {},input.revision || null]);
   const read=(key,load)=>scopedReadCache(`capacity:suppliers:v1:${cacheKey}:${key}`,load);
-  const result=await read('projects:v3',()=>db.Project.aggregate({query,groupBy:'id',max:capacityProjectFields.filter(field=>field!=='id'),limit:1000}));
+  const result=await read('projects:v4',()=>db.Project.aggregate({query,groupBy:'id',max:capacityProjectFields.filter(field=>field!=='id'),limit:1000}));
   if(result.truncated)throw new Error('Capacity reporting exceeds its grouping limit. Narrow the portfolio filters.');
   const projects=result.rows.map(row=>({id:row.id,count:row.count,...Object.fromEntries(capacityProjectFields.filter(field=>field!=='id').map(field=>[field,row[`max_${field}`]]))}));
   const visibleProjectIds=detailDb ? await capacityVisibleIds(detailDb,'Project',projects.map(project=>project.id)) : new Set(projects.map(project=>project.id));
