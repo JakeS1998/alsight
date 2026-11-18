@@ -1,6 +1,6 @@
 {
   "name": "ALICE personal briefing email",
-  "description": "Sends each due user their own directly assigned ALS Hub tasks and priorities.",
+  "description": "Sends each due user their selected ALS Hub briefing sections, limited to their current access.",
   "trigger": {
     "config": {
       "trigger_type": "entity",
@@ -62,7 +62,7 @@
             "template_name": "PersonalMorningBriefing",
             "category": "marketing",
             "to": "${ .prepare.to }",
-            "description": "Personal list of upcoming and overdue ALS Hub tasks",
+            "description": "Personal ALS Hub briefing with the recipient\u2019s selected sections",
             "variables": {
               "issue_date": "${ .prepare.issue_date }",
               "priorities": "${ .prepare.priorities }"

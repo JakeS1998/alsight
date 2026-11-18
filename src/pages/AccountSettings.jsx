@@ -12,6 +12,7 @@ import TeamsConnectionCard from '@/components/teams/TeamsConnectionCard';
 import DataverseConnectionCard from '@/components/dataverse/DataverseConnectionCard';
 import WellbeingPreferences from '@/components/wellbeing/WellbeingPreferences';
 import SubmissionSummary from '@/components/forms/SubmissionSummary';
+import PersonalBriefingSettings from '@/components/profile/PersonalBriefingSettings';
 
 export default function AccountSettings() {
   const { user } = useAuth();
@@ -36,6 +37,7 @@ export default function AccountSettings() {
     <div><h1 className="font-heading text-2xl font-semibold text-foreground">Account settings</h1><p className="mt-1 text-sm text-muted-foreground">Manage your profile picture and sign-in password.</p></div>
     <ProfilePictureEditor />
     <WellbeingPreferences />
+    {user?.email && ['admin','director','regional_director','bsm','finance','bdm','sam','sam_director'].includes(user.role) && <PersonalBriefingSettings key={user.id} userId={user.id} />}
     <OutlookConnectionCard />
     {['admin', 'director', 'regional_director', 'bsm', 'bdm', 'finance'].includes(user?.role) && <TeamsConnectionCard />}
     {['admin', 'director', 'regional_director', 'bsm', 'bdm', 'finance', 'sam', 'sam_director'].includes(user?.role) && <DataverseConnectionCard />}

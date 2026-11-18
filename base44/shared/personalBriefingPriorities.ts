@@ -3,7 +3,7 @@ const sources = [
   { entity:'CRMTask', due:'due_date', title:'title', done:['completed','cancelled'], label:'Opportunity task' },
   { entity:'CRMContactTask', due:'due_at', title:'title', done:['done'], label:'Contact task' },
 ];
-const escape = value => String(value).slice(0,200).replace(/\u2014/g, ', ').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+export const escapeBriefingText = value => String(value).slice(0,200).replace(/\u2014/g, ', ').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 
 export async function personalBriefingPriorities(db, userId, day, timezone) {
   // The scheduled caller is an admin. Use only exact assignments to the recipient's immutable app user ID; never a name, email alias or team scope.
@@ -17,5 +17,5 @@ export async function personalBriefingPriorities(db, userId, day, timezone) {
     const label = !due ? 'No due date' : due < day ? 'Overdue' : due === day ? 'Due today' : `Due ${formatter.format(new Date(`${due}T12:00:00Z`))}`;
     return {due,title:row[source.title],source:source.label,label};
   })).filter(task => task.title).sort((a,b) => (a.due || '9999').localeCompare(b.due || '9999'));
-  return tasks.length ? `<ul style="padding-left:18px;margin:0;">${tasks.slice(0,8).map(task => `<li style="padding:0 0 10px;"><strong>${escape(task.title)}</strong><br/>${task.label} &middot; ${task.source}</li>`).join('')}</ul>` : 'There are no open tasks directly assigned to you in ALS Hub.';
+  return tasks.length ? `<ul style="padding-left:18px;margin:0;">${tasks.slice(0,8).map(task => `<li style="padding:0 0 10px;"><strong>${escapeBriefingText(task.title)}</strong><br/>${task.label} &middot; ${task.source}</li>`).join('')}</ul>` : 'There are no open tasks directly assigned to you in ALS Hub.';
 }

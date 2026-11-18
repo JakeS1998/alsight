@@ -1,7 +1,7 @@
 import { createClientFromRequest } from 'npm:@base44/sdk@0.8.54';
 import { internalRoles } from '../../shared/allianceLayerAccess.ts';
 import { briefingClock, briefingIsDue } from '../../shared/personalBriefingClock.ts';
-import { personalBriefingPriorities } from '../../shared/personalBriefingPriorities.ts';
+import { personalBriefingContent } from '../../shared/personalBriefingContent.ts';
 
 const lookup = (entity,id) => entity.get(id).catch(error => error.status === 404 ? null : Promise.reject(error));
 
@@ -41,7 +41,7 @@ async function prepare(db, delivery) {
   if (!schedule?.enabled || schedule.revision !== delivery.revision || briefingClock(new Date(),schedule.timezone).day !== delivery.day) return await skip();
   const recipient = await lookup(db.User,schedule.user_id);
   if (!recipient?.email || !internalRoles.includes(recipient.role)) return await skip();
-  const priorities = await personalBriefingPriorities(db,recipient.id,delivery.day,schedule.timezone);
+  const priorities = await personalBriefingContent(db,recipient,schedule,delivery.day);
   // Recheck before claiming, so a pause or schedule edit cancels work already queued.
   const latest = await lookup(db.PersonalBriefingSchedule,schedule.id);
   if (!latest?.enabled || latest.revision !== delivery.revision) return await skip();
