@@ -1,3 +1,5 @@
+import {escapeMeetingEmailText,meetingProjectEmailTables} from './meetingProjectEmailTables.ts';
+
 export async function meetingSummaryCounts(db, key) {
  const {rows}=await db.CRMActivity.aggregate({query:{key_points:key},groupBy:'next_action',countDistinct:'commitments',limit:20});
  const counts={reviewed:0,actions:0,completed:0,notes:0};
@@ -6,7 +8,7 @@ export async function meetingSummaryCounts(db, key) {
  return counts;
 }
 export const meetingDate=value=>new Intl.DateTimeFormat('en-GB',{dateStyle:'medium',timeStyle:'short',timeZone:'Europe/London'}).format(new Date(value));
-const escapeText=value=>String(value).replaceAll('&','&amp;').replaceAll('<','&lt;').replaceAll('>','&gt;').replaceAll('"','&quot;').replaceAll("'",'&#39;');
+
 export async function emailMeetingSummary(base44,user,session,closed) {
  const svc=base44.asServiceRole,db=svc.entities,now=Date.now();
  const recent=await db.CRMActivity.filter({next_action:'meeting_summary_send',author_id:user.id,occurred_at:{$gte:new Date(now-86400000).toISOString()}},{sort:'-occurred_at',limit:5});
@@ -18,9 +20,10 @@ export async function emailMeetingSummary(base44,user,session,closed) {
  const available=new Map(users.filter(person=>ids.includes(person.id) && staff.includes(person.role) && person.email).map(person=>[person.id,person.email.trim().toLowerCase()]));
  const recipients=[...new Set(available.values())];
  if(!recipients.length)return Response.json({error:'No registered hosts or attendees can receive this summary.'},{status:400});
+ const projectUpdateTables=await meetingProjectEmailTables(base44.entities,session,[...available.keys()]);
  // Record the explicit send attempt before contacting the provider, without storing addresses or note contents.
  await db.CRMActivity.create({type:'system',next_action:'meeting_summary_send',owner_id:user.id,author_id:user.id,commitments:session.id,subject:'Meeting summary send requested',occurred_at:new Date(now).toISOString()});
- const variables={meeting_name:escapeText(session.subject.slice(0,120)),issue_date:meetingDate(closed.occurred_at),reviewed:String(counts.reviewed),actions:String(counts.actions),completed:String(counts.completed),notes:String(counts.notes),cta_url:`https://als-hub.base44.app/meeting-sessions/${encodeURIComponent(session.id)}`};
+ const variables={project_update_tables:projectUpdateTables,meeting_name:escapeMeetingEmailText(session.subject.slice(0,120)),issue_date:meetingDate(closed.occurred_at),reviewed:String(counts.reviewed),actions:String(counts.actions),completed:String(counts.completed),notes:String(counts.notes),cta_url:`https://als-hub.base44.app/meeting-sessions/${encodeURIComponent(session.id)}`};
  let sent=0;
  for(let offset=0;offset<recipients.length;offset+=5){
   const results=await Promise.allSettled(recipients.slice(offset,offset+5).map(to=>svc.integrations.Core.SendEmail({to,template_name:'MeetingSessionSummary',category:'transactional',variables})));
