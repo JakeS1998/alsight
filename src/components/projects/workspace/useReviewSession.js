@@ -2,7 +2,8 @@ import {useState,useEffect} from 'react';
 import {useQuery,useQueryClient} from '@tanstack/react-query';
 import {base44} from '@/api/base44Client';
 import useMeetingSessionData from '@/components/projects/workspace/useMeetingSessionData';
-import {appendMeetingActivity,meetingKey,meetingSummaryText,meetingWriter,meetingHost,meetingMember} from '@/components/projects/workspace/meetingSessionActivity';
+import {appendMeetingActivity,meetingHost,meetingMember} from '@/components/projects/workspace/meetingSessionActivity';
+import {meetingSessionRequest} from '@/components/projects/workspace/meetingSessionClient';
 export default function useReviewSession(user,projectIds=[]) {
  const storageKey=`alsight-active-meeting:${user.id}`,cache=useQueryClient();
  const [id,setId]=useState(()=>localStorage.getItem(storageKey)),[busy,setBusy]=useState(false),[error,setError]=useState(''),[operations,setOperations]=useState(0),[pendingRecords,setPendingRecords]=useState(()=>JSON.parse(localStorage.getItem(`${storageKey}:pending`) || '[]'));
@@ -15,20 +16,12 @@ export default function useReviewSession(user,projectIds=[]) {
  const refresh=()=>{cache.invalidateQueries({queryKey:['meeting-session-data']});cache.invalidateQueries({queryKey:['meeting-session-marks']});cache.invalidateQueries({queryKey:['meeting-history']});cache.invalidateQueries({queryKey:['meeting-session-events']});cache.invalidateQueries({queryKey:['meeting-carry-actions']});cache.invalidateQueries({queryKey:['project-meeting-history']});};
  const run=async task=>{setBusy(true);setError('');try{return await task();}catch(e){setError(e.message || 'Unable to save the meeting.');return null;}finally{setBusy(false);}};
  const createMeeting=name=>run(async()=>{
-  if(!meetingWriter(user) || !name.trim())throw new Error('Enter a meeting name and confirm you can host meetings.');
-  const meeting=await appendMeetingActivity(user,{subject:name.trim().slice(0,120),key_points:meetingKey(crypto.randomUUID())},'meeting_series');
+  const {session:meeting}=await meetingSessionRequest('createSeries',null,{name:name.trim()});
   cache.invalidateQueries({queryKey:['meeting-series']});return meeting;
  });
  const start=meeting=>run(async()=>{
   if(session && meetingHost(session,user) && !data.ended)throw new Error('End or leave your current session first.');
-  const saved=await base44.entities.CRMActivity.get(meeting.id);
-  if(saved.next_action!=='meeting_series' || !meetingHost(saved,user))throw new Error('Only this meeting’s hosts can start a session.');
-  const latest=(await base44.entities.CRMActivity.filter({meeting_series_id:saved.id,next_action:'meeting_start'},{sort:'-occurred_at',limit:1})).items[0];
-  if(latest){
-   const state=(await base44.entities.CRMActivity.filter({key_points:latest.key_points,next_action:{$in:['meeting_end','meeting_resume']}},{sort:'-occurred_at',limit:1})).items[0];
-   if(state?.next_action!=='meeting_end')throw new Error('This meeting already has an open session. Open it from Sessions and end it before starting another.');
-  }
-  const row=await appendMeetingActivity(user,{...saved,key_points:meetingKey(crypto.randomUUID()),meeting_series_id:saved.id,meeting_previous_at:latest?.occurred_at},'meeting_start',{text:'Project review session started.'});
+  const {session:row}=await meetingSessionRequest('start',meeting.id);
   resume(row);refresh();return row;
  });
  const resume=s=>{cache.setQueryData(['meeting-session',user.id,s.id],s);setSession(s);setError('');};
@@ -36,13 +29,11 @@ export default function useReviewSession(user,projectIds=[]) {
   if(session && session.id!==s.id && meetingHost(session,user) && !data.ended)throw new Error('Leave your current meeting before opening another.');
   const saved=await base44.entities.CRMActivity.get(s.id);
   if(saved.next_action!=='meeting_start' || !meetingMember(saved,user))throw new Error('Only this meeting’s hosts and attendees can open it.');
-   if(!meetingHost(saved,user)){resume(saved);refresh();return saved;}
-  const lifecycle=await base44.entities.CRMActivity.filter({key_points:saved.key_points,next_action:{$in:['meeting_end','meeting_resume']}},{sort:'-occurred_at',limit:1});
-  if(!saved.meeting_series_id && lifecycle.items[0]?.next_action==='meeting_end')await appendMeetingActivity(user,saved,'meeting_resume',{text:'Meeting resumed. Previous reviews, actions and notes retained.'});
+  if(meetingHost(saved,user))await meetingSessionRequest('reopen',saved.id);
   resume(saved);refresh();return saved;
  });
  const record=async(kind,project,action)=>{const result=await run(async()=>{if(kind==='notes'){refresh();return true;}if(!meetingHost(session,user) || data.ended)return;const events={reviewed:'meeting_review',actions:'meeting_action',completed:'meeting_completed'};if(!events[kind])return;const text=kind==='reviewed' ? `${project.name} marked reviewed.` : `${project.name}: ${action?.action || 'Project action'}${kind==='actions' ? ` · Owner: ${action?.owner || 'Unassigned'} · Due: ${action?.due_date || 'Not set'}` : ' completed.'}`;if(action){const previous=await base44.entities.CRMActivity.filter({key_points:session.key_points,next_action:events[kind],commitments:action.id},{limit:1});if(previous.items[0]){refresh();return previous.items[0];}}const row=await appendMeetingActivity(user,session,events[kind],{project,action,text});refresh();return row;});if(action)setPendingRecords(items=>result ? items.filter(item=>item.kind!==kind || item.action.id!==action.id) : [...items.filter(item=>item.kind!==kind || item.action.id!==action.id),{kind,project,action}]);return result;};
  const reviewed=project=>record('reviewed',project);
- const end=()=>run(async()=>{if(!meetingHost(session,user))throw new Error('Only this meeting’s hosts can end it.');const result=await data.query.refetch();if(result.error)throw result.error;if(result.data.end){refresh();return result.data.end;}const row=await appendMeetingActivity(user,session,'meeting_end',{text:meetingSummaryText(session,result.data.counts,{occurred_at:new Date().toISOString()})});refresh();return row;});
+ const end=()=>run(async()=>{const result=await meetingSessionRequest('end',session.id);refresh();return result;});
  return {session,current,...data,busy,error,operations,operationContext,pendingRecords,retryRecords:async()=>{for(const item of pendingRecords)await record(item.kind,item.project,item.action);},createMeeting,start,resume,continueMeeting,record,reviewedProject:reviewed,end,clear:()=>setSession(null),refresh,opened:!!session && meetingMember(session,user) && !current.error && !data.query.isPending && !data.query.error,active:!!session && !current.error && !data.ended && !data.query.isPending && !data.query.error && meetingHost(session,user)};
 }

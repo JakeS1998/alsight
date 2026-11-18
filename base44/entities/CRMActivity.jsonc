@@ -159,6 +159,11 @@
           "user_condition": {
             "role": "director"
           }
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
         }
       ]
     },
@@ -166,6 +171,18 @@
       "$and": [
         {
           "data.author_id": "{{user.id}}"
+        },
+        {
+          "data.next_action": {
+            "$nin": [
+              "meeting_series",
+              "meeting_start",
+              "meeting_resume",
+              "meeting_end",
+              "meeting_note",
+              "meeting_summary_send"
+            ]
+          }
         },
         {
           "$or": [
@@ -201,6 +218,18 @@
           }
         },
         {
+          "data.next_action": {
+            "$nin": [
+              "meeting_series",
+              "meeting_start",
+              "meeting_resume",
+              "meeting_end",
+              "meeting_note",
+              "meeting_summary_send"
+            ]
+          }
+        },
+        {
           "$or": [
             {
               "data.owner_id": "{{user.id}}"
@@ -217,6 +246,18 @@
         {
           "user_condition": {
             "role": "admin"
+          }
+        },
+        {
+          "data.next_action": {
+            "$nin": [
+              "meeting_series",
+              "meeting_start",
+              "meeting_resume",
+              "meeting_end",
+              "meeting_note",
+              "meeting_summary_send"
+            ]
           }
         },
         {

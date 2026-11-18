@@ -11,17 +11,36 @@ export default async function(req: Request): Promise<Response> {
   const base44=createClientFromRequest(req),user=await base44.auth.me().catch(error=>error.status===401 ? null : Promise.reject(error));
   if(!user)return failure('Sign in to manage a meeting session.',401);
   const input=await req.json().catch(()=>({}));
-  if(!validId(input?.sessionId) || !['reopen','end','addNote','editNote','sendSummary'].includes(input?.action))return failure('Choose a valid meeting session operation.',400);
-  const db=base44.entities,session=await db.CRMActivity.get(input.sessionId).catch(missing);
-  if(session?.next_action!=='meeting_start' || !/^Meeting session: [a-f0-9-]{36}$/i.test(session.key_points || ''))return failure('Meeting session unavailable.',404);
+  if(!['createSeries','start','reopen','end','addNote','editNote','sendSummary'].includes(input?.action) || (input.action!=='createSeries' && !validId(input.sessionId)))return failure('Choose a valid meeting session operation.',400);
+  if(!['admin','director','bdm','bsm'].includes(user.role))return failure('Only this session’s hosts can make changes or email its summary.',403);
+  const db=base44.entities,activity=base44.asServiceRole.entities.CRMActivity;
+  const now=new Date().toISOString(),writer={author_id:user.id,author_name:user.full_name || user.email,occurred_at:now};
+  const newKey=()=>`Meeting session: ${crypto.randomUUID()}`;
+  if(input.action==='createSeries'){
+   const subject=typeof input.name==='string' ? input.name.trim() : '';
+   if(!subject || subject.length>120)return failure('Enter a meeting name of up to 120 characters.',400);
+   const session=await activity.create({...writer,subject,type:'system',next_action:'meeting_series',key_points:newKey(),owner_id:user.id,meeting_hosts:[{id:user.id,name:writer.author_name}],meeting_attendees:[],meeting_member_ids:[user.id],line_manager_id:user.data?.line_manager_id || user.line_manager_id || ''});
+   return Response.json({session});
+  }
+  const session=await db.CRMActivity.get(input.sessionId).catch(missing);
+  if(session?.next_action!==(input.action==='start' ? 'meeting_series' : 'meeting_start') || !/^Meeting session: [a-f0-9-]{36}$/i.test(session.key_points || ''))return failure('Meeting session unavailable.',404);
   const hostIds=[session.owner_id,...(session.meeting_hosts || []).map(person=>person.id)];
-  if(!['admin','director','bdm','bsm'].includes(user.role) || !hostIds.includes(user.id))return failure('Only this session’s hosts can make changes or email its summary.',403);
+  if(!hostIds.includes(user.id))return failure('Only this session’s hosts can make changes or email its summary.',403);
+  const original=(await activity.filter({key_points:session.key_points,next_action:session.next_action},{sort:'created_date',limit:1})).items[0];
+  if(original?.id!==session.id)return failure('Meeting session unavailable.',404);
+  if(input.action==='start'){
+   const latest=(await db.CRMActivity.filter({meeting_series_id:session.id,next_action:'meeting_start'},{sort:'-occurred_at',limit:1})).items[0];
+   if(latest){
+    const state=(await db.CRMActivity.filter({key_points:latest.key_points,next_action:{$in:['meeting_end','meeting_resume']}},{sort:'-occurred_at',limit:1})).items[0];
+    if(state?.next_action!=='meeting_end')return failure('This meeting already has an open session. Open it from Sessions and end it before starting another.',409);
+   }
+   const row=await activity.create({...writer,subject:session.subject,type:'internal_meeting',next_action:'meeting_start',description:'Project review session started.',key_points:newKey(),owner_id:session.owner_id,line_manager_id:session.line_manager_id || '',meeting_series_id:session.id,...(latest ? {meeting_previous_at:latest.occurred_at} : {}),meeting_hosts:session.meeting_hosts || [],meeting_attendees:session.meeting_attendees || [],meeting_member_ids:session.meeting_member_ids || [session.owner_id]});
+   return Response.json({session:row});
+  }
   const lifecycle=(await db.CRMActivity.filter({key_points:session.key_points,next_action:{$in:['meeting_end','meeting_resume']}},{sort:'-occurred_at',limit:1})).items[0];
   const closed=lifecycle?.next_action==='meeting_end';
   if(input.action==='sendSummary')return closed ? await emailMeetingSummary(base44,user,session,lifecycle) : failure('End the session before emailing its summary.',409);
-  const activity=base44.asServiceRole.entities.CRMActivity;
   const scope={key_points:session.key_points,owner_id:session.owner_id,line_manager_id:session.line_manager_id || '',meeting_member_ids:[...new Set([...hostIds,...(session.meeting_attendees || []).map(person=>person.id)].filter(Boolean))],...(session.meeting_series_id ? {meeting_series_id:session.meeting_series_id} : {})};
-  const now=new Date().toISOString(),writer={author_id:user.id,author_name:user.full_name || user.email,occurred_at:now};
   if(input.action==='reopen' || input.action==='end'){
    if((input.action==='reopen' && !closed) || (input.action==='end' && closed))return Response.json({success:true});
    const reopening=input.action==='reopen';

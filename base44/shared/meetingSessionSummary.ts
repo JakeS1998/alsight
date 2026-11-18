@@ -2,7 +2,7 @@ export async function meetingSummaryCounts(db, key) {
  const {rows}=await db.CRMActivity.aggregate({query:{key_points:key},groupBy:'next_action',countDistinct:'commitments',limit:20});
  const counts={reviewed:0,actions:0,completed:0,notes:0};
  const names={meeting_review:'reviewed',meeting_action:'actions',meeting_completed:'completed',meeting_note:'notes'};
- for(const row of rows)if(names[row.next_action])counts[names[row.next_action]]=row.next_action==='meeting_note' ? row.count : row.count_distinct_commitments;
+ for(const row of rows)if(names[row.next_action])counts[names[row.next_action]]=row.next_action==='meeting_note' ? (row.count ?? 0) : (row.count_distinct_commitments ?? 0);
  return counts;
 }
 export const meetingDate=value=>new Intl.DateTimeFormat('en-GB',{dateStyle:'medium',timeStyle:'short',timeZone:'Europe/London'}).format(new Date(value));
