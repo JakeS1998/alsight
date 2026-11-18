@@ -1,35 +1,31 @@
 <mjml>
   <mj-head>
-    <mj-title>ALS Hub | {{approval_count}} outstanding approvals | {{report_date}}</mj-title>
-    <mj-preview>Your assigned approvals, with direct links to review each record.</mj-preview>
+    <mj-title>ALS Hub | Your outstanding approvals</mj-title>
+    <mj-preview>See the Microsoft approvals assigned to you that are still awaiting a decision.</mj-preview>
     <mj-attributes>
       <mj-all font-family="Arial Narrow, Arial, sans-serif" />
-      <mj-section background-color="#ffffff" padding="0 24px" />
+      <mj-section background-color="#ffffff" padding="0 28px" />
       <mj-text color="#102642" font-size="15px" line-height="1.6" padding="0" />
-      <mj-button background-color="#f59929" color="#000000" border-radius="7px" font-weight="700" inner-padding="14px 24px" padding="0" align="left" />
       <mj-class name="muted" color="#5f7586" />
+      <mj-button background-color="#f59929" color="#102642" border-radius="12px" font-weight="700" align="left" padding="0" inner-padding="14px 24px" />
     </mj-attributes>
   </mj-head>
   <mj-body width="600px" background-color="#eaf4fb">
-    <mj-section background-color="#f59929" padding="18px 24px">
-      <mj-column><mj-image src="https://media.base44.com/images/public/6ab62433a194f918c54c8249/eaab54791_ALSHub.png" alt="ALS Hub" width="300px" align="left" padding="0" /><mj-text color="#102642" font-size="11px" padding="12px 0 0">DAILY APPROVAL SUMMARY</mj-text></mj-column>
-    </mj-section>
-    <mj-section padding="24px 24px 18px"><mj-column>
-      <mj-text font-size="24px" font-weight="700" line-height="1.25">Your approval summary</mj-text>
-      <mj-text mj-class="muted" padding="8px 0 0">{{approval_count}} approvals assigned to you are awaiting your decision.</mj-text>
-      <mj-text font-size="14px" padding="14px 0 0">{{greeting}}</mj-text>
-      <mj-text mj-class="muted" font-size="12px" padding="4px 0 0">{{report_date}} · London time</mj-text>
+    <mj-section background-color="#f59929" padding="16px 28px" border-radius="12px 12px 0 0"><mj-column>
+      <mj-image src="https://media.base44.com/images/public/6ab62433a194f918c54c8249/c6a55826a_logo.jpg" alt="ALS Hub logo" width="44px" align="left" padding="0" />
+      <mj-text font-weight="700" padding="6px 0 0">ALS Hub</mj-text>
     </mj-column></mj-section>
-    <mj-section padding="0 24px 12px"><mj-column>
-      <mj-text font-size="17px" font-weight="700" padding="0 0 12px">Outstanding approvals</mj-text>
-      <mj-raw>{{{approval_table}}}</mj-raw>
+    <mj-section padding="28px 28px 20px"><mj-column>
+      <mj-text font-size="26px" font-weight="700" line-height="1.25">Your outstanding approvals</mj-text>
+      <mj-text mj-class="muted" padding="8px 0 0">{{summary}}</mj-text>
     </mj-column></mj-section>
-    <mj-section padding="18px 24px 24px"><mj-column>
-      <mj-button href="https://alsight.base44.app/approvals">Open Approval Centre</mj-button>
-      <mj-text mj-class="muted" font-size="12px" padding="14px 0 0">Sign in with your ALS Hub account to review and respond. This summary reflects the approvals outstanding when the email was prepared.</mj-text>
+    <mj-section padding="0 28px 24px"><mj-column>
+      <mj-text>{{{approval_items}}}</mj-text>
+      <mj-text mj-class="muted" font-size="13px" padding="10px 0 0">{{more}}</mj-text>
     </mj-column></mj-section>
-    <mj-section background-color="#eaf4fb" padding="16px 24px"><mj-column>
-      <mj-text mj-class="muted" font-size="12px">ALS Hub · Daily approval reminder<br />You receive this email because approval access is enabled and records are assigned to you. No reminder is sent when there are no outstanding approvals.</mj-text>
+    <mj-section padding="0 28px 28px" border-radius="0 0 12px 12px"><mj-column>
+      <mj-button href="{{approval_url}}">Open Approval Centre</mj-button>
+      <mj-text mj-class="muted" font-size="12px" padding="14px 0 0">This reminder reflects Microsoft approvals at the time it was prepared. If you’ve already responded, you don’t need to do anything else.</mj-text>
     </mj-column></mj-section>
   </mj-body>
 </mjml>

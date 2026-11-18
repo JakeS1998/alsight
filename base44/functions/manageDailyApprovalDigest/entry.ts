@@ -1,55 +1,67 @@
 import { createClientFromRequest } from 'npm:@base44/sdk@0.8.52';
-import { approvalDigestContent, approvalDigestDay, pendingDigestQuery } from '../../shared/approvalDigestContent.ts';
-import { deliverApprovalDigest } from '../../shared/approvalDigestDelivery.ts';
-const address = value => String(value || '').trim().toLowerCase();
-export default async function(req) {
+import { digestAddress, formatDigestDay, microsoftApprovalDigest } from '../../shared/microsoftApprovalDigest.ts';
+import { dataverseEnvironment } from '../../shared/dataverseConnection.ts';
+import { dataverseRoles } from '../../shared/dataverseUserAuth.ts';
+import { microsoftSyncPause } from '../../shared/coMicrosoftPause.ts';
+
+const getRecord = (entity, id) => entity.get(id).catch(error => Number(error.status ?? error.response?.status) === 404 ? null : Promise.reject(error));
+async function queueReminders(db, day, preview) {
+  const config = (await db.DataverseConnection.filter({key:'primary'}, {limit:1})).items[0];
+  if (!config) return { queued:0, eligible:0, reason:'Dataverse is not configured.' };
+  const environment = dataverseEnvironment(config.environment_url);
+  let cursor, queued = 0, eligible = 0;
+  do {
+    const page = await db.DataverseUserConnection.filter({ environment_url:environment,status:'connected' }, { sort:'id',limit:50,fields:['user_id'],...(cursor ? {cursor} : {}) });
+    for (let i = 0; i < page.items.length; i += 3) await Promise.all(page.items.slice(i, i + 3).map(async connection => {
+      const recipient = await getRecord(db.User, connection.user_id), email = digestAddress(recipient?.email);
+      if (!email || !dataverseRoles.includes(recipient.role) || !(await db.ApprovalAccess.count({email,enabled:true}))) return;
+      eligible++;
+      if (preview) return;
+      const key = `${day}:${recipient.id}`;
+      if ((await db.ApprovalDigestDelivery.filter({delivery_key:key},{limit:1})).items.length) return;
+      // One create event per recipient initiates a separate, private email workflow.
+      await db.ApprovalDigestDelivery.create({delivery_key:key,report_day:day,recipient_user_id:recipient.id,recipient_email:email,status:'queued'});
+      queued++;
+    }));
+    cursor = page.has_more ? page.next_cursor : null;
+  } while (cursor);
+  return { queued, eligible };
+}
+
+export default async function(req: Request): Promise<Response> {
   try {
-    const base44 = createClientFromRequest(req), actor = await base44.auth.me();
+    const base44 = createClientFromRequest(req);
+    const actor = await base44.auth.me().catch(error => Number(error.status ?? error.response?.status) === 401 ? null : Promise.reject(error));
     if (!actor) return Response.json({error:'Sign in to manage approval reminders.'},{status:401});
-    if (actor.role !== 'admin') return Response.json({error:'Only administrators can prepare approval reminders.'},{status:403});
-    const input = await req.json(), db = base44.asServiceRole.entities, day = approvalDigestDay();
-    if (['enqueue','preview'].includes(input.action)) {
-      let cursor, eligible = 0, created = 0, alreadyQueued = 0, preview = null;
-      do {
-        const page = await db.DocumentApprovalRequest.filter(pendingDigestQuery,{distinct:'approver_email',limit:100,...(cursor ? {cursor} : {})});
-        for (let index = 0; index < page.items.length; index += 5) {
-          await Promise.all(page.items.slice(index,index+5).map(async value => {
-            const email = address(value);
-            if (!email || !(await db.ApprovalAccess.count({email,enabled:true}))) return;
-            const pattern = '^'+email.replace(/[.*+?^${}()|[\]\\]/g,'\\$&')+'$';
-            const found = await db.User.filter({email:{$regex:pattern,$options:'i'}},'-created_date',2);
-            const users = Array.isArray(found) ? found : found.items;
-            if (users.length !== 1) return;
-            const recipient = users[0];
-            eligible++;
-            if (input.action === 'preview') {
-              const report = await approvalDigestContent(base44,recipient);
-              if (report.count && !preview) preview = {recipient_email:recipient.email,...report};
-              return;
-            }
-            const key = `${day}:${recipient.id}`;
-            if ((await db.ApprovalDigestDelivery.filter({delivery_key:key},{limit:1})).items.length) { alreadyQueued++; return; }
-            // Single create is intentional: every recipient needs its own email workflow trigger.
-            await db.ApprovalDigestDelivery.create({delivery_key:key,report_day:day,recipient_user_id:recipient.id,recipient_email:address(recipient.email),status:'queued'});
-            created++;
-          }));
-        }
-        cursor = page.has_more ? page.next_cursor : null;
-      } while (cursor);
-      return Response.json({report_day:day,eligible_recipients:eligible,queued:created,already_queued:alreadyQueued,...(input.action === 'preview' ? {preview} : {})});
+    if (actor.role !== 'admin') return Response.json({error:'Only administrators can manage approval reminders.'},{status:403});
+    const input = await req.json().catch(() => null), db = base44.asServiceRole.entities, day = formatDigestDay();
+    if (['enqueue','preview'].includes(input?.action)) {
+      if (await microsoftSyncPause(base44)) return Response.json({queued:0,reason:'Microsoft access is paused for contingency.'});
+      return Response.json({report_day:day,...await queueReminders(db,day,input.action === 'preview')});
     }
-    if (!['digest','deliver'].includes(input.action) || typeof input.deliveryId !== 'string' || !/^[a-zA-Z0-9_-]{1,100}$/.test(input.deliveryId)) return Response.json({error:'Choose a valid reminder operation.'},{status:400});
-    const delivery = await db.ApprovalDigestDelivery.get(input.deliveryId);
+    if (!['digest','record'].includes(input?.action) || typeof input.deliveryId !== 'string' || !/^[a-zA-Z0-9_-]{1,100}$/.test(input.deliveryId) || (input.action === 'record' && typeof input.sent !== 'boolean')) return Response.json({error:'Choose a valid reminder operation.'},{status:400});
+    if (input.action === 'record') {
+      const sent = input.sent;
+      await db.ApprovalDigestDelivery.updateMany({id:input.deliveryId,status:'sending'},{$set:sent ? {status:'sent',sent_at:new Date().toISOString()} : {status:'unconfirmed',send_error:'The workflow did not confirm sending this reminder.'}});
+      return Response.json({sent});
+    }
+    const delivery = await getRecord(db.ApprovalDigestDelivery,input.deliveryId);
     if (!delivery) return Response.json({error:'Reminder not found.'},{status:404});
-    if (delivery.status !== 'queued') return Response.json({send:false,sent:false,status:delivery.status});
-    const recipient = await db.User.get(delivery.recipient_user_id);
-    if (!recipient || address(recipient.email) !== delivery.recipient_email || delivery.report_day !== day || !(await db.ApprovalAccess.count({email:delivery.recipient_email,enabled:true}))) {
-      await db.ApprovalDigestDelivery.update(delivery.id,{status:'skipped'});
+    if (delivery.status !== 'queued' || delivery.report_day !== day) return Response.json({send:false});
+    const skip = async () => {
+      await db.ApprovalDigestDelivery.updateMany({id:delivery.id,status:'queued'},{$set:{status:'skipped'}});
       return Response.json({send:false});
+    };
+    const recipient = await getRecord(db.User,delivery.recipient_user_id);
+    if (!recipient || digestAddress(recipient.email) !== delivery.recipient_email || !(await db.ApprovalAccess.count({email:delivery.recipient_email,enabled:true})) || await microsoftSyncPause(base44)) return await skip();
+    let report;
+    try { report = await microsoftApprovalDigest(base44,recipient); }
+    catch {
+      await db.ApprovalDigestDelivery.updateMany({id:delivery.id,status:'queued'},{$set:{status:'failed',send_error:'Could not read assigned approvals from the recipient’s Microsoft connection.'}});
+      return Response.json({error:'Could not read pending Microsoft approvals.'},{status:502});
     }
-    const report = await approvalDigestContent(base44,recipient);
-    await db.ApprovalDigestDelivery.updateMany({id:delivery.id,status:'queued'},{$set:{approval_count:report.count,...(!report.count ? {status:'skipped'} : {})}});
-    if (input.action === 'deliver') return Response.json(report.count ? await deliverApprovalDigest(base44,delivery,recipient,report) : {sent:false,send:false});
-    return Response.json(report.count ? {send:true,to:recipient.email,variables:report.variables} : {send:false});
+    if (!report) return await skip();
+    const claimed = await db.ApprovalDigestDelivery.updateMany({id:delivery.id,status:'queued'},{$set:{status:'sending',approval_count:report.count}});
+    return Response.json(claimed.updated ? {send:true,to:recipient.email,variables:report.variables} : {send:false});
   } catch (error) { return Response.json({error:error.message || 'Could not prepare approval reminders.'},{status:500}); }
 }

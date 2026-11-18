@@ -26,7 +26,7 @@
     ]
   },
   "name": "Daily Approval Reminders at 16:00",
-  "description": "Every day at 16:00 London time, queues one personalised approval summary per registered user with approval access and outstanding assigned approvals. Existing daily deliveries are not queued again.",
+  "description": "Every day at 16:00 London time, queues a private inbox check for each registered approver with a connected Microsoft account. Users with no outstanding assigned approvals receive no email.",
   "trigger": {
     "condition": null,
     "config": {

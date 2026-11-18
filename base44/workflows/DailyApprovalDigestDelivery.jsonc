@@ -1,6 +1,6 @@
 {
   "name": "Daily Approval Reminder Email",
-  "description": "Prepares each registered approval user's private digest, sends the existing ALS Hub template through the backend email service, and records successful sending without repeating completed deliveries.",
+  "description": "Checks each recipient\u2019s pending Microsoft approvals and sends a private ALS Hub digest only if something needs their decision.",
   "trigger": {
     "config": {
       "trigger_type": "entity",
@@ -15,7 +15,7 @@
     "document": {
       "dsl": "1.0.0",
       "name": "daily_approval_reminder_email",
-      "version": "1.1",
+      "version": "1.2",
       "namespace": "base44"
     },
     "do": [
@@ -31,8 +31,8 @@
           },
           "then": "check_inbox",
           "x-base44": {
-            "title": "Prepare this user's approvals",
-            "description": "Verify access and current outstanding records"
+            "title": "Prepare this user\u2019s approvals",
+            "description": "Verify Microsoft identity and pending assignments"
           }
         }
       },
@@ -41,7 +41,10 @@
           "switch": [
             {
               "when": "${ .prepare.send == true }",
-              "then": "email_summary"
+              "then": "email_summary",
+              "x-base44": {
+                "title": "Has eligible pending approvals"
+              }
             },
             {
               "when": "${ true }",
@@ -50,24 +53,45 @@
           ],
           "x-base44": {
             "title": "Any approvals awaiting a decision?",
-            "description": "Skip revoked access or empty inboxes"
+            "description": "Skip empty or inaccessible inboxes"
           }
         }
       },
       {
         "email_summary": {
+          "call": "send_email",
+          "with": {
+            "template_name": "DailyApprovalDigest",
+            "to": "${ .prepare.to }",
+            "category": "transactional",
+            "description": "Lists the recipient\u2019s outstanding Microsoft approvals and due dates",
+            "variables": {
+              "summary": "${ .prepare.variables.summary }",
+              "approval_items": "${ .prepare.variables.approval_items }",
+              "more": "${ .prepare.variables.more }",
+              "approval_url": "${ .prepare.variables.approval_url }"
+            }
+          },
+          "then": "record_result",
+          "x-base44": {
+            "title": "Send approval summary"
+          }
+        }
+      },
+      {
+        "record_result": {
           "call": "invoke_backend_function",
           "with": {
             "function_name": "manageDailyApprovalDigest",
             "args": {
-              "action": "deliver",
-              "deliveryId": "${ .trigger.entity_id }"
+              "action": "record",
+              "deliveryId": "${ .trigger.entity_id }",
+              "sent": "${ .email_summary.sent == true }"
             }
           },
           "then": "end",
           "x-base44": {
-            "title": "Send and record approval summary",
-            "description": "Recheck eligibility, claim delivery, send the ALS Hub template and record success"
+            "title": "Record email outcome"
           }
         }
       }
