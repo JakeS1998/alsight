@@ -1,0 +1,37 @@
+<mjml>
+  <mj-head>
+    <mj-title>Your ALS Hub meeting summary</mj-title>
+    <mj-preview>Review session outcomes and open the saved notes in ALS Hub.</mj-preview>
+    <mj-attributes>
+      <mj-all font-family="Arial Narrow, Arial, sans-serif" />
+      <mj-section background-color="#ffffff" padding="0 36px" />
+      <mj-text color="#102642" font-size="15px" line-height="1.6" padding="0" />
+      <mj-class name="heading" font-weight="700" />
+      <mj-class name="muted" color="#5f7586" />
+      <mj-button background-color="#f59929" color="#102642" border-radius="12px" font-weight="700" align="left" padding="0" inner-padding="14px 28px" />
+    </mj-attributes>
+  </mj-head>
+  <mj-body background-color="#eaf4fb" width="600px">
+    <mj-wrapper padding="28px 12px">
+      <mj-section background-color="#f59929" border-radius="12px 12px 0 0" padding="24px 36px">
+        <mj-column>
+          <mj-image src="https://media.base44.com/images/public/6ab62433a194f918c54c8249/c6a55826a_logo.jpg" alt="ALS Hub logo" width="40px" align="left" padding="0 0 10px" />
+          <mj-text mj-class="heading">ALS Hub</mj-text>
+        </mj-column>
+      </mj-section>
+      <mj-section padding="36px 36px 24px"><mj-column>
+        <mj-text mj-class="heading" font-size="28px" line-height="1.2" padding="0 0 10px">Meeting summary: {{meeting_name}}</mj-text>
+        <mj-text mj-class="muted">This session ended on {{issue_date}} (UK time). A meeting host shared this summary with the session participants.</mj-text>
+      </mj-column></mj-section>
+      <mj-section padding="8px 36px 24px">
+        <mj-column background-color="#eaf4fb" padding="12px"><mj-text mj-class="heading">{{reviewed}} projects reviewed</mj-text><mj-text mj-class="muted">{{notes}} notes saved</mj-text></mj-column>
+        <mj-column padding="12px"><mj-text mj-class="heading">{{actions}} actions created</mj-text><mj-text mj-class="muted">{{completed}} actions completed</mj-text></mj-column>
+      </mj-section>
+      <mj-section padding="4px 36px 36px"><mj-column>
+        <mj-button href="{{cta_url}}">Open meeting notes</mj-button>
+        <mj-text mj-class="muted" font-size="13px" padding="12px 0 0">Sign in to view the notes and recorded activity. Notes are not included in this email.</mj-text>
+      </mj-column></mj-section>
+      <mj-section background-color="#eaf4fb" padding="20px 36px"><mj-column><mj-text mj-class="muted" font-size="12px">ALS Hub · Meeting Mode</mj-text></mj-column></mj-section>
+    </mj-wrapper>
+  </mj-body>
+</mjml>

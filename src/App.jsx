@@ -36,6 +36,7 @@ const Home = lazy(() => import('@/pages/Home'));
 const AdaptiveTodayPage = lazy(() => import('@/pages/AdaptiveTodayPage'));
 const PortfolioOverview = lazy(() => import('@/pages/PortfolioOverview'));
 const Projects = lazy(() => import('@/pages/Projects'));
+const MeetingSessionNotes = lazy(() => import('@/pages/MeetingSessionNotes'));
 const FrameworkReports = lazy(() => import('@/pages/UKLFReports'));
 const FrameworkProjectDetail = lazy(() => import('@/pages/FrameworkProjectDetail'));
 const ProjectDetail = lazy(() => import('@/pages/ProjectDetail'));
@@ -125,6 +126,7 @@ const AuthenticatedApp = () => {
         <Route path="/dataverse-callback" element={<DataverseCallback />} />
         <Route path="/powerbi-callback" element={<PowerBICallback />} />
         <Route path="/onboarding" element={<Onboarding />} />
+        <Route path="/meeting-sessions/:sessionId" element={<MeetingSessionNotes />} />
       </Route>
       <Route element={<ProtectedRoute unauthenticatedElement={<Navigate to={location.pathname.startsWith('/contingency')?`/login?contingency=1&returnTo=${encodeURIComponent(location.pathname+location.search)}`:location.pathname.startsWith('/projects/')&&location.hash.startsWith('#document-')?`/login?returnTo=${encodeURIComponent(location.pathname+location.search+location.hash)}`:'/login'} replace />} />}>
         <Route element={<OnboardingGate />}>
