@@ -8,3 +8,13 @@
 .finance-hero .pipeline-metric.alsight-illustrated-kpi .pipeline-metric-caption { color: hsl(var(--muted-foreground)); }
 .pipeline-metric.alsight-illustrated-kpi > .pipeline-metric-chevron { position: absolute; color: hsl(var(--muted-foreground)); }
 @media (max-width: 767px) { .alsight-kpi-art .alsight-kpi-drawing { width: 90%; opacity: .24; } }
+
+/* Feather the diary artwork's inset right and bottom edges into the card. */
+@media (min-width: 768px) {
+  .adaptive-today .at-metric[data-tone="diary"] .alsight-kpi-drawing {
+    -webkit-mask-image: linear-gradient(to right, transparent, rgba(0,0,0,.35) 35%, black 78%, black 87%, transparent 95%), linear-gradient(to bottom, black 65%, transparent 76%);
+    mask-image: linear-gradient(to right, transparent, rgba(0,0,0,.35) 35%, black 78%, black 87%, transparent 95%), linear-gradient(to bottom, black 65%, transparent 76%);
+    -webkit-mask-composite: source-in;
+    mask-composite: intersect;
+  }
+}
