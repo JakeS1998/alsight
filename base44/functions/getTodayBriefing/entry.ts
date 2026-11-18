@@ -8,9 +8,10 @@ export default async function(req) {
   if(!internalRoles.includes(user.role))return Response.json({error:'Forbidden'},{status:403});
   const input=await req.json();
   if(!Array.isArray(input.projectIds) || input.projectIds.length>2000 || input.projectIds.some(id=>typeof id!=='string' || !/^[a-f0-9]{24}$/i.test(id)))return Response.json({error:'Invalid project selection'},{status:400});
-  const {source,cursor}=input;
+  const {source,cursor,deadlineFilter='all'}=input;
+  if(!['all','overdue','soon','later'].includes(deadlineFilter))return Response.json({error:'Invalid deadline filter'},{status:400});
   if(source!==undefined && (typeof source!=='string' || !/^(risks|decisions|proposals|dates|approvals|(drafting|signing)-(LegalDocument|DMA|JCT))$/.test(source)))return Response.json({error:'Invalid attention source'},{status:400});
   if(cursor!=null && (typeof cursor!=='string' || cursor.length>4000))return Response.json({error:'Invalid attention page'},{status:400});
-  return Response.json(await todayBriefing(base44,input.projectIds,user,source ? {source,cursor} : null));
+  return Response.json(await todayBriefing(base44,input.projectIds,user,source ? {source,cursor,deadlineFilter} : null));
  } catch(error) {return Response.json({error:error.message},{status:500});}
 }

@@ -2,6 +2,8 @@ import { approvalList, approvalSummary } from './documentApprovalReads.ts';
 import { todayDocumentBriefing, todayDocumentSources } from './todayDocumentBriefing.ts';
 export async function todayBriefing(base44, projectIds, user, fullPage=null) {
  const db=base44.entities, now=new Date(), day=new Intl.DateTimeFormat('en-CA',{timeZone:'Europe/London',year:'numeric',month:'2-digit',day:'2-digit'}).format(now);
+ const cutoff=new Date(Date.parse(`${day}T00:00:00Z`)+8*86400000).toISOString().slice(0,10), filter=fullPage?.deadlineFilter;
+ if(fullPage)fullPage={...fullPage,cutoff};
  const roles=[...new Set([user.role,...(user.duty_roles || user.data?.duty_roles || [])])],documentFocused=roles.includes('bsm'),includeProjectDates=!documentFocused || roles.includes('bdm');
  const identities=[user.id,user.staff_aad_id,user.data?.staff_aad_id,user.dataverse_systemuser_id,user.data?.dataverse_systemuser_id,user.delegate_of,user.data?.delegate_of].filter(Boolean);
  if(roles.some(role=>['bsm','bdm'].includes(role)) && user.email) {const page=await db.Contact.filter({email:{$regex:`^${user.email.replace(/[.*+?^${}()|[\]\\]/g,'\\$&')}$`,$options:'i'}},{limit:1,fields:['aad_id']});if(page.items[0]?.aad_id)identities.push(page.items[0].aad_id);}
@@ -15,7 +17,8 @@ export async function todayBriefing(base44, projectIds, user, fullPage=null) {
  const proposalQuery={...related,is_current:true,status:{$in:['sent','negotiation']},$or:[{client_approval_date:{$exists:false}},{client_approval_date:null},{client_approval_date:''}]};
  const end=new Date(now.getTime()+14*86400000).toISOString().slice(0,10);
  const dateFields=['riba1_end','riba2_end','riba3_end','riba4_end','practical_completion_date'];
- const datesQuery={...selected,live_project:true,$or:dateFields.map(field=>({[field]:{$gte:day,$lt:`${end}T23:59:59.999Z`}}))};
+ const soonDates=dateFields.map(field=>({[field]:{$gte:day,$lt:cutoff}}));
+ const datesQuery={...selected,live_project:true,$or:filter==='soon'?soonDates:dateFields.map(field=>({[field]:{$gte:filter==='later'?cutoff:day,$lt:`${end}T23:59:59.999Z`}})),...(filter==='later'?{$nor:soonDates}:{})};
  const documents=!fullPage && documentFocused ? await todayDocumentBriefing(base44,[...new Set(identities)],day,end) : {items:[],totals:{drafting:0,signing:0}};
  const options={limit:fullPage ? 20 : 3,...(fullPage?.cursor ? {cursor:fullPage.cursor} : {})};
  const empty={total:0,page:{items:[]}};
@@ -34,10 +37,10 @@ export async function todayBriefing(base44, projectIds, user, fullPage=null) {
  const items=[
   ...documents.items,
   ...riskRows.map(r=>({key:`risk-${r.id || r.project_id}`,severity:'urgent',project:project(r.project_id),title:project(r.project_id)?.name || 'Project',detail:fullPage ? (r.title || 'High-risk register item') : `${r.count} high-risk ${r.count===1?'item':'items'}`,to:link(r.project_id,8),label:'Review risks',task:'action'})),
-  ...decisions.page.items.map(r=>({key:`decision-${r.id}`,severity:'attention',project:project(r.project_id),title:project(r.project_id)?.name || 'Project',detail:`Overdue decision: ${r.decision_title} (required ${r.required_by})`,to:link(r.project_id,7),label:'Record decision'})),
+  ...decisions.page.items.map(r=>({key:`decision-${r.id}`,severity:'attention',project:project(r.project_id),title:project(r.project_id)?.name || 'Project',detail:`Overdue decision: ${r.decision_title} (required ${r.required_by})`,attentionDue:r.required_by,to:link(r.project_id,7),label:'Record decision'})),
   ...approvals.page.items.map(r=>({key:`approval-${r.id}`,severity:'attention',title:r.project_name || r.document_title,detail:`Approval required: ${r.document_title}`,to:'/approvals',label:'Review approval'})),
   ...proposals.page.items.map(r=>({key:`proposal-${r.id}`,severity:'attention',project:project(r.project_id),title:project(r.project_id)?.name || 'Project',detail:`Commercial proposal awaiting response${r.date_issued ? ` (issued ${r.date_issued})` : ''}`,to:link(r.project_id,2),label:'Review proposal'})),
-  ...dates.page.items.map(r=>({key:`date-${r.id}`,severity:'upcoming',title:r.name,detail:dateFields.filter(f=>r[f] && r[f]>=day && r[f]<=`${end}T23:59:59.999Z`).map(f=>`${f==='practical_completion_date'?'Practical completion':f.slice(0,5).toUpperCase()} ${r[f].slice(0,10)}`).join(' · '),to:`/projects/${r.id}?tab=timeline`,label:'Review key dates'}))
+  ...dates.page.items.map(r=>({key:`date-${r.id}`,severity:'upcoming',title:r.name,attentionDue:dateFields.map(field=>r[field]).filter(value=>value && value>=day && value<=`${end}T23:59:59.999Z`).sort()[0],detail:dateFields.filter(f=>r[f] && r[f]>=day && r[f]<=`${end}T23:59:59.999Z`).map(f=>`${f==='practical_completion_date'?'Practical completion':f.slice(0,5).toUpperCase()} ${r[f].slice(0,10)}`).join(' · '),to:`/projects/${r.id}?tab=timeline`,label:'Review key dates'}))
  ];
  if(fullPage){const page={risks,decisions,proposals,dates,approvals}[fullPage.source]?.page;return {items,nextCursor:page?.has_more ? page.next_cursor : null};}
  return {items,documentFocused,includeProjectDates,totals:{risks:risks.total,decisions:decisions.total,approvals:approvals.total,proposals:proposals.total,dates:dates.total,...documents.totals},refreshedAt:now.toISOString()};

@@ -25,6 +25,7 @@ export default function AdaptiveWorkspace({user}) {
  const [commandFeedback,setCommandFeedback]=useState(''),[metricView,setMetricView]=useState(null);
  const {settings}=useWellbeing(),now=useAdaptiveClock(),prefs=useAdaptivePreferences(user.id),query=useAdaptiveToday(user,prefs,now),context=roleContext(user),focus=focuses.includes(prefs.config.focus)?prefs.config.focus:focuses[0],time=timeState(now,query.calendar,settings.hours);
  useWellbeingAnchor(!!query.data);
+ const [deadlineFilter,setDeadlineFilter]=React.useState('all');
  const data=query.data,ranked=timeRank(rankActions(data?.actions||[],context,focus,time.day),time),actions=ranked.filter(a=>!prefs.config.dismissed.includes(a.key)),records=homepageEvidence(actions,data,query.calendar),intelligence=useAdaptiveIntelligence(records,time);
  return <div className="adaptive-today"><div className="at-container">
   <AdaptiveTodayHero title={`${time.greeting}, ${user.full_name?.trim().split(' ')[0]||'there'}.`}>
@@ -36,8 +37,8 @@ export default function AdaptiveWorkspace({user}) {
   {focus==='My Notes'?<AdaptiveFocusContent focus={focus} user={user}/>:<>
   {query.isPending&&<AdaptiveWorkspaceSkeleton contentOnly/>}
   {query.error&&<div role="alert" className="at-empty"><h2>Your workspace could not be loaded.</h2><p>{query.error.message}</p><button className="at-btn" onClick={()=>query.refetch()}>Try again</button></div>}
-  {data&&<><AdaptiveMetrics data={data} calendar={query.calendar} onSelect={setMetricView} actions={ranked}/>
-   <AdaptiveMetricDialog view={metricView} onClose={()=>setMetricView(null)} data={data} calendar={query.calendar} user={user} onComplete={query.complete}/>
+  {data&&<><AdaptiveMetrics data={data} calendar={query.calendar} onSelect={setMetricView} actions={ranked} deadlineFilter={deadlineFilter} onDeadlineFilter={setDeadlineFilter} now={time.now}/>
+   <AdaptiveMetricDialog view={metricView} onClose={()=>setMetricView(null)} data={data} calendar={query.calendar} user={user} onComplete={query.complete} deadlineFilter={deadlineFilter} onDeadlineFilter={setDeadlineFilter} now={time.now}/>
    <HomeContextNote data={data} time={time} calendar={query.calendar}/>
    {data.warnings.length>0&&<details className="at-source-warning"><summary>Some sources are unavailable ({data.warnings.length}). This briefing is partial.</summary>{data.warnings.map(w=><p key={w}>{w}</p>)}</details>}
    <AdaptiveFocusContent user={user} time={time} query={query} data={data} actions={actions} ranked={ranked} prefs={prefs} context={context} focus={focus} intelligence={intelligence} hasRecords={!!records.length}/>

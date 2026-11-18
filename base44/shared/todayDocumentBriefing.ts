@@ -9,6 +9,9 @@ export async function todayDocumentBriefing(base44,identities,day,end,fullPage=n
  for(let start=0;start<sources.length;start+=3){
   pages.push(...await Promise.all(sources.slice(start,start+3).map(async source=>{
    const query={...documentScope,status:{$ne:'inactive'},bsm_aad_id:{$in:identities},is_bsm_document_owner:{$ne:false},[source.field]:{$regex:'\\S',$lt:source.category==='signing' ? day : `${end}T23:59:59.999Z`},$and:[blank('date_of_execution'),...(source.category==='drafting' ? [blank('drafted_date')] : [])]};
+   if(fullPage?.deadlineFilter==='overdue')query[source.field].$lt=day;
+   if(fullPage?.deadlineFilter==='soon')Object.assign(query[source.field],{$gte:day,$lt:fullPage.cutoff});
+   if(fullPage?.deadlineFilter==='later')query[source.field].$gte=fullPage.cutoff;
    const [total,page]=await Promise.all([fullPage ? 0 : db[source.entity].count(query),db[source.entity].filter(query,{sort:source.field,limit:fullPage ? 20 : 3,fields:['document_id','document_type','project_id',source.field],...(fullPage?.cursor ? {cursor:fullPage.cursor} : {})})]);
    return {source,total,rows:page.items,nextCursor:page.has_more ? page.next_cursor : null};
   })));
@@ -22,7 +25,7 @@ export async function todayDocumentBriefing(base44,identities,day,end,fullPage=n
  const items=entries.map(({record,source})=>{
   const project=names.get(record.project_id),due=record[source.field],overdue=due.slice(0,10)<day;
   const type=source.entity==='DMA' ? 'Development agreement' : source.entity==='JCT' ? 'JCT contract' : String(record.document_type || 'Legal document').replaceAll('_',' ');
-  return {key:`document-${source.category}-${source.entity}-${record.id}`,priority:true,severity:overdue ? 'urgent' : due.slice(0,10)===day ? 'attention' : 'upcoming',title:`${type}${project ? ` · ${project.name}` : record.document_id ? ` · ${record.document_id}` : ''}`,detail:`${source.category==='signing' ? 'Signing overdue' : overdue ? 'Drafting overdue' : 'Drafting due'}: ${dateLabel(due)}${record.document_id ? ` · ${record.document_id}` : ''}`,to:project ? `/projects/${project.id}?tab=drafting` : '/documents',label:source.category==='signing' ? 'Review signing' : 'Review drafting'};
+  return {key:`document-${source.category}-${source.entity}-${record.id}`,attentionDue:due,priority:true,severity:overdue ? 'urgent' : due.slice(0,10)===day ? 'attention' : 'upcoming',title:`${type}${project ? ` · ${project.name}` : record.document_id ? ` · ${record.document_id}` : ''}`,detail:`${source.category==='signing' ? 'Signing overdue' : overdue ? 'Drafting overdue' : 'Drafting due'}: ${dateLabel(due)}${record.document_id ? ` · ${record.document_id}` : ''}`,to:project ? `/projects/${project.id}?tab=drafting` : '/documents',label:source.category==='signing' ? 'Review signing' : 'Review drafting'};
  });
  return fullPage ? {items,nextCursor:pages[0]?.nextCursor || null} : {items,totals};
 }

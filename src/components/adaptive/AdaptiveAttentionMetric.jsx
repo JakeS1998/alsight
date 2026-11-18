@@ -1,30 +1,35 @@
 import React from 'react';
 import KpiIllustration from '@/components/metrics/KpiIllustration';
 import { Link } from 'react-router-dom';
-import { AlertTriangle, ArrowUpRight } from 'lucide-react';
+import { ArrowUpRight } from 'lucide-react';
+import AttentionDeadlineFilter from '@/components/adaptive/AttentionDeadlineFilter';
+import {attentionRows,attentionWindow,deadlineFilters,deadlineStyles,attentionDeadline} from '@/components/adaptive/attentionDeadlines';
 
-export default function AdaptiveAttentionMetric({ data, actions, onSelect }) {
+export default function AdaptiveAttentionMetric({ data, actions, onSelect, deadlineFilter, onDeadlineFilter, now }) {
+  const rows=attentionRows(actions,deadlineFilter,attentionWindow(now));
   return <section className="at-metric" data-tone="attention" aria-label="Requiring attention">
     <button type="button" className="at-attention-summary alsight-illustrated-kpi" aria-haspopup="dialog" onClick={() => onSelect('attention')}>
       <span><strong>{data.priorityTotal ?? '—'}</strong><span className="at-metric-label">Requiring attention</span><small>Actions, awareness and waiting items</small></span>
       <KpiIllustration label="Requiring attention"/>
     </button>
-    <ul className="at-attention-items" aria-label="Recorded items needing attention">
-      {actions.map(item => {
+    <AttentionDeadlineFilter value={deadlineFilter} onChange={onDeadlineFilter}/>
+    {rows.length>0&&<ul className="at-attention-items" aria-label="Recorded items needing attention">
+      {rows.map(item => {
         const projectName = item.project?.name || (item.project_id && data.projects?.find(project => project.id === item.project_id || project.dataverse_id === item.project_id)?.name);
         const to = item.taskEntity === 'ProjectAction' ? `${item.to}&stage=6&phase=works` : item.to;
         return <li key={item.key}>
-          <Link to={to} className="at-attention-item">
+          <Link to={to} className={`at-attention-item ${deadlineStyles[item.deadlineStatus]}`} style={{paddingInline:'0.75rem'}}>
             <span className="min-w-0">
               {projectName && projectName !== item.title && <span className="at-attention-project">{projectName}</span>}
               <span className="at-attention-title">{item.title}</span>
+              {item.deadlineStatus!=='undated'&&<span className="at-attention-source">{deadlineFilters.find(([key])=>key===item.deadlineStatus)?.[1]} · <time dateTime={attentionDeadline(item)}>{attentionDeadline(item)}</time></span>}
               {item.detail && <span className="at-attention-detail">{item.detail}</span>}
               <span className="at-attention-source">{item.attentionKind ? `${item.attentionKind} · ` : ''}{item.label || 'Review source'}</span>
             </span><ArrowUpRight size={16} aria-hidden="true" className="mt-1 shrink-0"/>
           </Link>
         </li>;
       })}
-    </ul>
-    <p className="at-attention-footnote">{actions.length ? 'Select the total to open the full attention list.' : 'No items in this preview. Select the total to open the full attention list.'}</p>
+    </ul>}
+    <p className="at-attention-footnote">{rows.length ? 'Select the total to open the full attention list.' : 'No matching items in this preview. Select the total to check the full attention list.'}</p>
   </section>;
 }
