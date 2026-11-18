@@ -148,7 +148,8 @@ export function FeeProposalSection({ projectId, project, onChanged, deliveryTeam
   const items = useMemo(() => automaticFrameworkFeeLines(requiredClientContingency(storedItems, singleTask), feeProposalTotals(supplierLines, [], contractorBuild).supplierFees, automaticSettings, singleTask), [storedItems, supplierLines, contractorBuild, automaticSettings, singleTask]);
   const totals = useMemo(() => feeProposalTotals(supplierLines, items, contractorBuild), [supplierLines, items, contractorBuild]);
   const fsfContractors = useMemo(() => singleTask ? taskFees.contractors : contractorFsfRows(deliveryTeam, contractorBuild), [singleTask, taskFees, deliveryTeam, contractorBuild]);
-  const fsfTotals = fsf.allowed ? supplierFsfTotals(supplierLines, fsf.rates, fsfContractors) : null;
+  const fsfTotals = fsf.allowed ? supplierFsfTotals(fsf.rates, fsfContractors) : null;
+  const saveFsf = () => fsf.save(fsfTotals.rows);
 
   const supplierComparison = useMemo(() => {
     const bySup = {};
@@ -172,7 +173,7 @@ export function FeeProposalSection({ projectId, project, onChanged, deliveryTeam
     if (!selectedId) return;
     setSavingBuilder(true); setSaveError('');
     try {
-      if (fsf.allowed) await fsf.save();
+      if (fsf.allowed) await saveFsf();
       await base44.entities.FeeProposal.update(selectedId, {
         line_items: JSON.stringify(requiredClientContingency(normalizeFeeItems(items), singleTask)),
         fee_value: totals.alsFee,
@@ -329,7 +330,7 @@ export function FeeProposalSection({ projectId, project, onChanged, deliveryTeam
 
             {/* Supplier fees (from delivery team) */}
             <SupplierFeeTable singleTask={singleTask} lines={supplierLines} getSupplierName={supplierName} fsf={fsf.allowed ? fsf : undefined} contractors={fsf.allowed ? fsfContractors : undefined} />
-            {fsf.allowed && <SupplierFsfSummary alsFee={totals.alsFee} fsfTotal={fsfTotals.total} loading={fsf.loading} error={fsf.error} onSave={fsf.save} />}
+            {fsf.allowed && <SupplierFsfSummary alsFee={totals.alsFee} fsfTotal={fsfTotals.total} loading={fsf.loading} error={fsf.error} onSave={saveFsf} />}
 
             {!singleTask && <ContractorBuildUp deliveryTeam={deliveryTeam} ohpSurveysPct={ohpSurveysPct} ohpRiba57Pct={ohpRiba57Pct} ohpSurveysType={ohpSurveysType} ohpSurveysFixed={ohpSurveysFixed}  />}
 

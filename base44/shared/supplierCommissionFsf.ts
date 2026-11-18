@@ -19,7 +19,14 @@ export async function supplierCommissionFsf(base44, account) {
     if (!project?.project_number || ![project.id, project.dataverse_id].includes(fsf.project_id)) continue;
     const rate = fsf.supplier_rates.find(row => keys.includes(row.supplier_key) && Number.isFinite(row.fsf_pct) && row.fsf_pct >= 0 && row.fsf_pct <= 100);
     // A recorded zero is valid. One current proposal per project takes precedence over COMS.
-    if (rate && !rates.has(project.project_number)) rates.set(project.project_number, { project_ref: project.project_number, avg_commission_rate: rate.fsf_pct, source: 'fee_proposal_fsf' });
+    if (!rate || rates.has(project.project_number)) continue;
+    let effective = rate.fsf_pct;
+    if (rate.fsf_riba_5_7_pct != null && rate.fsf_riba_5_7_pct !== effective) {
+      const late = rate.fsf_riba_5_7_pct, earlyBase = rate.riba_0_4_base, lateBase = rate.riba_5_7_base;
+      if (![late, earlyBase, lateBase].every(Number.isFinite) || late < 0 || late > 100 || earlyBase < 0 || lateBase < 0 || earlyBase + lateBase <= 0) continue;
+      effective = (earlyBase * effective + lateBase * late) / (earlyBase + lateBase);
+    }
+    rates.set(project.project_number, { project_ref: project.project_number, avg_commission_rate: effective, source: 'fee_proposal_fsf' });
   }
   return [...rates.values()];
 }

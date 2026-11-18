@@ -22,6 +22,17 @@
             "type": "number",
             "minimum": 0,
             "maximum": 100
+          },
+          "fsf_riba_5_7_pct": {
+            "type": "number",
+            "minimum": 0,
+            "maximum": 100
+          },
+          "riba_0_4_base": {
+            "type": "number"
+          },
+          "riba_5_7_base": {
+            "type": "number"
           }
         },
         "required": [

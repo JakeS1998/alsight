@@ -35,5 +35,5 @@ export function contractorFsfRows(team, build) {
 }
 export function scopeContractorFsf(rows = [], includeRiba57 = true) {
   const total = amounts => round(Object.entries(amounts || {}).reduce((sum, [stage, amount]) => sum + (includeRiba57 || stage !== 'riba_5_7' ? amount : 0), 0));
-  return rows.map(row => ({ ...row, base: total(row.stageAmounts), rawBase: total(row.rawStageAmounts) }));
+  return rows.map(row => ({ ...row, base: total(row.stageAmounts), rawBase: total(row.rawStageAmounts), stageAmounts: includeRiba57 ? row.stageAmounts : Object.fromEntries(Object.entries(row.stageAmounts || {}).filter(([stage]) => stage !== 'riba_5_7')) }));
 }

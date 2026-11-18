@@ -86,7 +86,7 @@ export async function exportFeeProposalPdf({ project, proposal, suppliers, poByS
     doc.text(`Supplier fees: ${money(totals.supplierFees)}     Client proposal total: ${money(totals.proposedFees)}`, x0, y); y += 16;
     doc.text(`ALS fee as % of proposed fees: ${totals.alsFeePct == null ? '—' : `${totals.alsFeePct}%`}`, x0, y); y += 24;
 
-  if (fsfRates) y = drawSupplierFsf(doc, { lines: supplierLines, rates: fsfRates, contractors: scopeContractorFsf(fsfContractors, includeRiba57), alsFee: totals.alsFee, supplierName, money, x: x0, startY: y, height: H });
+  if (fsfRates) y = drawSupplierFsf(doc, { rates: fsfRates, contractors: scopeContractorFsf(fsfContractors, includeRiba57), alsFee: totals.alsFee, supplierName, money, x: x0, startY: y, height: H });
 
   // Supplier vs PO comparison
   if (y + 35 > H - 55) { doc.addPage(); y = 84; }
