@@ -156,7 +156,7 @@ export function RegisterList({ title, description, entityName, projectId, projec
     if (col.key === 'status' && col.type === 'select' && canUpdateStatus) return <RegisterStatusDropdown entityName={entityName} row={row} options={col.options} onSaved={async () => { await load(); onChanged?.(); }} />;
     if (col.type === "select") return col.options.find((o) => String(o.value) === String(v))?.label || "—";
     if (col.type === "boolean") return v ? "Yes" : "No";
-    return v === '' || v == null ? '—' : v;
+    return v === '' || v == null ? '—' : col.format ? col.format(v) : v;
   };
 
   const shown = tableColumns ? columns.filter((c) => tableColumns.includes(c.key)) : columns;

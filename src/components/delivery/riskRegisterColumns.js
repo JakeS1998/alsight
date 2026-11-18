@@ -14,11 +14,14 @@ export const RISK_COLUMNS = [
   { key: 'mitigation', label: 'Control strategy', type: 'textarea', fullWidth: true },
   { key: 'owner', label: 'Owner', type: 'select', options: [{ value: 'Client', label: 'Client' }, { value: 'Contractor', label: 'Contractor' }], required: true },
   { key: 'comments', label: 'Comments', type: 'textarea', fullWidth: true },
+  { key: 'anticipated_cost', label: 'Estimated cost (£)', type: 'number', min: 0, step: 0.01, format: new Intl.NumberFormat('en-GB', { style: 'currency', currency: 'GBP' }).format, help: 'Cost excluding VAT if the risk occurs. Leave blank if unknown; enter zero if there is no cost.' },
 ];
 export function prepareRisk(payload) {
   if (!['Client', 'Contractor'].includes(payload.owner)) throw new Error('Assign each risk to Client or Contractor.');
   const ratings = [Number(payload.probability_rating), Number(payload.impact_rating)];
   if (ratings.some(n => !Number.isInteger(n) || n < 1 || n > 5)) throw new Error('Ratings must be between 1 and 5.');
   const { anticipated_cost, weighted_cost, ...risk } = payload;
-  return { ...risk, probability_rating: ratings[0], impact_rating: ratings[1], risk_index: riskIndex(payload) };
+  const cost = anticipated_cost == null || anticipated_cost === '' ? null : Number(anticipated_cost);
+  if (cost !== null && (!Number.isFinite(cost) || cost < 0)) throw new Error('Estimated cost must be a non-negative amount in pounds.');
+  return { ...risk, anticipated_cost: cost === null ? null : Number(cost.toFixed(2)), probability_rating: ratings[0], impact_rating: ratings[1], risk_index: riskIndex(payload) };
 }

@@ -93,8 +93,12 @@
       "maximum": 25
     },
     "anticipated_cost": {
-      "type": "number",
-      "minimum": 0
+      "type": [
+        "number",
+        "null"
+      ],
+      "minimum": 0,
+      "description": "Estimated cost in GBP excluding VAT if the risk occurs; null means no estimate recorded"
     },
     "weighted_cost": {
       "type": "number",

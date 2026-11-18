@@ -4,7 +4,7 @@ import { appendRiskPdfApprovals } from './riskPdfApprovals.ts';
 export function createRiskPdf(context, rows, approvals = null) {
   const doc = new jsPDF({ orientation: 'landscape', unit: 'pt', format: 'a3' });
   const width = doc.internal.pageSize.getWidth(), height = doc.internal.pageSize.getHeight(), margin = 28;
-  const ratios = [0.035,0.15,0.13,0.065,0.115,0.045,0.045,0.04,0.145,0.065,0.165];
+  const ratios = [0.035,0.15,0.13,0.065,0.115,0.045,0.045,0.04,0.145,0.065,0.165,0.075];
   const ratioTotal = ratios.reduce((sum, ratio) => sum + ratio, 0);
   const widths = ratios.map(n => n / ratioTotal * (width - margin * 2)); let y;
   const heading = () => {

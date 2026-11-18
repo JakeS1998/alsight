@@ -16,13 +16,14 @@ export async function readRiskWorkbook(bytes) {
   }
   return text;
 }
-export const riskHeaders = ['Ref', 'Description', 'Cause', 'Status', 'Impact', 'Probability rating', 'Impact rating', 'Risk index', 'Control strategy', 'Owner', 'Comments'];
-export const riskValues = row => [row.reference || '', row.title || '', row.cause || '', row.status === 'closed' ? 'Closed / eliminated' : 'Active', row.impact_description || '', row.probability_rating ?? '', row.impact_rating ?? '', row.risk_index ?? '', row.mitigation || '', row.owner || '', row.comments || ''];
+export const riskHeaders = ['Ref', 'Description', 'Cause', 'Status', 'Impact', 'Probability rating', 'Impact rating', 'Risk index', 'Control strategy', 'Owner', 'Comments', 'Estimated cost (£ excl. VAT)'];
+export const riskValues = row => [row.reference || '', row.title || '', row.cause || '', row.status === 'closed' ? 'Closed / eliminated' : 'Active', row.impact_description || '', row.probability_rating ?? '', row.impact_rating ?? '', row.risk_index ?? '', row.mitigation || '', row.owner || '', row.comments || '', row.anticipated_cost ?? ''];
 export async function createRiskWorkbook(context, rows) {
   const workbook = new ExcelJS.Workbook(); workbook.creator = 'ALS Hub'; workbook.created = new Date();
   const sheet = workbook.addWorksheet('Risk register', { views: [{ state: 'frozen', ySplit: 6 }], pageSetup: { paperSize: 8, orientation: 'landscape', fitToPage: true, fitToWidth: 1, fitToHeight: 0, printTitlesRow: '1:6' } });
-  sheet.columns = [10,48,40,20,40,15,15,14,48,20,48].map(width => ({ width }));
-  [context.projectName, 'Project risk register', `Client: ${context.clientName}`, `Contractor: ${context.contractor}`, `Exported: ${context.date}`].forEach((value, i) => { sheet.mergeCells(i + 1, 1, i + 1, 11); sheet.getCell(i + 1, 1).value = value; });
+  sheet.columns = [10,48,40,20,40,15,15,14,48,20,48,23].map(width => ({ width }));
+  sheet.getColumn(12).numFmt = '#,##0.00';
+  [context.projectName, 'Project risk register', `Client: ${context.clientName}`, `Contractor: ${context.contractor}`, `Exported: ${context.date}`].forEach((value, i) => { sheet.mergeCells(i + 1, 1, i + 1, riskHeaders.length); sheet.getCell(i + 1, 1).value = value; });
   sheet.getRow(1).font = { size: 16, bold: true, color: { argb: 'FF151442' } }; sheet.getRow(1).height = 30;
   sheet.addRow(riskHeaders); sheet.getRow(6).height = 32;
   rows.forEach(risk => {
@@ -30,7 +31,7 @@ export async function createRiskWorkbook(context, rows) {
     row.alignment = { wrapText: true, vertical: 'top' }; row.height = Math.min(300, Math.max(45, ...row.values.slice(1).map(v => Math.ceil(String(v).length / 40) * 13)));
     row.getCell(8).value = risk.probability_rating && risk.impact_rating ? { formula: `F${row.number}*G${row.number}`, result: risk.risk_index } : '';
   });
-  sheet.autoFilter = { from: 'A6', to: `K${Math.max(6, sheet.rowCount)}` };
+  sheet.autoFilter = { from: 'A6', to: `L${Math.max(6, sheet.rowCount)}` };
   sheet.eachRow((row, index) => { if (index >= 6) row.eachCell({ includeEmpty: true }, cell => { cell.border = { bottom: { style: 'thin', color: { argb: 'FFE2E2EA' } } }; if (index === 6) { cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF151442' } }; cell.font = { bold: true, color: { argb: 'FFFFFFFF' } }; cell.alignment = { wrapText: true }; } }); });
   const matrix = workbook.addWorksheet('Risk matrix'); matrix.addRow(['Probability / Impact',1,2,3,4,5]); [1,2,3,4,5].forEach(p => matrix.addRow([p,...[1,2,3,4,5].map(i => p*i)])); matrix.getColumn(1).width = 25;
   const guide = workbook.addWorksheet('Guidance'); guide.getColumn(1).width = 110;
