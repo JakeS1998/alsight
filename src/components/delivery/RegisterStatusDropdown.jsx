@@ -9,7 +9,7 @@ export default function RegisterStatusDropdown({ entityName, row, options, onSav
     if (status === row.status || saving) return;
     setSaving(true); setError('');
     try {
-      await base44.entities[entityName].update(row.id, { status });
+      await base44.entities[entityName].update(row.id, { status, ...(entityName === 'ProjectAction' ? { completed_at: status === 'done' ? new Date().toISOString() : null } : {}) });
       if (entityName === 'ProjectAction') window.dispatchEvent(new Event('alsight-tasks-changed'));
       await onSaved();
     } catch (e) { setError(e.message || 'Unable to update status.'); }

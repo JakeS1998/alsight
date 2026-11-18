@@ -84,6 +84,14 @@
     "next_action": {
       "type": "string"
     },
+    "meeting_series_id": {
+      "type": "string",
+      "description": "Reusable meeting linked to its session and activity records"
+    },
+    "meeting_previous_at": {
+      "type": "string",
+      "description": "Previous session start, for the carry-over completion window"
+    },
     "meeting_hosts": {
       "type": "array",
       "maxItems": 10,

@@ -21,7 +21,7 @@ export default async function(req) {
     if (!assigned) return Response.json({ error: 'You can only complete tasks assigned to you.' }, { status: 403 });
     if (task.status === 'cancelled') return Response.json({ error: 'This task has been cancelled.' }, { status: 409 });
     // Elevation is limited to completing this verified, personally assigned task.
-    if (task.status !== statuses[entity]) await base44.asServiceRole.entities[entity].update(id, { status: statuses[entity], ...(entity === 'CRMTask' ? { completed_at: new Date().toISOString() } : {}) });
+    if (task.status !== statuses[entity]) await base44.asServiceRole.entities[entity].update(id, { status: statuses[entity], ...(['ProjectAction', 'CRMTask'].includes(entity) ? { completed_at: new Date().toISOString() } : {}) });
     if (entity === 'CRMContactTask') {
       const page = await base44.entities.CRMReminder.filter({ activity_id: id, user_id: user.id, dismissed_at: { $exists: false } }, { limit: 1 });
       if (page.items[0]) await base44.entities.CRMReminder.update(page.items[0].id, { dismissed_at: new Date().toISOString() });

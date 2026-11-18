@@ -9,12 +9,28 @@ export default function useReviewSession(user,projectIds=[]) {
  useEffect(()=>{localStorage.setItem(`${storageKey}:pending`,JSON.stringify(pendingRecords));},[storageKey,pendingRecords]);
  const operationContext={begin:()=>setOperations(n=>n+1),finish:()=>setOperations(n=>Math.max(0,n-1))};
  const current=useQuery({queryKey:['meeting-session',user.id,id],enabled:!!id,queryFn:()=>base44.entities.CRMActivity.get(id)});
- useEffect(()=>base44.entities.CRMActivity.subscribe(event=>{if(event.id===id)cache.invalidateQueries({queryKey:['meeting-session',user.id,id]});if(event.data?.next_action==='meeting_start')cache.invalidateQueries({queryKey:['meeting-history']});if(event.data?.key_points && event.data.key_points===current.data?.key_points){cache.invalidateQueries({queryKey:['meeting-session-data']});cache.invalidateQueries({queryKey:['meeting-session-marks']});cache.invalidateQueries({queryKey:['meeting-session-events']});}}),[cache,id,user.id,current.data?.key_points]);
+ useEffect(()=>base44.entities.CRMActivity.subscribe(event=>{if(event.id===id)cache.invalidateQueries({queryKey:['meeting-session',user.id,id]});if(event.data?.next_action==='meeting_start')cache.invalidateQueries({queryKey:['meeting-history']});if(event.data?.next_action==='meeting_series')cache.invalidateQueries({queryKey:['meeting-series']});if(event.data?.key_points && event.data.key_points===current.data?.key_points){cache.invalidateQueries({queryKey:['meeting-session-data']});cache.invalidateQueries({queryKey:['meeting-session-marks']});cache.invalidateQueries({queryKey:['meeting-session-events']});}}),[cache,id,user.id,current.data?.key_points]);
  const session=current.data?.next_action==='meeting_start' ? current.data : null,data=useMeetingSessionData(session,user,projectIds);
  const setSession=s=>{setId(s?.id || null);if(s)localStorage.setItem(storageKey,s.id);else localStorage.removeItem(storageKey);};
- const refresh=()=>{cache.invalidateQueries({queryKey:['meeting-session-data']});cache.invalidateQueries({queryKey:['meeting-session-marks']});cache.invalidateQueries({queryKey:['meeting-history']});cache.invalidateQueries({queryKey:['meeting-session-events']});cache.invalidateQueries({queryKey:['project-meeting-history']});};
+ const refresh=()=>{cache.invalidateQueries({queryKey:['meeting-session-data']});cache.invalidateQueries({queryKey:['meeting-session-marks']});cache.invalidateQueries({queryKey:['meeting-history']});cache.invalidateQueries({queryKey:['meeting-session-events']});cache.invalidateQueries({queryKey:['meeting-carry-actions']});cache.invalidateQueries({queryKey:['project-meeting-history']});};
  const run=async task=>{setBusy(true);setError('');try{return await task();}catch(e){setError(e.message || 'Unable to save the meeting.');return null;}finally{setBusy(false);}};
- const start=name=>run(async()=>{if(!meetingWriter(user))throw new Error('Your role cannot start a meeting.');const row=await appendMeetingActivity(user,{subject:name.trim().slice(0,120),key_points:meetingKey(crypto.randomUUID())},'meeting_start',{text:'Named project review meeting started.'});cache.setQueryData(['meeting-session',user.id,row.id],row);setSession(row);refresh();return row;});
+ const createMeeting=name=>run(async()=>{
+  if(!meetingWriter(user) || !name.trim())throw new Error('Enter a meeting name and confirm you can host meetings.');
+  const meeting=await appendMeetingActivity(user,{subject:name.trim().slice(0,120),key_points:meetingKey(crypto.randomUUID())},'meeting_series');
+  cache.invalidateQueries({queryKey:['meeting-series']});return meeting;
+ });
+ const start=meeting=>run(async()=>{
+  if(session && meetingHost(session,user) && !data.ended)throw new Error('End or leave your current session first.');
+  const saved=await base44.entities.CRMActivity.get(meeting.id);
+  if(saved.next_action!=='meeting_series' || !meetingHost(saved,user))throw new Error('Only this meeting’s hosts can start a session.');
+  const latest=(await base44.entities.CRMActivity.filter({meeting_series_id:saved.id,next_action:'meeting_start'},{sort:'-occurred_at',limit:1})).items[0];
+  if(latest){
+   const state=(await base44.entities.CRMActivity.filter({key_points:latest.key_points,next_action:{$in:['meeting_end','meeting_resume']}},{sort:'-occurred_at',limit:1})).items[0];
+   if(state?.next_action!=='meeting_end')throw new Error('This meeting already has an open session. Open it from Sessions and end it before starting another.');
+  }
+  const row=await appendMeetingActivity(user,{...saved,key_points:meetingKey(crypto.randomUUID()),meeting_series_id:saved.id,meeting_previous_at:latest?.occurred_at},'meeting_start',{text:'Project review session started.'});
+  resume(row);refresh();return row;
+ });
  const resume=s=>{cache.setQueryData(['meeting-session',user.id,s.id],s);setSession(s);setError('');};
  const continueMeeting=s=>run(async()=>{
   if(session && session.id!==s.id && meetingHost(session,user) && !data.ended)throw new Error('Leave your current meeting before opening another.');
@@ -22,11 +38,11 @@ export default function useReviewSession(user,projectIds=[]) {
   if(saved.next_action!=='meeting_start' || !meetingMember(saved,user))throw new Error('Only this meeting’s hosts and attendees can open it.');
    if(!meetingHost(saved,user)){resume(saved);refresh();return saved;}
   const lifecycle=await base44.entities.CRMActivity.filter({key_points:saved.key_points,next_action:{$in:['meeting_end','meeting_resume']}},{sort:'-occurred_at',limit:1});
-  if(lifecycle.items[0]?.next_action==='meeting_end')await appendMeetingActivity(user,saved,'meeting_resume',{text:'Meeting resumed. Previous reviews, actions and notes retained.'});
+  if(!saved.meeting_series_id && lifecycle.items[0]?.next_action==='meeting_end')await appendMeetingActivity(user,saved,'meeting_resume',{text:'Meeting resumed. Previous reviews, actions and notes retained.'});
   resume(saved);refresh();return saved;
  });
  const record=async(kind,project,action)=>{const result=await run(async()=>{if(kind==='notes'){refresh();return true;}if(!meetingHost(session,user) || data.ended)return;const events={reviewed:'meeting_review',actions:'meeting_action',completed:'meeting_completed'};if(!events[kind])return;const text=kind==='reviewed' ? `${project.name} marked reviewed.` : `${project.name}: ${action?.action || 'Project action'}${kind==='actions' ? ` · Owner: ${action?.owner || 'Unassigned'} · Due: ${action?.due_date || 'Not set'}` : ' completed.'}`;if(action){const previous=await base44.entities.CRMActivity.filter({key_points:session.key_points,next_action:events[kind],commitments:action.id},{limit:1});if(previous.items[0]){refresh();return previous.items[0];}}const row=await appendMeetingActivity(user,session,events[kind],{project,action,text});refresh();return row;});if(action)setPendingRecords(items=>result ? items.filter(item=>item.kind!==kind || item.action.id!==action.id) : [...items.filter(item=>item.kind!==kind || item.action.id!==action.id),{kind,project,action}]);return result;};
  const reviewed=project=>record('reviewed',project);
  const end=()=>run(async()=>{if(!meetingHost(session,user))throw new Error('Only this meeting’s hosts can end it.');const result=await data.query.refetch();if(result.error)throw result.error;if(result.data.end){refresh();return result.data.end;}const row=await appendMeetingActivity(user,session,'meeting_end',{text:meetingSummaryText(session,result.data.counts,{occurred_at:new Date().toISOString()})});refresh();return row;});
- return {session,current,...data,busy,error,operations,operationContext,pendingRecords,retryRecords:async()=>{for(const item of pendingRecords)await record(item.kind,item.project,item.action);},start,resume,continueMeeting,record,reviewedProject:reviewed,end,clear:()=>setSession(null),refresh,opened:!!session && meetingMember(session,user) && !current.error && !data.query.isPending && !data.query.error,active:!!session && !current.error && !data.ended && !data.query.isPending && !data.query.error && meetingHost(session,user)};
+ return {session,current,...data,busy,error,operations,operationContext,pendingRecords,retryRecords:async()=>{for(const item of pendingRecords)await record(item.kind,item.project,item.action);},createMeeting,start,resume,continueMeeting,record,reviewedProject:reviewed,end,clear:()=>setSession(null),refresh,opened:!!session && meetingMember(session,user) && !current.error && !data.query.isPending && !data.query.error,active:!!session && !current.error && !data.ended && !data.query.isPending && !data.query.error && meetingHost(session,user)};
 }

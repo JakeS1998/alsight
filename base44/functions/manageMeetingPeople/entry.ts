@@ -19,7 +19,7 @@ export default async function(req: Request): Promise<Response> {
   }
   if(input.action!=='save' || !validId(input.sessionId))return Response.json({error:'Invalid meeting operation.'},{status:400});
   const session=await base44.entities.CRMActivity.get(input.sessionId);
-  if(!session || session.next_action!=='meeting_start' || !session.key_points?.startsWith('Meeting session: '))return Response.json({error:'Meeting unavailable.'},{status:404});
+  if(!session || !['meeting_start','meeting_series'].includes(session.next_action) || !session.key_points?.startsWith('Meeting session: '))return Response.json({error:'Meeting unavailable.'},{status:404});
   if(session.owner_id!==user.id && !session.meeting_hosts?.some(person=>person.id===user.id))return Response.json({error:'Only this meeting’s hosts can change its people.'},{status:403});
   const ends=await base44.asServiceRole.entities.CRMActivity.filter({key_points:session.key_points,next_action:{$in:['meeting_end','meeting_resume']}},{sort:'-occurred_at',limit:1});
   if(ends.items[0]?.next_action==='meeting_end')return Response.json({error:'Resume this ended meeting before changing its attendees and hosts.'},{status:409});

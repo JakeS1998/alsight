@@ -99,6 +99,7 @@ export function RegisterList({ title, description, entityName, projectId, projec
         client_account_id: project.client_account_id || null,
         bdm_aad_id: project.bdm_aad_id || null,
       });
+      if (entityName === 'ProjectAction' && payload.status && payload.status !== editing?.status) payload.completed_at = payload.status === 'done' ? new Date().toISOString() : null;
       if (editing) await base44.entities[entityName].update(editing.id, payload);
       else await base44.entities[entityName].create(payload);
       setOpen(false);
