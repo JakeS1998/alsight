@@ -22,7 +22,7 @@ export default function ApprovalDigestSettings() {
  }
  return <section className="space-y-3 rounded-lg border border-border bg-card p-5">
   <h2 className="text-base font-semibold">Microsoft approval digest</h2>
-  <p className="text-sm text-muted-foreground">At 4:00 pm London time when the schedule is enabled, each approver receives only their own pending Microsoft approvals, with due dates where available. The digest skips empty inboxes and requires approval access and a connected Dataverse account.</p>
+  <p className="text-sm text-muted-foreground">At 4:00 pm London time when the schedule is enabled, each approver receives only their own pending Microsoft approvals, with project, document type, requestor and links where available. The digest skips empty inboxes and requires approval access and a connected Dataverse account.</p>
   <p className="text-sm text-muted-foreground">The test sends only to your signed-in address, <strong className="break-all">{user?.email}</strong>. It does not enable the daily schedule or affect daily sends.</p>
   <div className="flex flex-wrap gap-2">
    <Button type="button" variant="outline" disabled={!!busy} onClick={() => run('preview')}>{busy === 'preview' ? 'Checking…' : 'Check eligible approvers'}</Button>

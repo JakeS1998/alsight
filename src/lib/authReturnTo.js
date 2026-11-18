@@ -21,7 +21,8 @@ export function safeReturnTo() {
       url.searchParams.delete(p);
     }
     if (url.pathname === '/' || url.pathname === '/login') url.pathname = '/today';
-    const path = url.pathname + url.search;
+    const documentHash = url.pathname.startsWith('/projects/') && /^#document-[A-Za-z0-9_-]+$/.test(url.hash) ? url.hash : '';
+    const path = url.pathname + url.search + documentHash;
     if (!path.startsWith("/") || path.startsWith("//") || path.includes("\\")) return "/today";
     return path;
   } catch {

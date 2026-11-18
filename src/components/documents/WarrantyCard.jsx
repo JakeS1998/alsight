@@ -13,7 +13,7 @@ export function WarrantyCard({ warranty: sourceWarranty, accountMap, hideComment
   const [open, setOpen] = useState(false);
   const supplierName = accountMap[warranty.supplier_id]?.name || accountMap[warranty.account_id]?.name;
   return (
-    <div className="overflow-hidden rounded-xl border border-slate-200 bg-white">
+    <div id={`document-${warranty.id}`} className="scroll-mt-48 overflow-hidden rounded-xl border border-slate-200 bg-white">
       <button type="button" aria-expanded={open} onClick={() => setOpen((value) => !value)} className="w-full text-left">
         <div className="flex items-center justify-between gap-3 p-4 transition-colors hover:bg-slate-50">
           <div className="flex min-w-0 items-center gap-3">

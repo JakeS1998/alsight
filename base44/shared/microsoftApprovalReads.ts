@@ -12,8 +12,8 @@ function view(context,row){
  return {id:row.msdyn_flow_approvalid,title:row.msdyn_flow_approval_title||'Microsoft approval',details:row.msdyn_flow_approval_details||'',status:statuses[row.statuscode]||'Not confirmed',result:row.msdyn_flow_approval_result||'',createdAt:row.createdon,dueAt:row.msdyn_flow_approval_dueon,completedAt:row.msdyn_flow_approval_completedon,microsoftUrl:microsoftApprovalLink(context,row.msdyn_flow_approvalid),sourceUrl:sourceLink(row.msdyn_flow_approval_itemlink),sourceLabel:row.msdyn_flow_approval_itemlinkdescription||'Open source document'};
 }
 export async function microsoftPendingApprovalPage(context,page){
- const result=await readMicrosoftApproval(context,query(context,{view:'pending',page},null,['msdyn_flow_approvalid','msdyn_flow_approval_title','msdyn_flow_approval_dueon']));
- return {items:(result.value||[]).map(row=>({id:row.msdyn_flow_approvalid,title:row.msdyn_flow_approval_title||'Microsoft approval',dueAt:row.msdyn_flow_approval_dueon})),hasMore:result['@Microsoft.Dynamics.CRM.morerecords']===true||!!result['@Microsoft.Dynamics.CRM.fetchxmlpagingcookie']};
+ const result=await readMicrosoftApproval(context,query(context,{view:'pending',page},null,['msdyn_flow_approvalid','msdyn_flow_approval_title','msdyn_flow_approval_details','msdyn_flow_approval_additionalfields']));
+ return {items:(result.value||[]).map(row=>({id:row.msdyn_flow_approvalid,title:row.msdyn_flow_approval_title||'Microsoft approval',details:row.msdyn_flow_approval_details,additionalFields:row.msdyn_flow_approval_additionalfields,microsoftUrl:approvalGuid(row.msdyn_flow_approvalid)?microsoftApprovalLink(context,row.msdyn_flow_approvalid):''})),hasMore:result['@Microsoft.Dynamics.CRM.morerecords']===true||!!result['@Microsoft.Dynamics.CRM.fetchxmlpagingcookie']};
 }
 export async function microsoftApprovalRead(base44,user,input){
  if(input.action==='microsoftList'&&(!['pending','all'].includes(input.view)||!Number.isInteger(input.page)||input.page<1||input.page>2000||typeof input.search!=='string'||input.search.length>120))throw new Error('Choose a valid Microsoft approval view, page and search.');

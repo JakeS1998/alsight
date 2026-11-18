@@ -66,7 +66,7 @@ export default function ProjectDetail({ embedded = false, embeddedProjectId, sup
     if (project?.procurement_route === false && activeTab === 'uklf') setActiveTab('general');
   }, [project?.procurement_route, activeTab]);
   useEffect(() => { if (embedded) return; const tab = new URLSearchParams(location.search).get('tab'); setActiveTab(isExternalPM ? (['valuations','timeline','drafting','warranties','delivery'].includes(tab) ? tab : 'general') : isSupplier ? (['general','timeline','drafting','warranties','purchase-orders'].includes(tab) ? tab : tab === 'valuations' && canSeeValuations ? 'valuations' : 'general') : (tab === 'valuations' && !canSeeValuations) ? 'general' : ['general','timeline','drafting','warranties','finance','delivery','valuations','uklf','questionnaire'].includes(tab) ? tab : 'general'); }, [location.search, isExternalPM, isSupplier, canSeeValuations, projectId]);
-  const documents = useProjectDocuments(project, user);
+  const documents = useProjectDocuments(project, user, !embedded ? location.hash.match(/^#document-([\w-]{1,100})$/)?.[1] : undefined);
   const { legalDocs, dmas, jcts, warranties } = documents;
   const [supplierOrders, setSupplierOrders] = useState([]);
   const [accountMap, setAccountMap] = useState({});

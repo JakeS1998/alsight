@@ -1,9 +1,10 @@
 import { microsoftApprovalContext } from './microsoftApprovalContext.ts';
 import { microsoftPendingApprovalPage } from './microsoftApprovalReads.ts';
 import { flowRequest } from './dataverseFlowApi.ts';
+import { microsoftApprovalDigestRecords } from './microsoftApprovalDigestRecords.ts';
 
 const digestRowLimit = 10;
-const dateLabel = new Intl.DateTimeFormat('en-GB', { timeZone:'Europe/London', day:'numeric', month:'short', year:'numeric' });
+const cellText = value => String(value || '').replace(/\u2014/g, ', ').slice(0, 250);
 export const formatDigestDay = () => new Intl.DateTimeFormat('en-CA', { timeZone:'Europe/London', year:'numeric', month:'2-digit', day:'2-digit' }).format(new Date());
 export const digestAddress = value => String(value || '').trim().toLowerCase();
 
@@ -21,13 +22,16 @@ export async function microsoftApprovalDigest(base44, recipient) {
     if (!more) break;
   }
   if (!approvals.size) return null;
-  const listed = [...approvals.values()].slice(0, digestRowLimit);
+  const listed = await microsoftApprovalDigestRecords(base44.asServiceRole.entities, recipient, [...approvals.values()].slice(0, digestRowLimit));
   const cells = {};
   for (let i = 0; i < digestRowLimit; i++) {
     const approval = listed[i], row = `row_${i + 1}`;
-    const due = new Date(approval?.dueAt ?? NaN);
-    cells[`${row}_title`] = approval?.title.slice(0, 250).replace(/\u2014/g, ', ') ?? '';
-    cells[`${row}_due`] = !approval ? '' : Number.isFinite(due.getTime()) && due.getUTCFullYear() < 9999 ? dateLabel.format(due) : 'No due date';
+    cells[`${row}_project`] = cellText(approval?.project);
+    cells[`${row}_type`] = cellText(approval?.type);
+    cells[`${row}_requestor`] = cellText(approval?.requestor);
+    cells[`${row}_hub`] = approval?.hubUrl || '';
+    cells[`${row}_hub_label`] = approval ? (approval.hubUrl ? 'Hub record' : 'Unavailable') : '';
+    cells[`${row}_approval`] = approval?.approvalUrl || '';
     cells[`${row}_display`] = approval ? 'table-row' : 'none';
   }
   return { count: approvals.size, variables: {

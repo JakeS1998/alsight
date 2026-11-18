@@ -16,7 +16,7 @@ export function JCTCard({ doc: sourceDoc, projectName, accountName, contractorNa
   const steps = getJCTSteps(doc);
 
   return (
-    <div className="overflow-hidden rounded-xl border border-slate-200 bg-white">
+    <div id={`document-${doc.id}`} className="scroll-mt-48 overflow-hidden rounded-xl border border-slate-200 bg-white">
       <button onClick={() => setOpen(o => !o)} className="w-full text-left">
         <div className="flex items-center justify-between gap-3 p-4 transition-colors hover:bg-slate-50">
           <div className="min-w-0 flex items-center gap-3">

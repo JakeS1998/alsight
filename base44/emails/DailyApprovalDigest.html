@@ -20,18 +20,18 @@
       <mj-text mj-class="muted" padding="8px 0 0">{{summary}}</mj-text>
     </mj-column></mj-section>
     <mj-section padding="0 28px 24px"><mj-column>
-      <mj-table padding="0" cellpadding="8" width="100%" color="#102642" font-size="15px" line-height="1.4" table-layout="fixed">
-        <tr style="background-color:#eaf4fb;text-align:left;"><th scope="col" width="74%">Approval</th><th scope="col" width="26%">Due date</th></tr>
-        <tr style="display:{{row_1_display}}"><td style="overflow-wrap:break-word;">{{row_1_title}}</td><td>{{row_1_due}}</td></tr>
-        <tr style="display:{{row_2_display}};background-color:#f7fafc;"><td style="overflow-wrap:break-word;">{{row_2_title}}</td><td>{{row_2_due}}</td></tr>
-        <tr style="display:{{row_3_display}}"><td style="overflow-wrap:break-word;">{{row_3_title}}</td><td>{{row_3_due}}</td></tr>
-        <tr style="display:{{row_4_display}};background-color:#f7fafc;"><td style="overflow-wrap:break-word;">{{row_4_title}}</td><td>{{row_4_due}}</td></tr>
-        <tr style="display:{{row_5_display}}"><td style="overflow-wrap:break-word;">{{row_5_title}}</td><td>{{row_5_due}}</td></tr>
-        <tr style="display:{{row_6_display}};background-color:#f7fafc;"><td style="overflow-wrap:break-word;">{{row_6_title}}</td><td>{{row_6_due}}</td></tr>
-        <tr style="display:{{row_7_display}}"><td style="overflow-wrap:break-word;">{{row_7_title}}</td><td>{{row_7_due}}</td></tr>
-        <tr style="display:{{row_8_display}};background-color:#f7fafc;"><td style="overflow-wrap:break-word;">{{row_8_title}}</td><td>{{row_8_due}}</td></tr>
-        <tr style="display:{{row_9_display}}"><td style="overflow-wrap:break-word;">{{row_9_title}}</td><td>{{row_9_due}}</td></tr>
-        <tr style="display:{{row_10_display}};background-color:#f7fafc;"><td style="overflow-wrap:break-word;">{{row_10_title}}</td><td>{{row_10_due}}</td></tr>
+      <mj-table padding="0" cellpadding="5" width="100%" color="#102642" font-size="13px" line-height="1.4" table-layout="fixed">
+        <tr style="background-color:#eaf4fb;text-align:left;"><th scope="col" width="25%">Project</th><th scope="col" width="24%">Document type</th><th scope="col" width="21%">Requestor</th><th scope="col" width="15%">Hub record</th><th scope="col" width="15%">Approval</th></tr>
+        <tr style="display:{{row_1_display}};vertical-align:top;"><td>{{row_1_project}}</td><td>{{row_1_type}}</td><td>{{row_1_requestor}}</td><td><a href="{{row_1_hub}}">{{row_1_hub_label}}</a></td><td><a href="{{row_1_approval}}">Open</a></td></tr>
+        <tr style="display:{{row_2_display}};vertical-align:top;background-color:#f7fafc;"><td>{{row_2_project}}</td><td>{{row_2_type}}</td><td>{{row_2_requestor}}</td><td><a href="{{row_2_hub}}">{{row_2_hub_label}}</a></td><td><a href="{{row_2_approval}}">Open</a></td></tr>
+        <tr style="display:{{row_3_display}};vertical-align:top;"><td>{{row_3_project}}</td><td>{{row_3_type}}</td><td>{{row_3_requestor}}</td><td><a href="{{row_3_hub}}">{{row_3_hub_label}}</a></td><td><a href="{{row_3_approval}}">Open</a></td></tr>
+        <tr style="display:{{row_4_display}};vertical-align:top;background-color:#f7fafc;"><td>{{row_4_project}}</td><td>{{row_4_type}}</td><td>{{row_4_requestor}}</td><td><a href="{{row_4_hub}}">{{row_4_hub_label}}</a></td><td><a href="{{row_4_approval}}">Open</a></td></tr>
+        <tr style="display:{{row_5_display}};vertical-align:top;"><td>{{row_5_project}}</td><td>{{row_5_type}}</td><td>{{row_5_requestor}}</td><td><a href="{{row_5_hub}}">{{row_5_hub_label}}</a></td><td><a href="{{row_5_approval}}">Open</a></td></tr>
+        <tr style="display:{{row_6_display}};vertical-align:top;background-color:#f7fafc;"><td>{{row_6_project}}</td><td>{{row_6_type}}</td><td>{{row_6_requestor}}</td><td><a href="{{row_6_hub}}">{{row_6_hub_label}}</a></td><td><a href="{{row_6_approval}}">Open</a></td></tr>
+        <tr style="display:{{row_7_display}};vertical-align:top;"><td>{{row_7_project}}</td><td>{{row_7_type}}</td><td>{{row_7_requestor}}</td><td><a href="{{row_7_hub}}">{{row_7_hub_label}}</a></td><td><a href="{{row_7_approval}}">Open</a></td></tr>
+        <tr style="display:{{row_8_display}};vertical-align:top;background-color:#f7fafc;"><td>{{row_8_project}}</td><td>{{row_8_type}}</td><td>{{row_8_requestor}}</td><td><a href="{{row_8_hub}}">{{row_8_hub_label}}</a></td><td><a href="{{row_8_approval}}">Open</a></td></tr>
+        <tr style="display:{{row_9_display}};vertical-align:top;"><td>{{row_9_project}}</td><td>{{row_9_type}}</td><td>{{row_9_requestor}}</td><td><a href="{{row_9_hub}}">{{row_9_hub_label}}</a></td><td><a href="{{row_9_approval}}">Open</a></td></tr>
+        <tr style="display:{{row_10_display}};vertical-align:top;background-color:#f7fafc;"><td>{{row_10_project}}</td><td>{{row_10_type}}</td><td>{{row_10_requestor}}</td><td><a href="{{row_10_hub}}">{{row_10_hub_label}}</a></td><td><a href="{{row_10_approval}}">Open</a></td></tr>
       </mj-table>
       <mj-text mj-class="muted" font-size="13px" padding="10px 0 0">{{more}}</mj-text>
     </mj-column></mj-section>
