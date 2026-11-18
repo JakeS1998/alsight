@@ -24,7 +24,7 @@
 .alice-chat > a svg{width:14px;height:14px}
 .alice-chat > div.items-center{box-sizing:border-box;flex:1;min-height:0;padding:9px 13px 8px;display:flex;flex-direction:column;align-items:center;justify-content:flex-start;text-align:center}
 .alice-chat > div.items-center > svg{width:23px;height:23px;color:#F59929;margin:0 0 4px;flex-shrink:0}
-.alice-chat > div.items-center h2{font-size:15px;line-height:1.15;margin:0;font-weight:730;letter-spacing:-.02em;font-family:inherit}
+.alice-chat > div.items-center h2{font-size:15px;line-height:1.15;margin:0;font-weight:730;letter-spacing:-.02em;font-family:var(--font-heading)}
 .alice-chat > div.items-center p{font-size:10px;line-height:1.3;color:#5b6d7d;margin:4px 0 7px;max-width:275px}
 .alice-chat .alice-taskbar{width:100%;box-sizing:border-box;padding:4px 7px;border:1px solid #d5e6f1;border-radius:var(--radius);background:#EAF4FB;color:#183959;text-align:left;font:700 10px system-ui;cursor:pointer;transition:background .16s,color .16s}
 .alice-chat .alice-taskbar:hover,.alice-chat .alice-taskbar:focus-visible{background:#dcecf7}

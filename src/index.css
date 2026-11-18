@@ -58,9 +58,9 @@
     --panel-radius: 12px;
     --hero-radius: 12px;
     --surface-shadow: 0 8px 24px hsl(var(--als-navy) / .045);
-    --font-heading: system-ui, -apple-system, "Arial Narrow", Arial, sans-serif;
+    --font-heading: "Soleil", system-ui, -apple-system, "Arial Narrow", Arial, sans-serif;
     --font-body: system-ui, -apple-system, "Arial Narrow", Arial, sans-serif;
-    --font-display: system-ui, -apple-system, "Arial Narrow", Arial, sans-serif;
+    --font-display: var(--font-heading);
     --font-mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
     --map-region-scotland: 33 91% 56%;
     --map-region-south-east: 208 54% 35%;
@@ -169,6 +169,10 @@
 
   body {
     @apply bg-background text-foreground font-body;
+  }
+
+  :where(h1, h2, h3, h4, h5, h6, [role="heading"]) {
+    font-family: var(--font-heading);
   }
 }
 
