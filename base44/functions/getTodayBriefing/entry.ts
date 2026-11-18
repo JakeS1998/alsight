@@ -8,6 +8,9 @@ export default async function(req) {
   if(!internalRoles.includes(user.role))return Response.json({error:'Forbidden'},{status:403});
   const input=await req.json();
   if(!Array.isArray(input.projectIds) || input.projectIds.length>2000 || input.projectIds.some(id=>typeof id!=='string' || !/^[a-f0-9]{24}$/i.test(id)))return Response.json({error:'Invalid project selection'},{status:400});
-  return Response.json(await todayBriefing(base44,input.projectIds,user));
+  const {source,cursor}=input;
+  if(source!==undefined && (typeof source!=='string' || !/^(risks|decisions|proposals|dates|approvals|(drafting|signing)-(LegalDocument|DMA|JCT))$/.test(source)))return Response.json({error:'Invalid attention source'},{status:400});
+  if(cursor!=null && (typeof cursor!=='string' || cursor.length>4000))return Response.json({error:'Invalid attention page'},{status:400});
+  return Response.json(await todayBriefing(base44,input.projectIds,user,source ? {source,cursor} : null));
  } catch(error) {return Response.json({error:error.message},{status:500});}
 }

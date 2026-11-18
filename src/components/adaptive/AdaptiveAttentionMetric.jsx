@@ -25,6 +25,6 @@ export default function AdaptiveAttentionMetric({ data, actions, onSelect }) {
         </li>;
       })}
     </ul>
-    <p className="at-attention-footnote">{actions.length ? 'Loaded examples; select the total to review all attention sources.' : 'No attention items were returned. Select the total to review sources.'}</p>
+    <p className="at-attention-footnote">{actions.length ? 'Select the total to open the full attention list.' : 'No items in this preview. Select the total to open the full attention list.'}</p>
   </section>;
 }
