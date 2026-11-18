@@ -40,9 +40,9 @@ export default async function(req: Request): Promise<Response> {
       if (await microsoftSyncPause(base44)) return Response.json({sent:false,reason:'Microsoft access is paused for contingency. No email sent.'});
       const email = digestAddress(actor.email);
       if (!email || !(await db.ApprovalAccess.count({email,enabled:true}))) return Response.json({error:'Your account needs Approval Centre access before you can send a test.'},{status:403});
-      const deliveryKey = `test:${day}:${actor.id}`;
-      const previous = await db.ApprovalDigestDelivery.filter({delivery_key:deliveryKey},{limit:1});
-      if (previous.items.length) return Response.json({error:'A test was already attempted for your account today. Check your inbox before trying again tomorrow.'},{status:409});
+      const testAttempts = await db.ApprovalDigestDelivery.count({recipient_user_id:actor.id,report_day:day,delivery_key:{$regex:'^test:'}});
+      if (testAttempts >= 10) return Response.json({error:'You’ve reached the limit of 10 test digests today. You can send more tomorrow.'},{status:429});
+      const deliveryKey = `test:${day}:${actor.id}:${crypto.randomUUID()}`;
       const report = await microsoftApprovalDigest(base44,actor);
       if (!report) return Response.json({sent:false,reason:'No test email sent. Check that your matching work Dataverse account is connected and has an outstanding approval assigned to you.'});
       const delivery = await db.ApprovalDigestDelivery.create({delivery_key:deliveryKey,report_day:day,recipient_user_id:actor.id,recipient_email:email,status:'skipped',approval_count:report.count});
