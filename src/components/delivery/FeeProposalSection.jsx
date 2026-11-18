@@ -18,6 +18,7 @@ import useSupplierFsf from '@/components/delivery/useSupplierFsf';
 import SupplierFsfSummary from '@/components/delivery/SupplierFsfSummary';
 import { supplierFsfTotals } from '@/components/delivery/supplierFsf';
 import FeeProposalLines from '@/components/delivery/FeeProposalLines';
+import RiskContingencyComparison from '@/components/delivery/RiskContingencyComparison';
 import FrameworkFeeCalculator from '@/components/delivery/FrameworkFeeCalculator';
 import automaticFrameworkFeeLines from '@/components/delivery/automaticFrameworkFeeLines';
 import useFrameworkFees from '@/components/delivery/useFrameworkFees';
@@ -335,6 +336,8 @@ export function FeeProposalSection({ projectId, project, onChanged, deliveryTeam
             {!singleTask && <ContractorBuildUp deliveryTeam={deliveryTeam} ohpSurveysPct={ohpSurveysPct} ohpRiba57Pct={ohpRiba57Pct} ohpSurveysType={ohpSurveysType} ohpSurveysFixed={ohpSurveysFixed}  />}
 
             <FeeProposalLines automaticUklfLabel={automaticSettings?.uklf} singleTask={singleTask} items={items} stages={singleTask ? ['Task'] : RIBA_STAGES} updateItem={updateItem} addItem={addItem} removeItem={removeItem} />
+
+            <RiskContingencyComparison projectId={projectId} items={items} />
 
             {supplierComparison.length > 0 && (
               <div className="rounded-lg border border-slate-200 bg-slate-50 p-3">

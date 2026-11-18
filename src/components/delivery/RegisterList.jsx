@@ -123,7 +123,10 @@ export function RegisterList({ title, description, entityName, projectId, projec
 
   const renderInput = (col) => {
     const val = form[col.key];
-    if (col.type === 'calculated') return <output className="block rounded-md border border-input bg-muted px-3 py-2 text-sm">{entityName === 'ProjectRisk' && col.key === 'risk_index' ? <RiskIndexBadge index={col.calculate(form)} /> : col.calculate(form) ?? '—'}</output>;
+    if (col.type === 'calculated') {
+      const value = col.calculate(form);
+      return <output className="block rounded-md border border-input bg-muted px-3 py-2 text-sm">{entityName === 'ProjectRisk' && col.key === 'risk_index' ? <RiskIndexBadge index={value} /> : value == null ? '—' : col.format ? col.format(value) : value}</output>;
+    }
     if (col.type === "select")
       return (
         <SearchableSelect value={val} onChange={(e) => setForm({ ...form, [col.key]: e.target.value })} className={formInputClass}>
@@ -178,7 +181,7 @@ export function RegisterList({ title, description, entityName, projectId, projec
           <table className="w-full text-sm">
             <thead className={entityName === 'ProjectRisk' ? 'sticky top-0 z-10 bg-muted text-left text-xs font-semibold uppercase tracking-wide text-muted-foreground' : 'bg-slate-50 text-left text-xs font-semibold uppercase tracking-wide text-slate-500'}>
               <tr>
-                {shown.map((c) => sortable ? <RegisterSortHeading key={c.key} column={c} sort={activeSort} onSort={setHeadingSort} loading={loading} /> : <th key={c.key} className="px-3 py-2.5 whitespace-nowrap">{c.label}</th>)}
+                {shown.map((c) => sortable && c.serverSort !== false ? <RegisterSortHeading key={c.key} column={c} sort={activeSort} onSort={setHeadingSort} loading={loading} /> : <th key={c.key} className="px-3 py-2.5 whitespace-nowrap">{c.label}</th>)}
                 <th className="px-3 py-2.5"></th>
               </tr>
             </thead>
