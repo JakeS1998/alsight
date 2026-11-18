@@ -37,14 +37,14 @@ export default function TodayNotes({ userId }) {
     setSelected(null);
     cache.invalidateQueries({ queryKey: key });
   }
-  return <div className="overflow-hidden rounded-panel border border-border bg-card text-card-foreground">
-    <header className="flex items-center justify-between gap-3 border-b border-border px-5 py-4">
-      <h2 className="flex items-center gap-2 font-heading text-lg font-semibold"><NotebookPen size={19} aria-hidden="true" />My Notes</h2>
+  return <div className="min-w-0 text-foreground">
+    <header className="flex items-center justify-between gap-3 border-b border-border pb-4">
+      <h2 className="flex items-center gap-2 font-heading text-lg font-semibold"><NotebookPen className="text-primary" size={19} aria-hidden="true" />My Notes</h2>
       <Button size="sm" disabled={!canWrite || create.isPending} onClick={() => create.mutate(sectionId)}><Plus />{create.isPending ? 'Creating…' : 'New note'}</Button>
     </header>
-    {create.isError && <p role="alert" className="px-5 py-2 text-sm text-destructive">Couldn’t create the note. Try again.</p>}
-    <div className="grid min-h-96 md:grid-cols-[15rem_minmax(0,1fr)]">
-      <aside aria-label="Note organisation" className="min-w-0 space-y-3 border-b border-border bg-muted/50 p-3 md:border-b-0 md:border-r">
+    {create.isError && <p role="alert" className="py-2 text-sm text-destructive">Couldn’t create the note. Try again.</p>}
+    <div className="grid min-h-96 content-start md:grid-cols-[14rem_minmax(0,1fr)] md:content-stretch">
+      <aside aria-label="Note organisation" className="min-w-0 space-y-4 border-b border-border py-4 md:border-b-0 md:border-r md:pr-5">
         <NoteLocation userId={userId} location={location} onChange={changeLocation} editable />
         {canWrite && <NotePages notes={notes} items={items} active={active} onSelect={id => setSelected({ id, sectionId })} />}
       </aside>

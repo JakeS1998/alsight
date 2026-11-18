@@ -18,7 +18,7 @@ export default function NoteGroupPicker({ kind, notebookId, userId, value, onSel
   function start(next) { save.reset(); setName(next === 'rename' ? value.name : ''); setMode(next); }
   return <div className="min-w-0 space-y-2">
     <label className="block text-xs font-semibold capitalize">{kind}
-      <select className="mt-1 block h-9 w-full rounded-md border border-input bg-card px-2 text-sm font-normal text-card-foreground" value={value?.id ?? ''} disabled={save.isPending || (groups.isPending && !value)} onChange={e => { setMode(null); onSelect(options.find(group => group.id === e.target.value) ?? null); }}>
+      <select className={`mt-1 block h-9 w-full rounded-md border border-input px-2 text-sm font-normal ${editable ? 'bg-background text-foreground' : 'bg-card text-card-foreground'}`} value={value?.id ?? ''} disabled={save.isPending || (groups.isPending && !value)} onChange={e => { setMode(null); onSelect(options.find(group => group.id === e.target.value) ?? null); }}>
         <option value="" disabled={kind === 'section'}>{groups.isPending ? 'Loading…' : kind === 'notebook' ? 'Unfiled notes' : 'Choose a section'}</option>
         {options.map(group => <option key={group.id} value={group.id}>{group.name}</option>)}
       </select>

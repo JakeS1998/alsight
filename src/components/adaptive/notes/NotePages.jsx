@@ -7,7 +7,7 @@ export default function NotePages({ notes, items, active, onSelect }) {
     {notes.isPending && <p role="status" className="p-2 text-sm text-muted-foreground">Loading pages…</p>}
     {notes.isError && <div role="alert" className="space-y-2 p-2 text-sm">Couldn’t load pages. <Button size="sm" variant="outline" onClick={() => notes.refetch()}>Try again</Button></div>}
     {!items.length && notes.isSuccess && <p className="p-2 text-sm text-muted-foreground">No pages yet.</p>}
-    {items.map(note => <button key={note.id} type="button" aria-current={note.id === active ? 'true' : undefined} onClick={() => onSelect(note.id)} className={`block w-full truncate rounded-md border px-3 py-2 text-left text-sm ${note.id === active ? 'border-border bg-card font-semibold' : 'border-transparent hover:bg-card'}`}>{note.title.trim() || 'Untitled note'}</button>)}
+    {items.map(note => <button key={note.id} type="button" aria-current={note.id === active ? 'true' : undefined} onClick={() => onSelect(note.id)} className={`block w-full truncate rounded-md border px-3 py-2 text-left text-sm ${note.id === active ? 'border-primary/30 bg-primary/10 font-semibold' : 'border-transparent hover:bg-foreground/5'}`}>{note.title.trim() || 'Untitled note'}</button>)}
     {notes.hasNextPage && <Button size="sm" variant="ghost" disabled={notes.isFetchingNextPage} onClick={() => notes.fetchNextPage()}>{notes.isFetchingNextPage ? 'Loading…' : 'Load more'}</Button>}
   </div>;
 }

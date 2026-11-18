@@ -18,7 +18,7 @@ function NotePage({ note, userId, location, onMove, onDelete }) {
     try { await remove(); onDelete(); }
     catch { setDeleteError(true); setDeleting(false); }
   }
-  return <div className="min-w-0 flex-1 px-5 py-5 sm:px-8">
+  return <div className="min-w-0 py-4 md:pl-6">
     <div className="flex min-h-8 items-center justify-between gap-3 text-xs text-muted-foreground">
       <span role="status">{({ saved: 'All changes saved', pending: 'Unsaved changes', saving: 'Saving…', error: 'Changes could not be saved.', limit: 'This note is too large to save. Shorten it or split it across pages.' })[status]}</span>
       <div className="flex items-center gap-2">{status === 'error' && <Button size="sm" variant="outline" onClick={save}>Retry save</Button>}<Button size="icon" variant="ghost" aria-label="Move note" title="Move note" onClick={() => setMoving(true)}><FolderInput /></Button><Button size="icon" variant="ghost" aria-label="Delete note" title="Delete note" onClick={() => setConfirm(true)}><Trash2 /></Button></div>
