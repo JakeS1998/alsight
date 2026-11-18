@@ -1,0 +1,61 @@
+{
+  "name": "PersonalBriefingDelivery",
+  "type": "object",
+  "properties": {
+    "schedule_id": {
+      "type": "string"
+    },
+    "revision": {
+      "type": "string"
+    },
+    "day": {
+      "type": "string",
+      "format": "date"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "queued",
+        "sending",
+        "sent",
+        "skipped",
+        "unconfirmed"
+      ],
+      "enumColors": [
+        "yellow",
+        "blue",
+        "green",
+        "gray",
+        "red"
+      ]
+    }
+  },
+  "required": [
+    "schedule_id",
+    "revision",
+    "day",
+    "status"
+  ],
+  "rls": {
+    "read": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "create": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "update": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "delete": {
+      "user_condition": {
+        "role": "admin"
+      }
+    }
+  }
+}

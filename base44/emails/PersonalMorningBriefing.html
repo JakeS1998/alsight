@@ -1,0 +1,38 @@
+<mjml>
+  <mj-head>
+    <mj-title>ALICE | Your daily briefing</mj-title>
+    <mj-preview>Your upcoming and overdue ALS Hub priorities.</mj-preview>
+    <mj-attributes>
+      <mj-all font-family="Arial Narrow, Arial, sans-serif" />
+      <mj-section background-color="#ffffff" padding="0 36px" />
+      <mj-column padding="0" />
+      <mj-text color="#102642" font-size="15px" line-height="1.6" padding="0" />
+      <mj-button background-color="#f59929" color="#102642" border-radius="12px" font-size="15px" font-weight="700" inner-padding="14px 28px" padding="0" align="left" />
+      <mj-class name="h" font-weight="700" />
+      <mj-class name="muted" color="#5f7586" />
+    </mj-attributes>
+  </mj-head>
+  <mj-body background-color="#eaf4fb" width="600px">
+    <mj-wrapper padding="28px 12px" background-color="#eaf4fb">
+      <mj-section background-color="#f59929" padding="24px 36px" border-radius="12px 12px 0 0"><mj-column>
+        <mj-image src="https://media.base44.com/images/public/6ab62433a194f918c54c8249/c6a55826a_logo.jpg" alt="ALS Hub logo" width="36px" align="left" padding="0 0 10px" />
+        <mj-text font-weight="700">ALS Hub · ALICE</mj-text>
+      </mj-column></mj-section>
+      <mj-section padding="32px 36px 20px"><mj-column>
+        <mj-text mj-class="h" font-size="28px" line-height="1.25">Your daily briefing</mj-text>
+        <mj-text mj-class="muted" padding="8px 0 0">{{issue_date}} · A look at what’s assigned to you in ALS Hub.</mj-text>
+      </mj-column></mj-section>
+      <mj-section padding="12px 36px 24px"><mj-column inner-background-color="#fef7ee" inner-border-radius="12px">
+        <mj-text mj-class="h" font-size="18px" padding="18px 20px 8px">Your priorities</mj-text>
+        <mj-text padding="0 20px 18px">{{{priorities}}}</mj-text>
+      </mj-column></mj-section>
+      <mj-section padding="0 36px 30px"><mj-column>
+        <mj-button href="https://als-hub.base44.app/today">Open Today in ALS Hub</mj-button>
+        <mj-text mj-class="muted" padding="14px 0 0" font-size="13px">Outlook meetings aren’t included in this email. Open Today to see your connected calendar.</mj-text>
+      </mj-column></mj-section>
+      <mj-section background-color="#f59929" padding="22px 36px" border-radius="0 0 12px 12px"><mj-column>
+        <mj-text font-size="13px">Ask ALICE to change or pause your briefing. <a href="{{unsubscribe_url}}" style="color:#102642;text-decoration:underline;">Unsubscribe from ALS Hub emails</a></mj-text>
+      </mj-column></mj-section>
+    </mj-wrapper>
+  </mj-body>
+</mjml>

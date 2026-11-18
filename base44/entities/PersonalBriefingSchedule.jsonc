@@ -1,0 +1,74 @@
+{
+  "name": "PersonalBriefingSchedule",
+  "type": "object",
+  "properties": {
+    "user_id": {
+      "type": "string"
+    },
+    "enabled": {
+      "type": "boolean"
+    },
+    "time": {
+      "type": "string",
+      "pattern": "^(?:[01][0-9]|2[0-3]):[0-5][05]$"
+    },
+    "timezone": {
+      "type": "string",
+      "maxLength": 100
+    },
+    "frequency": {
+      "type": "string",
+      "enum": [
+        "daily",
+        "weekdays"
+      ],
+      "enumColors": [
+        "blue",
+        "green"
+      ]
+    },
+    "revision": {
+      "type": "string"
+    },
+    "last_day": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "user_id",
+    "enabled",
+    "time",
+    "timezone",
+    "frequency",
+    "revision"
+  ],
+  "rls": {
+    "read": {
+      "$or": [
+        {
+          "data.user_id": "{{user.id}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    },
+    "create": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "update": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "delete": {
+      "user_condition": {
+        "role": "admin"
+      }
+    }
+  }
+}

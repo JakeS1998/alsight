@@ -1,0 +1,96 @@
+{
+  "name": "ALICE personal briefing email",
+  "description": "Sends each due user their own directly assigned ALS Hub tasks and priorities.",
+  "trigger": {
+    "config": {
+      "trigger_type": "entity",
+      "entity_name": "PersonalBriefingDelivery",
+      "events": [
+        "create"
+      ]
+    },
+    "condition": "${ .trigger.data.status == \"queued\" }"
+  },
+  "definition": {
+    "document": {
+      "dsl": "1.0.0",
+      "name": "personal_briefing_email",
+      "version": "1.0",
+      "namespace": "base44"
+    },
+    "do": [
+      {
+        "prepare": {
+          "call": "invoke_backend_function",
+          "with": {
+            "function_name": "runPersonalBriefing",
+            "args": {
+              "action": "prepare",
+              "deliveryId": "${ .trigger.entity_id }"
+            }
+          },
+          "then": "check",
+          "x-base44": {
+            "title": "Prepare personal priorities"
+          }
+        }
+      },
+      {
+        "check": {
+          "switch": [
+            {
+              "when": "${ .prepare.send == true }",
+              "then": "send",
+              "x-base44": {
+                "title": "Schedule is still active"
+              }
+            },
+            {
+              "when": "${ true }",
+              "then": "end"
+            }
+          ],
+          "x-base44": {
+            "title": "Check delivery eligibility"
+          }
+        }
+      },
+      {
+        "send": {
+          "call": "send_email",
+          "with": {
+            "template_name": "PersonalMorningBriefing",
+            "category": "marketing",
+            "to": "${ .prepare.to }",
+            "description": "Personal list of upcoming and overdue ALS Hub tasks",
+            "variables": {
+              "issue_date": "${ .prepare.issue_date }",
+              "priorities": "${ .prepare.priorities }"
+            }
+          },
+          "then": "record",
+          "x-base44": {
+            "title": "Email the briefing"
+          }
+        }
+      },
+      {
+        "record": {
+          "call": "invoke_backend_function",
+          "with": {
+            "function_name": "runPersonalBriefing",
+            "args": {
+              "action": "record",
+              "deliveryId": "${ .trigger.entity_id }",
+              "sent": "${ .send.sent == true }"
+            }
+          },
+          "then": "end",
+          "x-base44": {
+            "title": "Record delivery outcome"
+          }
+        }
+      }
+    ]
+  }
+}
