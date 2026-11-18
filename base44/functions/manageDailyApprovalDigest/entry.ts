@@ -3,6 +3,7 @@ import { digestAddress, formatDigestDay, microsoftApprovalDigest } from '../../s
 import { dataverseEnvironment } from '../../shared/dataverseConnection.ts';
 import { dataverseRoles } from '../../shared/dataverseUserAuth.ts';
 import { microsoftSyncPause } from '../../shared/coMicrosoftPause.ts';
+import { deliverApprovalDigest } from '../../shared/approvalDigestDelivery.ts';
 
 const getRecord = (entity, id) => entity.get(id).catch(error => Number(error.status ?? error.response?.status) === 404 ? null : Promise.reject(error));
 async function queueReminders(db, day, preview) {
@@ -35,6 +36,19 @@ export default async function(req: Request): Promise<Response> {
     if (!actor) return Response.json({error:'Sign in to manage approval reminders.'},{status:401});
     if (actor.role !== 'admin') return Response.json({error:'Only administrators can manage approval reminders.'},{status:403});
     const input = await req.json().catch(() => null), db = base44.asServiceRole.entities, day = formatDigestDay();
+    if (input?.action === 'testSelf') {
+      if (await microsoftSyncPause(base44)) return Response.json({sent:false,reason:'Microsoft access is paused for contingency. No email sent.'});
+      const email = digestAddress(actor.email);
+      if (!email || !(await db.ApprovalAccess.count({email,enabled:true}))) return Response.json({error:'Your account needs Approval Centre access before you can send a test.'},{status:403});
+      const deliveryKey = `test:${day}:${actor.id}`;
+      const previous = await db.ApprovalDigestDelivery.filter({delivery_key:deliveryKey},{limit:1});
+      if (previous.items.length) return Response.json({error:'A test was already attempted for your account today. Check your inbox before trying again tomorrow.'},{status:409});
+      const report = await microsoftApprovalDigest(base44,actor);
+      if (!report) return Response.json({sent:false,reason:'No test email sent. Check that your matching work Dataverse account is connected and has an outstanding approval assigned to you.'});
+      const delivery = await db.ApprovalDigestDelivery.create({delivery_key:deliveryKey,report_day:day,recipient_user_id:actor.id,recipient_email:email,status:'skipped',approval_count:report.count});
+      const {sent} = await deliverApprovalDigest(base44,delivery,actor,report);
+      return Response.json({sent});
+    }
     if (['enqueue','preview'].includes(input?.action)) {
       if (await microsoftSyncPause(base44)) return Response.json({queued:0,reason:'Microsoft access is paused for contingency.'});
       return Response.json({report_day:day,...await queueReminders(db,day,input.action === 'preview')});

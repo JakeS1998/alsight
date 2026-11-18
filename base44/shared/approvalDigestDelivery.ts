@@ -1,7 +1,8 @@
 export async function deliverApprovalDigest(base44, delivery, recipient, report) {
   const db = base44.asServiceRole.entities.ApprovalDigestDelivery;
-  if (report.variables.approval_rows.length > 1000000) throw new Error('This approval summary exceeds the email size limit.');
-  const claimed = await db.updateMany({ id: delivery.id, status: 'queued' }, { $set: { status: 'sending', send_error: '' } });
+  if (report.variables.approval_items.length > 100000) throw new Error('This approval summary exceeds the email size limit.');
+  // Manual tests are created as skipped so the scheduled delivery workflow never picks them up.
+  const claimed = await db.updateMany({ id: delivery.id, status: 'skipped' }, { $set: { status: 'sending', send_error: '' } });
   if (!claimed.updated) return { sent: false, reason: 'Delivery already claimed or completed.' };
   let receipt;
   try {
@@ -10,6 +11,8 @@ export async function deliverApprovalDigest(base44, delivery, recipient, report)
       to: recipient.email,
       from_name: 'ALS Hub',
       template_name: 'DailyApprovalDigest',
+      subject: 'Test | ALS Hub outstanding approvals',
+      category: 'transactional',
       variables: report.variables,
     });
     receipt = { result_type: result === null ? 'null' : typeof result };
