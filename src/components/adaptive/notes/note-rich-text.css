@@ -1,0 +1,16 @@
+.note-rich-text .ql-toolbar.ql-snow { border: 1px solid hsl(var(--border)); border-radius: var(--radius) var(--radius) 0 0; background: hsl(var(--muted)); }
+.note-rich-text .ql-container.ql-snow { border: 1px solid hsl(var(--border)); border-top: 0; border-radius: 0 0 var(--radius) var(--radius); font: inherit; font-size: .9375rem; }
+.note-rich-text .ql-editor { min-height: 18rem; line-height: 1.7; overflow-wrap: anywhere; }
+.note-rich-text .ql-editor:focus-visible { outline: 2px solid hsl(var(--ring)); outline-offset: -2px; }
+.note-rich-text .ql-editor.ql-blank::before { color: hsl(var(--muted-foreground)); }
+.note-rich-text .ql-snow .ql-stroke { stroke: hsl(var(--foreground)); }
+.note-rich-text .ql-snow .ql-fill { fill: hsl(var(--foreground)); }
+.note-rich-text .ql-snow .ql-picker { color: hsl(var(--foreground)); }
+.note-rich-text .ql-snow .ql-picker-options { background: hsl(var(--popover)); border-color: hsl(var(--border)); }
+.note-rich-text .ql-snow .ql-active .ql-stroke { stroke: hsl(var(--primary)); }
+.note-rich-text .ql-snow .ql-active .ql-fill { fill: hsl(var(--primary)); }
+.note-rich-text .ql-editor li[data-list='checked'] { text-decoration: line-through; }
+.note-rich-text .ql-editor h1, .note-rich-text .ql-editor h2, .note-rich-text .ql-editor h3 { margin: 0; font-weight: 600; letter-spacing: normal; line-height: 1.35; }
+.note-rich-text .ql-editor h1 { font-size: 1.6em; }
+.note-rich-text .ql-editor h2 { font-size: 1.35em; }
+.note-rich-text .ql-editor h3 { font-size: 1.15em; }

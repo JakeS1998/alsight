@@ -2,7 +2,7 @@ import assignedRoles from '@/components/data/assignedRoles';
 import { localDay, deadlineDay } from '@/components/adaptive/adaptiveTime';
 import adaptiveRoles from '@/components/adaptive/adaptiveRoles';
 import workspaceSignal from '@/components/adaptive/workspaceSignal';
-export const focuses = ['My priorities', 'My projects', 'Commercial', 'Documents', 'My activity'];
+export const focuses = ['My priorities', 'My projects', 'Commercial', 'Documents', 'My activity', 'My Notes'];
 export function roleContext(user) {
  const roles=assignedRoles(user),role=roles.includes('director')||roles.includes('admin')?'director':roles.includes('finance')?'finance':roles.includes('bsm')?'bsm':roles.includes('bdm')?'bdm':user?.role;
  return {role,roles,...adaptiveRoles(roles)};

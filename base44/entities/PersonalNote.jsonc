@@ -1,0 +1,77 @@
+{
+  "name": "PersonalNote",
+  "type": "object",
+  "properties": {
+    "title": {
+      "type": "string",
+      "maxLength": 150
+    },
+    "body": {
+      "type": "string",
+      "maxLength": 30000
+    },
+    "body_format": {
+      "type": "string",
+      "enum": [
+        "plain",
+        "rich"
+      ],
+      "enumColors": [
+        "gray",
+        "blue"
+      ]
+    },
+    "section_id": {
+      "type": [
+        "string",
+        "null"
+      ],
+      "maxLength": 64
+    }
+  },
+  "required": [
+    "title",
+    "body"
+  ],
+  "rls": {
+    "create": {
+      "created_by_id": "{{user.id}}"
+    },
+    "read": {
+      "$or": [
+        {
+          "created_by_id": "{{user.id}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    },
+    "update": {
+      "$or": [
+        {
+          "created_by_id": "{{user.id}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    },
+    "delete": {
+      "$or": [
+        {
+          "created_by_id": "{{user.id}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    }
+  }
+}
