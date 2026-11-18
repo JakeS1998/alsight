@@ -20,7 +20,19 @@
       <mj-text mj-class="muted" padding="8px 0 0">{{summary}}</mj-text>
     </mj-column></mj-section>
     <mj-section padding="0 28px 24px"><mj-column>
-      <mj-text>{{{approval_items}}}</mj-text>
+      <mj-table padding="0" cellpadding="8" width="100%" color="#102642" font-size="15px" line-height="1.4" table-layout="fixed">
+        <tr style="background-color:#eaf4fb;text-align:left;"><th scope="col" width="74%">Approval</th><th scope="col" width="26%">Due date</th></tr>
+        <tr style="display:{{row_1_display}}"><td style="overflow-wrap:break-word;">{{row_1_title}}</td><td>{{row_1_due}}</td></tr>
+        <tr style="display:{{row_2_display}};background-color:#f7fafc;"><td style="overflow-wrap:break-word;">{{row_2_title}}</td><td>{{row_2_due}}</td></tr>
+        <tr style="display:{{row_3_display}}"><td style="overflow-wrap:break-word;">{{row_3_title}}</td><td>{{row_3_due}}</td></tr>
+        <tr style="display:{{row_4_display}};background-color:#f7fafc;"><td style="overflow-wrap:break-word;">{{row_4_title}}</td><td>{{row_4_due}}</td></tr>
+        <tr style="display:{{row_5_display}}"><td style="overflow-wrap:break-word;">{{row_5_title}}</td><td>{{row_5_due}}</td></tr>
+        <tr style="display:{{row_6_display}};background-color:#f7fafc;"><td style="overflow-wrap:break-word;">{{row_6_title}}</td><td>{{row_6_due}}</td></tr>
+        <tr style="display:{{row_7_display}}"><td style="overflow-wrap:break-word;">{{row_7_title}}</td><td>{{row_7_due}}</td></tr>
+        <tr style="display:{{row_8_display}};background-color:#f7fafc;"><td style="overflow-wrap:break-word;">{{row_8_title}}</td><td>{{row_8_due}}</td></tr>
+        <tr style="display:{{row_9_display}}"><td style="overflow-wrap:break-word;">{{row_9_title}}</td><td>{{row_9_due}}</td></tr>
+        <tr style="display:{{row_10_display}};background-color:#f7fafc;"><td style="overflow-wrap:break-word;">{{row_10_title}}</td><td>{{row_10_due}}</td></tr>
+      </mj-table>
       <mj-text mj-class="muted" font-size="13px" padding="10px 0 0">{{more}}</mj-text>
     </mj-column></mj-section>
     <mj-section padding="0 28px 28px" border-radius="0 0 12px 12px"><mj-column>

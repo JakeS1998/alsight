@@ -2,7 +2,7 @@ import { microsoftApprovalContext } from './microsoftApprovalContext.ts';
 import { microsoftPendingApprovalPage } from './microsoftApprovalReads.ts';
 import { flowRequest } from './dataverseFlowApi.ts';
 
-const escape = value => String(value).replace(/\u2014/g, ', ').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const digestRowLimit = 10;
 const dateLabel = new Intl.DateTimeFormat('en-GB', { timeZone:'Europe/London', day:'numeric', month:'short', year:'numeric' });
 export const formatDigestDay = () => new Intl.DateTimeFormat('en-CA', { timeZone:'Europe/London', year:'numeric', month:'2-digit', day:'2-digit' }).format(new Date());
 export const digestAddress = value => String(value || '').trim().toLowerCase();
@@ -21,15 +21,19 @@ export async function microsoftApprovalDigest(base44, recipient) {
     if (!more) break;
   }
   if (!approvals.size) return null;
-  const approvalItems = [...approvals.values()].map(approval => {
-    const title = escape(approval.title.slice(0, 250));
-    const due = Number.isFinite(Date.parse(approval.dueAt)) ? ` <span style="color:#5f7586;">(due ${dateLabel.format(new Date(approval.dueAt))})</span>` : '';
-    return `<li style="padding:4px 0;">${title}${due}</li>`;
-  }).join('');
+  const listed = [...approvals.values()].slice(0, digestRowLimit);
+  const cells = {};
+  for (let i = 0; i < digestRowLimit; i++) {
+    const approval = listed[i], row = `row_${i + 1}`;
+    const due = new Date(approval?.dueAt ?? NaN);
+    cells[`${row}_title`] = approval?.title.slice(0, 250).replace(/\u2014/g, ', ') ?? '';
+    cells[`${row}_due`] = !approval ? '' : Number.isFinite(due.getTime()) && due.getUTCFullYear() < 9999 ? dateLabel.format(due) : 'No due date';
+    cells[`${row}_display`] = approval ? 'table-row' : 'none';
+  }
   return { count: approvals.size, variables: {
     summary: `${more ? 'At least ' : ''}${approvals.size} ${approvals.size === 1 ? 'approval is' : 'approvals are'} assigned to you and awaiting your decision.`,
-    approval_items: `<ul style="margin:0;padding-left:20px;">${approvalItems}</ul>`,
-    more: more ? 'Open the Approval Centre to see the rest of your outstanding approvals.' : '',
+    ...cells,
+    more: more || approvals.size > digestRowLimit ? `Showing the first ${digestRowLimit} approvals. Open the Approval Centre to see the full list.` : '',
     approval_url: 'https://als-hub.base44.app/approvals',
   } };
 }
