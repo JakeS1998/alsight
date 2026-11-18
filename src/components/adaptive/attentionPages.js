@@ -11,6 +11,7 @@ export function attentionSources(data,filter='all') {
   ...['risks','decisions','proposals','dates','approvals'].filter(key=>totals[key]>0),
   ...(totals.approvals>0 ? ['projectApprovals'] : []),
   ...['signing','drafting'].filter(key=>totals[key]>0).flatMap(key=>['LegalDocument','DMA','JCT'].map(entity=>`${key}-${entity}`)),
+  ...(totals.warranties>0 ? ['due-Warranty'] : []),
   ...(data.insuranceTotal>0 ? ['insurance'] : [])
  ].filter(source=>filter==='all'||(!['risks','proposals','approvals','projectApprovals'].includes(source) && (source!=='decisions'||filter==='overdue') && (source!=='dates'||filter!=='overdue') && (!source.startsWith('signing-')||filter==='overdue'))).map(source=>({source,cursor:null}));
 }

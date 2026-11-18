@@ -6,8 +6,8 @@ export async function todayBriefing(base44, projectIds, user, fullPage=null) {
  if(fullPage)fullPage={...fullPage,cutoff};
  const roles=[...new Set([user.role,...(user.duty_roles || user.data?.duty_roles || [])])],documentFocused=roles.includes('bsm'),includeProjectDates=!documentFocused || roles.includes('bdm');
  const identities=[user.id,user.staff_aad_id,user.data?.staff_aad_id,user.dataverse_systemuser_id,user.data?.dataverse_systemuser_id,user.delegate_of,user.data?.delegate_of].filter(Boolean);
- if(roles.some(role=>['bsm','bdm'].includes(role)) && user.email) {const page=await db.Contact.filter({email:{$regex:`^${user.email.replace(/[.*+?^${}()|[\]\\]/g,'\\$&')}$`,$options:'i'}},{limit:1,fields:['aad_id']});if(page.items[0]?.aad_id)identities.push(page.items[0].aad_id);}
- if(fullPage && todayDocumentSources.some(source=>source.key===fullPage.source))return documentFocused ? todayDocumentBriefing(base44,[...new Set(identities)],day,new Date(now.getTime()+14*86400000).toISOString().slice(0,10),fullPage) : {items:[],nextCursor:null};
+ if(user.email) {const page=await db.Contact.filter({email:{$regex:`^${user.email.replace(/[.*+?^${}()|[\]\\]/g,'\\$&')}$`,$options:'i'}},{limit:20,fields:['aad_id']});for(const contact of page.items)if(contact.aad_id)identities.push(contact.aad_id);}
+ if(fullPage && todayDocumentSources.some(source=>source.key===fullPage.source))return todayDocumentBriefing(base44,[...new Set(identities)],day,new Date(now.getTime()+14*86400000).toISOString().slice(0,10),fullPage);
  const scope=user.role==='bsm' ? {bsm_aad_id:{$in:identities}} : user.role==='bdm' ? {$or:[{bdm_aad_id:{$in:identities}},{bsm_aad_id:{$in:identities}}]} : user.role==='regional_director' ? {department_id:user.region || user.data?.region || '__unassigned_region__'} : {};
  const projects=await db.Project.filter({id:{$in:projectIds},status:{$ne:'inactive'},...scope},{distinct:'id',limit:2000});
  if(projects.has_more)throw new Error('Portfolio exceeds the daily briefing limit.');
@@ -19,7 +19,7 @@ export async function todayBriefing(base44, projectIds, user, fullPage=null) {
  const dateFields=['riba1_end','riba2_end','riba3_end','riba4_end','practical_completion_date'];
  const soonDates=dateFields.map(field=>({[field]:{$gte:day,$lt:cutoff}}));
  const datesQuery={...selected,live_project:true,$or:filter==='soon'?soonDates:dateFields.map(field=>({[field]:{$gte:filter==='later'?cutoff:day,$lt:`${end}T23:59:59.999Z`}})),...(filter==='later'?{$nor:soonDates}:{})};
- const documents=!fullPage && documentFocused ? await todayDocumentBriefing(base44,[...new Set(identities)],day,end) : {items:[],totals:{drafting:0,signing:0}};
+ const documents=!fullPage ? await todayDocumentBriefing(base44,[...new Set(identities)],day,end) : {items:[],totals:{drafting:0,signing:0}};
  const options={limit:fullPage ? 20 : 3,...(fullPage?.cursor ? {cursor:fullPage.cursor} : {})};
  const empty={total:0,page:{items:[]}};
  const source=(key,load)=>!fullPage || fullPage.source===key ? load() : empty;
